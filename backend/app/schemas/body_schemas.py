@@ -10,7 +10,8 @@ class BodyScanRequest(BaseModel):
     age: Optional[int] = None
     ethnicity: Optional[str] = None
     height_cm: Optional[float] = None
-    target_bf_reduction: Optional[float] = Field(None, description="For transformation previews")
+    target_bf: Optional[float] = Field(None, description="Absolute target body fat % for transformation")
+    target_bf_reduction: Optional[float] = Field(None, description="Legacy: relative BF reduction")
     enhancement_level: Optional[str] = Field(None, description="subtle, natural, or studio")
 
 
@@ -39,7 +40,10 @@ class PercentileResponse(BaseModel):
 class TransformationResponse(BaseModel):
     original_image_url: str
     transformed_image_url: str
-    target_bf_reduction: float
+    current_bf: Optional[float] = None
+    target_bf: Optional[float] = None
+    direction: Optional[str] = None
+    muscle_gain_estimate: Optional[str] = None
     estimated_timeline_weeks: int
     recommendations: List[str]
     scan_id: str

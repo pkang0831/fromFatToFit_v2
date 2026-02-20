@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     grok_api_key: str
     gemini_api_key: str
     anthropic_api_key: str
+    replicate_api_key: str = ""
     
     # Stripe
     stripe_secret_key: str

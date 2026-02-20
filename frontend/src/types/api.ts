@@ -177,6 +177,7 @@ export interface BodyScanRequest {
   age?: number;
   ethnicity?: string;
   height_cm?: number;
+  target_bf?: number;
   target_bf_reduction?: number;
   enhancement_level?: 'subtle' | 'natural' | 'studio';
 }
@@ -204,7 +205,10 @@ export interface PercentileResponse {
 export interface TransformationResponse {
   original_image_url: string;
   transformed_image_url: string;
-  target_bf_reduction: number;
+  current_bf?: number;
+  target_bf?: number;
+  direction?: 'cutting' | 'bulking';
+  muscle_gain_estimate?: string;
   estimated_timeline_weeks: number;
   recommendations: string[];
   scan_id: string;

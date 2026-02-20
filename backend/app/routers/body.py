@@ -9,6 +9,7 @@ from ..schemas.body_schemas import (
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services import openai_service, grok_service, claude_service, gemini_body_service
+from ..services import replicate_service
 from ..services.body_analysis import calculate_percentile, estimate_transformation_timeline, generate_recommendations
 from ..services.usage_limiter import check_usage_limit, increment_usage
 from ..services.payment_service import check_premium_status
@@ -252,17 +253,21 @@ async def generate_transformation_preview(
     request: BodyScanRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Generate body transformation preview (Premium only)"""
+    """Generate body transformation preview using Replicate FLUX Kontext Pro (Premium only)"""
     try:
-        if not request.target_bf_reduction or not request.gender:
+        if not request.gender:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Target body fat reduction and gender required"
+                detail="Gender is required"
             )
-        
-        # This feature is premium only
+        if not request.target_bf:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Target body fat percentage is required"
+            )
+
         is_premium = await check_premium_status(current_user["id"])
-        
+
         try:
             usage_info = await check_usage_limit(current_user["id"], "transformation", is_premium)
         except Exception as usage_error:
@@ -270,8 +275,8 @@ async def generate_transformation_preview(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail="Transformation preview requires premium subscription"
             )
-        
-        # Try to estimate current body fat, but don't block transformation if it fails
+
+        # Step 1: estimate current body fat via AI vision
         current_bf = None
         bf_analysis = {}
         try:
@@ -282,51 +287,69 @@ async def generate_transformation_preview(
             )
             current_bf = bf_analysis["body_fat_percentage"]
         except Exception as bf_err:
-            logger.warning(f"Body fat estimation failed, proceeding with transformation anyway: {bf_err}")
-        
-        target_bf = (current_bf - request.target_bf_reduction) if current_bf else None
-        
-        # This is the core operation — generate the transformation image
-        transformed_image_url = await openai_service.generate_body_transformation(
-            request.image_base64,
-            request.target_bf_reduction,
-            gender=request.gender or "male"
+            logger.warning(f"Body fat estimation failed, using default: {bf_err}")
+
+        # Fall back to a sensible default so transformation can still proceed
+        estimated_bf = current_bf or (18.0 if request.gender == "male" else 25.0)
+        target_bf = request.target_bf
+
+        # Step 2: generate transformation image via Replicate
+        result_data = await replicate_service.generate_body_transformation(
+            image_base64=request.image_base64,
+            current_bf=estimated_bf,
+            target_bf=target_bf,
+            gender=request.gender,
         )
-        
-        timeline_weeks = estimate_transformation_timeline(current_bf or 20.0, target_bf or (20.0 - request.target_bf_reduction))
-        
-        recommendations = [
-            "Maintain calorie deficit of 300-500 kcal/day",
-            "Aim for 0.5-1% bodyweight loss per week",
-            "Increase protein intake to 0.8-1g per lb bodyweight",
-            "Combine resistance training with cardio",
-            "Track progress weekly with photos and measurements"
-        ]
-        
+
+        direction = result_data["direction"]
+        timeline_weeks = estimate_transformation_timeline(estimated_bf, target_bf)
+
+        if direction == "cutting":
+            recommendations = [
+                "Maintain calorie deficit of 300-500 kcal/day",
+                "Aim for 0.5-1% bodyweight loss per week",
+                "Increase protein intake to 0.8-1g per lb bodyweight",
+                "Combine resistance training with cardio",
+                "Track progress weekly with photos and measurements",
+            ]
+        else:
+            recommendations = [
+                "Maintain calorie surplus of 200-400 kcal/day",
+                "Aim for 0.25-0.5% bodyweight gain per week",
+                "Increase protein to 1-1.2g per lb bodyweight",
+                "Focus on progressive overload in resistance training",
+                "Track progress monthly with photos and strength benchmarks",
+            ]
+
         supabase = get_supabase()
         scan_data = {
             "user_id": current_user["id"],
             "scan_type": "transformation",
             "result_data": {
-                "current_bf": current_bf,
+                "current_bf": estimated_bf,
                 "target_bf": target_bf,
+                "direction": direction,
+                "muscle_gain_estimate": result_data["muscle_gain_estimate"],
                 "timeline_weeks": timeline_weeks,
             },
             "ai_analysis": bf_analysis,
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": datetime.utcnow().isoformat(),
         }
-        result = supabase.table("body_scans").insert(scan_data).execute()
-        scan_id = result.data[0]["id"] if result.data else None
-        
+        db_result = supabase.table("body_scans").insert(scan_data).execute()
+        scan_id = db_result.data[0]["id"] if db_result.data else None
+
         return TransformationResponse(
             original_image_url="",
-            transformed_image_url=transformed_image_url,
-            target_bf_reduction=request.target_bf_reduction,
+            transformed_image_url=result_data["transformed_image_url"],
+            current_bf=estimated_bf,
+            target_bf=target_bf,
+            direction=direction,
+            muscle_gain_estimate=result_data["muscle_gain_estimate"],
             estimated_timeline_weeks=timeline_weeks,
             recommendations=recommendations,
-            scan_id=scan_id
+            scan_id=scan_id,
         )
-        
+
     except HTTPException:
         raise
     except ValueError as e:

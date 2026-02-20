@@ -17,6 +17,9 @@ Pillow>=10.2.0
 # Payment processing
 stripe>=8.0.0
 
+# Replicate (FLUX Kontext Pro)
+replicate>=1.0.0
+
 # HTTP requests
 httpx>=0.24.0
 

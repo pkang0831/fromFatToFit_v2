@@ -208,7 +208,7 @@ export default function BodyScanPage() {
         age: formData.age ? Number(formData.age) : undefined,
         ethnicity: formData.ethnicity || undefined,
         height_cm: formData.height_cm ? Number(formData.height_cm) : undefined,
-        target_bf_reduction: formData.target_bf_reduction ? Number(formData.target_bf_reduction) : undefined,
+        target_bf: formData.target_bf ? Number(formData.target_bf) : undefined,
       };
 
       let response;
@@ -424,10 +424,21 @@ export default function BodyScanPage() {
             </Card>
           );
         }
+        const isCutting = transResult.direction === 'cutting';
+        const directionLabel = isCutting ? 'Cutting' : 'Bulking';
+        const directionColor = isCutting ? 'text-blue-600' : 'text-orange-600';
+        const directionBg = isCutting ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200';
         return (
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle>Transformation Preview</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Transformation Preview</CardTitle>
+                {transResult.direction && (
+                  <Badge variant={isCutting ? 'info' : 'warning'}>
+                    {isCutting ? 'Cutting' : 'Bulking'}
+                  </Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -448,22 +459,46 @@ export default function BodyScanPage() {
                   />
                 </div>
               </div>
-              <div className="space-y-3">
-                <div className="p-3 bg-surfaceAlt rounded-lg">
-                  <p className="text-sm text-text-secondary">Target BF Reduction</p>
-                  <p className="text-lg font-bold text-text">
-                    {transResult.target_bf_reduction || 0}%
-                  </p>
-                </div>
-                <div className="p-3 bg-surfaceAlt rounded-lg">
-                  <p className="text-sm text-text-secondary">Estimated Timeline</p>
-                  <p className="text-lg font-bold text-text">
-                    {transResult.estimated_timeline_weeks || 0} weeks
-                  </p>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                {transResult.current_bf != null && (
+                  <div className="p-3 bg-surfaceAlt rounded-lg text-center">
+                    <p className="text-xs text-text-secondary">현재 체지방</p>
+                    <p className="text-xl font-bold text-text">{transResult.current_bf.toFixed(1)}%</p>
+                  </div>
+                )}
+                {transResult.target_bf != null && (
+                  <div className="p-3 bg-surfaceAlt rounded-lg text-center">
+                    <p className="text-xs text-text-secondary">목표 체지방</p>
+                    <p className="text-xl font-bold text-primary">{transResult.target_bf.toFixed(1)}%</p>
+                  </div>
+                )}
+                {transResult.muscle_gain_estimate && (
+                  <div className="p-3 bg-surfaceAlt rounded-lg text-center">
+                    <p className="text-xs text-text-secondary">예상 근육 증가</p>
+                    <p className="text-xl font-bold text-text">+{transResult.muscle_gain_estimate}</p>
+                  </div>
+                )}
+                <div className="p-3 bg-surfaceAlt rounded-lg text-center">
+                  <p className="text-xs text-text-secondary">예상 소요기간</p>
+                  <p className="text-xl font-bold text-text">{transResult.estimated_timeline_weeks}주</p>
                 </div>
               </div>
+
+              {/* Direction Indicator */}
+              {transResult.direction && (
+                <div className={`p-3 rounded-lg border ${directionBg} mb-4`}>
+                  <p className={`text-sm font-semibold ${directionColor}`}>
+                    {isCutting
+                      ? '체지방 감량 + 근육 유지/증가 목표'
+                      : '근육량 증가 + 건강한 벌크업 목표'}
+                  </p>
+                </div>
+              )}
+
               {transResult.recommendations && transResult.recommendations.length > 0 && (
-                <div className="mt-4">
+                <div>
                   <h4 className="font-semibold text-text mb-2">Recommendations:</h4>
                   <ul className="space-y-1 text-sm text-text-secondary">
                     {transResult.recommendations.map((rec, i) => (
@@ -664,11 +699,13 @@ export default function BodyScanPage() {
 
                   {selectedType === 'transformation' && (
                     <Input
-                      name="target_bf_reduction"
-                      label="Target BF% Reduction"
+                      name="target_bf"
+                      label="목표 체지방률 (Target Body Fat %)"
                       type="number"
-                      step="0.1"
-                      placeholder="5.0"
+                      step="0.5"
+                      min="3"
+                      max="45"
+                      placeholder="12"
                       required
                     />
                   )}
