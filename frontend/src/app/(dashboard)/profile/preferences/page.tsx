@@ -1,0 +1,371 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Save, Plus, X } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Button } from '@/components/ui';
+import { foodDecisionApi } from '@/lib/api/services';
+
+interface UserPreferences {
+  favorite_foods: string[];
+  disliked_foods: string[];
+  allergies: string[];
+  dietary_restrictions: string[];
+  avoid_high_sodium: boolean;
+  avoid_high_sugar: boolean;
+  prefer_high_protein: boolean;
+}
+
+const DIETARY_RESTRICTIONS = [
+  { id: 'vegetarian', label: '채식주의' },
+  { id: 'vegan', label: '비건' },
+  { id: 'gluten_free', label: '글루텐 프리' },
+  { id: 'dairy_free', label: '유제품 프리' },
+  { id: 'halal', label: '할랄' },
+  { id: 'kosher', label: '코셔' },
+];
+
+const COMMON_ALLERGIES = [
+  '땅콩', '우유', '계란', '갑각류', '조개류', '생선', '밀', '대두', '견과류',
+];
+
+export default function FoodPreferencesPage() {
+  const router = useRouter();
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    favorite_foods: [],
+    disliked_foods: [],
+    allergies: [],
+    dietary_restrictions: [],
+    avoid_high_sodium: false,
+    avoid_high_sugar: false,
+    prefer_high_protein: false,
+  });
+  
+  const [newFavorite, setNewFavorite] = useState('');
+  const [newDisliked, setNewDisliked] = useState('');
+  const [newAllergy, setNewAllergy] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  const loadPreferences = async () => {
+    setIsLoading(true);
+    try {
+      const response = await foodDecisionApi.getPreferences();
+      setPreferences(response.data);
+    } catch (err: any) {
+      console.error('Error loading preferences:', err);
+      setError('Failed to load preferences');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+    
+    try {
+      await foodDecisionApi.updatePreferences(preferences);
+      setSuccessMessage('설정이 저장되었습니다!');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      console.error('Error saving preferences:', err);
+      setError('Failed to save preferences');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const addToList = (key: keyof UserPreferences, value: string) => {
+    if (!value.trim()) return;
+    
+    const currentList = preferences[key] as string[];
+    if (currentList.includes(value.trim())) return;
+    
+    setPreferences({
+      ...preferences,
+      [key]: [...currentList, value.trim()],
+    });
+    
+    // Clear input
+    if (key === 'favorite_foods') setNewFavorite('');
+    if (key === 'disliked_foods') setNewDisliked('');
+    if (key === 'allergies') setNewAllergy('');
+  };
+
+  const removeFromList = (key: keyof UserPreferences, value: string) => {
+    const currentList = preferences[key] as string[];
+    setPreferences({
+      ...preferences,
+      [key]: currentList.filter(item => item !== value),
+    });
+  };
+
+  const toggleDietaryRestriction = (restriction: string) => {
+    const current = preferences.dietary_restrictions;
+    if (current.includes(restriction)) {
+      setPreferences({
+        ...preferences,
+        dietary_restrictions: current.filter(r => r !== restriction),
+      });
+    } else {
+      setPreferences({
+        ...preferences,
+        dietary_restrictions: [...current, restriction],
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button variant="outline" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          뒤로
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold">음식 선호도 설정</h1>
+          <p className="text-gray-600 mt-1">AI 추천을 위한 맞춤 설정</p>
+        </div>
+        <Button onClick={handleSave} isLoading={isSaving}>
+          <Save className="h-4 w-4 mr-2" />
+          저장
+        </Button>
+      </div>
+
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+          {successMessage}
+        </div>
+      )}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+          {error}
+        </div>
+      )}
+
+      {/* Dietary Restrictions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>식단 제한</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {DIETARY_RESTRICTIONS.map(restriction => (
+              <button
+                key={restriction.id}
+                onClick={() => toggleDietaryRestriction(restriction.id)}
+                className={`px-4 py-2 rounded-full border-2 transition ${
+                  preferences.dietary_restrictions.includes(restriction.id)
+                    ? 'bg-blue-500 text-white border-blue-500'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                }`}
+              >
+                {restriction.label}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Allergies */}
+      <Card>
+        <CardHeader>
+          <CardTitle>알레르기</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newAllergy}
+              onChange={(e) => setNewAllergy(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addToList('allergies', newAllergy)}
+              placeholder="알레르기 추가..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <Button onClick={() => addToList('allergies', newAllergy)}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {COMMON_ALLERGIES.map(allergy => (
+              <button
+                key={allergy}
+                onClick={() => addToList('allergies', allergy)}
+                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full"
+              >
+                + {allergy}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {preferences.allergies.map(allergy => (
+              <div
+                key={allergy}
+                className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-800 rounded-lg"
+              >
+                <span>{allergy}</span>
+                <button
+                  onClick={() => removeFromList('allergies', allergy)}
+                  className="hover:bg-red-200 rounded-full p-1"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Favorite Foods */}
+      <Card>
+        <CardHeader>
+          <CardTitle>좋아하는 음식</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newFavorite}
+              onChange={(e) => setNewFavorite(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addToList('favorite_foods', newFavorite)}
+              placeholder="좋아하는 음식 추가..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <Button onClick={() => addToList('favorite_foods', newFavorite)}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {preferences.favorite_foods.map(food => (
+              <div
+                key={food}
+                className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg"
+              >
+                <span>{food}</span>
+                <button
+                  onClick={() => removeFromList('favorite_foods', food)}
+                  className="hover:bg-green-200 rounded-full p-1"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Disliked Foods */}
+      <Card>
+        <CardHeader>
+          <CardTitle>싫어하는 음식</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newDisliked}
+              onChange={(e) => setNewDisliked(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addToList('disliked_foods', newDisliked)}
+              placeholder="싫어하는 음식 추가..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <Button onClick={() => addToList('disliked_foods', newDisliked)}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {preferences.disliked_foods.map(food => (
+              <div
+                key={food}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-800 rounded-lg"
+              >
+                <span>{food}</span>
+                <button
+                  onClick={() => removeFromList('disliked_foods', food)}
+                  className="hover:bg-gray-200 rounded-full p-1"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Nutritional Preferences */}
+      <Card>
+        <CardHeader>
+          <CardTitle>영양 선호도</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={preferences.prefer_high_protein}
+              onChange={(e) =>
+                setPreferences({ ...preferences, prefer_high_protein: e.target.checked })
+              }
+              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <div>
+              <div className="font-semibold">고단백 음식 선호</div>
+              <div className="text-sm text-gray-600">단백질 함량이 높은 음식을 우선 추천합니다</div>
+            </div>
+          </label>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={preferences.avoid_high_sodium}
+              onChange={(e) =>
+                setPreferences({ ...preferences, avoid_high_sodium: e.target.checked })
+              }
+              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <div>
+              <div className="font-semibold">나트륨 함량 높은 음식 피하기</div>
+              <div className="text-sm text-gray-600">나트륨이 800mg 이상인 음식에 대해 경고합니다</div>
+            </div>
+          </label>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={preferences.avoid_high_sugar}
+              onChange={(e) =>
+                setPreferences({ ...preferences, avoid_high_sugar: e.target.checked })
+              }
+              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <div>
+              <div className="font-semibold">당 함량 높은 음식 피하기</div>
+              <div className="text-sm text-gray-600">당이 25g 이상인 음식에 대해 경고합니다</div>
+            </div>
+          </label>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

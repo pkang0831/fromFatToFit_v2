@@ -1,0 +1,91 @@
+'use client';
+
+import { useState, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button, Input, Card, CardContent } from '@/components/ui';
+
+export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      await login({ email, password });
+      // Use window.location to ensure cookies are sent with the next request
+      window.location.href = '/home';
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-primary mb-2">Health & Wellness</h1>
+          <p className="text-text-secondary">Sign in to your account</p>
+        </div>
+
+        <Card variant="elevated">
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <Input
+                type="email"
+                name="email"
+                label="Email"
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+              />
+
+              <Input
+                type="password"
+                name="password"
+                label="Password"
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
+              />
+
+              {error && (
+                <div className="p-3 bg-error/10 border border-error rounded-lg">
+                  <p className="text-sm text-error">{error}</p>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={isLoading}
+                className="w-full"
+              >
+                Sign In
+              </Button>
+
+              <div className="text-center text-sm">
+                <span className="text-text-secondary">Don't have an account? </span>
+                <Link href="/register" className="text-primary hover:text-primary-dark font-medium">
+                  Create one
+                </Link>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
