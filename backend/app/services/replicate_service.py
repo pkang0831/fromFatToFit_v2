@@ -1,11 +1,17 @@
 """
 Body transformation service using Replicate's FLUX Kontext Pro model.
 Generates identity-preserving body transformations based on target body fat %.
+
+Uses curl subprocess for API calls to reliably work through corporate
+proxies that interfere with Python HTTP libraries (httpx/requests).
 """
 
+import asyncio
 import base64
+import json
 import logging
-import httpx
+import subprocess
+import tempfile
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -65,6 +71,44 @@ def _build_prompt(current_bf: float, target_bf: float, gender: str) -> str:
     )
 
 
+def _curl_json(method: str, url: str, api_key: str, json_body: dict | None = None) -> dict:
+    """Make an API call via curl subprocess (reliable through corporate proxies)."""
+    cmd = [
+        "curl", "-sk",
+        "-X", method,
+        url,
+        "-H", f"Authorization: Bearer {api_key}",
+        "-H", "Content-Type: application/json",
+    ]
+
+    tmp_file = None
+    if json_body is not None:
+        tmp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
+        json.dump(json_body, tmp_file)
+        tmp_file.close()
+        cmd.extend(["-d", f"@{tmp_file.name}"])
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if result.returncode != 0:
+            raise RuntimeError(f"curl failed (exit {result.returncode}): {result.stderr[:300]}")
+        return json.loads(result.stdout)
+    finally:
+        if tmp_file is not None:
+            import os
+            os.unlink(tmp_file.name)
+
+
+def _curl_download(url: str, dest_path: str) -> None:
+    """Download a file via curl."""
+    result = subprocess.run(
+        ["curl", "-sk", "-o", dest_path, url],
+        capture_output=True, timeout=60,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"curl download failed: {result.stderr[:200]}")
+
+
 async def generate_body_transformation(
     image_base64: str,
     current_bf: float,
@@ -100,69 +144,62 @@ async def generate_body_transformation(
 
     data_uri = f"data:image/jpeg;base64,{image_base64}"
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        # Create prediction
-        create_resp = await client.post(
-            "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "Prefer": "wait=90",
-            },
-            json={
-                "input": {
-                    "prompt": prompt,
-                    "input_image": data_uri,
-                    "aspect_ratio": "match_input_image",
-                    "output_format": "png",
-                    "safety_tolerance": 2,
-                },
-            },
-        )
+    payload = {
+        "input": {
+            "prompt": prompt,
+            "input_image": data_uri,
+            "aspect_ratio": "match_input_image",
+            "output_format": "png",
+            "safety_tolerance": 2,
+        },
+    }
 
-        if create_resp.status_code not in (200, 201):
-            body = create_resp.text
-            logger.error(f"Replicate create prediction failed ({create_resp.status_code}): {body}")
-            raise RuntimeError(f"Replicate API error: {create_resp.status_code}")
+    loop = asyncio.get_event_loop()
 
-        prediction = create_resp.json()
-        pred_status = prediction.get("status")
-        output = prediction.get("output")
+    # Step 1: create prediction
+    create_url = "https://api.replicate.com/v1/models/black-forest-labs/flux-kontext-pro/predictions"
+    pred = await loop.run_in_executor(None, _curl_json, "POST", create_url, api_key, payload)
 
-        # If the "Prefer: wait" header resolved it synchronously, output is already here
-        if pred_status == "succeeded" and output:
+    pred_status = pred.get("status")
+    pred_id = pred.get("id")
+
+    if pred_status == "failed":
+        raise RuntimeError(f"Prediction failed: {pred.get('error')}")
+
+    logger.info(f"Prediction created: {pred_id}, status={pred_status}")
+
+    # Step 2: poll until done
+    poll_url = pred.get("urls", {}).get("get", f"https://api.replicate.com/v1/predictions/{pred_id}")
+    image_url = None
+
+    for _ in range(90):
+        await asyncio.sleep(2)
+        poll_data = await loop.run_in_executor(None, _curl_json, "GET", poll_url, api_key, None)
+        pred_status = poll_data.get("status")
+
+        if pred_status == "succeeded":
+            output = poll_data.get("output")
             image_url = output if isinstance(output, str) else output[0] if isinstance(output, list) else None
-        else:
-            # Poll until done
-            poll_url = prediction.get("urls", {}).get("get") or f"https://api.replicate.com/v1/predictions/{prediction['id']}"
-            for _ in range(60):
-                import asyncio
-                await asyncio.sleep(2)
-                poll_resp = await client.get(
-                    poll_url,
-                    headers={"Authorization": f"Bearer {api_key}"},
-                )
-                poll_data = poll_resp.json()
-                pred_status = poll_data.get("status")
+            metrics = poll_data.get("metrics", {})
+            logger.info(f"Prediction succeeded: {json.dumps(metrics)}")
+            break
+        elif pred_status in ("failed", "canceled"):
+            raise RuntimeError(f"Prediction {pred_status}: {poll_data.get('error')}")
 
-                if pred_status == "succeeded":
-                    output = poll_data.get("output")
-                    image_url = output if isinstance(output, str) else output[0] if isinstance(output, list) else None
-                    break
-                elif pred_status in ("failed", "canceled"):
-                    err = poll_data.get("error", "Unknown error")
-                    logger.error(f"Replicate prediction failed: {err}")
-                    raise RuntimeError(f"Image generation failed: {err}")
-            else:
-                raise RuntimeError("Replicate prediction timed out after 120s")
+    if not image_url:
+        raise RuntimeError("Prediction timed out after 180s")
 
-        if not image_url:
-            raise RuntimeError("No output image URL from Replicate")
+    # Step 3: download result and convert to base64
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+        tmp_path = tmp.name
 
-        # Download the result image and convert to base64
-        img_resp = await client.get(image_url)
-        img_resp.raise_for_status()
-        result_b64 = base64.b64encode(img_resp.content).decode("utf-8")
+    try:
+        await loop.run_in_executor(None, _curl_download, image_url, tmp_path)
+        with open(tmp_path, "rb") as f:
+            result_b64 = base64.b64encode(f.read()).decode("utf-8")
+    finally:
+        import os
+        os.unlink(tmp_path)
 
     return {
         "transformed_image_url": f"data:image/png;base64,{result_b64}",
