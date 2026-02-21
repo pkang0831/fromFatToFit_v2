@@ -29,7 +29,7 @@ async def get_exercise_library(
         query = supabase.table("exercise_library").select("*")
         
         if category:
-            query = query.eq("category", category)
+            query = query.ilike("category", category)
         
         result = query.order("name").execute()
         

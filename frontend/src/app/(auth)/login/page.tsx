@@ -1,16 +1,23 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button, Input, Card, CardContent } from '@/components/ui';
+import { SocialLoginButtons } from '@/components/features/SocialLoginButtons';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (window.location.search) {
+      window.history.replaceState({}, '', '/login');
+    }
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,7 +48,7 @@ export default function LoginPage() {
 
         <Card variant="elevated">
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form method="post" action="" onSubmit={handleSubmit} className="space-y-6">
               <Input
                 type="email"
                 name="email"
@@ -83,6 +90,8 @@ export default function LoginPage() {
                 </Link>
               </div>
             </form>
+
+            <SocialLoginButtons />
           </CardContent>
         </Card>
       </div>

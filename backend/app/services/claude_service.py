@@ -46,7 +46,7 @@ Return ONLY a valid JSON object (no markdown, no code blocks):
 
 Response:"""
 
-        # Claude API는 동기 호출만 지원
+        # Claude API only supports synchronous calls
         response = claude_client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=500,
@@ -72,7 +72,7 @@ Response:"""
             ]
         )
         
-        # Claude의 응답 추출
+        # Extract Claude's response
         content = response.content[0].text
         logger.info(f"Claude body fat response: {content}")
         

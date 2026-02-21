@@ -246,11 +246,11 @@ Be encouraging, specific, and mention nutritional benefits. Keep it under 40 wor
             # Fallback to simple reason
             nutrition = food['nutrition_per_100g']
             if nutrition['protein'] > 20:
-                return f"단백질이 풍부한 선택입니다 ({int(nutrition['protein'])}g)"
+                return f"High-protein choice ({int(nutrition['protein'])}g)"
             elif nutrition['calories'] < 150:
-                return f"저칼로리 옵션입니다 ({int(nutrition['calories'])}kcal)"
+                return f"Low-calorie option ({int(nutrition['calories'])}kcal)"
             else:
-                return "균형잡힌 영양을 제공합니다"
+                return "Provides balanced nutrition"
     
     async def _generate_overall_strategy(
         self,
@@ -279,7 +279,7 @@ Focus on positive encouragement and the benefits of these choices. Keep it under
             
         except Exception as e:
             logger.error(f"Error generating overall strategy: {e}")
-            return f"남은 {int(remaining['calories'])}kcal를 현명하게 사용하세요! 위의 추천 음식들은 영양 균형을 맞추는데 도움이 될 거예요."
+            return f"Use your remaining {int(remaining['calories'])}kcal wisely! The recommended foods above will help you balance your nutrition."
     
     async def _get_daily_stats(self, user_id: str, target_date: date) -> dict:
         """Get user's daily nutrition stats"""

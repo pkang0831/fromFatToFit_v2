@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button, Input, Card, CardContent, Select } from '@/components/ui';
+import { SocialLoginButtons } from '@/components/features/SocialLoginButtons';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -165,6 +166,8 @@ export default function RegisterPage() {
                 </Link>
               </div>
             </form>
+
+            <SocialLoginButtons />
           </CardContent>
         </Card>
       </div>

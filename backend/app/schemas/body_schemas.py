@@ -37,6 +37,13 @@ class PercentileResponse(BaseModel):
     usage_remaining: int
 
 
+class ProgressFrame(BaseModel):
+    date: str
+    week: int
+    bf_pct: float
+    image_b64: str
+
+
 class TransformationResponse(BaseModel):
     original_image_url: str
     transformed_image_url: str
@@ -46,6 +53,7 @@ class TransformationResponse(BaseModel):
     muscle_gain_estimate: Optional[str] = None
     estimated_timeline_weeks: int
     recommendations: List[str]
+    progress_frames: Optional[List[ProgressFrame]] = None
     scan_id: str
 
 

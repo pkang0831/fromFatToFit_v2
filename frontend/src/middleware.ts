@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value;
   const pathname = request.nextUrl.pathname;
   
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/auth/callback');
   const isDashboardPage = pathname.startsWith('/home') ||
                         pathname.startsWith('/calories') ||
                         pathname.startsWith('/food-camera') ||

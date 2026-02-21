@@ -28,7 +28,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
     e.preventDefault();
     
     if (!formData.target_weight_kg && !formData.target_body_fat_percentage) {
-      setError('최소 하나의 목표를 설정해주세요');
+      setError('Please set at least one goal');
       return;
     }
 
@@ -39,7 +39,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
       onSuccess?.();
     } catch (err: any) {
       console.error('Error updating goals:', err);
-      setError(err.response?.data?.detail || '목표 설정에 실패했습니다');
+      setError(err.response?.data?.detail || 'Failed to set goal');
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          목표 체중 (kg)
+          Target Weight (kg)
         </label>
         <input
           type="number"
@@ -63,13 +63,13 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
           placeholder="65.0"
         />
         <p className="text-xs text-gray-500 mt-1">
-          목표 체중을 입력하세요 (예: 65kg)
+          Enter your target weight (e.g., 65kg)
         </p>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          목표 체지방률 (%) - 선택사항
+          Target Body Fat % (optional)
         </label>
         <input
           type="number"
@@ -83,7 +83,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
           placeholder="12.0"
         />
         <p className="text-xs text-gray-500 mt-1">
-          목표 체지방률을 입력하세요 (예: 12%)
+          Enter your target body fat % (e.g., 12%)
         </p>
       </div>
 
@@ -101,7 +101,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             disabled={loading}
           >
-            취소
+            Cancel
           </button>
         )}
         <button
@@ -109,7 +109,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
           className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
           disabled={loading}
         >
-          {loading ? '저장 중...' : '목표 설정'}
+          {loading ? 'Saving...' : 'Set Goal'}
         </button>
       </div>
     </form>

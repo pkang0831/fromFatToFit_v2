@@ -8,7 +8,7 @@ from ..config import settings
 
 logger = logging.getLogger(__name__)
 
-# Grok API는 OpenAI SDK와 호환됨
+# Grok API is compatible with OpenAI SDK
 grok_client = OpenAI(
     api_key=settings.grok_api_key,
     base_url="https://api.x.ai/v1"

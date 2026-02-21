@@ -159,7 +159,7 @@ export default function WorkoutsPage() {
   };
 
   const deleteWorkout = async (logId: string, exerciseName: string) => {
-    if (!confirm(`"${exerciseName}" 운동 기록을 삭제하시겠습니까?`)) {
+    if (!confirm(`Delete "${exerciseName}" workout log?`)) {
       return;
     }
 
@@ -168,7 +168,7 @@ export default function WorkoutsPage() {
       await loadData();
     } catch (error) {
       console.error('Failed to delete workout:', error);
-      alert('운동 기록 삭제에 실패했습니다.');
+      alert('Failed to delete workout log.');
     }
   };
 
@@ -310,14 +310,14 @@ export default function WorkoutsPage() {
             <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
               <Dumbbell className="h-20 w-20 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                아직 오늘의 운동 기록이 없어요
+                No workouts logged today
               </h3>
               <p className="text-gray-500 mb-6">
-                첫 운동을 기록하고 건강한 습관을 시작해보세요!
+                Start logging your workouts to build healthy habits!
               </p>
               <Button size="lg" onClick={handleQuickSelect}>
                 <Plus className="h-5 w-5 mr-2" />
-                첫 운동 기록하기
+                Log Your First Workout
               </Button>
             </div>
           ) : (
@@ -332,7 +332,7 @@ export default function WorkoutsPage() {
                     <button
                       onClick={() => deleteWorkout(log.id, log.exercise_name)}
                       className="p-2 hover:bg-red-50 rounded-lg transition-colors"
-                      title="운동 기록 삭제"
+                      title="Delete workout log"
                     >
                       <Trash2 className="h-5 w-5 text-red-500 hover:text-red-700" />
                     </button>
@@ -355,7 +355,7 @@ export default function WorkoutsPage() {
                     <div className="flex items-center gap-2 mt-3 p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border-2 border-orange-200">
                       <Flame className="h-5 w-5 text-orange-500" />
                       <span className="text-lg font-bold text-orange-600">
-                        {Math.round(log.calories_burned)} kcal 소모
+                        {Math.round(log.calories_burned)} kcal burned
                       </span>
                     </div>
                   )}
@@ -372,7 +372,7 @@ export default function WorkoutsPage() {
       {/* Exercise Library with Tabs */}
       <Card id="exercise-library">
         <CardHeader>
-          <CardTitle>운동 라이브러리</CardTitle>
+          <CardTitle>Exercise Library</CardTitle>
           <div className="flex gap-2 mt-4 border-b-2 border-gray-200">
             <button
               onClick={() => setActiveLibraryTab('all')}
@@ -382,7 +382,7 @@ export default function WorkoutsPage() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              전체 ({exercises.length})
+              All ({exercises.length})
               {activeLibraryTab === 'all' && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
               )}
@@ -395,7 +395,7 @@ export default function WorkoutsPage() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              🏃 유산소 ({cardioExercises.length})
+              🏃 Cardio ({cardioExercises.length})
               {activeLibraryTab === 'cardio' && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-t-full" />
               )}
@@ -408,7 +408,7 @@ export default function WorkoutsPage() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              💪 무산소 ({strengthExercises.length})
+              💪 Strength ({strengthExercises.length})
               {activeLibraryTab === 'strength' && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 rounded-t-full" />
               )}
@@ -450,7 +450,7 @@ export default function WorkoutsPage() {
                         variant={isCardio ? 'info' : 'warning'} 
                         className="text-xs"
                       >
-                        {isCardio ? '🏃 유산소' : '💪 무산소'}
+                        {isCardio ? '🏃 Cardio' : '💪 Strength'}
                       </Badge>
                       {(exercise as any).met_value && (
                         <span className="text-xs text-gray-600 font-medium">
@@ -527,14 +527,14 @@ export default function WorkoutsPage() {
           setSelectedCategory('all');
           setSearchQuery('');
         }}
-        title="운동 선택"
+        title="Select Exercise"
         size="lg"
       >
         <div className="space-y-4">
           {/* Search Bar */}
           <Input
             type="text"
-            placeholder="운동 검색..."
+            placeholder="Search exercises..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full"
@@ -550,7 +550,7 @@ export default function WorkoutsPage() {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              전체 ({exercises.length})
+              All ({exercises.length})
             </button>
             <button
               onClick={() => setSelectedCategory('cardio')}
@@ -560,7 +560,7 @@ export default function WorkoutsPage() {
                   : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
               }`}
             >
-              🏃 유산소 ({cardioExercises.length})
+              🏃 Cardio ({cardioExercises.length})
             </button>
             <button
               onClick={() => setSelectedCategory('strength')}
@@ -570,14 +570,14 @@ export default function WorkoutsPage() {
                   : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
               }`}
             >
-              💪 무산소 ({strengthExercises.length})
+              💪 Strength ({strengthExercises.length})
             </button>
           </div>
 
           {/* Exercise List */}
           <div className="max-h-96 overflow-y-auto space-y-2">
             {filteredExercises.length === 0 ? (
-              <p className="text-center text-text-secondary py-8">검색 결과가 없습니다</p>
+              <p className="text-center text-text-secondary py-8">No results found</p>
             ) : (
               filteredExercises.map((exercise) => {
                 const isCardio = (exercise as any).exercise_type === 'cardio';
@@ -599,7 +599,7 @@ export default function WorkoutsPage() {
                             variant={isCardio ? 'info' : 'warning'} 
                             className="text-xs"
                           >
-                            {isCardio ? '🏃 유산소' : '💪 무산소'}
+                            {isCardio ? '🏃 Cardio' : '💪 Strength'}
                           </Badge>
                           {(exercise as any).met_value && (
                             <span className="text-xs text-gray-600 font-medium">
@@ -685,7 +685,7 @@ export default function WorkoutsPage() {
         <Modal
           isOpen={showLogForm}
           onClose={() => setShowLogForm(false)}
-          title={`${selectedExercise.name} 기록하기`}
+          title={`Log Workout: ${selectedExercise.name}`}
           size="lg"
         >
           <div className="space-y-6">
@@ -695,11 +695,11 @@ export default function WorkoutsPage() {
                 variant={(selectedExercise as any).exercise_type === 'cardio' ? 'info' : 'warning'}
                 className="text-base px-4 py-2"
               >
-                {(selectedExercise as any).exercise_type === 'cardio' ? '🏃 유산소 운동' : '💪 무산소 운동'}
+                {(selectedExercise as any).exercise_type === 'cardio' ? '🏃 Cardio Exercise' : '💪 Strength Exercise'}
               </Badge>
               {(selectedExercise as any).met_value && (
                 <span className="text-sm text-gray-600">
-                  칼로리 소모: MET {(selectedExercise as any).met_value}
+                  Calories burned: MET {(selectedExercise as any).met_value}
                 </span>
               )}
             </div>
@@ -708,18 +708,18 @@ export default function WorkoutsPage() {
             {(selectedExercise as any).exercise_type === 'cardio' ? (
               <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
                 <h4 className="font-semibold text-text mb-2 flex items-center gap-2">
-                  ⏱️ 운동 시간 (필수)
+                  ⏱️ Duration (required)
                 </h4>
                 <Input
                   type="number"
-                  placeholder="분 (예: 30)"
+                  placeholder="minutes (e.g., 30)"
                   value={duration || ''}
                   onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
                   className="text-lg"
                 />
                 {duration > 0 && (selectedExercise as any).met_value && (
                   <p className="text-sm text-blue-700 mt-2">
-                    💡 예상 칼로리 소모: 약 {Math.round((selectedExercise as any).met_value * 70 * (duration / 60))} kcal (70kg 기준)
+                    💡 Est. calories burned: ~ {Math.round((selectedExercise as any).met_value * 70 * (duration / 60))} kcal (based on 70kg)
                   </p>
                 )}
               </div>
@@ -727,7 +727,7 @@ export default function WorkoutsPage() {
               <>
                 {/* Sets (for Strength) */}
                 <div>
-                  <h4 className="font-semibold text-text mb-3">세트</h4>
+                  <h4 className="font-semibold text-text mb-3">Sets</h4>
               <div className="space-y-3">
                 {sets.map((set, index) => (
                   <div key={index} className="flex items-center gap-3">
@@ -763,21 +763,21 @@ export default function WorkoutsPage() {
               </div>
               <Button variant="outline" size="sm" onClick={addSet} className="mt-3">
                 <Plus className="h-4 w-4 mr-1" />
-                세트 추가
+                Add Set
               </Button>
             </div>
 
             {/* Duration (optional for strength) */}
             <div>
-              <h4 className="font-semibold text-text mb-2">운동 시간 (선택)</h4>
+              <h4 className="font-semibold text-text mb-2">Duration (optional)</h4>
               <Input
                 type="number"
-                placeholder="분 (선택사항)"
+                placeholder="minutes (optional)"
                 value={duration || ''}
                 onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
               />
               <p className="text-xs text-gray-500 mt-1">
-                입력하지 않으면 자동으로 추정됩니다
+                Will be auto-estimated if left blank
               </p>
             </div>
             </>
@@ -785,11 +785,11 @@ export default function WorkoutsPage() {
 
             {/* Notes */}
             <div>
-              <h4 className="font-semibold text-text mb-2">메모 (선택)</h4>
+              <h4 className="font-semibold text-text mb-2">Notes (optional)</h4>
               <textarea
                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 rows={3}
-                placeholder="운동에 대한 메모를 남겨보세요..."
+                placeholder="Add notes about your workout..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -803,7 +803,7 @@ export default function WorkoutsPage() {
                 onClick={() => setShowLogForm(false)}
                 disabled={isSubmitting}
               >
-                취소
+                Cancel
               </Button>
               <Button
                 variant="primary"
@@ -811,7 +811,7 @@ export default function WorkoutsPage() {
                 onClick={submitWorkout}
                 isLoading={isSubmitting}
               >
-                운동 저장
+                Save Workout
               </Button>
             </div>
           </div>

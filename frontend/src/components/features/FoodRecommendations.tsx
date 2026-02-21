@@ -36,11 +36,11 @@ interface Props {
   onSelectFood: (foodId: string) => void;
 }
 
-const MEAL_TYPE_KOREAN = {
-  breakfast: '아침',
-  lunch: '점심',
-  dinner: '저녁',
-  snack: '간식',
+const MEAL_TYPE_LABELS = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  snack: 'Snack',
 };
 
 export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
@@ -51,7 +51,7 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-600" />
-            남은 하루 식단
+            Remaining Daily Nutrition
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -66,19 +66,19 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
               <div className="text-3xl font-bold text-green-600">
                 {recommendations.remaining.protein.toFixed(0)}g
               </div>
-              <div className="text-sm text-gray-600 mt-1">단백질</div>
+              <div className="text-sm text-gray-600 mt-1">Protein</div>
             </div>
             <div className="text-center bg-white/70 p-4 rounded-lg">
               <div className="text-3xl font-bold text-orange-600">
                 {recommendations.remaining.carbs.toFixed(0)}g
               </div>
-              <div className="text-sm text-gray-600 mt-1">탄수화물</div>
+              <div className="text-sm text-gray-600 mt-1">Carbs</div>
             </div>
             <div className="text-center bg-white/70 p-4 rounded-lg">
               <div className="text-3xl font-bold text-purple-600">
                 {recommendations.remaining.fat.toFixed(0)}g
               </div>
-              <div className="text-sm text-gray-600 mt-1">지방</div>
+              <div className="text-sm text-gray-600 mt-1">Fat</div>
             </div>
           </div>
         </CardContent>
@@ -89,7 +89,7 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-purple-600" />
-            오늘의 전략
+            Today's Strategy
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -100,7 +100,7 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
       {/* Recommendations */}
       <div>
         <h3 className="text-2xl font-bold mb-4">
-          {MEAL_TYPE_KOREAN[recommendations.meal_type as keyof typeof MEAL_TYPE_KOREAN] || recommendations.meal_type} 추천
+          {MEAL_TYPE_LABELS[recommendations.meal_type as keyof typeof MEAL_TYPE_LABELS] || recommendations.meal_type} Picks
         </h3>
         <div className="space-y-4">
           {recommendations.recommendations.map((food, idx) => (
@@ -131,19 +131,19 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
                     {/* Nutrition Info */}
                     <div className="flex flex-wrap gap-4 mb-3 text-sm">
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">칼로리:</span>
+                        <span className="text-gray-600">Calories:</span>
                         <span className="font-semibold">{food.calories.toFixed(0)} kcal</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">단백질:</span>
+                        <span className="text-gray-600">Protein:</span>
                         <span className="font-semibold">{food.protein.toFixed(1)}g</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">탄수화물:</span>
+                        <span className="text-gray-600">Carbs:</span>
                         <span className="font-semibold">{food.carbs.toFixed(1)}g</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">지방:</span>
+                        <span className="text-gray-600">Fat:</span>
                         <span className="font-semibold">{food.fat.toFixed(1)}g</span>
                       </div>
                     </div>
@@ -151,7 +151,7 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
                     {/* AI Reason */}
                     <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mb-3">
                       <p className="text-sm text-gray-800 leading-relaxed">
-                        <span className="font-semibold text-blue-700">💡 추천 이유:</span> {food.reason}
+                        <span className="font-semibold text-blue-700">💡 Why:</span> {food.reason}
                       </p>
                     </div>
                     
@@ -166,7 +166,7 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
                         </div>
                       </div>
                       <span className="text-sm font-semibold text-gray-700 min-w-[60px]">
-                        {food.match_score.toFixed(0)}% 적합
+                        {food.match_score.toFixed(0)}% match
                       </span>
                     </div>
                   </div>
@@ -177,7 +177,7 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
                     className="ml-4 h-auto py-3 px-6"
                     size="lg"
                   >
-                    선택
+                    Select
                   </Button>
                 </div>
               </CardContent>
@@ -191,10 +191,10 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
         <Card>
           <CardContent className="p-12 text-center">
             <p className="text-gray-600 text-lg">
-              현재 조건에 맞는 추천 음식이 없습니다.
+              No food recommendations match your current criteria.
             </p>
             <p className="text-gray-500 text-sm mt-2">
-              설정을 조정하거나 다른 시간대를 선택해보세요.
+              Try adjusting settings or selecting a different meal time.
             </p>
           </CardContent>
         </Card>

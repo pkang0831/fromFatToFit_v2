@@ -59,15 +59,15 @@ export function CalorieBalanceChart({ days }: Props) {
         <p className="font-bold text-gray-900 mb-3">{formatDate(data.date)}</p>
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-orange-600">🍽️ 섭취:</span>
+            <span className="text-orange-600">🍽️ Intake:</span>
             <span className="font-semibold">{Math.round(data.consumed)} kcal</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-blue-600">🔥 소비:</span>
+            <span className="text-blue-600">🔥 Burned:</span>
             <span className="font-semibold">{Math.round(data.burned)} kcal</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-gray-700">📊 순칼로리:</span>
+            <span className="text-gray-700">📊 Net Cal:</span>
             <span className="font-semibold">{Math.round(data.net)} kcal</span>
           </div>
           <div className="border-t pt-2 mt-2">
@@ -96,7 +96,7 @@ export function CalorieBalanceChart({ days }: Props) {
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-12 text-gray-500">
-        <p>데이터가 없습니다</p>
+        <p>No data available</p>
       </div>
     );
   }
@@ -136,9 +136,9 @@ export function CalorieBalanceChart({ days }: Props) {
           <Legend 
             wrapperStyle={{ fontSize: '14px', paddingTop: '10px' }}
             formatter={(value) => {
-              if (value === 'consumed') return '🍽️ 섭취';
-              if (value === 'burned') return '🔥 소비';
-              if (value === 'net') return '📊 순칼로리';
+              if (value === 'consumed') return '🍽️ Intake';
+              if (value === 'burned') return '🔥 Burned';
+              if (value === 'net') return '📊 Net Cal';
               return value;
             }}
           />
@@ -148,7 +148,7 @@ export function CalorieBalanceChart({ days }: Props) {
             y={avgGoal} 
             stroke="#9CA3AF" 
             strokeDasharray="5 5"
-            label={{ value: `목표: ${avgGoal}`, position: 'right', fill: '#6B7280' }}
+            label={{ value: `Goal: ${avgGoal}`, position: 'right', fill: '#6B7280' }}
           />
           
           {/* Areas */}
@@ -184,7 +184,7 @@ export function CalorieBalanceChart({ days }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
             <CardContent className="p-4 text-center">
-              <div className="text-sm text-orange-700 mb-1">평균 섭취</div>
+              <div className="text-sm text-orange-700 mb-1">Avg Intake</div>
               <div className="text-3xl font-bold text-orange-600">
                 {Math.round(summary.avg_consumed)}
               </div>
@@ -194,7 +194,7 @@ export function CalorieBalanceChart({ days }: Props) {
 
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
             <CardContent className="p-4 text-center">
-              <div className="text-sm text-blue-700 mb-1">평균 소비</div>
+              <div className="text-sm text-blue-700 mb-1">Avg Burned</div>
               <div className="text-3xl font-bold text-blue-600">
                 {Math.round(summary.avg_burned)}
               </div>
@@ -209,7 +209,7 @@ export function CalorieBalanceChart({ days }: Props) {
           }`}>
             <CardContent className="p-4 text-center">
               <div className={`text-sm mb-1 ${summary.avg_deficit > 0 ? 'text-green-700' : 'text-red-700'}`}>
-                평균 Deficit
+                Avg Deficit
               </div>
               <div className={`text-3xl font-bold ${summary.avg_deficit > 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {summary.avg_deficit > 0 ? '+' : ''}{Math.round(summary.avg_deficit)}

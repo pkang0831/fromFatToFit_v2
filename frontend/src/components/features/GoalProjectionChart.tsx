@@ -130,69 +130,69 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-          <p className="text-sm text-blue-600 font-medium mb-1">현재 체중</p>
+          <p className="text-sm text-blue-600 font-medium mb-1">Current Weight</p>
           <p className="text-2xl font-bold text-blue-700">
             {projection.current_weight} kg
           </p>
           {projection.moving_avg_weight && (
             <p className="text-xs text-blue-500 mt-1">
-              3일 평균: {projection.moving_avg_weight} kg
+              3-Day Avg: {projection.moving_avg_weight} kg
             </p>
           )}
         </div>
 
         <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4">
-          <p className="text-sm text-emerald-600 font-medium mb-1">목표 체중</p>
+          <p className="text-sm text-emerald-600 font-medium mb-1">Target Weight</p>
           <p className="text-2xl font-bold text-emerald-700">
-            {targetWeight ? `${targetWeight} kg` : '미설정'}
+            {targetWeight ? `${targetWeight} kg` : 'Not set'}
           </p>
           {targetWeight && (
             <p className="text-xs text-emerald-500 mt-1">
-              남은 변화: {Math.abs(projection.current_weight - targetWeight).toFixed(1)} kg
+              Remaining: {Math.abs(projection.current_weight - targetWeight).toFixed(1)} kg
             </p>
           )}
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-          <p className="text-sm text-purple-600 font-medium mb-1">일일 변화율</p>
+          <p className="text-sm text-purple-600 font-medium mb-1">Daily Change</p>
           <p className="text-2xl font-bold text-purple-700">
             {projection.daily_weight_change > 0 ? '+' : ''}
             {projection.daily_weight_change.toFixed(2)} kg/day
           </p>
           {Math.abs(projection.daily_weight_change) > 0.3 && (
             <p className="text-xs text-red-500 mt-1 font-semibold">
-              ⚠️ 비현실적인 변화율
+              ⚠️ Unrealistic rate
             </p>
           )}
           <p className="text-xs text-purple-500 mt-1">
-            평균 Deficit: {projection.avg_daily_deficit.toFixed(0)} kcal/day
+            Avg Deficit: {projection.avg_daily_deficit.toFixed(0)} kcal/day
           </p>
           {projection.avg_daily_deficit === 0 && (
             <p className="text-xs text-amber-600 mt-1">
-              📝 음식과 운동을 기록하세요
+              📝 Log your meals and workouts
             </p>
           )}
         </div>
 
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
-          <p className="text-sm text-orange-600 font-medium mb-1">예상 달성일</p>
+          <p className="text-sm text-orange-600 font-medium mb-1">Est. Goal Date</p>
           {projection.estimated_days_to_goal ? (
             <>
               <p className="text-2xl font-bold text-orange-700">
-                {projection.estimated_days_to_goal}일
+                {projection.estimated_days_to_goal} days
               </p>
               {projection.estimated_goal_date && (
                 <p className="text-xs text-orange-500 mt-1">
                   {(() => {
                     const [year, month, day] = projection.estimated_goal_date.split('-').map(Number);
                     const date = new Date(year, month - 1, day);
-                    return date.toLocaleDateString('ko-KR');
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                   })()}
                 </p>
               )}
             </>
           ) : (
-            <p className="text-sm text-orange-600">계산 중...</p>
+            <p className="text-sm text-orange-600">Calculating...</p>
           )}
         </div>
       </div>
@@ -218,7 +218,7 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
       {/* Chart */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          체중 추세 및 목표 달성 예상
+          Weight Trend & Goal Projection
         </h3>
         
         <ResponsiveContainer width="100%" height={400}>
@@ -244,9 +244,9 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               }}
               formatter={(value: any, name: string) => {
                 const label = {
-                  actual: '실제 체중',
-                  movingAvg: '3일 평균',
-                  projected: '예상 체중'
+                  actual: 'Actual Weight',
+                  movingAvg: '3-Day Avg',
+                  projected: 'Projected Weight'
                 }[name] || name;
                 return [typeof value === 'number' ? `${value.toFixed(1)} kg` : value, label];
               }}
@@ -254,7 +254,7 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
                 // Parse date in local timezone to avoid timezone conversion
                 const [year, month, day] = label.split('-').map(Number);
                 const date = new Date(year, month - 1, day);
-                return date.toLocaleDateString('ko-KR', {
+                return date.toLocaleDateString('en-US', {
                   month: 'long',
                   day: 'numeric'
                 });
@@ -269,7 +269,7 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
                 stroke="#10b981"
                 strokeDasharray="5 5"
                 label={{
-                  value: `목표: ${targetWeight}kg`,
+                  value: `Target: ${targetWeight}kg`,
                   position: 'right',
                   fill: '#10b981',
                   fontSize: 12
@@ -284,7 +284,7 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               stroke="#3b82f6"
               strokeWidth={2}
               dot={{ fill: '#3b82f6', r: 3 }}
-              name="실제 체중"
+              name="Actual Weight"
               connectNulls
             />
             
@@ -295,7 +295,7 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               stroke="#8b5cf6"
               strokeWidth={2}
               dot={false}
-              name="3일 평균"
+              name="3-Day Avg"
               connectNulls
             />
             
@@ -307,7 +307,7 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               strokeWidth={2}
               strokeDasharray="5 5"
               dot={{ fill: '#f59e0b', r: 3 }}
-              name="예상 체중"
+              name="Projected Weight"
               connectNulls
             />
           </ComposedChart>
@@ -317,17 +317,17 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
       {/* Body Fat (if available) */}
       {projection.current_body_fat && (
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">체지방률</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Body Fat %</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-600">현재</p>
+              <p className="text-sm text-gray-600">Current</p>
               <p className="text-2xl font-bold text-blue-600">
                 {projection.current_body_fat}%
               </p>
             </div>
             {projection.target_body_fat && (
               <div>
-                <p className="text-sm text-gray-600">목표</p>
+                <p className="text-sm text-gray-600">Target</p>
                 <p className="text-2xl font-bold text-emerald-600">
                   {projection.target_body_fat}%
                 </p>

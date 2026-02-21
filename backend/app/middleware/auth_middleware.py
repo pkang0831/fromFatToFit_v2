@@ -71,21 +71,35 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "stripe_customer_id": profile.get("stripe_customer_id")
             }
         else:
-            # Create profile if it doesn't exist
+            # Auto-create profile for first-time users (including OAuth)
             from datetime import datetime
+            meta = user.user_metadata or {}
             profile_data = {
                 "user_id": user.id,
                 "email": user.email,
+                "full_name": meta.get("full_name") or meta.get("name") or meta.get("user_name"),
                 "premium_status": False,
                 "created_at": datetime.utcnow().isoformat()
             }
+            profile_data = {k: v for k, v in profile_data.items() if v is not None}
             supabase.table("user_profiles").insert(profile_data).execute()
+            
+            logger.info(f"Auto-created profile for user {user.id} (provider: {meta.get('iss', 'email')})")
             
             return {
                 "id": user.id,
                 "email": user.email,
                 "access_token": token,
-                **profile_data
+                "full_name": profile_data.get("full_name"),
+                "premium_status": False,
+                "height_cm": None,
+                "weight_kg": None,
+                "age": None,
+                "gender": None,
+                "ethnicity": None,
+                "activity_level": None,
+                "calorie_goal": None,
+                "stripe_customer_id": None,
             }
         
     except HTTPException:

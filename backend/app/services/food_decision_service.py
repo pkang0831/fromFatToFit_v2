@@ -77,7 +77,7 @@ class FoodDecisionService:
                         decision = "red"
                         reasons.append({
                             'type': 'allergy',
-                            'message': f'⚠️ 알레르기 경고: {allergen}이(가) 포함되어 있습니다!',
+                            'message': f'⚠️ Allergy warning: This contains {allergen}!',
                             'severity': 'critical'
                         })
             
@@ -87,7 +87,7 @@ class FoodDecisionService:
                 overshoot = int(calorie_percentage - 100)
                 reasons.append({
                     'type': 'calorie',
-                    'message': f'남은 칼로리를 {overshoot}% 초과합니다 ({int(total_calories - remaining_calories)}kcal 초과)',
+                    'message': f'Exceeds remaining calories by {overshoot}% ({int(total_calories - remaining_calories)}kcal over)',
                     'severity': 'critical'
                 })
             
@@ -99,7 +99,7 @@ class FoodDecisionService:
                     decision = "yellow"
                 reasons.append({
                     'type': 'calorie',
-                    'message': f'남은 칼로리의 {int(calorie_percentage)}%를 사용합니다',
+                    'message': f'Uses {int(calorie_percentage)}% of remaining calories',
                     'severity': 'warning'
                 })
             
@@ -109,7 +109,7 @@ class FoodDecisionService:
                     decision = "yellow"
                 reasons.append({
                     'type': 'sodium',
-                    'message': f'나트륨 함량이 높습니다: {int(total_sodium)}mg',
+                    'message': f'High sodium content: {int(total_sodium)}mg',
                     'severity': 'warning'
                 })
             
@@ -119,7 +119,7 @@ class FoodDecisionService:
                     decision = "yellow"
                 reasons.append({
                     'type': 'sugar',
-                    'message': f'당 함량이 높습니다: {int(total_sugar)}g',
+                    'message': f'High sugar content: {int(total_sugar)}g',
                     'severity': 'warning'
                 })
             
@@ -129,7 +129,7 @@ class FoodDecisionService:
                     decision = "yellow"
                 reasons.append({
                     'type': 'macro',
-                    'message': f'단백질이 부족합니다. {int(remaining_protein)}g 더 필요해요',
+                    'message': f'Low protein. Need {int(remaining_protein)}g more',
                     'severity': 'warning'
                 })
             
@@ -139,7 +139,7 @@ class FoodDecisionService:
             if 20 <= calorie_percentage <= 40 and decision == "green":
                 reasons.append({
                     'type': 'calorie',
-                    'message': f'적절한 칼로리 범위입니다 ({int(total_calories)}kcal)',
+                    'message': f'Reasonable calorie range ({int(total_calories)}kcal)',
                     'severity': 'info'
                 })
             
@@ -147,7 +147,7 @@ class FoodDecisionService:
             if total_protein > 20 and decision == "green":
                 reasons.append({
                     'type': 'macro',
-                    'message': f'단백질이 풍부합니다 ({int(total_protein)}g)',
+                    'message': f'High in protein ({int(total_protein)}g)',
                     'severity': 'info'
                 })
             
@@ -344,24 +344,24 @@ class FoodDecisionService:
         reasons = []
         
         if calorie_savings > 100:
-            reasons.append(f"{int(calorie_savings)}kcal 절약")
+            reasons.append(f"{int(calorie_savings)}kcal saved")
         
         if nutrition['protein'] > 20:
-            reasons.append("고단백")
+            reasons.append("High protein")
         
         if nutrition['calories'] < 150:
-            reasons.append("저칼로리")
+            reasons.append("Low calorie")
         
         if not reasons:
-            reasons.append("균형잡힌 영양")
+            reasons.append("Balanced nutrition")
         
         return " · ".join(reasons)
     
     def get_decision_text(self, decision: str) -> str:
         """Get user-friendly decision text"""
         texts = {
-            'green': '좋은 선택이에요! 드셔도 됩니다 😊',
-            'yellow': '조금 주의가 필요해요. 반만 드시거나 다른 옵션을 고려해보세요 🤔',
-            'red': '지금은 다른 음식을 선택하는 게 좋겠어요 💭'
+            'green': 'Good choice! You can eat it 😊',
+            'yellow': 'Exercise caution. Consider eating half or choosing another option 🤔',
+            'red': 'Consider choosing a different food for now 💭'
         }
-        return texts.get(decision, '분석 결과를 확인해주세요')
+        return texts.get(decision, 'Please check the analysis results')

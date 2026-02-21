@@ -347,6 +347,7 @@ async def generate_transformation_preview(
             muscle_gain_estimate=result_data["muscle_gain_estimate"],
             estimated_timeline_weeks=timeline_weeks,
             recommendations=recommendations,
+            progress_frames=result_data.get("progress_frames"),
             scan_id=scan_id,
         )
 

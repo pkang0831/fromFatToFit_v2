@@ -419,4 +419,4 @@ async def simple_completion(prompt: str, max_tokens: int = 150) -> str:
     except Exception as e:
         logger.error(f"Error in simple completion: {e}")
         # Return a friendly fallback message
-        return "훌륭한 선택입니다! 영양 균형을 잘 유지하고 있어요."
+        return "Great choice! You're maintaining a good nutritional balance."

@@ -26,9 +26,9 @@ export default function ProgressPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">목표 달성 추적</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Goal Progress Tracking</h1>
           <p className="text-gray-600 mt-1">
-            체중과 체지방률을 기록하고 목표 달성 예상일을 확인하세요
+            Log your weight and body fat percentage to see your estimated goal date
           </p>
         </div>
         
@@ -37,13 +37,13 @@ export default function ProgressPage() {
             onClick={() => setShowGoalModal(true)}
             className="px-4 py-2 bg-white border-2 border-emerald-600 text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors font-medium"
           >
-            🎯 목표 설정
+            🎯 Set Goal
           </button>
           <button
             onClick={() => setShowWeightLogModal(true)}
             className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
           >
-            ⚖️ 체중 기록
+            ⚖️ Log Weight
           </button>
         </div>
       </div>
@@ -54,14 +54,14 @@ export default function ProgressPage() {
           <div className="text-4xl">📊</div>
           <div>
             <h3 className="font-semibold text-emerald-800 mb-2">
-              3일 Moving Average 기반 예측
+              3-Day Moving Average Based Prediction
             </h3>
             <p className="text-sm text-emerald-700">
-              최근 3일의 체중 변화를 평균하여 일일 변화율을 계산하고, 
-              현재 칼로리 deficit을 고려하여 목표 달성 예상일을 제공합니다.
+              Averages weight changes over the last 3 days to calculate daily rate of change, 
+              and provides an estimated goal date considering your current calorie deficit.
             </p>
             <p className="text-xs text-emerald-600 mt-2">
-              💡 Tip: 매일 같은 시간에 체중을 측정하면 더 정확한 예측이 가능합니다.
+              💡 Tip: Weighing at the same time each day enables more accurate predictions.
             </p>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function ProgressPage() {
       <Modal
         isOpen={showWeightLogModal}
         onClose={() => setShowWeightLogModal(false)}
-        title="체중 기록"
+        title="Log Weight"
       >
         <WeightLogForm
           onSuccess={handleWeightLogSuccess}
@@ -86,7 +86,7 @@ export default function ProgressPage() {
       <Modal
         isOpen={showGoalModal}
         onClose={() => setShowGoalModal(false)}
-        title="목표 설정"
+        title="Set Goal"
       >
         <GoalSettingForm
           onSuccess={handleGoalSuccess}

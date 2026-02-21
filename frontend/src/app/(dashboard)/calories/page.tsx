@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/compo
 import { FoodLogForm } from '@/components/features/FoodLogForm';
 import { MealCard } from '@/components/features/MealCard';
 import { foodApi } from '@/lib/api/services';
-import { getTodayString, formatDateLong, formatLocalDateKR } from '@/lib/utils/date';
+import { getTodayString, formatDateLong, formatLocalDate } from '@/lib/utils/date';
 import type { DailySummaryResponse, TrendResponse, RecentFoodItem } from '@/types/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatDateShort } from '@/lib/utils/date';
@@ -137,14 +137,14 @@ export default function CaloriesPage() {
               className="flex items-center gap-2"
             >
               <ChevronLeft className="h-4 w-4" />
-              이전 날
+              Previous Day
             </Button>
 
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-primary" />
               <div className="text-center">
                 <p className="text-lg font-bold text-text">
-                  {formatLocalDateKR(selectedDate)}
+                  {formatLocalDate(selectedDate)}
                 </p>
                 {!isToday && (
                   <Button
@@ -153,7 +153,7 @@ export default function CaloriesPage() {
                     onClick={handleToday}
                     className="text-xs text-primary mt-1"
                   >
-                    오늘로 이동
+                    Go to Today
                   </Button>
                 )}
               </div>
@@ -173,7 +173,7 @@ export default function CaloriesPage() {
               disabled={!canGoForward}
               className="flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              다음 날
+              Next Day
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -288,7 +288,7 @@ export default function CaloriesPage() {
       {/* Meals for Selected Date */}
       <div>
         <h2 className="text-2xl font-bold text-text mb-4">
-          {isToday ? "오늘의 식사" : `${formatLocalDateKR(selectedDate, { month: 'long', day: 'numeric' })}의 식사`}
+          {isToday ? "Today's Meals" : `Meals for ${formatLocalDate(selectedDate, { month: 'long', day: 'numeric' })}`}
         </h2>
         {dailyData && dailyData.meals.length > 0 ? (
           <div className="space-y-6">
@@ -320,15 +320,15 @@ export default function CaloriesPage() {
             <CardContent className="py-16 text-center">
               <Utensils className="h-20 w-20 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                아직 오늘의 식사 기록이 없어요
+                No meals logged for today yet
               </h3>
               <p className="text-gray-500 mb-6">
-                첫 식사를 기록하고 칼로리 추적을 시작해보세요!
+                Log your first meal and start tracking calories!
               </p>
               <div className="flex gap-4 justify-center">
                 <Button size="lg" onClick={() => router.push('/food-camera')}>
                   <Camera className="h-5 w-5 mr-2" />
-                  사진으로 기록
+                  Log with Photo
                 </Button>
               </div>
             </CardContent>

@@ -36,11 +36,11 @@ router = APIRouter(prefix="/api/food-decision", tags=["Food Decision"])
 def _get_decision_text(decision: str) -> str:
     """Get user-friendly decision text"""
     texts = {
-        'green': '좋은 선택이에요! 드셔도 됩니다 😊',
-        'yellow': '조금 주의가 필요해요. 반만 드시거나 다른 옵션을 고려해보세요 🤔',
-        'red': '지금은 다른 음식을 선택하는 게 좋겠어요 💭'
+        'green': 'Good choice! You can eat it 😊',
+        'yellow': 'Exercise caution. Consider eating half or choosing another option 🤔',
+        'red': 'Consider choosing a different food for now 💭'
     }
-    return texts.get(decision, '분석 결과를 확인해주세요')
+    return texts.get(decision, 'Please check the analysis results')
 
 
 async def _generate_ai_advice(decision_data: dict, ai_result: dict) -> str:
@@ -71,11 +71,11 @@ Be encouraging and specific about what to do next."""
         logger.error(f"Error generating AI advice: {e}")
         # Fallback advice based on decision
         if decision_data['decision'] == 'green':
-            return "좋은 선택입니다! 이 음식은 오늘 목표에 잘 맞아요. 맛있게 드세요! 😊"
+            return "Great choice! This food fits well with your goals today. Enjoy! 😊"
         elif decision_data['decision'] == 'yellow':
-            return "조금 주의가 필요한 선택이에요. 적당량만 드시거나, 아래 대안 음식을 고려해보세요."
+            return "This choice requires some caution. Consider eating a moderate amount or checking the alternative foods below."
         else:
-            return "지금은 다른 음식을 선택하는 것이 좋겠어요. 아래 추천 음식들을 확인해보세요!"
+            return "Consider choosing a different food for now. Check out the recommended foods below!"
 
 
 @router.post("/should-i-eat", response_model=ShouldIEatResponse)

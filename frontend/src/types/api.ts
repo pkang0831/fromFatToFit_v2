@@ -202,6 +202,13 @@ export interface PercentileResponse {
   usage_remaining: number;
 }
 
+export interface ProgressFrame {
+  date: string;
+  week: number;
+  bf_pct: number;
+  image_b64: string;
+}
+
 export interface TransformationResponse {
   original_image_url: string;
   transformed_image_url: string;
@@ -211,6 +218,7 @@ export interface TransformationResponse {
   muscle_gain_estimate?: string;
   estimated_timeline_weeks: number;
   recommendations: string[];
+  progress_frames?: ProgressFrame[];
   scan_id: string;
 }
 

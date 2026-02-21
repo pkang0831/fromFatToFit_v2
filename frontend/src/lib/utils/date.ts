@@ -31,12 +31,12 @@ export function parseLocalDate(dateString: string): Date {
 }
 
 /**
- * Format a date string (yyyy-MM-dd) in Korean locale
+ * Format a date string (yyyy-MM-dd) in English locale
  * Uses local timezone to avoid date shift issues
  */
-export function formatLocalDateKR(dateString: string, options?: Intl.DateTimeFormatOptions): string {
+export function formatLocalDate(dateString: string, options?: Intl.DateTimeFormatOptions): string {
   const date = parseLocalDate(dateString);
-  return date.toLocaleDateString('ko-KR', options || {
+  return date.toLocaleDateString('en-US', options || {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

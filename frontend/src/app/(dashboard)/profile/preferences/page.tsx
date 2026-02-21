@@ -17,16 +17,16 @@ interface UserPreferences {
 }
 
 const DIETARY_RESTRICTIONS = [
-  { id: 'vegetarian', label: '채식주의' },
-  { id: 'vegan', label: '비건' },
-  { id: 'gluten_free', label: '글루텐 프리' },
-  { id: 'dairy_free', label: '유제품 프리' },
-  { id: 'halal', label: '할랄' },
-  { id: 'kosher', label: '코셔' },
+  { id: 'vegetarian', label: 'Vegetarian' },
+  { id: 'vegan', label: 'Vegan' },
+  { id: 'gluten_free', label: 'Gluten Free' },
+  { id: 'dairy_free', label: 'Dairy Free' },
+  { id: 'halal', label: 'Halal' },
+  { id: 'kosher', label: 'Kosher' },
 ];
 
 const COMMON_ALLERGIES = [
-  '땅콩', '우유', '계란', '갑각류', '조개류', '생선', '밀', '대두', '견과류',
+  'Peanuts', 'Milk', 'Eggs', 'Shellfish', 'Mollusks', 'Fish', 'Wheat', 'Soy', 'Tree Nuts',
 ];
 
 export default function FoodPreferencesPage() {
@@ -73,7 +73,7 @@ export default function FoodPreferencesPage() {
     
     try {
       await foodDecisionApi.updatePreferences(preferences);
-      setSuccessMessage('설정이 저장되었습니다!');
+      setSuccessMessage('Settings saved successfully!');
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       console.error('Error saving preferences:', err);
@@ -137,15 +137,15 @@ export default function FoodPreferencesPage() {
       <div className="flex items-center gap-4">
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          뒤로
+          Back
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">음식 선호도 설정</h1>
-          <p className="text-gray-600 mt-1">AI 추천을 위한 맞춤 설정</p>
+          <h1 className="text-3xl font-bold">Food Preferences Settings</h1>
+          <p className="text-gray-600 mt-1">Custom settings for AI recommendations</p>
         </div>
         <Button onClick={handleSave} isLoading={isSaving}>
           <Save className="h-4 w-4 mr-2" />
-          저장
+          Save
         </Button>
       </div>
 
@@ -164,7 +164,7 @@ export default function FoodPreferencesPage() {
       {/* Dietary Restrictions */}
       <Card>
         <CardHeader>
-          <CardTitle>식단 제한</CardTitle>
+          <CardTitle>Dietary Restrictions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
@@ -188,7 +188,7 @@ export default function FoodPreferencesPage() {
       {/* Allergies */}
       <Card>
         <CardHeader>
-          <CardTitle>알레르기</CardTitle>
+          <CardTitle>Allergies</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -197,7 +197,7 @@ export default function FoodPreferencesPage() {
               value={newAllergy}
               onChange={(e) => setNewAllergy(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addToList('allergies', newAllergy)}
-              placeholder="알레르기 추가..."
+              placeholder="Add allergy..."
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Button onClick={() => addToList('allergies', newAllergy)}>
@@ -239,7 +239,7 @@ export default function FoodPreferencesPage() {
       {/* Favorite Foods */}
       <Card>
         <CardHeader>
-          <CardTitle>좋아하는 음식</CardTitle>
+          <CardTitle>Favorite Foods</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -248,7 +248,7 @@ export default function FoodPreferencesPage() {
               value={newFavorite}
               onChange={(e) => setNewFavorite(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addToList('favorite_foods', newFavorite)}
-              placeholder="좋아하는 음식 추가..."
+              placeholder="Add favorite food..."
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Button onClick={() => addToList('favorite_foods', newFavorite)}>
@@ -278,7 +278,7 @@ export default function FoodPreferencesPage() {
       {/* Disliked Foods */}
       <Card>
         <CardHeader>
-          <CardTitle>싫어하는 음식</CardTitle>
+          <CardTitle>Disliked Foods</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -287,7 +287,7 @@ export default function FoodPreferencesPage() {
               value={newDisliked}
               onChange={(e) => setNewDisliked(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addToList('disliked_foods', newDisliked)}
-              placeholder="싫어하는 음식 추가..."
+              placeholder="Add disliked food..."
               className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Button onClick={() => addToList('disliked_foods', newDisliked)}>
@@ -317,7 +317,7 @@ export default function FoodPreferencesPage() {
       {/* Nutritional Preferences */}
       <Card>
         <CardHeader>
-          <CardTitle>영양 선호도</CardTitle>
+          <CardTitle>Nutritional Preferences</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <label className="flex items-center gap-3 cursor-pointer">
@@ -330,8 +330,8 @@ export default function FoodPreferencesPage() {
               className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
             <div>
-              <div className="font-semibold">고단백 음식 선호</div>
-              <div className="text-sm text-gray-600">단백질 함량이 높은 음식을 우선 추천합니다</div>
+              <div className="font-semibold">Prefer high-protein foods</div>
+              <div className="text-sm text-gray-600">Prioritizes recommending foods high in protein</div>
             </div>
           </label>
 
@@ -345,8 +345,8 @@ export default function FoodPreferencesPage() {
               className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
             <div>
-              <div className="font-semibold">나트륨 함량 높은 음식 피하기</div>
-              <div className="text-sm text-gray-600">나트륨이 800mg 이상인 음식에 대해 경고합니다</div>
+              <div className="font-semibold">Avoid high-sodium foods</div>
+              <div className="text-sm text-gray-600">Warns about foods with 800mg or more sodium</div>
             </div>
           </label>
 
@@ -360,8 +360,8 @@ export default function FoodPreferencesPage() {
               className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
             <div>
-              <div className="font-semibold">당 함량 높은 음식 피하기</div>
-              <div className="text-sm text-gray-600">당이 25g 이상인 음식에 대해 경고합니다</div>
+              <div className="font-semibold">Avoid high-sugar foods</div>
+              <div className="text-sm text-gray-600">Warns about foods with 25g or more sugar</div>
             </div>
           </label>
         </CardContent>

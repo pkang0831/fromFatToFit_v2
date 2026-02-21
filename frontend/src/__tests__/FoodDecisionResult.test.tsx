@@ -12,7 +12,7 @@ import { FoodDecisionResult } from '@/components/features/FoodDecisionResult';
 // Mock data
 const mockGreenResult = {
   decision: 'green' as const,
-  decision_text: '좋은 선택이에요! 드셔도 됩니다 😊',
+  decision_text: 'Good choice! You can eat it 😊',
   food_items: [
     {
       name: 'Grilled Chicken Breast',
@@ -36,16 +36,16 @@ const mockGreenResult = {
   reasons: [
     {
       type: 'calorie' as const,
-      message: '적절한 칼로리 범위입니다',
+      message: 'Within appropriate calorie range',
       severity: 'info' as const,
     },
     {
       type: 'macro' as const,
-      message: '단백질이 풍부합니다',
+      message: 'Rich in protein',
       severity: 'info' as const,
     },
   ],
-  ai_advice: '완벽한 선택입니다! 고단백 저지방 식단으로 근육 성장에 도움이 됩니다.',
+  ai_advice: 'Perfect choice! High protein, low fat diet helps muscle growth.',
   current_stats: {
     consumed_calories: 400,
     consumed_protein: 30,
@@ -59,7 +59,7 @@ const mockGreenResult = {
 const mockYellowResult = {
   ...mockGreenResult,
   decision: 'yellow' as const,
-  decision_text: '조금 주의가 필요해요',
+  decision_text: 'Needs a bit of caution',
   total_calories: 800,
   impact: {
     ...mockGreenResult.impact,
@@ -69,7 +69,7 @@ const mockYellowResult = {
   reasons: [
     {
       type: 'calorie' as const,
-      message: '남은 칼로리의 75%를 사용합니다',
+      message: 'Uses 75% of remaining calories',
       severity: 'warning' as const,
     },
   ],
@@ -82,7 +82,7 @@ const mockYellowResult = {
       protein: 30,
       carbs: 15,
       fat: 18,
-      reason: '400kcal 절약 · 고단백',
+      reason: 'Saves 400kcal · High protein',
     },
   ],
 };
@@ -90,7 +90,7 @@ const mockYellowResult = {
 const mockRedResult = {
   ...mockGreenResult,
   decision: 'red' as const,
-  decision_text: '지금은 다른 음식을 선택하는 게 좋겠어요',
+  decision_text: 'Better to choose a different food for now',
   total_calories: 1500,
   impact: {
     ...mockGreenResult.impact,
@@ -100,12 +100,12 @@ const mockRedResult = {
   reasons: [
     {
       type: 'calorie' as const,
-      message: '남은 칼로리를 초과합니다',
+      message: 'Exceeds remaining calories',
       severity: 'critical' as const,
     },
     {
       type: 'allergy' as const,
-      message: '알레르기 경고: peanuts',
+      message: 'Allergy warning: peanuts',
       severity: 'critical' as const,
     },
   ],
@@ -118,7 +118,7 @@ const mockRedResult = {
       protein: 35,
       carbs: 0,
       fat: 5,
-      reason: '저칼로리 · 고단백',
+      reason: 'Low calorie · High protein',
     },
   ],
 };
@@ -142,7 +142,7 @@ describe('FoodDecisionResult Component', () => {
       );
 
       // Check for green decision title
-      expect(screen.getByText(/좋은 선택이에요/)).toBeInTheDocument();
+      expect(screen.getByText(/Good choice/)).toBeInTheDocument();
 
       // Check food items
       expect(screen.getByText('Grilled Chicken Breast')).toBeInTheDocument();
@@ -161,10 +161,10 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      expect(screen.getByText(/완벽한 선택입니다/)).toBeInTheDocument();
+      expect(screen.getByText(/Perfect choice/)).toBeInTheDocument();
     });
 
-    it('shows "먹기" button for green decision', () => {
+    it('shows "Eat This" button for green decision', () => {
       render(
         <FoodDecisionResult
           result={mockGreenResult}
@@ -173,9 +173,9 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      const eatButton = screen.getByRole('button', { name: /먹기/ });
+      const eatButton = screen.getByRole('button', { name: /Eat This/ });
       expect(eatButton).toBeInTheDocument();
-      expect(eatButton).not.toHaveTextContent('그래도');
+      expect(eatButton).not.toHaveTextContent('Anyway');
     });
 
     it('does not show alternatives for green decision', () => {
@@ -187,7 +187,7 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      expect(screen.queryByText(/대신 이건 어때요/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/How About These Instead/)).not.toBeInTheDocument();
     });
   });
 
@@ -201,7 +201,7 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      expect(screen.getByText(/주의하세요/)).toBeInTheDocument();
+      expect(screen.getByText(/Use Caution/)).toBeInTheDocument();
     });
 
     it('shows alternatives for yellow decision', () => {
@@ -213,11 +213,11 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      expect(screen.getByText(/대신 이건 어때요/)).toBeInTheDocument();
+      expect(screen.getByText(/How About These Instead/)).toBeInTheDocument();
       expect(screen.getByText('Chicken Salad')).toBeInTheDocument();
     });
 
-    it('shows "그래도 먹기" button for yellow decision', () => {
+    it('shows "Eat Anyway" button for yellow decision', () => {
       render(
         <FoodDecisionResult
           result={mockYellowResult}
@@ -226,7 +226,7 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      expect(screen.getByRole('button', { name: /그래도 먹기/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Eat Anyway/ })).toBeInTheDocument();
     });
   });
 
@@ -240,7 +240,7 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      expect(screen.getByText(/다시 생각해보세요/)).toBeInTheDocument();
+      expect(screen.getByText(/Think Again/)).toBeInTheDocument();
     });
 
     it('shows critical reasons', () => {
@@ -252,8 +252,8 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      expect(screen.getByText(/남은 칼로리를 초과합니다/)).toBeInTheDocument();
-      expect(screen.getByText(/알레르기 경고/)).toBeInTheDocument();
+      expect(screen.getByText(/Exceeds remaining calories/)).toBeInTheDocument();
+      expect(screen.getByText(/Allergy warning/)).toBeInTheDocument();
     });
   });
 
@@ -267,7 +267,7 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      const eatButton = screen.getByRole('button', { name: /먹기/ });
+      const eatButton = screen.getByRole('button', { name: /Eat This/ });
       fireEvent.click(eatButton);
 
       expect(mockOnEatAnyway).toHaveBeenCalledTimes(1);
@@ -282,7 +282,7 @@ describe('FoodDecisionResult Component', () => {
         />
       );
 
-      const alternativeButton = screen.getByRole('button', { name: /다른 음식 찾기/ });
+      const alternativeButton = screen.getByRole('button', { name: /Find Other Food/ });
       fireEvent.click(alternativeButton);
 
       expect(mockOnFindAlternative).toHaveBeenCalledTimes(1);

@@ -250,7 +250,7 @@ export default function FoodCameraPage() {
             onClick={handleClearImage}
             className="w-full"
           >
-            분석 다시 하기
+            Analyze Again
           </Button>
         </div>
       )}
@@ -268,7 +268,7 @@ export default function FoodCameraPage() {
             onClick={handleClearImage}
             className="w-full"
           >
-            새로운 사진 분석
+            Analyze New Photo
           </Button>
         </div>
       )}
@@ -278,7 +278,7 @@ export default function FoodCameraPage() {
         <Card>
           <CardContent className="p-12 text-center">
             <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-gray-600">추천 음식을 준비하고 있어요...</p>
+            <p className="text-gray-600">Preparing food recommendations...</p>
           </CardContent>
         </Card>
       )}

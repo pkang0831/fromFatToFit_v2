@@ -23,7 +23,7 @@ const WeightLogForm: React.FC<WeightLogFormProps> = ({ onSuccess, onCancel }) =>
     e.preventDefault();
     
     if (formData.weight_kg <= 0) {
-      setError('체중을 입력해주세요');
+      setError('Please enter your weight');
       return;
     }
 
@@ -34,7 +34,7 @@ const WeightLogForm: React.FC<WeightLogFormProps> = ({ onSuccess, onCancel }) =>
       onSuccess?.();
     } catch (err: any) {
       console.error('Error logging weight:', err);
-      setError(err.response?.data?.detail || '체중 기록에 실패했습니다');
+      setError(err.response?.data?.detail || 'Failed to log weight');
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ const WeightLogForm: React.FC<WeightLogFormProps> = ({ onSuccess, onCancel }) =>
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          날짜
+          Date
         </label>
         <input
           type="date"
@@ -57,7 +57,7 @@ const WeightLogForm: React.FC<WeightLogFormProps> = ({ onSuccess, onCancel }) =>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          체중 (kg) *
+          Weight (kg) *
         </label>
         <input
           type="number"
@@ -72,7 +72,7 @@ const WeightLogForm: React.FC<WeightLogFormProps> = ({ onSuccess, onCancel }) =>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          체지방률 (%) - 선택사항
+          Body Fat % (optional)
         </label>
         <input
           type="number"
@@ -89,14 +89,14 @@ const WeightLogForm: React.FC<WeightLogFormProps> = ({ onSuccess, onCancel }) =>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          메모 - 선택사항
+          Notes (optional)
         </label>
         <textarea
           value={formData.notes || ''}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
           rows={3}
-          placeholder="오늘 상태나 특이사항을 기록하세요..."
+          placeholder="Record today's condition or notes..."
         />
       </div>
 
@@ -114,7 +114,7 @@ const WeightLogForm: React.FC<WeightLogFormProps> = ({ onSuccess, onCancel }) =>
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             disabled={loading}
           >
-            취소
+            Cancel
           </button>
         )}
         <button
@@ -122,7 +122,7 @@ const WeightLogForm: React.FC<WeightLogFormProps> = ({ onSuccess, onCancel }) =>
           className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
           disabled={loading}
         >
-          {loading ? '저장 중...' : '저장'}
+          {loading ? 'Saving...' : 'Save'}
         </button>
       </div>
     </form>

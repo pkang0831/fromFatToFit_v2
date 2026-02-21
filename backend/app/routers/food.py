@@ -231,7 +231,6 @@ async def update_food_log(
         update_data = {
             **food_log.model_dump(),
             "date": food_log.date.isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
         }
         
         result = supabase.table("food_logs").update(update_data).eq("id", log_id).eq("user_id", current_user["id"]).execute()

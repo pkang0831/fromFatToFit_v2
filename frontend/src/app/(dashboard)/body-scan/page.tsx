@@ -31,7 +31,7 @@ export default function BodyScanPage() {
   }>({});
   const [error, setError] = useState<string | null>(null);
   
-  // 🚀 프로필에서 자동으로 가져오기
+  // 🚀 Auto-load from profile
   const [formDefaults, setFormDefaults] = useState({
     gender: '',
     age: '',
@@ -234,14 +234,17 @@ export default function BodyScanPage() {
       };
       
       // If percentile scan, also extract body fat data for the body fat tab
-      if (selectedType === 'percentile' && response.data.percentile_data?.body_fat_percentage) {
-        newResults.bodyfat = {
-          body_fat_percentage: response.data.percentile_data.body_fat_percentage,
-          confidence: 'medium',
-          recommendations: [],
-          scan_id: response.data.scan_id,
-          usage_remaining: response.data.usage_remaining
-        };
+      if (selectedType === 'percentile' && 'percentile_data' in response.data) {
+        const percData = response.data as PercentileResponse;
+        if (percData.percentile_data?.body_fat_percentage) {
+          newResults.bodyfat = {
+            body_fat_percentage: percData.percentile_data.body_fat_percentage,
+            confidence: 'medium',
+            recommendations: [],
+            scan_id: percData.scan_id,
+            usage_remaining: percData.usage_remaining
+          };
+        }
       }
       
       setResults(newResults);
@@ -464,25 +467,25 @@ export default function BodyScanPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                 {transResult.current_bf != null && (
                   <div className="p-3 bg-surfaceAlt rounded-lg text-center">
-                    <p className="text-xs text-text-secondary">현재 체지방</p>
+                    <p className="text-xs text-text-secondary">Current Body Fat</p>
                     <p className="text-xl font-bold text-text">{transResult.current_bf.toFixed(1)}%</p>
                   </div>
                 )}
                 {transResult.target_bf != null && (
                   <div className="p-3 bg-surfaceAlt rounded-lg text-center">
-                    <p className="text-xs text-text-secondary">목표 체지방</p>
+                    <p className="text-xs text-text-secondary">Target Body Fat</p>
                     <p className="text-xl font-bold text-primary">{transResult.target_bf.toFixed(1)}%</p>
                   </div>
                 )}
                 {transResult.muscle_gain_estimate && (
                   <div className="p-3 bg-surfaceAlt rounded-lg text-center">
-                    <p className="text-xs text-text-secondary">예상 근육 증가</p>
+                    <p className="text-xs text-text-secondary">Est. Muscle Gain</p>
                     <p className="text-xl font-bold text-text">+{transResult.muscle_gain_estimate}</p>
                   </div>
                 )}
                 <div className="p-3 bg-surfaceAlt rounded-lg text-center">
-                  <p className="text-xs text-text-secondary">예상 소요기간</p>
-                  <p className="text-xl font-bold text-text">{transResult.estimated_timeline_weeks}주</p>
+                  <p className="text-xs text-text-secondary">Est. Timeline</p>
+                  <p className="text-xl font-bold text-text">{transResult.estimated_timeline_weeks} weeks</p>
                 </div>
               </div>
 
@@ -491,8 +494,8 @@ export default function BodyScanPage() {
                 <div className={`p-3 rounded-lg border ${directionBg} mb-4`}>
                   <p className={`text-sm font-semibold ${directionColor}`}>
                     {isCutting
-                      ? '체지방 감량 + 근육 유지/증가 목표'
-                      : '근육량 증가 + 건강한 벌크업 목표'}
+                      ? 'Goal: Fat loss + muscle retention/gain'
+                      : 'Goal: Muscle gain + healthy bulk'}
                   </p>
                 </div>
               )}
@@ -700,7 +703,7 @@ export default function BodyScanPage() {
                   {selectedType === 'transformation' && (
                     <Input
                       name="target_bf"
-                      label="목표 체지방률 (Target Body Fat %)"
+                      label="Target Body Fat %"
                       type="number"
                       step="0.5"
                       min="3"
@@ -712,9 +715,9 @@ export default function BodyScanPage() {
 
                   {selectedType === 'enhancement' && (
                     <Select name="enhancement_level" label="Enhancement Level" defaultValue="natural">
-                      <option value="subtle">Subtle — 살짝 보정</option>
-                      <option value="natural">Natural — 자연스러운 보정 (추천)</option>
-                      <option value="studio">Studio — 스튜디오급 보정</option>
+                      <option value="subtle">Subtle — Light retouch</option>
+                      <option value="natural">Natural — Natural retouch (Recommended)</option>
+                      <option value="studio">Studio — Studio-grade retouch</option>
                     </Select>
                   )}
 

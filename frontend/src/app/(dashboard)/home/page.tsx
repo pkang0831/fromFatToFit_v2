@@ -142,7 +142,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-6 w-6" />
-              칼로리 수지 트렌드
+              Calorie Balance Trend
             </CardTitle>
             <div className="flex gap-2">
               <Button 
@@ -150,14 +150,14 @@ export default function HomePage() {
                 variant={chartDays === 7 ? 'primary' : 'outline'}
                 onClick={() => setChartDays(7)}
               >
-                7일
+                7 Days
               </Button>
               <Button 
                 size="sm" 
                 variant={chartDays === 30 ? 'primary' : 'outline'}
                 onClick={() => setChartDays(30)}
               >
-                30일
+                30 Days
               </Button>
             </div>
           </div>

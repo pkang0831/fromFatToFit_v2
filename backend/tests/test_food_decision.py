@@ -216,9 +216,9 @@ class TestFoodDecisionLogic:
         """Test user-friendly decision texts"""
         service = FoodDecisionService(Mock())
         
-        assert '좋은' in service.get_decision_text('green')
-        assert '주의' in service.get_decision_text('yellow')
-        assert '다른' in service.get_decision_text('red')
+        assert 'Good' in service.get_decision_text('green')
+        assert 'caution' in service.get_decision_text('yellow')
+        assert 'different' in service.get_decision_text('red')
     
     def test_alternative_reason_generation(self):
         """Test alternative food reason generation"""
@@ -231,7 +231,7 @@ class TestFoodDecisionLogic:
         
         assert isinstance(reason, str)
         assert len(reason) > 0
-        assert '고단백' in reason or '절약' in reason
+        assert 'protein' in reason or 'saved' in reason or 'calorie' in reason.lower()
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authApi } from '@/lib/api/services';
+import { supabase, type OAuthProvider } from '@/lib/supabase';
 import type { User, UserLogin, UserRegister } from '@/types/api';
 import { AxiosError } from 'axios';
 
@@ -12,6 +13,7 @@ interface AuthContextType {
   sessionExpired: boolean;
   isAuthenticated: boolean;
   login: (data: UserLogin) => Promise<void>;
+  loginWithOAuth: (provider: OAuthProvider) => Promise<void>;
   register: (data: UserRegister) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
@@ -32,7 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         // 🔧 Skip auth check on login/register pages to avoid infinite loading
         const isAuthPage = window.location.pathname === '/login' || 
-                           window.location.pathname === '/register';
+                           window.location.pathname === '/register' ||
+                           window.location.pathname.startsWith('/auth/callback');
         
         if (isAuthPage) {
           setLoading(false);
@@ -40,50 +43,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         const token = localStorage.getItem('access_token');
-        if (token) {
-          // 🔧 Add timeout to prevent infinite loading
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Auth check timeout')), 5000)
-          );
-          
-          const response = await Promise.race([
-            authApi.getProfile(),
-            timeoutPromise
-          ]) as any;
-          
-          setUser(response.data);
-          setSessionExpired(false);
-          
-          // Ensure cookie is set if it's missing
-          const hasCookie = document.cookie.includes('access_token=');
-          if (!hasCookie) {
-            const refreshToken = localStorage.getItem('refresh_token');
-            document.cookie = `access_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-            if (refreshToken) {
-              document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
-            }
+        if (!token) {
+          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          return;
+        }
+
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+        );
+        
+        const response = await Promise.race([
+          authApi.getProfile(),
+          timeoutPromise
+        ]) as any;
+        
+        setUser(response.data);
+        setSessionExpired(false);
+        
+        const hasCookie = document.cookie.includes('access_token=');
+        if (!hasCookie) {
+          const refreshToken = localStorage.getItem('refresh_token');
+          document.cookie = `access_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+          if (refreshToken) {
+            document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
           }
         }
       } catch (err: any) {
         console.error('Failed to load user:', err);
         
-        // Check if it's a 401 error (session expired)
         if (err?.response?.status === 401) {
           setSessionExpired(true);
         }
         
-        // 🔧 Clear tokens and redirect to login
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        
-        // 🔧 If not on auth page and session expired, redirect to login
-        const isAuthPage = window.location.pathname === '/login' || 
-                           window.location.pathname === '/register';
-        if (!isAuthPage && err?.response?.status === 401) {
-          window.location.href = '/login';
-        }
       } finally {
         setLoading(false);
       }
@@ -130,6 +126,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loginWithOAuth = async (provider: OAuthProvider) => {
+    try {
+      setError(null);
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      const message = err.message || 'OAuth login failed';
+      setError(message);
+      throw new Error(message);
     }
   };
 
@@ -206,6 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionExpired,
     isAuthenticated: !!user,
     login,
+    loginWithOAuth,
     register,
     logout,
     updateProfile,
