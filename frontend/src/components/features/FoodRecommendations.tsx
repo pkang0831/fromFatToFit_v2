@@ -47,7 +47,7 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
   return (
     <div className="space-y-6">
       {/* Remaining Macros */}
-      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-200 dark:border-blue-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-600" />
@@ -56,57 +56,57 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center bg-white/70 p-4 rounded-lg">
+            <div className="text-center bg-white/70 dark:bg-gray-800/70 p-4 rounded-lg">
               <div className="text-3xl font-bold text-blue-600">
                 {recommendations.remaining.calories.toFixed(0)}
               </div>
-              <div className="text-sm text-gray-600 mt-1">kcal</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">kcal</div>
             </div>
-            <div className="text-center bg-white/70 p-4 rounded-lg">
+            <div className="text-center bg-white/70 dark:bg-gray-800/70 p-4 rounded-lg">
               <div className="text-3xl font-bold text-green-600">
                 {recommendations.remaining.protein.toFixed(0)}g
               </div>
-              <div className="text-sm text-gray-600 mt-1">Protein</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Protein</div>
             </div>
-            <div className="text-center bg-white/70 p-4 rounded-lg">
+            <div className="text-center bg-white/70 dark:bg-gray-800/70 p-4 rounded-lg">
               <div className="text-3xl font-bold text-orange-600">
                 {recommendations.remaining.carbs.toFixed(0)}g
               </div>
-              <div className="text-sm text-gray-600 mt-1">Carbs</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Carbs</div>
             </div>
-            <div className="text-center bg-white/70 p-4 rounded-lg">
+            <div className="text-center bg-white/70 dark:bg-gray-800/70 p-4 rounded-lg">
               <div className="text-3xl font-bold text-purple-600">
                 {recommendations.remaining.fat.toFixed(0)}g
               </div>
-              <div className="text-sm text-gray-600 mt-1">Fat</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Fat</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* AI Strategy */}
-      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border-2 border-purple-200 dark:border-purple-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-purple-600" />
-            Today's Strategy
+            Today&apos;s Strategy
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-800 leading-relaxed">{recommendations.ai_explanation}</p>
+          <p className="text-gray-800 dark:text-gray-200 leading-relaxed">{recommendations.ai_explanation}</p>
         </CardContent>
       </Card>
 
       {/* Recommendations */}
       <div>
-        <h3 className="text-2xl font-bold mb-4">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
           {MEAL_TYPE_LABELS[recommendations.meal_type as keyof typeof MEAL_TYPE_LABELS] || recommendations.meal_type} Picks
         </h3>
         <div className="space-y-4">
           {recommendations.recommendations.map((food, idx) => (
             <Card 
               key={food.food_id} 
-              className="hover:shadow-xl transition border-2 border-gray-200 hover:border-blue-400"
+              className="hover:shadow-xl transition border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400"
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between gap-4">
@@ -123,49 +123,49 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
                         #{idx + 1}
                       </div>
                       <div>
-                        <h4 className="font-bold text-xl">{food.food_name}</h4>
-                        <p className="text-sm text-gray-600">{food.category}</p>
+                        <h4 className="font-bold text-xl text-gray-900 dark:text-white">{food.food_name}</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{food.category}</p>
                       </div>
                     </div>
                     
                     {/* Nutrition Info */}
                     <div className="flex flex-wrap gap-4 mb-3 text-sm">
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Calories:</span>
-                        <span className="font-semibold">{food.calories.toFixed(0)} kcal</span>
+                        <span className="text-gray-600 dark:text-gray-400">Calories:</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{food.calories.toFixed(0)} kcal</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Protein:</span>
-                        <span className="font-semibold">{food.protein.toFixed(1)}g</span>
+                        <span className="text-gray-600 dark:text-gray-400">Protein:</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{food.protein.toFixed(1)}g</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Carbs:</span>
-                        <span className="font-semibold">{food.carbs.toFixed(1)}g</span>
+                        <span className="text-gray-600 dark:text-gray-400">Carbs:</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{food.carbs.toFixed(1)}g</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Fat:</span>
-                        <span className="font-semibold">{food.fat.toFixed(1)}g</span>
+                        <span className="text-gray-600 dark:text-gray-400">Fat:</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{food.fat.toFixed(1)}g</span>
                       </div>
                     </div>
                     
                     {/* AI Reason */}
-                    <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg mb-3">
-                      <p className="text-sm text-gray-800 leading-relaxed">
-                        <span className="font-semibold text-blue-700">💡 Why:</span> {food.reason}
+                    <div className="bg-blue-50 dark:bg-blue-950/30 border-l-4 border-blue-400 dark:border-blue-600 p-4 rounded-lg mb-3">
+                      <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                        <span className="font-semibold text-blue-700 dark:text-blue-400">💡 Why:</span> {food.reason}
                       </p>
                     </div>
                     
                     {/* Match Score */}
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                           <div
                             className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
                             style={{ width: `${Math.min(food.match_score, 100)}%` }}
                           />
                         </div>
                       </div>
-                      <span className="text-sm font-semibold text-gray-700 min-w-[60px]">
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 min-w-[60px]">
                         {food.match_score.toFixed(0)}% match
                       </span>
                     </div>
@@ -190,10 +190,10 @@ export function FoodRecommendations({ recommendations, onSelectFood }: Props) {
       {recommendations.recommendations.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
               No food recommendations match your current criteria.
             </p>
-            <p className="text-gray-500 text-sm mt-2">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
               Try adjusting settings or selecting a different meal time.
             </p>
           </CardContent>

@@ -1,29 +1,23 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { HeroSection } from '@/components/landing/HeroSection';
+import { FeaturesSection } from '@/components/landing/FeaturesSection';
+import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
+import { PricingSection } from '@/components/landing/PricingSection';
+import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
+import { FAQSection } from '@/components/landing/FAQSection';
+import { FooterSection } from '@/components/landing/FooterSection';
 
-export default function HomePage() {
-  const router = useRouter();
-  const { isAuthenticated, loading } = useAuth();
-
-  useEffect(() => {
-    if (!loading) {
-      if (isAuthenticated) {
-        router.push('/home');
-      } else {
-        router.push('/login');
-      }
-    }
-  }, [isAuthenticated, loading, router]);
-
+export default function LandingPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-        <p className="mt-4 text-text-secondary">Loading...</p>
-      </div>
-    </div>
+    <main className="overflow-hidden">
+      <HeroSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <PricingSection />
+      <TestimonialsSection />
+      <FAQSection />
+      <FooterSection />
+    </main>
   );
 }

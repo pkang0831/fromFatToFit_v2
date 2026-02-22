@@ -2,6 +2,7 @@
 Food Decision and Recommendation API Router
 """
 from fastapi import APIRouter, Depends, HTTPException
+from starlette.requests import Request
 from typing import Annotated
 from datetime import date
 import logging
@@ -27,6 +28,7 @@ from ..services.food_database_service import get_food_database
 from ..services import openai_service
 from ..middleware.auth_middleware import get_current_user
 from ..database import get_supabase
+from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -79,8 +81,10 @@ Be encouraging and specific about what to do next."""
 
 
 @router.post("/should-i-eat", response_model=ShouldIEatResponse)
+@limiter.limit("10/minute")
 async def should_i_eat(
-    request: ShouldIEatRequest,
+    request: Request,
+    eat_request: ShouldIEatRequest,
     current_user: Annotated[dict, Depends(get_current_user)]
 ):
     """
@@ -97,7 +101,7 @@ async def should_i_eat(
         
         # 1. Analyze photo with AI (using existing multi-provider strategy)
         # For now, use OpenAI - in production, use the hybrid strategy from food_camera
-        ai_result = await openai_service.analyze_food_image(request.image_base64)
+        ai_result = await openai_service.analyze_food_image(eat_request.image_base64)
         
         # 2. Make decision
         decision_service = FoodDecisionService(supabase)

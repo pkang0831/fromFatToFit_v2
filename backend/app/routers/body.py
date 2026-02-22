@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from starlette.requests import Request
 import logging
 from datetime import datetime
 from typing import List
@@ -14,6 +15,7 @@ from ..services.body_analysis import calculate_percentile, estimate_transformati
 from ..services.usage_limiter import check_usage_limit, increment_usage
 from ..services.payment_service import check_premium_status
 from ..config import settings
+from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -93,13 +95,15 @@ async def estimate_body_fat_with_fallback(image_base64: str, gender: str, age: i
 
 
 @router.post("/estimate-bodyfat", response_model=BodyFatEstimateResponse)
+@limiter.limit("5/minute")
 async def estimate_bodyfat(
-    request: BodyScanRequest,
+    request: Request,
+    scan_request: BodyScanRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """Estimate body fat percentage from photo (1 free scan)"""
     try:
-        if not request.gender or not request.age:
+        if not scan_request.gender or not scan_request.age:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Gender and age required")
         
         # Check if user is premium
@@ -116,15 +120,15 @@ async def estimate_bodyfat(
         
         # Analyze image with AI (with fallback)
         analysis_result = await estimate_body_fat_with_fallback(
-            request.image_base64,
-            request.gender,
-            request.age
+            scan_request.image_base64,
+            scan_request.gender,
+            scan_request.age
         )
         
         body_fat = analysis_result["body_fat_percentage"]
         
         # Generate recommendations
-        recommendations = generate_recommendations(body_fat, request.gender)
+        recommendations = generate_recommendations(body_fat, scan_request.gender)
         
         # Store scan result
         supabase = get_supabase()
@@ -165,13 +169,15 @@ async def estimate_bodyfat(
 
 
 @router.post("/percentile", response_model=PercentileResponse)
+@limiter.limit("5/minute")
 async def calculate_body_percentile(
-    request: BodyScanRequest,
+    request: Request,
+    scan_request: BodyScanRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """Calculate body fat percentile ranking (1 free scan)"""
     try:
-        if not all([request.gender, request.age, request.ethnicity]):
+        if not all([scan_request.gender, scan_request.age, scan_request.ethnicity]):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Gender, age, and ethnicity required"
@@ -191,9 +197,9 @@ async def calculate_body_percentile(
         
         # First, estimate body fat
         bf_analysis = await estimate_body_fat_with_fallback(
-            request.image_base64,
-            request.gender,
-            request.age
+            scan_request.image_base64,
+            scan_request.gender,
+            scan_request.age
         )
         
         body_fat = bf_analysis["body_fat_percentage"]
@@ -201,9 +207,9 @@ async def calculate_body_percentile(
         # Calculate percentile
         percentile_data = calculate_percentile(
             body_fat,
-            request.age,
-            request.gender,
-            request.ethnicity
+            scan_request.age,
+            scan_request.gender,
+            scan_request.ethnicity
         )
         
         # Store scan result
@@ -249,18 +255,20 @@ async def calculate_body_percentile(
 
 
 @router.post("/transformation", response_model=TransformationResponse)
+@limiter.limit("5/minute")
 async def generate_transformation_preview(
-    request: BodyScanRequest,
+    request: Request,
+    scan_request: BodyScanRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """Generate body transformation preview using Replicate FLUX Kontext Pro (Premium only)"""
     try:
-        if not request.gender:
+        if not scan_request.gender:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Gender is required"
             )
-        if not request.target_bf:
+        if not scan_request.target_bf:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Target body fat percentage is required"
@@ -281,24 +289,24 @@ async def generate_transformation_preview(
         bf_analysis = {}
         try:
             bf_analysis = await estimate_body_fat_with_fallback(
-                request.image_base64,
-                request.gender,
-                request.age or 30
+                scan_request.image_base64,
+                scan_request.gender,
+                scan_request.age or 30
             )
             current_bf = bf_analysis["body_fat_percentage"]
         except Exception as bf_err:
             logger.warning(f"Body fat estimation failed, using default: {bf_err}")
 
         # Fall back to a sensible default so transformation can still proceed
-        estimated_bf = current_bf or (18.0 if request.gender == "male" else 25.0)
-        target_bf = request.target_bf
+        estimated_bf = current_bf or (18.0 if scan_request.gender == "male" else 25.0)
+        target_bf = scan_request.target_bf
 
         # Step 2: generate transformation image via Replicate
         result_data = await replicate_service.generate_body_transformation(
-            image_base64=request.image_base64,
+            image_base64=scan_request.image_base64,
             current_bf=estimated_bf,
             target_bf=target_bf,
-            gender=request.gender,
+            gender=scan_request.gender,
         )
 
         direction = result_data["direction"]
@@ -361,13 +369,15 @@ async def generate_transformation_preview(
 
 
 @router.post("/enhancement", response_model=EnhancementResponse)
+@limiter.limit("5/minute")
 async def generate_body_enhancement(
-    request: BodyScanRequest,
+    request: Request,
+    scan_request: BodyScanRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """Generate professional body photo enhancement/retouching (Premium only)"""
     try:
-        if not request.gender:
+        if not scan_request.gender:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Gender required"
@@ -383,13 +393,13 @@ async def generate_body_enhancement(
                 detail="Body enhancement requires premium subscription"
             )
 
-        enhancement_level = request.enhancement_level or "natural"
+        enhancement_level = scan_request.enhancement_level or "natural"
         if enhancement_level not in ("subtle", "natural", "studio"):
             enhancement_level = "natural"
 
         enhanced_image_url = await openai_service.generate_body_enhancement(
-            request.image_base64,
-            gender=request.gender,
+            scan_request.image_base64,
+            gender=scan_request.gender,
             enhancement_level=enhancement_level
         )
 

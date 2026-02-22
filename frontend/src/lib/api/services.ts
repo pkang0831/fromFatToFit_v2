@@ -77,6 +77,9 @@ export const foodApi = {
 
   deleteLog: (logId: string) =>
     api.delete(`/food/log/${logId}`),
+
+  logNatural: (text: string, mealType: string, date?: string) =>
+    api.post('/food/log-natural', { text, meal_type: mealType, date }),
 };
 
 // Workout API
@@ -142,6 +145,12 @@ export const paymentApi = {
 
   getUsageLimits: () =>
     api.get<UsageLimitsResponse>('/payments/usage-limits'),
+
+  getCreditBalance: () =>
+    api.get('/payments/credits'),
+
+  buyCreditPack: (data: { pack_size: number; success_url: string; cancel_url: string }) =>
+    api.post<CheckoutSessionResponse>('/payments/buy-credits', data),
 };
 
 // Dashboard API
@@ -179,6 +188,12 @@ export const foodDatabaseApi = {
 
   getDatabaseStats: () =>
     api.get('/food-database/stats/overview'),
+
+  lookupBarcode: (barcode: string) =>
+    api.get(`/food-database/barcode/${barcode}`),
+
+  searchExternal: (query: string, limit?: number) =>
+    api.get('/food-database/search-external', { params: { q: query, limit: limit || 10 } }),
 };
 
 // Food Decision API (AI-powered food decisions and recommendations)
@@ -197,8 +212,23 @@ export const foodDecisionApi = {
   getPreferences: () =>
     api.get('/food-decision/preferences'),
 
-  updatePreferences: (preferences: any) =>
+  updatePreferences: <T extends object>(preferences: T) =>
     api.put('/food-decision/preferences', preferences),
+};
+
+// Notification API
+export const notificationApi = {
+  getPreferences: () =>
+    api.get('/notifications/preferences'),
+
+  updatePreferences: <T extends object>(data: T) =>
+    api.put('/notifications/preferences', data),
+
+  subscribePush: (subscription: PushSubscriptionJSON) =>
+    api.post('/notifications/push/subscribe', subscription),
+
+  unsubscribePush: (endpoint: string) =>
+    api.post('/notifications/push/unsubscribe', { endpoint }),
 };
 
 // Weight Tracking API
@@ -218,11 +248,55 @@ export const weightApi = {
   updateGoals: (goals: GoalUpdate) =>
     api.patch('/weight/goals', goals),
 
-  getProjection: (daysHistory: number = 30) =>
+  getProjection: (daysHistory: number = 30, targetDeficit?: number) =>
     api.get<GoalProjectionResponse>('/weight/projection', {
       params: { 
         days_history: daysHistory,
-        _t: Date.now()  // Cache buster
+        ...(targetDeficit !== undefined && { target_deficit: targetDeficit }),
+        _t: Date.now(),
       },
     }),
+};
+
+// Chat API (AI Coach)
+export const chatApi = {
+  sendMessage: (message: string) =>
+    api.post<{ answer: string; sources: string[]; messages_today: number; daily_limit: number }>('/chat/message', { message }),
+
+  getHistory: (limit: number = 50) =>
+    api.get<{ id: string; role: string; content: string; sources: string[]; created_at: string }[]>('/chat/history', {
+      params: { limit },
+    }),
+
+  clearHistory: () =>
+    api.delete('/chat/history'),
+
+  getStatus: () =>
+    api.get<{ messages_today: number; daily_limit: number; remaining: number }>('/chat/status'),
+};
+
+// Progress Photos API
+export const progressPhotoApi = {
+  upload: (imageBase64: string, notes?: string, weightKg?: number, bodyFatPct?: number) =>
+    api.post('/progress-photos', { image_base64: imageBase64, notes, weight_kg: weightKg, body_fat_pct: bodyFatPct }),
+  getAll: () => api.get('/progress-photos'),
+  getOne: (id: string) => api.get(`/progress-photos/${id}`),
+  delete: (id: string) => api.delete(`/progress-photos/${id}`),
+  compare: (id1: string, id2: string) => api.get(`/progress-photos/compare/${id1}/${id2}`),
+};
+
+// Streak API
+export const streakApi = {
+  getStreak: () => api.get('/streaks'),
+  checkIn: () => api.post('/streaks/check-in'),
+};
+
+// Fasting API
+export const fastingApi = {
+  getPresets: () => api.get('/fasting/presets'),
+  getCurrent: () => api.get('/fasting/current'),
+  startFast: (protocol: string, targetHours?: number) =>
+    api.post('/fasting/start', { protocol, target_hours: targetHours }),
+  endFast: (notes?: string) => api.post('/fasting/end', { notes }),
+  getHistory: (days?: number) => api.get('/fasting/history', { params: { days: days || 30 } }),
 };

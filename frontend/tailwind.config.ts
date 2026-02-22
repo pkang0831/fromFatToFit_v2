@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -18,13 +19,13 @@ const config: Config = {
           DEFAULT: '#D2691E',
           light: '#DEB887',
         },
-        background: '#FAF9F6',
-        surface: '#FFFFFF',
-        surfaceAlt: '#F5F5DC',
+        background: 'var(--color-background)',
+        surface: 'var(--color-surface)',
+        surfaceAlt: 'var(--color-surface-alt)',
         text: {
-          DEFAULT: '#3E2723',
-          secondary: '#6D4C41',
-          light: '#8D6E63',
+          DEFAULT: 'var(--color-text)',
+          secondary: 'var(--color-text-secondary)',
+          light: 'var(--color-text-light)',
           onPrimary: '#FFFFFF',
         },
         accent: {
@@ -36,8 +37,8 @@ const config: Config = {
           dark: '#DAA520',
         },
         border: {
-          DEFAULT: '#D7CCC8',
-          light: '#EFEBE9',
+          DEFAULT: 'var(--color-border)',
+          light: 'var(--color-border-light)',
         },
         success: '#8BC34A',
         warning: '#FFA726',

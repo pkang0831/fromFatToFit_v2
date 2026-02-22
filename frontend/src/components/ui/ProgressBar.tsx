@@ -51,8 +51,8 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className={cn('w-full', className)}>
       {(showLabel || label) && (
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-text">{label}</span>
-          <span className="text-sm text-text-secondary">
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{label}</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             {value} / {max}
           </span>
         </div>

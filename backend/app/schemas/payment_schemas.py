@@ -38,6 +38,20 @@ class UsageLimitResponse(BaseModel):
     is_premium: bool
 
 
+class CreditBalanceResponse(BaseModel):
+    monthly_credits: int
+    bonus_credits: int
+    total_credits: int
+    reset_date: Optional[str] = None
+    credit_costs: Dict[str, int]
+
+
+class BuyCreditPackRequest(BaseModel):
+    pack_size: int = Field(..., description="Number of credits to purchase (50, 100, 200)")
+    success_url: str
+    cancel_url: str
+
+
 class WebhookEvent(BaseModel):
     type: str
     data: Dict[str, Any]

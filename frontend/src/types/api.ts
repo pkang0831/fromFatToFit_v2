@@ -11,6 +11,7 @@ export interface User {
   activity_level?: 'sedentary' | 'light' | 'moderate' | 'heavy' | 'athlete';
   calorie_goal?: number;
   premium_status: boolean;
+  onboarding_completed: boolean;
   created_at: string;
 }
 
@@ -22,6 +23,8 @@ export interface UserRegister {
   gender?: 'male' | 'female';
   age?: number;
   height_cm?: number;
+  weight_kg?: number;
+  activity_level?: string;
 }
 
 export interface UserLogin {
@@ -197,7 +200,7 @@ export interface PercentileResponse {
     comparison_group: string;
     body_fat_percentage: number;
   };
-  distribution_data: any;
+  distribution_data: Record<string, number>;
   scan_id: string;
   usage_remaining: number;
 }
@@ -366,10 +369,12 @@ export interface GoalProjectionResponse {
   daily_weight_change: number;
   daily_body_fat_change?: number;
   avg_daily_deficit: number;
+  target_deficit?: number;
   estimated_days_to_goal?: number;
   estimated_goal_date?: string;
   historical_data: MovingAveragePoint[];
   projection_data: ProjectionPoint[];
+  actual_projection_data: ProjectionPoint[];
   on_track: boolean;
   message: string;
 }

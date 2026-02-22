@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File, Body
+from starlette.requests import Request
 import logging
 from datetime import date, datetime
 from typing import List
 import base64
+import json
 from ..schemas.food_schemas import (
     FoodLogCreate, FoodLogResponse, FoodAnalysisRequest, FoodAnalysisResponse,
     DailySummaryResponse, TrendResponse
@@ -13,6 +15,7 @@ from ..services.ai_vision_service import analyze_food_image
 from ..services.usage_limiter import check_usage_limit, increment_usage
 from ..services.analytics import get_food_trend_data, calculate_daily_summary
 from ..services.payment_service import check_premium_status
+from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -53,8 +56,10 @@ async def log_food(
 
 
 @router.post("/analyze-photo", response_model=FoodAnalysisResponse)
+@limiter.limit("10/minute")
 async def analyze_food_photo(
-    request: FoodAnalysisRequest,
+    request: Request,
+    food_request: FoodAnalysisRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """Analyze food photo using AI (usage-limited for free users)"""
@@ -73,7 +78,7 @@ async def analyze_food_photo(
         
         # Analyze image with AI (hybrid strategy based on user tier)
         user_tier = "premium" if is_premium else "free"
-        analysis_result = await analyze_food_image(request.image_base64, user_tier=user_tier)
+        analysis_result = await analyze_food_image(food_request.image_base64, user_tier=user_tier)
         
         # Increment usage count
         if not is_premium:
@@ -281,3 +286,100 @@ async def delete_food_log(
     except Exception as e:
         logger.error(f"Error deleting food log: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/log-natural")
+@limiter.limit("10/minute")
+async def log_natural_language(
+    request: Request,
+    text: str = Body(..., embed=True),
+    meal_type: str = Body("snack", embed=True),
+    date_str: str = Body(None, embed=True, alias="date"),
+    current_user: dict = Depends(get_current_user),
+):
+    """Parse natural language food description and log multiple items."""
+    from ..services.openai_service import client as openai_client
+
+    prompt = f"""Parse this food description into individual food items with nutritional estimates.
+Text: "{text}"
+
+Return a JSON array of food items. For each item, estimate realistic nutritional values per serving.
+Format:
+[
+  {{
+    "food_name": "item name",
+    "calories": estimated_calories,
+    "protein": grams,
+    "carbs": grams,
+    "fat": grams,
+    "serving_size": "1 medium" or "1 cup" etc
+  }}
+]
+
+Be accurate with common foods. Use USDA averages when possible. Only return the JSON array, no other text."""
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a nutrition expert. Parse food descriptions into structured nutritional data. Return only valid JSON.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.1,
+            max_tokens=1000,
+        )
+
+        content = response.choices[0].message.content.strip()
+        if content.startswith("```"):
+            content = content.split("\n", 1)[1] if "\n" in content else content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
+
+        food_items = json.loads(content)
+
+        if not isinstance(food_items, list):
+            food_items = [food_items]
+
+        supabase = get_supabase()
+        log_date = date_str or str(date.today())
+        user_id = current_user["id"]
+        logged_items = []
+
+        for item in food_items:
+            log_data = {
+                "user_id": user_id,
+                "date": log_date,
+                "meal_type": meal_type,
+                "food_name": item.get("food_name", "Unknown"),
+                "calories": round(float(item.get("calories", 0)), 1),
+                "protein": round(float(item.get("protein", 0)), 1),
+                "carbs": round(float(item.get("carbs", 0)), 1),
+                "fat": round(float(item.get("fat", 0)), 1),
+                "serving_size": item.get("serving_size", "1 serving"),
+                "source": "ai_natural",
+            }
+            result = supabase.table("food_logs").insert(log_data).execute()
+            if result.data:
+                logged_items.append(result.data[0])
+
+        return {
+            "logged_count": len(logged_items),
+            "items": logged_items,
+            "message": f"Logged {len(logged_items)} item{'s' if len(logged_items) != 1 else ''}",
+        }
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=422,
+            detail="Could not parse food description. Try being more specific.",
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Natural language food logging error: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to process food description"
+        )

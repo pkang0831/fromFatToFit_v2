@@ -1,8 +1,8 @@
 """
 Weight Tracking and Goal Projection Routes
 """
-from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from typing import List, Optional
 from ..middleware.auth_middleware import get_current_user
 from ..schemas.weight_schemas import (
     WeightLogCreate,
@@ -116,6 +116,7 @@ async def update_goals(
 @router.get("/projection", response_model=GoalProjectionResponse)
 async def get_goal_projection(
     days_history: int = 30,
+    target_deficit: Optional[float] = Query(None, description="User-specified target caloric deficit in kcal/day"),
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -126,11 +127,15 @@ async def get_goal_projection(
     - Current rate of change
     - Estimated days to reach goal
     - Future projection
+    
+    If target_deficit is provided, it overrides the measured avg_daily_deficit
+    for projection calculations while still returning the actual measured value.
     """
     try:
         return await WeightTrackingService.get_goal_projection(
             user_id=current_user["id"],
-            days_history=days_history
+            days_history=days_history,
+            target_deficit=target_deficit
         )
     except Exception as e:
         raise HTTPException(

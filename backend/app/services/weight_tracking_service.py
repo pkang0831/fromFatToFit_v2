@@ -100,7 +100,7 @@ class WeightTrackingService:
         try:
             supabase = get_supabase()
             
-            update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
+            update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
             
             if "weight_kg" in update_dict:
                 update_dict["weight_kg"] = float(update_dict["weight_kg"])
@@ -240,7 +240,7 @@ class WeightTrackingService:
         return 1.0 - adaptation_amount
     
     @staticmethod
-    async def get_goal_projection(user_id: str, days_history: int = 30) -> GoalProjectionResponse:
+    async def get_goal_projection(user_id: str, days_history: int = 30, target_deficit: Optional[float] = None) -> GoalProjectionResponse:
         """
         Calculate goal projection based on current trends
         
@@ -353,6 +353,9 @@ class WeightTrackingService:
             calorie_trend = await get_calorie_balance_trend(user_id, days=7)
             avg_daily_deficit = calorie_trend["summary"]["avg_deficit"]
             
+            # Use target_deficit for projection math if provided, otherwise use measured
+            projection_deficit = target_deficit if target_deficit is not None else avg_daily_deficit
+            
             # Calculate days in deficit (estimate from first log)
             if weight_data:
                 days_in_deficit = (date.today() - weight_data[0][0]).days
@@ -427,9 +430,8 @@ class WeightTrackingService:
                             message = "⚠️ Weight is decreasing but goal is to gain. Increase your calorie intake!"
                 
                 # Method 2: Improved deficit-based estimation
-                elif abs(avg_daily_deficit) > 50:
-                    # Apply metabolic adaptation to deficit
-                    adjusted_deficit = avg_daily_deficit * adaptation_factor
+                elif abs(projection_deficit) > 50:
+                    adjusted_deficit = projection_deficit * adaptation_factor
                     
                     # Use improved energy density (considers body fat %)
                     kg_per_day = adjusted_deficit / energy_density
@@ -466,10 +468,9 @@ class WeightTrackingService:
                                 message = "You're in calorie deficit but need to gain weight. Increase surplus."
                 
                 else:
-                    # No significant deficit
                     if len(weight_data) < 3:
                         message = "⚠️ Not enough weight logs. Record weight for at least 3 days!"
-                    elif abs(avg_daily_deficit) < 50:
+                    elif abs(projection_deficit) < 50:
                         message = "⚠️ No calorie deficit detected. Log your food intake and workouts!"
                     else:
                         message = "Not enough data to project. Keep logging weight and food!"
@@ -486,10 +487,7 @@ class WeightTrackingService:
                         # Using actual measured weight change (already has correct sign)
                         base_kg_per_day = daily_weight_change
                     else:
-                        # Using calorie-based prediction
-                        # Deficit > 0 means losing weight (negative change)
-                        # Deficit < 0 (surplus) means gaining weight (positive change)
-                        adjusted_deficit = avg_daily_deficit * adaptation_factor
+                        adjusted_deficit = projection_deficit * adaptation_factor
                         base_kg_per_day = -(adjusted_deficit / energy_density)  # Negative for weight loss
                     
                     for i in range(1, projection_days + 1, 7):  # Weekly points
@@ -503,8 +501,7 @@ class WeightTrackingService:
                         
                         # Adjust rate based on future adaptation
                         if daily_weight_change == 0:
-                            # For calorie-based, apply progressive adaptation
-                            future_adjusted_deficit = avg_daily_deficit * future_adaptation
+                            future_adjusted_deficit = projection_deficit * future_adaptation
                             # Negative because deficit means weight loss
                             adjusted_kg_per_day = -(future_adjusted_deficit / energy_density)
                         else:
@@ -546,6 +543,42 @@ class WeightTrackingService:
                 adaptation_pct = (1.0 - adaptation_factor) * 100
                 message += f" Metabolic adaptation: {adaptation_pct:.0f}% slower metabolism."
             
+            # Build actual-deficit projection when target_deficit differs from actual
+            actual_projection_data = []
+            if (
+                target_deficit is not None
+                and target_weight is not None
+                and abs(avg_daily_deficit) > 0
+                and abs(target_deficit - avg_daily_deficit) > 1
+            ):
+                target_weight_f = float(target_weight)
+                weight_diff = target_weight_f - moving_avg_weight
+                max_proj_days = 180
+                
+                for i in range(1, max_proj_days + 1, 7):
+                    proj_date = date.today() + timedelta(days=i)
+                    future_days = days_in_deficit + i
+                    future_adapt = WeightTrackingService.calculate_metabolic_adaptation(future_days)
+                    
+                    actual_adj_deficit = avg_daily_deficit * future_adapt
+                    actual_kg_per_day = -(actual_adj_deficit / energy_density)
+                    proj_weight = moving_avg_weight + (actual_kg_per_day * i)
+                    
+                    goal_reached = (
+                        (weight_diff < 0 and proj_weight <= target_weight_f) or
+                        (weight_diff > 0 and proj_weight >= target_weight_f)
+                    )
+                    
+                    actual_projection_data.append(ProjectionPoint(
+                        date=proj_date,
+                        projected_weight=round(proj_weight, 1),
+                        projected_body_fat=None,
+                        is_goal_reached=goal_reached
+                    ))
+                    
+                    if goal_reached:
+                        break
+            
             return GoalProjectionResponse(
                 current_weight=round(most_recent_weight, 1),
                 current_body_fat=round(most_recent_body_fat, 1) if most_recent_body_fat else None,
@@ -556,10 +589,12 @@ class WeightTrackingService:
                 daily_weight_change=round(daily_weight_change, 3),
                 daily_body_fat_change=round(daily_body_fat_change, 3) if daily_body_fat_change else None,
                 avg_daily_deficit=round(avg_daily_deficit, 1),
+                target_deficit=round(target_deficit, 1) if target_deficit is not None else None,
                 estimated_days_to_goal=estimated_days_to_goal,
                 estimated_goal_date=estimated_goal_date,
                 historical_data=historical_data,
                 projection_data=projection_data,
+                actual_projection_data=actual_projection_data,
                 on_track=on_track,
                 message=message
             )

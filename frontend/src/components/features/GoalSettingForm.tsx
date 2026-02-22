@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { weightApi, authApi } from '@/lib/api/services';
 import type { GoalUpdate } from '@/types/api';
 
@@ -37,6 +38,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
       setError(null);
       await weightApi.updateGoals(formData);
       onSuccess?.();
+      toast.success('Goal set successfully');
     } catch (err: any) {
       console.error('Error updating goals:', err);
       setError(err.response?.data?.detail || 'Failed to set goal');
@@ -48,7 +50,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Target Weight (kg)
         </label>
         <input
@@ -59,16 +61,16 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
             ...formData, 
             target_weight_kg: e.target.value ? parseFloat(e.target.value) : undefined 
           })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
           placeholder="65.0"
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Enter your target weight (e.g., 65kg)
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Target Body Fat % (optional)
         </label>
         <input
@@ -79,16 +81,16 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
             ...formData, 
             target_body_fat_percentage: e.target.value ? parseFloat(e.target.value) : undefined 
           })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
           placeholder="12.0"
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Enter your target body fat % (e.g., 12%)
         </p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
@@ -98,7 +100,7 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             disabled={loading}
           >
             Cancel

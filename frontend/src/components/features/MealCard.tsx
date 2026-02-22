@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { Trash2, Edit } from 'lucide-react';
-import { Card, CardContent, Button, Badge } from '@/components/ui';
+import { Card, CardContent, Button, Badge, ConfirmDialog } from '@/components/ui';
 import { Input, Select } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { foodApi } from '@/lib/api/services';
@@ -16,6 +17,7 @@ interface MealCardProps {
 
 export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     food_name: meal.food_name,
@@ -28,17 +30,17 @@ export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
   });
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this food log?')) return;
-
     setIsDeleting(true);
     try {
       await foodApi.deleteLog(meal.id);
       onDelete();
+      toast.success('Meal deleted');
     } catch (error) {
       console.error('Failed to delete meal:', error);
-      alert('Failed to delete meal');
+      toast.error('Failed to delete meal');
     } finally {
       setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -56,9 +58,10 @@ export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
       });
       setIsEditing(false);
       onUpdate();
+      toast.success('Meal updated');
     } catch (error) {
       console.error('Failed to update meal:', error);
-      alert('Failed to update meal');
+      toast.error('Failed to update meal');
     }
   };
 
@@ -83,7 +86,7 @@ export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h4 className="font-semibold text-text">{meal.food_name}</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-white">{meal.food_name}</h4>
               <Badge variant={getMealTypeBadgeVariant(meal.meal_type)}>
                 {meal.meal_type}
               </Badge>
@@ -91,31 +94,31 @@ export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
               <div>
-                <span className="text-text-secondary">Calories:</span>
-                <span className="font-medium text-text ml-1">{Math.round(meal.calories)}</span>
+                <span className="text-gray-600 dark:text-gray-400">Calories:</span>
+                <span className="font-medium text-gray-900 dark:text-white ml-1">{Math.round(meal.calories)}</span>
               </div>
               {meal.protein !== undefined && (
                 <div>
-                  <span className="text-text-secondary">Protein:</span>
-                  <span className="font-medium text-text ml-1">{Math.round(meal.protein)}g</span>
+                  <span className="text-gray-600 dark:text-gray-400">Protein:</span>
+                  <span className="font-medium text-gray-900 dark:text-white ml-1">{Math.round(meal.protein)}g</span>
                 </div>
               )}
               {meal.carbs !== undefined && (
                 <div>
-                  <span className="text-text-secondary">Carbs:</span>
-                  <span className="font-medium text-text ml-1">{Math.round(meal.carbs)}g</span>
+                  <span className="text-gray-600 dark:text-gray-400">Carbs:</span>
+                  <span className="font-medium text-gray-900 dark:text-white ml-1">{Math.round(meal.carbs)}g</span>
                 </div>
               )}
               {meal.fat !== undefined && (
                 <div>
-                  <span className="text-text-secondary">Fat:</span>
-                  <span className="font-medium text-text ml-1">{Math.round(meal.fat)}g</span>
+                  <span className="text-gray-600 dark:text-gray-400">Fat:</span>
+                  <span className="font-medium text-gray-900 dark:text-white ml-1">{Math.round(meal.fat)}g</span>
                 </div>
               )}
             </div>
 
             {meal.serving_size && (
-              <p className="text-sm text-text-secondary mt-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                 Serving: {meal.serving_size}
               </p>
             )}
@@ -133,7 +136,7 @@ export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirm(true)}
               disabled={isDeleting}
               className="text-error hover:bg-error/10"
             >
@@ -141,6 +144,15 @@ export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
             </Button>
           </div>
         </div>
+
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title="Delete Food Entry"
+          message="Are you sure you want to delete this food entry? This cannot be undone."
+          loading={isDeleting}
+        />
 
         {/* Edit Modal */}
         {isEditing && (

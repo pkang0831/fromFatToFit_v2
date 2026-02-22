@@ -85,8 +85,8 @@ export function BellCurveChart({ mean, std, userValue, percentile, unit = '%' }:
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 return (
-                  <div className="bg-surface border border-border rounded-lg p-3 shadow-lg">
-                    <p className="text-sm text-text">
+                  <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 shadow-lg">
+                    <p className="text-sm text-gray-900 dark:text-white">
                       Body Fat: <span className="font-semibold">{payload[0].payload.x.toFixed(1)}{unit}</span>
                     </p>
                   </div>
@@ -151,15 +151,15 @@ export function BellCurveChart({ mean, std, userValue, percentile, unit = '%' }:
       <div className="flex items-center justify-center gap-6 mt-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded-full bg-primary"></div>
-          <span className="text-text-secondary">Population Distribution</span>
+          <span className="text-gray-600 dark:text-gray-400">Population Distribution</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded-full bg-purple-500"></div>
-          <span className="text-text-secondary">Your Position</span>
+          <span className="text-gray-600 dark:text-gray-400">Your Position</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded-full bg-amber-500"></div>
-          <span className="text-text-secondary">Average</span>
+          <span className="text-gray-600 dark:text-gray-400">Average</span>
         </div>
       </div>
     </div>

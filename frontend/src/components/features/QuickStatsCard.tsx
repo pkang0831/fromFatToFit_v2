@@ -20,9 +20,9 @@ export function QuickStatsCard({ title, value, subtitle, icon: Icon, progress }:
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-sm font-medium text-text-secondary mb-1">{title}</p>
-            <p className="text-3xl font-bold text-text">{value}</p>
-            {subtitle && <p className="text-sm text-text-light mt-1">{subtitle}</p>}
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{title}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+            {subtitle && <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">{subtitle}</p>}
           </div>
           <div className="p-3 bg-primary/10 rounded-lg">
             <Icon className="h-6 w-6 text-primary" />

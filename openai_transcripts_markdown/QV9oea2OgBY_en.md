@@ -1,0 +1,281 @@
+Can you lose weight from being average to slim while eating until you're full?
+
+All videos have subtitles.
+
+If there is a video where the subtitles are not visible, please turn on the YouTube subtitles.
+
+I have a video I made in the past that explains the principles of dieting.
+
+Many people believe that in order to diet, one must use body fat.
+
+So I think I should eat less food.
+
+This is a video that says otherwise.
+
+You can diet without eating less food.
+
+However, there was a question in the comments of that video about how to diet from being average to being slim.
+
+I have fully understood the principle that you can lose weight without eating less.
+
+So, I think the method shown in the video could help with weight loss from obesity to a normal weight.
+
+It's a question about whether the same method can be used to go from normal to thin.
+
+So simply put, doesn't that mean you have to starve to become a thin body?
+
+To put it simply, no.
+
+In fact, to diet from being average to slim, you shouldn't eat less.
+
+You need to eat enough.
+
+Let's talk about why that is in detail.
+
+The video link is currently being displayed in the top right corner.
+
+If you are curious about the principles of dieting, you can click here to see more.
+
+The body fat in our body can be broadly divided into visceral fat and subcutaneous fat.
+
+First, visceral fat refers to the fat that is located right next to the organs.
+
+Because it is close to the internal organs, it has the characteristic of being easily utilized as energy.
+
+So, it is the fat that serves as an energy storage.
+
+And the human body is designed to protect the internal organs.
+
+The abdominal muscles, which are part of the body, are structured to cover the internal organs and visceral fat.
+
+So when visceral fat increases, it pushes the abdominal muscles outward.
+
+Simply put, the belly is sticking out.
+
+Muscles like the abdominal muscles are inherently elastic and firm.
+
+When you touch the belly protruding due to visceral fat, it feels firm.
+
+I feel a firmness when I press it.
+
+The second type of subcutaneous fat refers to the fat located just beneath the skin.
+
+The only place where internal organs are located in the human body is the abdomen, but the skin covers the entire body.
+
+So, the subcutaneous fat is located on the outermost part of the body, excluding the skin.
+
+It has the characteristic of being scattered throughout the entire body.
+
+Due to these characteristics, it is difficult to utilize fat as energy.
+
+The distance from the internal organs is too far, and they are scattered throughout the entire body.
+
+Instead, because of those characteristics
+
+It has the effect of protecting the body from external shocks or preventing the loss of body heat.
+
+So it is fat that serves the role of clothing.
+
+And because subcutaneous fat is structurally located outside of the muscles,
+
+It's fat that muscles can't hold.
+
+Although the skin covers the subcutaneous fat,
+
+The skin is less elastic and not as firm compared to muscles.
+
+So when there is an increase in body fat, it tends to sag due to gravity and feels soft to the touch.
+
+What we commonly refer to as fat is actually this subcutaneous fat.
+
+Among the two types of fat mentioned earlier,
+
+What type of fat becomes problematic when trying to lose weight from average to slim?
+
+It is subcutaneous fat.
+
+Let's think simply.
+
+Are there people who are trying to lose weight from average to slim and are worried about their protruding belly?
+
+There is none.
+
+During the process of dieting from obesity, most of the protruding belly is resolved.
+
+Because the fat that makes the belly protrude is visceral fat.
+
+Visceral fat is located close to the organs, which makes it easily convertible into energy.
+
+So during the dieting process, it decreases faster than subcutaneous fat.
+
+So if you have dieted from obesity to a normal weight, most of your visceral fat is likely to have decreased significantly.
+
+And in the first place, you wouldn't typically refer to someone with a protruding belly as having an average body type.
+
+So, the concerns of people trying to lose weight from being average to being slim are
+
+It's sagging fat like the fat on the arms, thighs, back, and belly.
+
+As mentioned earlier, that sagging flesh is subcutaneous fat.
+
+So, in order to lose weight from being average to being slim,
+
+You need to focus on ways to reduce subcutaneous fat.
+
+So, what should be done to reduce subcutaneous fat?
+
+You need to exercise.
+
+When you exercise, your muscle mass increases.
+
+When you use the muscles that have increased like this, heat is generated inside the body.
+
+Humans are warm-blooded animals, which means that their body temperature must be maintained at a constant level.
+
+It is not good if the body temperature drops too low, but it is also not good if it rises too high.
+
+So, in order to maintain a constant body temperature, the heat generated by the muscles needs to be released outside the body.
+
+The thing that hinders this is subcutaneous fat.
+
+As mentioned earlier, subcutaneous fat has the effect of preventing the loss of body heat.
+
+So, in a situation where there is low muscle mass and low activity level, the heat generated by the body is also low.
+
+Subcutaneous fat helps to prevent the loss of body heat, aiding in the maintenance of body temperature.
+
+When muscle mass and activity levels increase, and there is a lot of heat generated within the body,
+
+Subcutaneous fat prevents the loss of heat, which interferes with maintaining body temperature.
+
+So, when muscle mass and activity levels increase, there arises a need to reduce subcutaneous fat.
+
+Therefore, subcutaneous fat is the type of fat that effectively burns off when you exercise.
+
+So, does that mean I just need to eat less and exercise hard?
+
+No, that's not the case.
+
+Basically, for muscles to grow, three things are needed: load, nutrition, and rest.
+
+The load provides stimulation to the muscles beyond their limits through exercise.
+
+It serves the role of signaling that more muscle is needed.
+
+Nutrition provides the energy needed for exercise and
+
+It plays a role in supplying the nutrients necessary for building muscle.
+
+Finally, rest plays a role in providing the time necessary for muscle growth.
+
+So, even eating and resting are considered exercise.
+
+If any one of these three is lacking, muscles will not grow properly.
+
+In the beginning of the video, there is a question about whether to go from average to slim, one must eat less or starve, right?
+
+The reason I said that you should eat well, on the contrary, is because of this.
+
+If you eat less or skip meals, you won't have enough energy to exercise properly.
+
+Even if you force yourself to exercise, proper muscle growth will not occur.
+
+In reality, if you eat less or starve yourself, your body becomes weak, leading to a decrease in activity levels.
+
+In severe cases, muscle mass can also decrease.
+
+When physical activity and muscle mass decrease, the heat generated by the body also decreases.
+
+In this case, more subcutaneous fat will be needed to maintain body temperature.
+
+So when you are dieting to go from average to slim,
+
+Eating less food can actually have the opposite effect.
+
+Eat plenty with a proper diet.
+
+Based on that, you need to exercise hard to go from average to slim.
+
+However, no matter how correct the diet is,
+
+If you eat enough to not feel hungry, won't your body fat increase?
+
+Then it seems impossible to have a skinny body.
+
+First of all, it is true that if you eat enough, your body fat will increase even if you exercise.
+
+Specifically, visceral fat increases.
+
+When muscle mass increases and activity levels rise, the energy that the body consumes also increases.
+
+In this case, from the body's perspective, it needs to handle that energy.
+
+I am trying to accumulate more emergency supplies.
+
+So, the visceral fat that serves as an energy storage increases.
+
+However, the increase in visceral fat does not pose any problem when transitioning from normal to thin.
+
+Because visceral fat is the fat that is held by the abdominal muscles.
+
+Women are likely to know well that even if a woman has a lot of belly fat,
+
+Wearing shapewear can help you look slimmer by providing support and compression.
+
+When the abdominal muscles develop,
+
+Just as shapewear holds in belly fat, abs can help control visceral fat.
+
+So even if visceral fat increases, there is no problem if you still look thin.
+
+And the increasing visceral fat is not that much.
+
+On the other hand, subcutaneous fat cannot be supported by muscles.
+
+When subcutaneous fat increases, it inevitably becomes loose and starts to sag.
+
+So, in order to have a lean body, you must find a way to prevent the increase of subcutaneous fat.
+
+So I keep saying not to eat less but to exercise.
+
+I also tried to exercise while dieting.
+
+Since I started exercising, my thighs have become really thick.
+
+Women often find it difficult to build muscle, no matter how hard they exercise.
+
+They say it won't get thicker...
+
+I know it's hard to believe since you're a man, but I really have gotten thicker.
+
+If you can generate heat in your muscles through exercise and use that to reduce subcutaneous fat, then...
+
+If you generate heat in your abdominal muscles through abdominal exercises, will it help reduce belly fat?
+
+However, I heard that spot reduction doesn't work.
+
+And if the loss of subcutaneous fat is due to body temperature,
+
+If you turn on the boiler and wear a padded jacket to keep your body warm,
+
+Can that help reduce body fat?
+
+It's an interesting question. However, all the questions have answer videos.
+
+In a moment, two videos will appear on the screen.
+
+On the left, there should be a video showing how a woman's body becomes more toned when she exercises.
+
+On the right, I will have a video about whether doing abdominal exercises helps lose belly fat.
+
+And the video about whether subcutaneous fat decreases when living in a hot environment is
+
+It is a video related to the one on the right.
+
+There is a link in the comments of the video on the right.
+
+You can choose and watch the video on the topic you're curious about.
+
+If you found this video helpful, please subscribe, like, share, and leave a comment.
+
+I will return with the next video. Thank you.
