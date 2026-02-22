@@ -1,12 +1,78 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from typing import List, Optional
 import logging
+import asyncio
 import httpx
 from ..middleware.auth_middleware import get_current_user
 from ..services.food_database_service import get_food_database
+from ..database import get_supabase
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _search_food_cache(query: str, limit: int) -> list:
+    """Search the Supabase food_cache table using trigram similarity."""
+    try:
+        sb = get_supabase()
+        resp = (
+            sb.table("food_cache")
+            .select("*")
+            .ilike("food_name", f"%{query}%")
+            .limit(limit)
+            .execute()
+        )
+        rows = resp.data or []
+        return [
+            {
+                "id": r["id"],
+                "food_name": r["food_name"],
+                "brand": r.get("brand", ""),
+                "barcode": r.get("barcode", ""),
+                "nutrition_per_100g": {
+                    "calories": r.get("calories", 0),
+                    "protein": r.get("protein", 0),
+                    "carbs": r.get("carbs", 0),
+                    "fat": r.get("fat", 0),
+                },
+                "serving_size": r.get("serving_size", "100g"),
+                "image_url": r.get("image_url", ""),
+                "source": "cache",
+                "nutriscore": r.get("nutriscore", ""),
+            }
+            for r in rows
+        ]
+    except Exception as e:
+        logger.warning(f"Food cache lookup failed: {e}")
+        return []
+
+
+def _save_to_food_cache(items: list, query: str):
+    """Save Open Food Facts results to Supabase food_cache for future instant lookups."""
+    try:
+        sb = get_supabase()
+        for item in items:
+            n = item["nutrition_per_100g"]
+            row = {
+                "id": item["id"],
+                "food_name": item["food_name"],
+                "brand": item.get("brand", ""),
+                "barcode": item.get("barcode", ""),
+                "calories": n.get("calories", 0),
+                "protein": n.get("protein", 0),
+                "carbs": n.get("carbs", 0),
+                "fat": n.get("fat", 0),
+                "serving_size": item.get("serving_size", "100g"),
+                "image_url": item.get("image_url", ""),
+                "source": "openfoodfacts",
+                "nutriscore": item.get("nutriscore", ""),
+                "search_terms": [query.lower()],
+            }
+            sb.table("food_cache").upsert(
+                row, on_conflict="id"
+            ).execute()
+    except Exception as e:
+        logger.warning(f"Failed to cache food results: {e}")
 
 
 @router.get("/search")
@@ -15,11 +81,7 @@ async def search_foods(
     limit: int = Query(10, ge=1, le=50, description="Maximum results"),
     category: Optional[str] = Query(None, description="Filter by category")
 ):
-    """
-    Search foods in database with autocomplete
-    
-    Returns matching foods with relevance scoring
-    """
+    """Search foods in local curated database with autocomplete."""
     try:
         db = get_food_database()
         results = db.search_foods(query=q, limit=limit, category=category)
@@ -57,8 +119,17 @@ async def search_external_foods(
     q: str = Query(..., min_length=2),
     limit: int = Query(10, ge=1, le=25),
     current_user: dict = Depends(get_current_user),
+    background_tasks: BackgroundTasks = None,
 ):
-    """Search foods from Open Food Facts API when local DB doesn't have results."""
+    """Search external foods: checks Supabase cache first, falls back to Open Food Facts API."""
+
+    # 1) Check cache first (~50ms vs ~12s API)
+    cached = _search_food_cache(q, limit)
+    if len(cached) >= 3:
+        return {"results": cached, "source": "cache", "total": len(cached)}
+
+    # 2) Cache miss or too few results — hit Open Food Facts API
+    api_results = []
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
@@ -71,46 +142,54 @@ async def search_external_foods(
                     "page_size": limit,
                     "fields": "product_name,brands,nutriments,serving_size,image_small_url,code,nutriscore_grade",
                 },
-                timeout=8.0,
+                timeout=15.0,
             )
 
-            if response.status_code != 200:
-                return {"results": [], "source": "openfoodfacts"}
+            if response.status_code == 200:
+                data = response.json()
+                for p in data.get("products", []):
+                    name = p.get("product_name", "").strip()
+                    if not name:
+                        continue
 
-            data = response.json()
-            products = data.get("products", [])
+                    nutriments = p.get("nutriments", {})
+                    brand = p.get("brands", "").strip()
 
-            results = []
-            for p in products:
-                name = p.get("product_name", "").strip()
-                if not name:
-                    continue
-
-                nutriments = p.get("nutriments", {})
-                brand = p.get("brands", "").strip()
-
-                results.append({
-                    "id": f"off_{p.get('code', '')}",
-                    "food_name": f"{name}" + (f" ({brand})" if brand else ""),
-                    "brand": brand,
-                    "barcode": p.get("code", ""),
-                    "nutrition_per_100g": {
-                        "calories": round(nutriments.get("energy-kcal_100g", 0), 1),
-                        "protein": round(nutriments.get("proteins_100g", 0), 1),
-                        "carbs": round(nutriments.get("carbohydrates_100g", 0), 1),
-                        "fat": round(nutriments.get("fat_100g", 0), 1),
-                    },
-                    "serving_size": p.get("serving_size", "100g"),
-                    "image_url": p.get("image_small_url", ""),
-                    "source": "openfoodfacts",
-                    "nutriscore": p.get("nutriscore_grade", ""),
-                })
-
-            return {"results": results, "source": "openfoodfacts", "total": len(results)}
+                    api_results.append({
+                        "id": f"off_{p.get('code', '')}",
+                        "food_name": f"{name}" + (f" ({brand})" if brand else ""),
+                        "brand": brand,
+                        "barcode": p.get("code", ""),
+                        "nutrition_per_100g": {
+                            "calories": round(nutriments.get("energy-kcal_100g", 0), 1),
+                            "protein": round(nutriments.get("proteins_100g", 0), 1),
+                            "carbs": round(nutriments.get("carbohydrates_100g", 0), 1),
+                            "fat": round(nutriments.get("fat_100g", 0), 1),
+                        },
+                        "serving_size": p.get("serving_size", "100g"),
+                        "image_url": p.get("image_small_url", ""),
+                        "source": "openfoodfacts",
+                        "nutriscore": p.get("nutriscore_grade", ""),
+                    })
     except httpx.TimeoutException:
-        return {"results": [], "source": "openfoodfacts", "error": "timeout"}
-    except Exception:
-        return {"results": [], "source": "openfoodfacts", "error": "failed"}
+        logger.warning(f"Open Food Facts timeout for query: {q}")
+    except Exception as e:
+        logger.warning(f"Open Food Facts error: {e}")
+
+    # 3) Cache the API results in background for next time
+    if api_results and background_tasks:
+        background_tasks.add_task(_save_to_food_cache, api_results, q)
+
+    # Merge: cached items first (deduped), then API results
+    seen_ids = {r["id"] for r in cached}
+    merged = list(cached)
+    for r in api_results:
+        if r["id"] not in seen_ids:
+            merged.append(r)
+            seen_ids.add(r["id"])
+
+    source = "cache" if cached and not api_results else "openfoodfacts" if api_results else "none"
+    return {"results": merged[:limit], "source": source, "total": len(merged)}
 
 
 @router.get("/{food_id}")

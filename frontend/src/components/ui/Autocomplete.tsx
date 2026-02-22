@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 
 export interface AutocompleteOption {
   id: string;
   label: string;
   subtitle?: string;
+  group?: string;
   data?: Record<string, any>;
 }
 
@@ -18,6 +19,7 @@ interface AutocompleteProps {
   placeholder?: string;
   label?: string;
   loading?: boolean;
+  emptyMessage?: string;
   error?: string;
   required?: boolean;
   disabled?: boolean;
@@ -31,6 +33,7 @@ export function Autocomplete({
   placeholder = 'Search...',
   label,
   loading = false,
+  emptyMessage = 'No results found. Try a different search.',
   error,
   required = false,
   disabled = false,
@@ -40,7 +43,6 @@ export function Autocomplete({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -52,7 +54,6 @@ export function Autocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset highlighted index when options change
   useEffect(() => {
     setHighlightedIndex(0);
   }, [options]);
@@ -100,7 +101,10 @@ export function Autocomplete({
     }
   };
 
-  const showDropdown = isOpen && options.length > 0;
+  const hasTypedEnough = value.length >= 2;
+  const showDropdown = isOpen && hasTypedEnough;
+
+  let lastGroup: string | undefined;
 
   return (
     <div ref={containerRef} className="relative">
@@ -126,7 +130,7 @@ export function Autocomplete({
             w-full px-4 py-2 pr-10
             border rounded-lg
             bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-            placeholder:text-gray-500 dark:text-gray-500
+            placeholder:text-gray-500
             focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-all
@@ -136,9 +140,9 @@ export function Autocomplete({
         
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
           {loading ? (
-            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+            <Loader2 className="h-4 w-4 text-primary animate-spin" />
           ) : (
-            <Search className="h-4 w-4 text-gray-500 dark:text-gray-500" />
+            <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
           )}
         </div>
       </div>
@@ -147,31 +151,55 @@ export function Autocomplete({
         <p className="mt-1 text-sm text-error">{error}</p>
       )}
 
-      {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {options.map((option, index) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => handleSelectOption(option)}
-              className={`
-                w-full px-4 py-3 text-left
-                hover:bg-gray-100 dark:bg-gray-700
-                transition-colors
-                ${index === highlightedIndex ? 'bg-gray-100 dark:bg-gray-700' : ''}
-                ${index !== 0 ? 'border-t border-gray-100 dark:border-gray-700' : ''}
-              `}
-              onMouseEnter={() => setHighlightedIndex(index)}
-            >
-              <div className="font-medium text-gray-900 dark:text-white">{option.label}</div>
-              {option.subtitle && (
-                <div className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                  {option.subtitle}
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+          {loading && options.length === 0 ? (
+            <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Searching...
+            </div>
+          ) : options.length === 0 ? (
+            <div className="px-4 py-3">
+              <p className="text-sm text-gray-500 dark:text-gray-400">{emptyMessage}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                You can type a food name and enter calories manually below.
+              </p>
+            </div>
+          ) : (
+            options.map((option, index) => {
+              const showGroupHeader = option.group && option.group !== lastGroup;
+              lastGroup = option.group;
+
+              return (
+                <div key={option.id}>
+                  {showGroupHeader && (
+                    <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
+                      {option.group}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectOption(option)}
+                    className={`
+                      w-full px-4 py-2.5 text-left
+                      hover:bg-primary/10 dark:hover:bg-primary/20
+                      transition-colors
+                      ${index === highlightedIndex ? 'bg-primary/10 dark:bg-primary/20' : ''}
+                      ${!showGroupHeader && index !== 0 ? 'border-t border-gray-100 dark:border-gray-700' : ''}
+                    `}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                  >
+                    <div className="font-medium text-sm text-gray-900 dark:text-white">{option.label}</div>
+                    {option.subtitle && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {option.subtitle}
+                      </div>
+                    )}
+                  </button>
                 </div>
-              )}
-            </button>
-          ))}
+              );
+            })
+          )}
         </div>
       )}
     </div>
