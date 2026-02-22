@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { ScanBarcode } from 'lucide-react';
 import { Input, Select, Button, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
@@ -17,6 +17,23 @@ import {
 } from '@/lib/utils/units';
 import type { FoodLogCreate } from '@/types/api';
 
+const RECENT_FOODS_KEY = 'recent_foods';
+const MAX_RECENT = 20;
+
+function getRecentFoods(): AutocompleteOption[] {
+  try {
+    const raw = localStorage.getItem(RECENT_FOODS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveRecentFood(option: AutocompleteOption) {
+  const existing = getRecentFoods();
+  const filtered = existing.filter(f => f.id !== option.id);
+  const updated = [{ ...option, group: 'Recent' }, ...filtered].slice(0, MAX_RECENT);
+  localStorage.setItem(RECENT_FOODS_KEY, JSON.stringify(updated));
+}
+
 interface FoodLogFormProps {
   onSuccess: () => void;
   initialDate?: string;
@@ -26,16 +43,13 @@ export function FoodLogForm({ onSuccess, initialDate }: FoodLogFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Barcode scanner state
   const [showScanner, setShowScanner] = useState(false);
 
-  // Autocomplete states
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<AutocompleteOption[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout | null>(null);
   
-  // Selected food and calculation states
   const [selectedFood, setSelectedFood] = useState<any>(null);
   const [portionAmount, setPortionAmount] = useState<string>('100');
   const [portionUnit, setPortionUnit] = useState<WeightUnit>('g');
@@ -46,39 +60,53 @@ export function FoodLogForm({ onSuccess, initialDate }: FoodLogFormProps) {
     fat: number;
   } | null>(null);
 
-  // Debounced search
+  const matchRecent = useCallback((query: string): AutocompleteOption[] => {
+    if (query.length < 2) return [];
+    const q = query.toLowerCase();
+    return getRecentFoods()
+      .filter(f => f.label.toLowerCase().includes(q))
+      .slice(0, 3)
+      .map(f => ({ ...f, group: 'Recent' }));
+  }, []);
+
   useEffect(() => {
-    if (searchDebounce) {
-      clearTimeout(searchDebounce);
-    }
+    if (searchDebounce) clearTimeout(searchDebounce);
 
     if (searchQuery.length < 2) {
       setSearchResults([]);
       return;
     }
 
+    const recentMatches = matchRecent(searchQuery);
+    if (recentMatches.length > 0) {
+      setSearchResults(recentMatches);
+    }
+
     const timeout = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const response = await foodDatabaseApi.searchFoods(searchQuery, 10);
-        const foods = response.data.results || [];
+        const response = await foodDatabaseApi.searchFoods(searchQuery, 8);
+        const localFoods = response.data.results || [];
         
-        const options: AutocompleteOption[] = foods.map((food: any) => ({
+        const localOptions: AutocompleteOption[] = localFoods.map((food: any) => ({
           id: food.id,
           label: food.name,
           subtitle: `${food.nutrition_per_100g.calories} cal / 100g`,
+          group: 'Common Foods',
           data: food,
         }));
         
-        setSearchResults(options);
+        const combined = [...recentMatches, ...localOptions];
+        setSearchResults(combined);
 
-        if (foods.length < 5 && searchQuery.length >= 3) {
+        if (localFoods.length < 3 && searchQuery.length >= 3) {
           try {
-            const extRes = await foodDatabaseApi.searchExternal(searchQuery, 10 - foods.length);
+            const extRes = await foodDatabaseApi.searchExternal(searchQuery, 5);
             const extOptions: AutocompleteOption[] = (extRes.data.results || []).map((item: any) => ({
               id: item.id,
               label: item.food_name,
-              subtitle: `${item.nutrition_per_100g.calories} kcal/100g · Open Food Facts`,
+              subtitle: `${item.nutrition_per_100g.calories} kcal/100g`,
+              group: 'More Results',
               data: { ...item, name: item.food_name, source: 'openfoodfacts' },
             }));
             setSearchResults(prev => [...prev, ...extOptions]);
@@ -86,9 +114,8 @@ export function FoodLogForm({ onSuccess, initialDate }: FoodLogFormProps) {
             // External search failed silently
           }
         }
-      } catch (err) {
-        console.error('Search error:', err);
-        setSearchResults([]);
+      } catch {
+        setSearchResults(recentMatches);
       } finally {
         setIsSearching(false);
       }
@@ -96,18 +123,15 @@ export function FoodLogForm({ onSuccess, initialDate }: FoodLogFormProps) {
 
     setSearchDebounce(timeout);
 
-    return () => {
-      if (timeout) clearTimeout(timeout);
-    };
+    return () => { if (timeout) clearTimeout(timeout); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-  // Handle food selection from autocomplete
   const handleFoodSelect = (option: AutocompleteOption) => {
     setSelectedFood(option.data);
     setSearchQuery(option.label);
+    saveRecentFood(option);
     
-    // Auto-calculate with default 100g
     if (option.data?.nutrition_per_100g) {
       calculateAndSetNutrition(option.data.nutrition_per_100g, 100, 'g');
     }
