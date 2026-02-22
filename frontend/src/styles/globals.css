@@ -4,10 +4,19 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-gray-200;
+  }
+  .dark * {
+    border-color: #374151;
   }
   body {
-    @apply bg-background text-text;
+    @apply bg-gray-50 text-gray-900;
+  }
+  .dark body {
+    background-color: #030712;
+    color: #f3f4f6;
+  }
+  body {
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

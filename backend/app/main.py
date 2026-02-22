@@ -1,11 +1,16 @@
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from contextlib import asynccontextmanager
 import logging
 
 from .config import settings
-from .routers import auth, food, workout, body, payments, dashboard, food_database, food_decision, weight
+from .rate_limit import limiter
+from .routers import auth, food, workout, body, payments, dashboard, food_database, food_decision, weight, notifications, chat, streaks, progress_photos, fasting
 
 # Configure logging
 logging.basicConfig(
@@ -34,14 +39,32 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
 )
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 # Global exception handler
@@ -74,6 +97,11 @@ app.include_router(body.router, prefix="/api/body", tags=["Body Analysis"])
 app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(weight.router, prefix="/api", tags=["Weight Tracking"])
+app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
+app.include_router(chat.router, prefix="/api/chat", tags=["AI Coach Chat"])
+app.include_router(streaks.router)
+app.include_router(progress_photos.router)
+app.include_router(fasting.router)
 
 
 @app.get("/")

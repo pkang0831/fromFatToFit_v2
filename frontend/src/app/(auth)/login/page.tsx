@@ -32,18 +32,19 @@ export default function LoginPage() {
       await login({ email, password });
       // Use window.location to ensure cookies are sent with the next request
       window.location.href = '/home';
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary mb-2">Health & Wellness</h1>
-          <p className="text-text-secondary">Sign in to your account</p>
+          <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
         </div>
 
         <Card variant="elevated">
@@ -84,7 +85,7 @@ export default function LoginPage() {
               </Button>
 
               <div className="text-center text-sm">
-                <span className="text-text-secondary">Don't have an account? </span>
+                <span className="text-gray-600 dark:text-gray-400">Don&apos;t have an account? </span>
                 <Link href="/register" className="text-primary hover:text-primary-dark font-medium">
                   Create one
                 </Link>

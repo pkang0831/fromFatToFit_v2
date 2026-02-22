@@ -1,167 +1,205 @@
 import logging
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 from ..database import get_supabase
 
 logger = logging.getLogger(__name__)
 
-# Feature usage limits for free tier
-USAGE_LIMITS = {
-    "food_scan": 5,
-    "body_fat_scan": 1,
-    "percentile_scan": 1,
-    "form_check": 0,  # Premium only
-    "transformation": 0,  # Premium only
-    "enhancement": 0  # Premium only
+CREDIT_COSTS: Dict[str, int] = {
+    "food_scan": 1,
+    "food_recommendation": 2,
+    "body_fat_scan": 10,
+    "percentile_scan": 10,
+    "form_check": 3,
+    "transformation": 30,
+    "enhancement": 50,
+    "chat_message": 0,
 }
 
-
-class UsageLimitExceeded(Exception):
-    """Raised when user exceeds their usage limit"""
-    pass
+FREE_MONTHLY_CREDITS = 10
+PRO_MONTHLY_CREDITS = 100
 
 
-async def check_usage_limit(user_id: str, feature_type: str, is_premium: bool = False) -> Dict[str, Any]:
-    """
-    Check if user has remaining usage for a feature
-    
-    Args:
-        user_id: User's ID
-        feature_type: Type of feature (food_scan, body_fat_scan, etc.)
-        is_premium: Whether user has premium subscription
-        
-    Returns:
-        Dictionary with usage info
-        
-    Raises:
-        UsageLimitExceeded: If limit is reached
-    """
+class InsufficientCredits(Exception):
+    """Raised when user does not have enough credits"""
+    def __init__(self, required: int, available: int, feature: str):
+        self.required = required
+        self.available = available
+        self.feature = feature
+        super().__init__(
+            f"Not enough credits for {feature}. "
+            f"Required: {required}, available: {available}. "
+            f"Purchase more credits or upgrade to Pro."
+        )
+
+
+async def _get_or_create_credit_record(user_id: str, is_premium: bool = False) -> Dict[str, Any]:
+    supabase = get_supabase()
+    result = supabase.table("user_credits").select("*").eq("user_id", user_id).execute()
+
+    now = datetime.utcnow()
+
+    if result.data:
+        record = result.data[0]
+        reset_date = datetime.fromisoformat(record["reset_date"].replace("Z", "+00:00")).replace(tzinfo=None)
+        if now >= reset_date:
+            monthly = PRO_MONTHLY_CREDITS if is_premium else FREE_MONTHLY_CREDITS
+            new_reset = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
+            bonus = record.get("bonus_credits", 0)
+            supabase.table("user_credits").update({
+                "monthly_credits": monthly,
+                "reset_date": new_reset.isoformat(),
+                "updated_at": now.isoformat(),
+            }).eq("user_id", user_id).execute()
+            record["monthly_credits"] = monthly
+            record["bonus_credits"] = bonus
+            record["reset_date"] = new_reset.isoformat()
+        return record
+    else:
+        monthly = PRO_MONTHLY_CREDITS if is_premium else FREE_MONTHLY_CREDITS
+        new_reset = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
+        new_record = {
+            "user_id": user_id,
+            "monthly_credits": monthly,
+            "bonus_credits": 0,
+            "reset_date": new_reset.isoformat(),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+        }
+        supabase.table("user_credits").insert(new_record).execute()
+        return new_record
+
+
+async def get_credit_balance(user_id: str, is_premium: bool = False) -> Dict[str, Any]:
+    record = await _get_or_create_credit_record(user_id, is_premium)
+    monthly = record.get("monthly_credits", 0)
+    bonus = record.get("bonus_credits", 0)
+    return {
+        "monthly_credits": monthly,
+        "bonus_credits": bonus,
+        "total_credits": monthly + bonus,
+        "reset_date": record.get("reset_date"),
+        "credit_costs": CREDIT_COSTS,
+    }
+
+
+async def check_credits(user_id: str, feature_type: str, is_premium: bool = False) -> Dict[str, Any]:
+    cost = CREDIT_COSTS.get(feature_type, 1)
+    balance = await get_credit_balance(user_id, is_premium)
+    total = balance["total_credits"]
+
+    if total < cost:
+        raise InsufficientCredits(required=cost, available=total, feature=feature_type)
+
+    return {
+        "allowed": True,
+        "cost": cost,
+        "remaining_after": total - cost,
+        "total_credits": total,
+    }
+
+
+async def deduct_credits(user_id: str, feature_type: str, is_premium: bool = False) -> Dict[str, Any]:
+    cost = CREDIT_COSTS.get(feature_type, 1)
+    if cost == 0:
+        balance = await get_credit_balance(user_id, is_premium)
+        return {
+            "credits_used": 0,
+            "monthly_credits": balance["monthly_credits"],
+            "bonus_credits": balance["bonus_credits"],
+            "total_credits": balance["total_credits"],
+        }
+
+    # Ensure the credit record exists (and resets monthly credits if needed)
+    await _get_or_create_credit_record(user_id, is_premium)
+
+    supabase = get_supabase()
     try:
-        # Premium users have unlimited access
-        if is_premium:
+        result = supabase.rpc('deduct_user_credits', {
+            'p_user_id': user_id,
+            'p_amount': cost,
+        }).execute()
+
+        data = result.data
+        if data and data.get('success'):
+            logger.info(
+                f"Deducted {cost} credits from user {user_id} for {feature_type}. "
+                f"Remaining: {data.get('total')}"
+            )
             return {
-                "allowed": True,
-                "current_count": 0,
-                "limit": -1,  # Unlimited
-                "remaining": -1
+                "credits_used": cost,
+                "monthly_credits": data["monthly_credits"],
+                "bonus_credits": data["bonus_credits"],
+                "total_credits": data["total"],
             }
-        
-        # Get feature limit
-        limit = USAGE_LIMITS.get(feature_type, 0)
-        
-        if limit == 0:
-            raise UsageLimitExceeded(f"{feature_type} requires premium subscription")
-        
-        # Query current usage from database
-        supabase = get_supabase()
-        result = supabase.table("usage_limits").select("*").eq("user_id", user_id).eq("feature_type", feature_type).execute()
-        
-        if result.data:
-            current_count = result.data[0]["count"]
         else:
-            current_count = 0
-        
-        remaining = limit - current_count
-        
-        if remaining <= 0:
-            raise UsageLimitExceeded(f"Usage limit exceeded for {feature_type}. Upgrade to premium for unlimited access.")
-        
+            error = data.get('error', 'Unknown error') if data else 'RPC returned no data'
+            if error == 'Insufficient credits':
+                total = data.get('total', 0) if data else 0
+                raise InsufficientCredits(required=cost, available=total, feature=feature_type)
+            raise Exception(f"Credit deduction RPC failed: {error}")
+    except InsufficientCredits:
+        raise
+    except Exception as e:
+        logger.error(f"Credit deduction error for user {user_id}: {e}")
+        raise
+
+
+async def add_credits(user_id: str, amount: int, credit_type: str = "bonus") -> Dict[str, Any]:
+    record = await _get_or_create_credit_record(user_id)
+    supabase = get_supabase()
+
+    if credit_type == "monthly":
+        new_val = record.get("monthly_credits", 0) + amount
+        supabase.table("user_credits").update({
+            "monthly_credits": new_val,
+            "updated_at": datetime.utcnow().isoformat(),
+        }).eq("user_id", user_id).execute()
+    else:
+        new_val = record.get("bonus_credits", 0) + amount
+        supabase.table("user_credits").update({
+            "bonus_credits": new_val,
+            "updated_at": datetime.utcnow().isoformat(),
+        }).eq("user_id", user_id).execute()
+
+    logger.info(f"Added {amount} {credit_type} credits to user {user_id}")
+    return await get_credit_balance(user_id)
+
+
+# Backward-compatible wrappers for existing code
+async def check_usage_limit(user_id: str, feature_type: str, is_premium: bool = False) -> Dict[str, Any]:
+    try:
+        result = await check_credits(user_id, feature_type, is_premium)
         return {
             "allowed": True,
-            "current_count": current_count,
-            "limit": limit,
-            "remaining": remaining
+            "current_count": 0,
+            "limit": -1 if is_premium else result["total_credits"],
+            "remaining": result["remaining_after"],
         }
-        
-    except UsageLimitExceeded:
-        raise
-    except Exception as e:
-        logger.error(f"Error checking usage limit: {e}")
-        raise
+    except InsufficientCredits:
+        raise UsageLimitExceeded(
+            f"Not enough credits for {feature_type}. Purchase more credits or upgrade to Pro."
+        )
 
 
-async def increment_usage(user_id: str, feature_type: str) -> int:
-    """
-    Increment usage count for a feature
-    
-    Args:
-        user_id: User's ID
-        feature_type: Type of feature
-        
-    Returns:
-        New usage count
-    """
-    try:
-        supabase = get_supabase()
-        
-        # Check if record exists
-        result = supabase.table("usage_limits").select("*").eq("user_id", user_id).eq("feature_type", feature_type).execute()
-        
-        if result.data:
-            # Update existing record
-            new_count = result.data[0]["count"] + 1
-            supabase.table("usage_limits").update({
-                "count": new_count,
-                "updated_at": datetime.utcnow().isoformat()
-            }).eq("user_id", user_id).eq("feature_type", feature_type).execute()
-        else:
-            # Create new record
-            new_count = 1
-            supabase.table("usage_limits").insert({
-                "user_id": user_id,
-                "feature_type": feature_type,
-                "count": new_count,
-                "created_at": datetime.utcnow().isoformat(),
-                "updated_at": datetime.utcnow().isoformat()
-            }).execute()
-        
-        return new_count
-        
-    except Exception as e:
-        logger.error(f"Error incrementing usage: {e}")
-        raise
+async def increment_usage(user_id: str, feature_type: str, is_premium: bool = False) -> int:
+    result = await deduct_credits(user_id, feature_type, is_premium)
+    return result["credits_used"]
 
 
 async def get_all_usage_limits(user_id: str, is_premium: bool = False) -> Dict[str, Dict[str, Any]]:
-    """
-    Get all usage limits for a user
-    
-    Args:
-        user_id: User's ID
-        is_premium: Whether user has premium subscription
-        
-    Returns:
-        Dictionary of feature usage data
-    """
-    try:
-        if is_premium:
-            return {
-                feature: {
-                    "current_count": 0,
-                    "limit": -1,
-                    "remaining": -1,
-                    "is_premium": True
-                }
-                for feature in USAGE_LIMITS.keys()
-            }
-        
-        supabase = get_supabase()
-        result = supabase.table("usage_limits").select("*").eq("user_id", user_id).execute()
-        
-        usage_data = {}
-        for feature_type, limit in USAGE_LIMITS.items():
-            current = next((item for item in result.data if item["feature_type"] == feature_type), None)
-            current_count = current["count"] if current else 0
-            
-            usage_data[feature_type] = {
-                "current_count": current_count,
-                "limit": limit,
-                "remaining": max(0, limit - current_count),
-                "is_premium": False
-            }
-        
-        return usage_data
-        
-    except Exception as e:
-        logger.error(f"Error getting usage limits: {e}")
-        raise
+    balance = await get_credit_balance(user_id, is_premium)
+    total = balance["total_credits"]
+
+    return {
+        feature: {
+            "credit_cost": cost,
+            "can_afford": total >= cost,
+            "total_credits": total,
+        }
+        for feature, cost in CREDIT_COSTS.items()
+    }
+
+
+class UsageLimitExceeded(Exception):
+    pass

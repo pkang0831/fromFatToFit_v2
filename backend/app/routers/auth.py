@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from starlette.requests import Request
 import logging
 from datetime import datetime
 from ..schemas.auth_schemas import (
@@ -8,13 +9,15 @@ from ..schemas.auth_schemas import (
 from ..schemas.body_schemas import UserProfileUpdate
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
+from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserRegister):
+@limiter.limit("5/minute")
+async def register(request: Request, user_data: UserRegister):
     """Register a new user"""
     try:
         supabase = get_supabase()
@@ -39,7 +42,11 @@ async def register(user_data: UserRegister):
         user = auth_response.user
         session = auth_response.session
         
+        if not session:
+            return {"message": "Check your email for confirmation link", "user": {"id": str(user.id), "email": user.email}}
+        
         # Create user profile
+        has_required = all([user_data.gender, user_data.age, user_data.height_cm])
         profile_data = {
             "user_id": user.id,
             "email": user.email,
@@ -48,7 +55,10 @@ async def register(user_data: UserRegister):
             "gender": user_data.gender,
             "age": user_data.age,
             "height_cm": user_data.height_cm,
+            "weight_kg": user_data.weight_kg,
+            "activity_level": user_data.activity_level,
             "premium_status": False,
+            "onboarding_completed": has_required,
             "created_at": datetime.utcnow().isoformat()
         }
         supabase.table("user_profiles").insert(profile_data).execute()
@@ -63,13 +73,14 @@ async def register(user_data: UserRegister):
                 email=user.email,
                 full_name=user_data.full_name,
                 height_cm=user_data.height_cm,
-                weight_kg=None,
+                weight_kg=user_data.weight_kg,
                 age=user_data.age,
                 gender=user_data.gender,
                 ethnicity=user_data.ethnicity,
-                activity_level=None,
+                activity_level=user_data.activity_level,
                 calorie_goal=None,
                 premium_status=False,
+                onboarding_completed=has_required,
                 created_at=datetime.utcnow()
             )
         )
@@ -80,12 +91,13 @@ async def register(user_data: UserRegister):
         logger.error(f"Registration error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Registration failed. Please try again."
         )
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(credentials: UserLogin):
+@limiter.limit("10/minute")
+async def login(request: Request, credentials: UserLogin):
     """Login with email and password"""
     try:
         supabase = get_supabase()
@@ -171,6 +183,7 @@ async def get_current_user_profile(current_user: dict = Depends(get_current_user
             activity_level=current_user.get("activity_level"),
             calorie_goal=current_user.get("calorie_goal"),
             premium_status=current_user.get("premium_status", False),
+            onboarding_completed=current_user.get("onboarding_completed", False),
             created_at=datetime.fromisoformat(current_user.get("created_at", datetime.utcnow().isoformat()))
         )
     except Exception as e:
@@ -204,6 +217,7 @@ async def update_profile(
         result = supabase.table("user_profiles").select("*").eq("user_id", current_user["id"]).execute()
         profile = result.data[0] if result.data else {}
         
+        has_required = all([profile.get("gender"), profile.get("age"), profile.get("height_cm")])
         return UserResponse(
             id=current_user["id"],
             email=current_user["email"],
@@ -216,6 +230,7 @@ async def update_profile(
             activity_level=profile.get("activity_level"),
             calorie_goal=profile.get("calorie_goal"),
             premium_status=profile.get("premium_status", False),
+            onboarding_completed=profile.get("onboarding_completed", has_required),
             created_at=datetime.fromisoformat(profile.get("created_at", datetime.utcnow().isoformat()))
         )
         
@@ -228,7 +243,8 @@ async def update_profile(
 
 
 @router.post("/reset-password")
-async def reset_password(reset_data: PasswordReset):
+@limiter.limit("3/minute")
+async def reset_password(request: Request, reset_data: PasswordReset):
     """Request password reset email"""
     try:
         supabase = get_supabase()

@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // 🔧 Skip auth check on login/register pages to avoid infinite loading
         const isAuthPage = window.location.pathname === '/login' || 
                            window.location.pathname === '/register' ||
-                           window.location.pathname.startsWith('/auth/callback');
+                           window.location.pathname.startsWith('/auth/callback') ||
+                           window.location.pathname.startsWith('/onboarding');
         
         if (isAuthPage) {
           setLoading(false);
@@ -69,10 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load user:', err);
         
-        if (err?.response?.status === 401) {
+        if (err instanceof AxiosError && err.response?.status === 401) {
           setSessionExpired(true);
         }
         
@@ -138,8 +139,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: { redirectTo },
       });
       if (error) throw error;
-    } catch (err: any) {
-      const message = err.message || 'OAuth login failed';
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'OAuth login failed';
       setError(message);
       throw new Error(message);
     }

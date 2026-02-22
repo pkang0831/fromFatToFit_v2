@@ -75,7 +75,8 @@ class GoalProjectionResponse(BaseModel):
     daily_body_fat_change: Optional[float]  # %/day
     
     # Calorie deficit info
-    avg_daily_deficit: float  # kcal/day
+    avg_daily_deficit: float  # kcal/day (actual measured)
+    target_deficit: Optional[float] = None  # kcal/day (user-specified override)
     
     # Projection
     estimated_days_to_goal: Optional[int]
@@ -84,8 +85,11 @@ class GoalProjectionResponse(BaseModel):
     # Historical trend
     historical_data: List[MovingAveragePoint]
     
-    # Future projection
+    # Future projection (based on target_deficit when provided, else actual)
     projection_data: List[ProjectionPoint]
+    
+    # Projection based on actual measured deficit (only populated when target_deficit differs)
+    actual_projection_data: List[ProjectionPoint] = []
     
     # Status
     on_track: bool

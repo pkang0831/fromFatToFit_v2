@@ -28,7 +28,14 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
     
     try:
         # Extract token from "Bearer <token>"
-        scheme, token = authorization.split()
+        parts = authorization.split(None, 1)
+        if len(parts) != 2:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authorization header format",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        scheme, token = parts
         if scheme.lower() != "bearer":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -55,8 +62,13 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
         if profile_result.data:
             profile = profile_result.data[0]
             # Merge user data with profile (use user_id from profile, not profile's primary key id)
+            has_required = all([
+                profile.get("gender"),
+                profile.get("age"),
+                profile.get("height_cm"),
+            ])
             return {
-                "id": user.id,  # Use auth user ID, not profile table ID
+                "id": user.id,
                 "email": user.email,
                 "access_token": token,
                 "premium_status": profile.get("premium_status", False),
@@ -68,7 +80,8 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "gender": profile.get("gender"),
                 "ethnicity": profile.get("ethnicity"),
                 "activity_level": profile.get("activity_level"),
-                "stripe_customer_id": profile.get("stripe_customer_id")
+                "stripe_customer_id": profile.get("stripe_customer_id"),
+                "onboarding_completed": profile.get("onboarding_completed", has_required),
             }
         else:
             # Auto-create profile for first-time users (including OAuth)
@@ -100,6 +113,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "activity_level": None,
                 "calorie_goal": None,
                 "stripe_customer_id": None,
+                "onboarding_completed": False,
             }
         
     except HTTPException:

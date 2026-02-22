@@ -11,6 +11,8 @@ class UserRegister(BaseModel):
     gender: Optional[str] = None
     age: Optional[int] = None
     height_cm: Optional[float] = None
+    weight_kg: Optional[float] = None
+    activity_level: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -38,6 +40,7 @@ class UserResponse(BaseModel):
     activity_level: Optional[str]
     calorie_goal: Optional[float]
     premium_status: bool
+    onboarding_completed: bool = False
     created_at: datetime
 
 

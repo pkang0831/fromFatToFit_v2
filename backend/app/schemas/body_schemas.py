@@ -73,6 +73,7 @@ class BodyScanHistoryItem(BaseModel):
 
 
 class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
     age: Optional[int] = None
@@ -80,3 +81,4 @@ class UserProfileUpdate(BaseModel):
     ethnicity: Optional[str] = None
     activity_level: Optional[str] = None
     calorie_goal: Optional[float] = None
+    onboarding_completed: Optional[bool] = None

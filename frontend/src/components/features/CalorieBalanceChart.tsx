@@ -14,7 +14,7 @@ import {
   ReferenceLine 
 } from 'recharts';
 import { dashboardApi } from '@/lib/api/services';
-import type { CalorieBalanceTrendPoint } from '@/types/api';
+import type { CalorieBalanceTrendPoint, CalorieBalanceTrendResponse } from '@/types/api';
 import { Card, CardContent } from '@/components/ui';
 
 interface Props {
@@ -23,11 +23,12 @@ interface Props {
 
 export function CalorieBalanceChart({ days }: Props) {
   const [data, setData] = useState<CalorieBalanceTrendPoint[]>([]);
-  const [summary, setSummary] = useState<any>(null);
+  const [summary, setSummary] = useState<CalorieBalanceTrendResponse['summary'] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days]);
 
   const loadData = async () => {
@@ -48,15 +49,15 @@ export function CalorieBalanceChart({ days }: Props) {
     return `${date.getMonth() + 1}/${date.getDate()}`;
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string; payload: CalorieBalanceTrendPoint }> }) => {
     if (!active || !payload || !payload.length) return null;
 
     const data = payload[0].payload;
     const isDeficitPositive = data.deficit > 0;
 
     return (
-      <div className="bg-white p-4 shadow-2xl rounded-lg border-2 border-gray-200">
-        <p className="font-bold text-gray-900 mb-3">{formatDate(data.date)}</p>
+      <div className="bg-white dark:bg-gray-800 p-4 shadow-2xl rounded-lg border-2 border-gray-200 dark:border-gray-700">
+        <p className="font-bold text-gray-900 dark:text-white mb-3">{formatDate(data.date)}</p>
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between gap-4">
             <span className="text-orange-600">🍽️ Intake:</span>
@@ -67,7 +68,7 @@ export function CalorieBalanceChart({ days }: Props) {
             <span className="font-semibold">{Math.round(data.burned)} kcal</span>
           </div>
           <div className="flex items-center justify-between gap-4">
-            <span className="text-gray-700">📊 Net Cal:</span>
+            <span className="text-gray-700 dark:text-gray-300">📊 Net Cal:</span>
             <span className="font-semibold">{Math.round(data.net)} kcal</span>
           </div>
           <div className="border-t pt-2 mt-2">
@@ -88,14 +89,14 @@ export function CalorieBalanceChart({ days }: Props) {
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-80 bg-gray-200 rounded-lg"></div>
+        <div className="h-80 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
         <p>No data available</p>
       </div>
     );
@@ -182,7 +183,7 @@ export function CalorieBalanceChart({ days }: Props) {
       {/* Summary Cards */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-200 dark:border-orange-800">
             <CardContent className="p-4 text-center">
               <div className="text-sm text-orange-700 mb-1">Avg Intake</div>
               <div className="text-3xl font-bold text-orange-600">
@@ -192,7 +193,7 @@ export function CalorieBalanceChart({ days }: Props) {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
             <CardContent className="p-4 text-center">
               <div className="text-sm text-blue-700 mb-1">Avg Burned</div>
               <div className="text-3xl font-bold text-blue-600">
@@ -204,8 +205,8 @@ export function CalorieBalanceChart({ days }: Props) {
 
           <Card className={`bg-gradient-to-br ${
             summary.avg_deficit > 0 
-              ? 'from-green-50 to-green-100 border-green-200' 
-              : 'from-red-50 to-red-100 border-red-200'
+              ? 'from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/20 border-green-200 dark:border-green-800' 
+              : 'from-red-50 to-red-100 dark:from-red-950/30 dark:to-red-900/20 border-red-200 dark:border-red-800'
           }`}>
             <CardContent className="p-4 text-center">
               <div className={`text-sm mb-1 ${summary.avg_deficit > 0 ? 'text-green-700' : 'text-red-700'}`}>

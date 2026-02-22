@@ -61,12 +61,12 @@ export default function AuthCallbackPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
       <div className="text-center">
         {status === 'loading' ? (
           <>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-            <p className="mt-4 text-text-secondary">Completing sign in...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Completing sign in...</p>
           </>
         ) : (
           <div className="max-w-md">
@@ -75,8 +75,8 @@ export default function AuthCallbackPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-text mb-2">Sign In Failed</h2>
-            <p className="text-text-secondary mb-6">{errorMsg}</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Sign In Failed</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">{errorMsg}</p>
             <a
               href="/login"
               className="inline-block px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors"

@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { Dumbbell, Plus, TrendingUp, Trash2, Flame } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge, Modal } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge, Modal, ConfirmDialog } from '@/components/ui';
 import { workoutApi } from '@/lib/api/services';
 import { getTodayString, formatDateLong } from '@/lib/utils/date';
 import type { ExerciseLibraryItem, WorkoutLog, WorkoutTrendResponse } from '@/types/api';
+import { SkeletonStats, SkeletonList } from '@/components/ui/Skeleton';
 
 interface SetData {
   set_number: number;
@@ -31,21 +33,7 @@ export default function WorkoutsPage() {
   const [duration, setDuration] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  // Debug: Log exercise data when loaded
-  useEffect(() => {
-    if (exercises.length > 0) {
-      console.log('📊 Total exercises:', exercises.length);
-      console.log('🏃 Cardio:', exercises.filter(ex => (ex as any).exercise_type === 'cardio').length);
-      console.log('💪 Strength:', exercises.filter(ex => (ex as any).exercise_type === 'strength').length);
-      console.log('❓ No type:', exercises.filter(ex => !(ex as any).exercise_type).length);
-      console.log('🔍 First exercise sample:', exercises[0]);
-    }
-  }, [exercises]);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -66,6 +54,10 @@ export default function WorkoutsPage() {
       loadRecentWorkouts().catch(err => console.error('Failed to load recent workouts:', err));
     }
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const loadRecentWorkouts = async () => {
     try {
@@ -150,25 +142,27 @@ export default function WorkoutsPage() {
       setShowLogForm(false);
       setSelectedExercise(null);
       await loadData();
+      toast.success('Workout logged successfully');
     } catch (error) {
       console.error('Failed to log workout:', error);
-      alert('Failed to log workout. Please try again.');
+      toast.error('Failed to log workout. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const deleteWorkout = async (logId: string, exerciseName: string) => {
-    if (!confirm(`Delete "${exerciseName}" workout log?`)) {
-      return;
-    }
+  const deleteWorkout = async () => {
+    if (!deleteTarget) return;
 
     try {
-      await workoutApi.deleteLog(logId);
+      await workoutApi.deleteLog(deleteTarget.id);
       await loadData();
+      toast.success('Workout deleted');
     } catch (error) {
       console.error('Failed to delete workout:', error);
-      alert('Failed to delete workout log.');
+      toast.error('Failed to delete workout log.');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -232,12 +226,19 @@ export default function WorkoutsPage() {
     strengthExercises: exercises.filter(ex => (ex as any).exercise_type === 'strength' || !(ex as any).exercise_type)
   }), [exercises]);
 
+  if (loading) return (
+    <div className="space-y-6">
+      <SkeletonStats count={3} />
+      <SkeletonList items={4} />
+    </div>
+  );
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-text">Workout Tracker</h1>
-          <p className="text-text-secondary mt-1">{formatDateLong(getTodayString())}</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">Workout Tracker</h1>
+          <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400 mt-1">{formatDateLong(getTodayString())}</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={handleRecentWorkout} disabled={recentWorkouts.length === 0}>
@@ -253,13 +254,13 @@ export default function WorkoutsPage() {
 
       {/* Weekly Stats */}
       {trends && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div data-tour="workout-stats" className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card variant="elevated">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-text-secondary mb-1">Total Workouts</p>
-                  <p className="text-3xl font-bold text-text">{trends.total_workouts}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">Total Workouts</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">{trends.total_workouts}</p>
                 </div>
                 <div className="p-3 bg-primary/10 rounded-lg">
                   <Dumbbell className="h-6 w-6 text-primary" />
@@ -272,8 +273,8 @@ export default function WorkoutsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-text-secondary mb-1">Per Week</p>
-                  <p className="text-3xl font-bold text-text">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">Per Week</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">
                     {trends.average_per_week.toFixed(1)}
                   </p>
                 </div>
@@ -288,8 +289,8 @@ export default function WorkoutsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-text-secondary mb-1">Today's Logs</p>
-                  <p className="text-3xl font-bold text-text">{workoutLogs.length}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">Today&apos;s Logs</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">{workoutLogs.length}</p>
                 </div>
                 <div className="p-3 bg-accent/30 rounded-lg">
                   <Dumbbell className="h-6 w-6 text-primary" />
@@ -303,16 +304,16 @@ export default function WorkoutsPage() {
       {/* Today's Workouts */}
       <Card>
         <CardHeader>
-          <CardTitle>Today's Workouts</CardTitle>
+          <CardTitle>Today&apos;s Workouts</CardTitle>
         </CardHeader>
         <CardContent>
           {workoutLogs.length === 0 ? (
-            <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
-              <Dumbbell className="h-20 w-20 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <div className="text-center py-16 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+              <Dumbbell className="h-20 w-20 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 No workouts logged today
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
                 Start logging your workouts to build healthy habits!
               </p>
               <Button size="lg" onClick={handleQuickSelect}>
@@ -325,13 +326,13 @@ export default function WorkoutsPage() {
               {workoutLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="p-4 border border-border rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all relative"
+                  className="p-4 border border-gray-200 dark:border-gray-700 dark:border-gray-700 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all relative"
                 >
                   <div className="flex items-start justify-between">
-                    <h4 className="font-semibold text-text mb-2">{log.exercise_name}</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">{log.exercise_name}</h4>
                     <button
-                      onClick={() => deleteWorkout(log.id, log.exercise_name)}
-                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      onClick={() => setDeleteTarget({ id: log.id, name: log.exercise_name })}
+                      className="p-2 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
                       title="Delete workout log"
                     >
                       <Trash2 className="h-5 w-5 text-red-500 hover:text-red-700" />
@@ -339,20 +340,20 @@ export default function WorkoutsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-text-secondary">Sets:</span>
-                      <span className="font-medium text-text ml-1">{log.sets.length}</span>
+                      <span className="text-gray-600 dark:text-gray-400 dark:text-gray-400">Sets:</span>
+                      <span className="font-medium text-gray-900 dark:text-white dark:text-white ml-1">{log.sets.length}</span>
                     </div>
                     {log.duration_minutes && (
                       <div>
-                        <span className="text-text-secondary">Duration:</span>
-                        <span className="font-medium text-text ml-1">
+                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-400">Duration:</span>
+                        <span className="font-medium text-gray-900 dark:text-white dark:text-white ml-1">
                           {log.duration_minutes} min
                         </span>
                       </div>
                     )}
                   </div>
                   {log.calories_burned && log.calories_burned > 0 && (
-                    <div className="flex items-center gap-2 mt-3 p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border-2 border-orange-200">
+                    <div className="flex items-center gap-2 mt-3 p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-lg border-2 border-orange-200 dark:border-orange-800">
                       <Flame className="h-5 w-5 text-orange-500" />
                       <span className="text-lg font-bold text-orange-600">
                         {Math.round(log.calories_burned)} kcal burned
@@ -360,7 +361,7 @@ export default function WorkoutsPage() {
                     </div>
                   )}
                   {log.notes && (
-                    <p className="text-sm text-text-secondary mt-2">{log.notes}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mt-2">{log.notes}</p>
                   )}
                 </div>
                 ))}
@@ -370,16 +371,16 @@ export default function WorkoutsPage() {
       </Card>
 
       {/* Exercise Library with Tabs */}
-      <Card id="exercise-library">
+      <Card id="exercise-library" data-tour="workout-library">
         <CardHeader>
           <CardTitle>Exercise Library</CardTitle>
-          <div className="flex gap-2 mt-4 border-b-2 border-gray-200">
+          <div className="flex gap-2 mt-4 border-b-2 border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setActiveLibraryTab('all')}
               className={`pb-3 px-6 font-semibold transition-all relative ${
                 activeLibraryTab === 'all'
                   ? 'text-primary'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               All ({exercises.length})
@@ -392,7 +393,7 @@ export default function WorkoutsPage() {
               className={`pb-3 px-6 font-semibold transition-all relative ${
                 activeLibraryTab === 'cardio'
                   ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               🏃 Cardio ({cardioExercises.length})
@@ -405,7 +406,7 @@ export default function WorkoutsPage() {
               className={`pb-3 px-6 font-semibold transition-all relative ${
                 activeLibraryTab === 'strength'
                   ? 'text-orange-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               💪 Strength ({strengthExercises.length})
@@ -416,13 +417,6 @@ export default function WorkoutsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-20 bg-surfaceAlt animate-pulse rounded-lg" />
-              ))}
-            </div>
-          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {(activeLibraryTab === 'all' ? exercises : 
                 activeLibraryTab === 'cardio' ? cardioExercises : 
@@ -433,8 +427,8 @@ export default function WorkoutsPage() {
                     key={exercise.id}
                     className={`p-4 border-2 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer ${
                       isCardio 
-                        ? 'border-blue-200 bg-blue-50 hover:border-blue-400' 
-                        : 'border-orange-200 bg-orange-50 hover:border-orange-400'
+                        ? 'border-blue-200 bg-blue-50 hover:border-blue-400 dark:border-blue-800 dark:bg-blue-950/30 dark:hover:border-blue-600' 
+                        : 'border-orange-200 bg-orange-50 hover:border-orange-400 dark:border-orange-800 dark:bg-orange-950/30 dark:hover:border-orange-600'
                     }`}
                     onClick={() => {
                       setSelectedExercise(exercise);
@@ -442,7 +436,7 @@ export default function WorkoutsPage() {
                     }}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-text">{exercise.name}</h4>
+                      <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white">{exercise.name}</h4>
                       {getDifficultyBadge(exercise.difficulty)}
                     </div>
                     <div className="flex items-center gap-2 mb-2">
@@ -453,7 +447,7 @@ export default function WorkoutsPage() {
                         {isCardio ? '🏃 Cardio' : '💪 Strength'}
                       </Badge>
                       {(exercise as any).met_value && (
-                        <span className="text-xs text-gray-600 font-medium">
+                        <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                           MET {(exercise as any).met_value}
                         </span>
                       )}
@@ -463,7 +457,7 @@ export default function WorkoutsPage() {
                         <Badge 
                           key={muscle} 
                           variant="default" 
-                          className={`text-xs ${isCardio ? 'bg-blue-100' : 'bg-orange-100'}`}
+                          className={`text-xs ${isCardio ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-orange-100 dark:bg-orange-900/40'}`}
                         >
                           {muscle}
                         </Badge>
@@ -473,9 +467,16 @@ export default function WorkoutsPage() {
                 );
               })}
             </div>
-          )}
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={deleteWorkout}
+        title="Delete Workout"
+        message={`Are you sure you want to delete the "${deleteTarget?.name}" workout log? This cannot be undone.`}
+      />
 
       {/* Exercise Detail Modal */}
       {selectedExercise && (
@@ -494,7 +495,7 @@ export default function WorkoutsPage() {
             </div>
 
             <div>
-              <h4 className="font-semibold text-text mb-2">Muscle Groups</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Muscle Groups</h4>
               <div className="flex flex-wrap gap-2">
                 {selectedExercise.muscle_groups.map((muscle) => (
                   <Badge key={muscle} variant="default">
@@ -505,8 +506,8 @@ export default function WorkoutsPage() {
             </div>
 
             <div>
-              <h4 className="font-semibold text-text mb-2">Form Instructions</h4>
-              <p className="text-text-secondary whitespace-pre-line">
+              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Form Instructions</h4>
+              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400 whitespace-pre-line">
                 {selectedExercise.form_instructions}
               </p>
             </div>
@@ -541,13 +542,13 @@ export default function WorkoutsPage() {
           />
 
           {/* Category Tabs */}
-          <div className="flex gap-2 border-b border-border pb-2">
+          <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
             <button
               onClick={() => setSelectedCategory('all')}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 selectedCategory === 'all'
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               All ({exercises.length})
@@ -557,7 +558,7 @@ export default function WorkoutsPage() {
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 selectedCategory === 'cardio'
                   ? 'bg-blue-500 text-white'
-                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-900/40'
               }`}
             >
               🏃 Cardio ({cardioExercises.length})
@@ -567,7 +568,7 @@ export default function WorkoutsPage() {
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 selectedCategory === 'strength'
                   ? 'bg-orange-500 text-white'
-                  : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                  : 'bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:hover:bg-orange-900/40'
               }`}
             >
               💪 Strength ({strengthExercises.length})
@@ -577,7 +578,7 @@ export default function WorkoutsPage() {
           {/* Exercise List */}
           <div className="max-h-96 overflow-y-auto space-y-2">
             {filteredExercises.length === 0 ? (
-              <p className="text-center text-text-secondary py-8">No results found</p>
+              <p className="text-center text-gray-600 dark:text-gray-400 py-8">No results found</p>
             ) : (
               filteredExercises.map((exercise) => {
                 const isCardio = (exercise as any).exercise_type === 'cardio';
@@ -587,13 +588,13 @@ export default function WorkoutsPage() {
                     onClick={() => handleSelectFromQuickModal(exercise)}
                     className={`w-full text-left p-4 border-2 rounded-lg hover:shadow-md transition ${
                       isCardio 
-                        ? 'border-blue-200 bg-blue-50 hover:border-blue-400' 
-                        : 'border-orange-200 bg-orange-50 hover:border-orange-400'
+                        ? 'border-blue-200 bg-blue-50 hover:border-blue-400 dark:border-blue-800 dark:bg-blue-950/30 dark:hover:border-blue-600' 
+                        : 'border-orange-200 bg-orange-50 hover:border-orange-400 dark:border-orange-800 dark:bg-orange-950/30 dark:hover:border-orange-600'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-text">{exercise.name}</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-white dark:text-white">{exercise.name}</h4>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge 
                             variant={isCardio ? 'info' : 'warning'} 
@@ -602,7 +603,7 @@ export default function WorkoutsPage() {
                             {isCardio ? '🏃 Cardio' : '💪 Strength'}
                           </Badge>
                           {(exercise as any).met_value && (
-                            <span className="text-xs text-gray-600 font-medium">
+                            <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                               MET {(exercise as any).met_value}
                             </span>
                           )}
@@ -612,7 +613,7 @@ export default function WorkoutsPage() {
                             <Badge 
                               key={muscle} 
                               variant="default" 
-                              className={`text-xs ${isCardio ? 'bg-blue-100' : 'bg-orange-100'}`}
+                              className={`text-xs ${isCardio ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-orange-100 dark:bg-orange-900/40'}`}
                             >
                               {muscle}
                             </Badge>
@@ -639,7 +640,7 @@ export default function WorkoutsPage() {
         <div className="space-y-3">
           {recentWorkouts.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-text-secondary">No recent workouts found</p>
+              <p className="text-gray-600 dark:text-gray-400">No recent workouts found</p>
               <Button
                 variant="primary"
                 onClick={() => {
@@ -657,12 +658,12 @@ export default function WorkoutsPage() {
               <button
                 key={log.id}
                 onClick={() => handleSelectRecentWorkout(log)}
-                className="w-full text-left p-4 border border-border rounded-lg hover:bg-surfaceAlt transition"
+                className="w-full text-left p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:bg-gray-700 transition"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h4 className="font-medium text-text mb-2">{log.exercise_name}</h4>
-                    <div className="flex gap-4 text-sm text-text-secondary">
+                    <h4 className="font-medium text-gray-900 dark:text-white dark:text-white mb-2">{log.exercise_name}</h4>
+                    <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400">
                       <span>{log.sets.length} sets</span>
                       {log.duration_minutes && <span>{log.duration_minutes} min</span>}
                       {log.sets[0] && (
@@ -698,7 +699,7 @@ export default function WorkoutsPage() {
                 {(selectedExercise as any).exercise_type === 'cardio' ? '🏃 Cardio Exercise' : '💪 Strength Exercise'}
               </Badge>
               {(selectedExercise as any).met_value && (
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   Calories burned: MET {(selectedExercise as any).met_value}
                 </span>
               )}
@@ -706,8 +707,8 @@ export default function WorkoutsPage() {
 
             {/* Duration (Required for Cardio, Optional for Strength) */}
             {(selectedExercise as any).exercise_type === 'cardio' ? (
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-text mb-2 flex items-center gap-2">
+              <div className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                   ⏱️ Duration (required)
                 </h4>
                 <Input
@@ -718,7 +719,7 @@ export default function WorkoutsPage() {
                   className="text-lg"
                 />
                 {duration > 0 && (selectedExercise as any).met_value && (
-                  <p className="text-sm text-blue-700 mt-2">
+                  <p className="text-sm text-blue-700 dark:text-blue-400 mt-2">
                     💡 Est. calories burned: ~ {Math.round((selectedExercise as any).met_value * 70 * (duration / 60))} kcal (based on 70kg)
                   </p>
                 )}
@@ -727,11 +728,11 @@ export default function WorkoutsPage() {
               <>
                 {/* Sets (for Strength) */}
                 <div>
-                  <h4 className="font-semibold text-text mb-3">Sets</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-3">Sets</h4>
               <div className="space-y-3">
                 {sets.map((set, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-text-secondary w-12">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-400 w-12">
                       Set {set.set_number}
                     </span>
                     <Input
@@ -769,14 +770,14 @@ export default function WorkoutsPage() {
 
             {/* Duration (optional for strength) */}
             <div>
-              <h4 className="font-semibold text-text mb-2">Duration (optional)</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Duration (optional)</h4>
               <Input
                 type="number"
                 placeholder="minutes (optional)"
                 value={duration || ''}
                 onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Will be auto-estimated if left blank
               </p>
             </div>
@@ -785,9 +786,9 @@ export default function WorkoutsPage() {
 
             {/* Notes */}
             <div>
-              <h4 className="font-semibold text-text mb-2">Notes (optional)</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Notes (optional)</h4>
               <textarea
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 rows={3}
                 placeholder="Add notes about your workout..."
                 value={notes}

@@ -166,7 +166,7 @@ def _postprocess(original: Image.Image, transformed_bytes: bytes) -> bytes:
 def _curl_json(method: str, url: str, api_key: str, json_body: dict | None = None) -> dict:
     """Make an API call via curl subprocess (reliable through corporate proxies)."""
     cmd = [
-        "curl", "-sk",
+        "curl", "-s",
         "-X", method,
         url,
         "-H", f"Authorization: Bearer {api_key}",
@@ -193,7 +193,7 @@ def _curl_json(method: str, url: str, api_key: str, json_body: dict | None = Non
 def _curl_download(url: str, dest_path: str) -> None:
     """Download a file via curl."""
     result = subprocess.run(
-        ["curl", "-sk", "-o", dest_path, url],
+        ["curl", "-s", "-o", dest_path, url],
         capture_output=True, timeout=60,
     )
     if result.returncode != 0:

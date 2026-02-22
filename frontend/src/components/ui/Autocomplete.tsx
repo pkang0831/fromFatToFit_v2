@@ -7,7 +7,7 @@ export interface AutocompleteOption {
   id: string;
   label: string;
   subtitle?: string;
-  data?: any;
+  data?: Record<string, any>;
 }
 
 interface AutocompleteProps {
@@ -105,7 +105,7 @@ export function Autocomplete({
   return (
     <div ref={containerRef} className="relative">
       {label && (
-        <label className="block text-sm font-medium text-text mb-1">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
           {label}
           {required && <span className="text-error ml-1">*</span>}
         </label>
@@ -125,12 +125,12 @@ export function Autocomplete({
           className={`
             w-full px-4 py-2 pr-10
             border rounded-lg
-            bg-surface text-text
-            placeholder:text-text-light
+            bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+            placeholder:text-gray-500 dark:text-gray-500
             focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-all
-            ${error ? 'border-error' : 'border-border hover:border-primary'}
+            ${error ? 'border-error' : 'border-gray-200 dark:border-gray-700 hover:border-primary'}
           `}
         />
         
@@ -138,7 +138,7 @@ export function Autocomplete({
           {loading ? (
             <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
           ) : (
-            <Search className="h-4 w-4 text-text-light" />
+            <Search className="h-4 w-4 text-gray-500 dark:text-gray-500" />
           )}
         </div>
       </div>
@@ -149,7 +149,7 @@ export function Autocomplete({
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute z-50 w-full mt-1 bg-surface border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {options.map((option, index) => (
             <button
               key={option.id}
@@ -157,16 +157,16 @@ export function Autocomplete({
               onClick={() => handleSelectOption(option)}
               className={`
                 w-full px-4 py-3 text-left
-                hover:bg-surfaceAlt
+                hover:bg-gray-100 dark:bg-gray-700
                 transition-colors
-                ${index === highlightedIndex ? 'bg-surfaceAlt' : ''}
-                ${index !== 0 ? 'border-t border-border-light' : ''}
+                ${index === highlightedIndex ? 'bg-gray-100 dark:bg-gray-700' : ''}
+                ${index !== 0 ? 'border-t border-gray-100 dark:border-gray-700' : ''}
               `}
               onMouseEnter={() => setHighlightedIndex(index)}
             >
-              <div className="font-medium text-text">{option.label}</div>
+              <div className="font-medium text-gray-900 dark:text-white">{option.label}</div>
               {option.subtitle && (
-                <div className="text-sm text-text-secondary mt-0.5">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
                   {option.subtitle}
                 </div>
               )}

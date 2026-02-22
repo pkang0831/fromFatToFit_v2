@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { ArrowLeft, Save, Plus, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '@/components/ui';
 import { foodDecisionApi } from '@/lib/api/services';
@@ -75,9 +76,11 @@ export default function FoodPreferencesPage() {
       await foodDecisionApi.updatePreferences(preferences);
       setSuccessMessage('Settings saved successfully!');
       setTimeout(() => setSuccessMessage(null), 3000);
+      toast.success('Food preferences saved');
     } catch (err: any) {
       console.error('Error saving preferences:', err);
       setError('Failed to save preferences');
+      toast.error('Failed to save preferences');
     } finally {
       setIsSaving(false);
     }
@@ -140,8 +143,8 @@ export default function FoodPreferencesPage() {
           Back
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">Food Preferences Settings</h1>
-          <p className="text-gray-600 mt-1">Custom settings for AI recommendations</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Food Preferences Settings</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">Custom settings for AI recommendations</p>
         </div>
         <Button onClick={handleSave} isLoading={isSaving}>
           <Save className="h-4 w-4 mr-2" />
@@ -151,12 +154,12 @@ export default function FoodPreferencesPage() {
 
       {/* Success/Error Messages */}
       {successMessage && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+        <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg text-green-800 dark:text-green-300">
           {successMessage}
         </div>
       )}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+        <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300">
           {error}
         </div>
       )}
@@ -175,7 +178,7 @@ export default function FoodPreferencesPage() {
                 className={`px-4 py-2 rounded-full border-2 transition ${
                   preferences.dietary_restrictions.includes(restriction.id)
                     ? 'bg-blue-500 text-white border-blue-500'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:border-blue-400'
                 }`}
               >
                 {restriction.label}
@@ -198,7 +201,7 @@ export default function FoodPreferencesPage() {
               onChange={(e) => setNewAllergy(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addToList('allergies', newAllergy)}
               placeholder="Add allergy..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Button onClick={() => addToList('allergies', newAllergy)}>
               <Plus className="h-4 w-4" />
@@ -210,7 +213,7 @@ export default function FoodPreferencesPage() {
               <button
                 key={allergy}
                 onClick={() => addToList('allergies', allergy)}
-                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full"
+                className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full"
               >
                 + {allergy}
               </button>
@@ -221,7 +224,7 @@ export default function FoodPreferencesPage() {
             {preferences.allergies.map(allergy => (
               <div
                 key={allergy}
-                className="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-800 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg"
               >
                 <span>{allergy}</span>
                 <button
@@ -249,7 +252,7 @@ export default function FoodPreferencesPage() {
               onChange={(e) => setNewFavorite(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addToList('favorite_foods', newFavorite)}
               placeholder="Add favorite food..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Button onClick={() => addToList('favorite_foods', newFavorite)}>
               <Plus className="h-4 w-4" />
@@ -260,7 +263,7 @@ export default function FoodPreferencesPage() {
             {preferences.favorite_foods.map(food => (
               <div
                 key={food}
-                className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-lg"
               >
                 <span>{food}</span>
                 <button
@@ -288,7 +291,7 @@ export default function FoodPreferencesPage() {
               onChange={(e) => setNewDisliked(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addToList('disliked_foods', newDisliked)}
               placeholder="Add disliked food..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <Button onClick={() => addToList('disliked_foods', newDisliked)}>
               <Plus className="h-4 w-4" />
@@ -299,7 +302,7 @@ export default function FoodPreferencesPage() {
             {preferences.disliked_foods.map(food => (
               <div
                 key={food}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-800 rounded-lg"
+                className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg"
               >
                 <span>{food}</span>
                 <button
@@ -330,8 +333,8 @@ export default function FoodPreferencesPage() {
               className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
             <div>
-              <div className="font-semibold">Prefer high-protein foods</div>
-              <div className="text-sm text-gray-600">Prioritizes recommending foods high in protein</div>
+              <div className="font-semibold text-gray-900 dark:text-white">Prefer high-protein foods</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Prioritizes recommending foods high in protein</div>
             </div>
           </label>
 
@@ -345,8 +348,8 @@ export default function FoodPreferencesPage() {
               className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
             <div>
-              <div className="font-semibold">Avoid high-sodium foods</div>
-              <div className="text-sm text-gray-600">Warns about foods with 800mg or more sodium</div>
+              <div className="font-semibold text-gray-900 dark:text-white">Avoid high-sodium foods</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Warns about foods with 800mg or more sodium</div>
             </div>
           </label>
 
@@ -360,8 +363,8 @@ export default function FoodPreferencesPage() {
               className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
             />
             <div>
-              <div className="font-semibold">Avoid high-sugar foods</div>
-              <div className="text-sm text-gray-600">Warns about foods with 25g or more sugar</div>
+              <div className="font-semibold text-gray-900 dark:text-white">Avoid high-sugar foods</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Warns about foods with 25g or more sugar</div>
             </div>
           </label>
         </CardContent>

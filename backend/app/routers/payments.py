@@ -1,34 +1,39 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Request
+from fastapi import APIRouter, HTTPException, status, Depends
+from starlette.requests import Request
 import logging
 from typing import Dict, Any
 from ..schemas.payment_schemas import (
     CreateCheckoutSessionRequest, CheckoutSessionResponse,
-    VerifyPurchaseRequest, SubscriptionResponse, UsageLimitResponse
+    VerifyPurchaseRequest, SubscriptionResponse, UsageLimitResponse,
+    BuyCreditPackRequest, CreditBalanceResponse,
 )
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services.payment_service import (
-    create_checkout_session, handle_stripe_webhook,
-    verify_revenuecat_purchase, check_premium_status
+    create_checkout_session, create_credit_pack_checkout,
+    handle_stripe_webhook, verify_revenuecat_purchase, check_premium_status,
 )
-from ..services.usage_limiter import get_all_usage_limits
+from ..services.usage_limiter import get_all_usage_limits, get_credit_balance
+from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.post("/create-checkout-session", response_model=CheckoutSessionResponse)
+@limiter.limit("5/minute")
 async def create_checkout(
-    request: CreateCheckoutSessionRequest,
+    request: Request,
+    checkout_request: CreateCheckoutSessionRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """Create Stripe checkout session for subscription purchase"""
     try:
         session_data = await create_checkout_session(
             user_id=current_user["id"],
-            price_id=request.price_id,
-            success_url=request.success_url,
-            cancel_url=request.cancel_url
+            price_id=checkout_request.price_id,
+            success_url=checkout_request.success_url,
+            cancel_url=checkout_request.cancel_url
         )
         
         return CheckoutSessionResponse(**session_data)
@@ -144,4 +149,45 @@ async def get_usage_limits(current_user: dict = Depends(get_current_user)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get usage limits"
+        )
+
+
+@router.get("/credits", response_model=CreditBalanceResponse)
+async def get_credits(current_user: dict = Depends(get_current_user)):
+    """Get user's credit balance"""
+    try:
+        is_premium = await check_premium_status(current_user["id"])
+        balance = await get_credit_balance(current_user["id"], is_premium)
+        return CreditBalanceResponse(**balance)
+    except Exception as e:
+        logger.error(f"Error getting credits: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get credit balance"
+        )
+
+
+@router.post("/buy-credits", response_model=CheckoutSessionResponse)
+@limiter.limit("5/minute")
+async def buy_credits(
+    request: Request,
+    credit_request: BuyCreditPackRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Purchase a credit pack"""
+    try:
+        session_data = await create_credit_pack_checkout(
+            user_id=current_user["id"],
+            pack_size=credit_request.pack_size,
+            success_url=credit_request.success_url,
+            cancel_url=credit_request.cancel_url,
+        )
+        return CheckoutSessionResponse(**session_data)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error buying credits: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create credit purchase session"
         )

@@ -49,7 +49,17 @@ async def analyze_food_image(image_base64: str) -> Dict[str, Any]:
         content = response.choices[0].message.content
         logger.info(f"OpenAI food analysis response: {content}")
         
-        result = json.loads(content)
+        content_clean = content.strip()
+        if content_clean.startswith("```"):
+            match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content_clean, re.DOTALL)
+            if match:
+                content_clean = match.group(1)
+            else:
+                match = re.search(r'\{.*\}', content_clean, re.DOTALL)
+                if match:
+                    content_clean = match.group(0)
+        
+        result = json.loads(content_clean)
         
         # Calculate totals
         total_calories = sum(item.get("calories", 0) for item in result["items"])
