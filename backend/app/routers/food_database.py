@@ -1,7 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from typing import List, Optional
 import logging
-import asyncio
 import httpx
 from ..middleware.auth_middleware import get_current_user
 from ..services.food_database_service import get_food_database
@@ -79,7 +78,8 @@ def _save_to_food_cache(items: list, query: str):
 async def search_foods(
     q: str = Query(..., min_length=2, description="Search query"),
     limit: int = Query(10, ge=1, le=50, description="Maximum results"),
-    category: Optional[str] = Query(None, description="Filter by category")
+    category: Optional[str] = Query(None, description="Filter by category"),
+    current_user: dict = Depends(get_current_user),
 ):
     """Search foods in local curated database with autocomplete."""
     try:
@@ -98,7 +98,7 @@ async def search_foods(
 
 
 @router.get("/categories")
-async def get_categories():
+async def get_categories(current_user: dict = Depends(get_current_user)):
     """Get list of all food categories"""
     try:
         db = get_food_database()
@@ -119,7 +119,7 @@ async def search_external_foods(
     q: str = Query(..., min_length=2),
     limit: int = Query(10, ge=1, le=25),
     current_user: dict = Depends(get_current_user),
-    background_tasks: BackgroundTasks = None,
+    background_tasks: BackgroundTasks = BackgroundTasks(),
 ):
     """Search external foods: checks Supabase cache first, falls back to Open Food Facts API."""
 
@@ -193,7 +193,7 @@ async def search_external_foods(
 
 
 @router.get("/{food_id}")
-async def get_food_details(food_id: str):
+async def get_food_details(food_id: str, current_user: dict = Depends(get_current_user)):
     """Get detailed information for a specific food"""
     try:
         db = get_food_database()
@@ -214,7 +214,8 @@ async def get_food_details(food_id: str):
 @router.post("/calculate")
 async def calculate_nutrition(
     food_id: str,
-    amount_grams: float
+    amount_grams: float,
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Calculate nutrition values for a specific amount
@@ -291,7 +292,7 @@ async def lookup_barcode(barcode: str, current_user: dict = Depends(get_current_
 
 
 @router.get("/stats/overview")
-async def get_database_stats():
+async def get_database_stats(current_user: dict = Depends(get_current_user)):
     """Get database statistics"""
     try:
         db = get_food_database()

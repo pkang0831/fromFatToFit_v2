@@ -88,8 +88,6 @@ export default function FoodCameraPage() {
       await refreshLimits();
       await fetchCredits();
     } catch (err: any) {
-      console.error('❌ Food decision error:', err);
-
       if (err.response?.status === 402) {
         setError('Not enough credits. Buy more credits to continue scanning.');
         toast.error('Not enough credits');
@@ -124,7 +122,6 @@ export default function FoodCameraPage() {
       setRecommendations(response.data);
       setFlow('recommendations');
     } catch (err: any) {
-      console.error('❌ Error fetching recommendations:', err);
       setError('Failed to load recommendations');
       toast.error('Failed to load recommendations');
     } finally {

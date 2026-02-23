@@ -18,25 +18,38 @@ export default function DashboardLayout({
   useEffect(() => {
     if (!loading && !isAuthenticated && !redirecting.current) {
       redirecting.current = true;
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      window.location.href = '/login';
+      window.location.replace('/login');
     }
   }, [isAuthenticated, loading]);
 
   useEffect(() => {
     if (!loading && isAuthenticated && user && !user.onboarding_completed && !redirecting.current) {
       redirecting.current = true;
-      window.location.href = '/onboarding';
+      window.location.replace('/onboarding');
     }
   }, [isAuthenticated, loading, user]);
 
-  if (loading || !isAuthenticated) {
+  if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Redirecting to login...</p>
         </div>
       </div>
     );

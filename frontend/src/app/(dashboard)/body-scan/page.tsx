@@ -275,11 +275,7 @@ export default function BodyScanPage() {
       await refreshLimits();
       await fetchCredits();
     } catch (err: unknown) {
-      console.error('Body scan error:', err);
-      
       if (err instanceof AxiosError) {
-        console.error('Error response:', err.response);
-        console.error('Error data:', err.response?.data);
         
         if (err.response?.status === 402) {
           setError('Not enough credits for this scan. Buy more credits to continue.');
