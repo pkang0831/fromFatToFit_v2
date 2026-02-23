@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, useCallback, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Scan, Crown, TrendingUp, Award, Sparkles, Wand2, Coins } from 'lucide-react';
+import { Scan, Crown, TrendingUp, Award, Sparkles, Wand2, Coins, Target } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input, Select } from '@/components/ui';
 import { ShareButtons } from '@/components/ui/ShareButtons';
@@ -12,9 +12,10 @@ import { bodyApi, paymentApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { AxiosError } from 'axios';
 import { BellCurveChart } from '@/components/charts/BellCurveChart';
-import type { BodyScanRequest, BodyFatEstimateResponse, PercentileResponse, TransformationResponse, EnhancementResponse } from '@/types/api';
+import BodyPartSelector from '@/components/features/BodyPartSelector';
+import type { BodyScanRequest, BodyFatEstimateResponse, PercentileResponse, TransformationResponse, EnhancementResponse, RegionTransformResponse } from '@/types/api';
 
-type ScanType = 'bodyfat' | 'percentile' | 'transformation' | 'enhancement';
+type ScanType = 'bodyfat' | 'percentile' | 'transformation' | 'enhancement' | 'region_transform';
 
 export default function BodyScanPage() {
   const router = useRouter();
@@ -31,16 +32,25 @@ export default function BodyScanPage() {
     percentile?: PercentileResponse;
     transformation?: TransformationResponse;
     enhancement?: EnhancementResponse;
+    region_transform?: RegionTransformResponse;
   }>({});
   const [error, setError] = useState<string | null>(null);
   
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
+
+  // Region transform state
+  const [regionGoal, setRegionGoal] = useState<string>('bigger');
+  const [regionIntensity, setRegionIntensity] = useState<string>('moderate');
+  const [regionTransformLoading, setRegionTransformLoading] = useState(false);
+  const [regionImageBase64, setRegionImageBase64] = useState<string | null>(null);
+  const [regionTransformHistory, setRegionTransformHistory] = useState<RegionTransformResponse[]>([]);
 
   const SCAN_CREDIT_COSTS: Record<ScanType, number> = {
     bodyfat: 10,
     percentile: 10,
     transformation: 30,
     enhancement: 50,
+    region_transform: 15,
   };
 
   const [formDefaults, setFormDefaults] = useState({
@@ -140,6 +150,14 @@ export default function BodyScanPage() {
       icon: Wand2,
       access: enhancementAccess,
       creditCost: SCAN_CREDIT_COSTS.enhancement,
+    },
+    {
+      id: 'region_transform' as ScanType,
+      title: 'Region Transform',
+      description: 'Click a body part to select it, then transform with AI',
+      icon: Target,
+      access: transformationAccess,
+      creditCost: SCAN_CREDIT_COSTS.region_transform,
     },
   ];
 
@@ -321,6 +339,77 @@ export default function BodyScanPage() {
       requestAnimationFrame(cleanupStyles);
     }
   };
+
+  // Region transform: handle file selection to extract base64
+  const handleRegionFileSelect = useCallback(async (file: File) => {
+    const b64 = await compressAndConvertToBase64(file);
+    setRegionImageBase64(b64);
+  }, []);
+
+  // Region transform: SAM segment click
+  const handleSegmentClick = useCallback(async (clickX: number, clickY: number) => {
+    if (!regionImageBase64) throw new Error('No image loaded');
+    const res = await bodyApi.segmentBodyPart({
+      image_base64: regionImageBase64,
+      click_x: clickX,
+      click_y: clickY,
+    });
+    return res.data;
+  }, [regionImageBase64]);
+
+  // Region transform: finalize mask and run transformation
+  const handleMaskFinalized = useCallback(async (maskBase64: string, bodyPart: string) => {
+    if (!regionImageBase64) return;
+
+    const cost = SCAN_CREDIT_COSTS.region_transform;
+    if (creditBalance !== null && creditBalance < cost) {
+      setError(`Not enough credits. Region Transform costs ${cost} credits but you have ${creditBalance}.`);
+      return;
+    }
+
+    setRegionTransformLoading(true);
+    setError(null);
+
+    try {
+      const res = await bodyApi.transformRegion({
+        image_base64: regionImageBase64,
+        mask_base64: maskBase64,
+        body_part: bodyPart,
+        goal: regionGoal,
+        gender: user?.gender || 'male',
+        intensity: regionIntensity,
+      });
+
+      setResults((prev) => ({ ...prev, region_transform: res.data }));
+      setRegionTransformHistory((prev) => [...prev, res.data]);
+      await refreshLimits();
+      await fetchCredits();
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 402) {
+          setError('Not enough credits. Buy more to continue.');
+        } else {
+          setError(err.response?.data?.detail || 'Region transformation failed');
+        }
+      } else {
+        setError(err instanceof Error ? err.message : 'Region transformation failed');
+      }
+    } finally {
+      setRegionTransformLoading(false);
+    }
+  }, [regionImageBase64, regionGoal, regionIntensity, user, creditBalance, refreshLimits, fetchCredits, SCAN_CREDIT_COSTS]);
+
+  // Multi-region: continue transforming using the previous result as input
+  const handleTransformAnother = useCallback(() => {
+    const lastResult = results.region_transform;
+    if (!lastResult?.transformed_image_url) return;
+
+    // Extract base64 from the data URI
+    const dataUri = lastResult.transformed_image_url;
+    const b64 = dataUri.includes(',') ? dataUri.split(',')[1] : dataUri;
+    setRegionImageBase64(b64);
+    setResults((prev) => ({ ...prev, region_transform: undefined }));
+  }, [results.region_transform]);
 
   const renderResult = () => {
     const result = results[selectedType];
@@ -601,6 +690,75 @@ export default function BodyScanPage() {
           </Card>
         );
 
+      case 'region_transform':
+        const regionResult = result as RegionTransformResponse;
+        if (!regionResult || !regionResult.transformed_image_url) return null;
+        return (
+          <Card variant="elevated">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Region Transform Result</CardTitle>
+                <Badge variant="info">{regionResult.body_part} — {regionResult.goal}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Original</p>
+                  {selectedImage && (
+                    <Image
+                      src={selectedImage}
+                      alt="Original"
+                      width={800}
+                      height={600}
+                      className="w-full rounded-lg"
+                      unoptimized
+                    />
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Transformed</p>
+                  <Image
+                    src={regionResult.transformed_image_url}
+                    alt="Transformed"
+                    width={800}
+                    height={600}
+                    className="w-full rounded-lg"
+                    unoptimized
+                  />
+                  <ShareButtons imageUrl={regionResult.transformed_image_url} />
+                </div>
+              </div>
+              <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-semibold">Body Part:</span> {regionResult.body_part} |{' '}
+                  <span className="font-semibold">Goal:</span> {regionResult.goal} |{' '}
+                  <span className="font-semibold">Direction:</span> {regionResult.direction}
+                </p>
+              </div>
+
+              {/* Transform history */}
+              {regionTransformHistory.length > 1 && (
+                <div className="mt-4">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    Regions transformed: {regionTransformHistory.map(r => r.body_part).join(' → ')}
+                  </p>
+                </div>
+              )}
+
+              {/* Multi-region button */}
+              <Button
+                variant="secondary"
+                className="w-full mt-4"
+                onClick={handleTransformAnother}
+              >
+                <Target className="h-4 w-4 mr-2" />
+                Transform Another Region ({SCAN_CREDIT_COSTS.region_transform} credits)
+              </Button>
+            </CardContent>
+          </Card>
+        );
+
       default:
         return null;
     }
@@ -641,7 +799,7 @@ export default function BodyScanPage() {
       </div>
 
       {/* Scan Type Selection */}
-      <div data-tour="scan-types" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div data-tour="scan-types" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {scanTypes.map((type) => {
           const Icon = type.icon;
           const isSelected = selectedType === type.id;
@@ -683,7 +841,69 @@ export default function BodyScanPage() {
           <CardTitle>{selectedScanType?.title}</CardTitle>
         </CardHeader>
         <CardContent>
-          {!selectedImage ? (
+          {selectedType === 'region_transform' ? (
+            /* Region Transform: BodyPartSelector UI */
+            <div className="space-y-4">
+              {!regionImageBase64 ? (
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      handleFileSelect(e);
+                      await handleRegionFileSelect(file);
+                    }}
+                    className="hidden"
+                  />
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-12 text-center cursor-pointer hover:border-primary transition-colors"
+                  >
+                    <Target className="h-16 w-16 text-gray-500 dark:text-gray-500 mx-auto mb-4" />
+                    <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">Upload Body Photo</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Then click on a body part to select and transform it
+                    </p>
+                  </div>
+                </div>
+              ) : !results.region_transform ? (
+                <>
+                  {/* Goal & Intensity controls */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Select
+                      label="Transformation Goal"
+                      value={regionGoal}
+                      onChange={(e) => setRegionGoal(e.target.value)}
+                    >
+                      <option value="bigger">Bigger / More Muscular</option>
+                      <option value="leaner">Leaner</option>
+                      <option value="more_defined">More Defined</option>
+                      <option value="slimmer">Slimmer</option>
+                    </Select>
+                    <Select
+                      label="Intensity"
+                      value={regionIntensity}
+                      onChange={(e) => setRegionIntensity(e.target.value)}
+                    >
+                      <option value="subtle">Subtle</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="dramatic">Dramatic</option>
+                    </Select>
+                  </div>
+
+                  <BodyPartSelector
+                    imageBase64={regionImageBase64}
+                    onSegmentClick={handleSegmentClick}
+                    onMaskFinalized={handleMaskFinalized}
+                    loading={regionTransformLoading}
+                  />
+                </>
+              ) : null}
+            </div>
+          ) : !selectedImage ? (
             <div>
               <input
                 ref={fileInputRef}

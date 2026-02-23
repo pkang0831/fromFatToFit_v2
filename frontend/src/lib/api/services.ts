@@ -21,6 +21,10 @@ import type {
   TransformationResponse,
   EnhancementResponse,
   BodyScanHistoryItem,
+  SegmentRequest,
+  SegmentResponse,
+  RegionTransformRequest,
+  RegionTransformResponse,
   CreateCheckoutSessionRequest,
   CheckoutSessionResponse,
   SubscriptionResponse,
@@ -130,6 +134,12 @@ export const bodyApi = {
 
   getScanHistory: () =>
     api.get<BodyScanHistoryItem[]>('/body/scans/history'),
+
+  segmentBodyPart: (data: SegmentRequest) =>
+    api.post<SegmentResponse>('/body/segment', data),
+
+  transformRegion: (data: RegionTransformRequest) =>
+    api.post<RegionTransformResponse>('/body/transform-region', data),
 };
 
 // Payment API

@@ -379,6 +379,35 @@ export interface GoalProjectionResponse {
   message: string;
 }
 
+// SAM Segmentation & Region Transform types
+export interface SegmentRequest {
+  image_base64: string;
+  click_x: number;
+  click_y: number;
+}
+
+export interface SegmentResponse {
+  mask_base64: string;
+  body_part_guess: string;
+  mask_area_pct: number;
+}
+
+export interface RegionTransformRequest {
+  image_base64: string;
+  mask_base64: string;
+  body_part: string;
+  goal: string;
+  gender?: string;
+  intensity?: string;
+}
+
+export interface RegionTransformResponse {
+  transformed_image_url: string;
+  body_part: string;
+  goal: string;
+  direction: string;
+}
+
 // Generic API error
 export interface APIError {
   detail: string;
