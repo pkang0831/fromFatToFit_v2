@@ -5,12 +5,15 @@ from datetime import datetime
 from typing import List
 from ..schemas.body_schemas import (
     BodyScanRequest, BodyFatEstimateResponse, PercentileResponse,
-    TransformationResponse, EnhancementResponse, BodyScanHistoryItem
+    TransformationResponse, EnhancementResponse, BodyScanHistoryItem,
+    SegmentRequest, SegmentResponse,
+    RegionTransformRequest, RegionTransformResponse,
 )
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services import openai_service, grok_service, claude_service, gemini_body_service
 from ..services import replicate_service
+from ..services.sam_service import segment_body_part
 from ..services.body_analysis import calculate_percentile, estimate_transformation_timeline, generate_recommendations
 from ..services.usage_limiter import check_usage_limit, increment_usage
 from ..services.payment_service import check_premium_status
@@ -468,3 +471,103 @@ async def get_scan_history(
     except Exception as e:
         logger.error(f"Error getting scan history: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# SAM Segmentation & Region-Specific Transformation
+# ---------------------------------------------------------------------------
+
+@router.post("/segment", response_model=SegmentResponse)
+@limiter.limit("10/minute")
+async def segment_body(
+    request: Request,
+    seg_request: SegmentRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Segment a body part using SAM-2. User clicks on the image and receives
+    a binary mask for that region. Free to call (no credits deducted).
+    """
+    try:
+        result = await segment_body_part(
+            image_base64=seg_request.image_base64,
+            click_x_norm=seg_request.click_x,
+            click_y_norm=seg_request.click_y,
+        )
+        return SegmentResponse(**result)
+
+    except Exception as e:
+        logger.error(f"SAM segmentation error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Body segmentation failed. Please try clicking a different area.",
+        )
+
+
+@router.post("/transform-region", response_model=RegionTransformResponse)
+@limiter.limit("5/minute")
+async def transform_body_region(
+    request: Request,
+    transform_request: RegionTransformRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Transform a specific body region using ControlNet + SAM mask compositing.
+    Credits are deducted for this operation.
+    """
+    try:
+        is_premium = await check_premium_status(current_user["id"])
+
+        try:
+            await check_usage_limit(current_user["id"], "region_transform", is_premium)
+        except Exception as usage_error:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=str(usage_error),
+            )
+
+        result = await replicate_service.controlnet_transform_region(
+            image_base64=transform_request.image_base64,
+            mask_base64=transform_request.mask_base64,
+            body_part=transform_request.body_part,
+            goal=transform_request.goal,
+            gender=transform_request.gender,
+            intensity=transform_request.intensity,
+        )
+
+        supabase = get_supabase()
+        scan_data = {
+            "user_id": current_user["id"],
+            "scan_type": "region_transform",
+            "result_data": {
+                "body_part": result["body_part"],
+                "goal": result["goal"],
+                "direction": result["direction"],
+            },
+            "ai_analysis": {
+                "body_part": result["body_part"],
+                "goal": result["goal"],
+                "intensity": transform_request.intensity,
+            },
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        supabase.table("body_scans").insert(scan_data).execute()
+
+        if not is_premium:
+            await increment_usage(current_user["id"], "region_transform")
+
+        return RegionTransformResponse(
+            transformed_image_url=result["transformed_image_url"],
+            body_part=result["body_part"],
+            goal=result["goal"],
+            direction=result["direction"],
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Region transform error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Region transformation failed. Please try again.",
+        )

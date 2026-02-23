@@ -13,6 +13,7 @@ CREDIT_COSTS: Dict[str, int] = {
     "form_check": 3,
     "transformation": 30,
     "enhancement": 50,
+    "region_transform": 15,
     "chat_message": 0,
 }
 
