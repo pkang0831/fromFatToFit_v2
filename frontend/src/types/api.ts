@@ -13,6 +13,10 @@ export interface User {
   premium_status: boolean;
   onboarding_completed: boolean;
   created_at: string;
+  consent_terms_at?: string;
+  consent_privacy_at?: string;
+  consent_sensitive_data_at?: string;
+  consent_age_verified_at?: string;
 }
 
 export interface UserRegister {
