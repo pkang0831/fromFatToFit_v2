@@ -49,8 +49,8 @@ export default function UpgradePage() {
   }, []);
 
   const pricing = {
-    monthly: { price: 9.99, priceId: 'price_monthly_xxx', period: 'month' },
-    yearly: { price: 89.99, priceId: 'price_yearly_xxx', period: 'year', savings: 'Save 25%' },
+    monthly: { price: 9.99, priceId: 'price_1T76GGCLiCRdyAkdUMiIPWdg', period: 'month' },
+    yearly: { price: 89.99, priceId: 'price_1T76GGCLiCRdyAkdc6Y2Ehq0', period: 'year', savings: 'Save 25%' },
   };
 
   const handleSubscribe = async () => {
