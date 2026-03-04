@@ -22,7 +22,8 @@
     "warning": "警告",
     "credits": "积分",
     "buyMore": "购买更多",
-    "notEnoughCredits": "积分不足"
+    "notEnoughCredits": "积分不足",
+    "retry": "重试"
   },
   "nav": {
     "home": "首页",

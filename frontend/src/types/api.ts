@@ -17,6 +17,7 @@ export interface User {
   consent_privacy_at?: string;
   consent_sensitive_data_at?: string;
   consent_age_verified_at?: string;
+  consent_version?: string;
 }
 
 export interface UserRegister {

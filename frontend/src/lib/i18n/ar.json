@@ -22,7 +22,8 @@
     "warning": "تحذير",
     "credits": "رصيد",
     "buyMore": "شراء المزيد",
-    "notEnoughCredits": "رصيد غير كافٍ"
+    "notEnoughCredits": "رصيد غير كافٍ",
+    "retry": "إعادة المحاولة"
   },
   "nav": {
     "home": "الرئيسية",

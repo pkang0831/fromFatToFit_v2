@@ -22,7 +22,8 @@
     "warning": "चेतावनी",
     "credits": "क्रेडिट",
     "buyMore": "अधिक खरीदें",
-    "notEnoughCredits": "पर्याप्त क्रेडिट नहीं"
+    "notEnoughCredits": "पर्याप्त क्रेडिट नहीं",
+    "retry": "पुनः प्रयास करें"
   },
   "nav": {
     "home": "होम",

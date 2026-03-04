@@ -22,7 +22,8 @@
     "warning": "Avertissement",
     "credits": "crédits",
     "buyMore": "Acheter plus",
-    "notEnoughCredits": "Crédits insuffisants"
+    "notEnoughCredits": "Crédits insuffisants",
+    "retry": "Réessayer"
   },
   "nav": {
     "home": "Accueil",

@@ -531,7 +531,7 @@ export default function WorkoutsPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={deleteWorkout}
         title={t('workout.deleteWorkout')}
-        message={t('workout.deleteConfirm', { name: deleteTarget?.name })}
+        message={t('workout.deleteConfirm', { name: deleteTarget?.name ?? '' })}
       />
 
       {/* Exercise Detail Modal */}

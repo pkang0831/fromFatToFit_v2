@@ -11,6 +11,7 @@ interface ConfirmDialogProps {
   message: string;
   confirmText?: string;
   variant?: 'danger' | 'warning' | 'primary';
+  loading?: boolean;
 }
 
 export function ConfirmDialog({
@@ -21,6 +22,7 @@ export function ConfirmDialog({
   message,
   confirmText = 'Confirm',
   variant = 'primary',
+  loading = false,
 }: ConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm();
@@ -37,8 +39,8 @@ export function ConfirmDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant={buttonVariant} onClick={handleConfirm}>
-            {confirmText}
+          <Button variant={buttonVariant} onClick={handleConfirm} disabled={loading}>
+            {loading ? 'Loading...' : confirmText}
           </Button>
         </div>
       </div>

@@ -22,7 +22,8 @@
     "warning": "警告",
     "credits": "クレジット",
     "buyMore": "追加購入",
-    "notEnoughCredits": "クレジットが不足しています"
+    "notEnoughCredits": "クレジットが不足しています",
+    "retry": "再試行"
   },
   "nav": {
     "home": "ホーム",
