@@ -54,7 +54,9 @@ test.describe('Smoke Tests @smoke', () => {
 
     test('footer links navigate correctly', async ({ page }) => {
       await page.goto('/');
+      await page.waitForTimeout(1500);
       const privacyLink = page.getByRole('link', { name: /privacy policy|개인정보/i }).first();
+      await privacyLink.waitFor({ state: 'attached', timeout: 5000 });
       await privacyLink.scrollIntoViewIfNeeded();
       await privacyLink.click();
       await expect(page).toHaveURL('/privacy');

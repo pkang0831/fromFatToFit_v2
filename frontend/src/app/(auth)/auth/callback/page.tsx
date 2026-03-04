@@ -116,5 +116,5 @@ function storeTokensAndRedirect(accessToken: string, refreshToken: string) {
   localStorage.setItem('refresh_token', refreshToken);
   setAuthCookie('access_token', accessToken);
   setAuthCookie('refresh_token', refreshToken);
-  window.location.href = '/home';
+  window.location.href = '/onboarding';
 }

@@ -3,21 +3,34 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { authApi } from '@/lib/api/services';
 
-type Step = 'welcome' | 'profile' | 'goals' | 'tour' | 'done';
+type Step = 'welcome' | 'consent' | 'profile' | 'goals' | 'tour' | 'done';
 
 export default function OnboardingPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
+  const consentAlreadyGiven = !!(user as any)?.consent_terms_at;
   const profileAlreadyFilled = !!(user?.gender && user?.age && user?.height_cm);
-  const STEPS: Step[] = profileAlreadyFilled
-    ? ['welcome', 'goals', 'tour', 'done']
-    : ['welcome', 'profile', 'goals', 'tour', 'done'];
+
+  const steps: Step[] = ['welcome'];
+  if (!consentAlreadyGiven) steps.push('consent');
+  if (!profileAlreadyFilled) steps.push('profile');
+  steps.push('goals', 'tour', 'done');
+  const STEPS = steps;
 
   const [step, setStep] = useState<Step>('welcome');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const [consent, setConsent] = useState({
+    terms: false,
+    privacy: false,
+    sensitiveData: false,
+    age: false,
+  });
 
   const [profile, setProfile] = useState({
     full_name: user?.full_name || '',
@@ -113,6 +126,88 @@ export default function OnboardingPage() {
                 <button onClick={next} className="px-8 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors">
                   Let&apos;s Go
                 </button>
+              </motion.div>
+            )}
+
+            {step === 'consent' && (
+              <motion.div key="consent" variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="flex-1 flex flex-col">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{t('auth.consent.title')}</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">Please review and accept the following to continue.</p>
+
+                <div className="space-y-4 flex-1">
+                  <div className="flex items-start gap-3">
+                    <input type="checkbox" id="ob-terms" checked={consent.terms} onChange={e => setConsent(c => ({ ...c, terms: e.target.checked }))} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
+                    <label htmlFor="ob-terms" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                      {(() => {
+                        const termsLink = t('auth.consent.termsLink');
+                        const disclaimerLink = t('auth.consent.disclaimerLink');
+                        const full = t('auth.consent.terms', { terms: termsLink, disclaimer: disclaimerLink });
+                        const parts = full.split(termsLink);
+                        const between = parts[1]?.split(disclaimerLink) ?? ['', ''];
+                        return <>{parts[0]}<a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">{termsLink}</a>{between[0]}<a href="/disclaimer" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">{disclaimerLink}</a>{between[1]}</>;
+                      })()}
+                    </label>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <input type="checkbox" id="ob-privacy" checked={consent.privacy} onChange={e => setConsent(c => ({ ...c, privacy: e.target.checked }))} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
+                    <label htmlFor="ob-privacy" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                      {(() => {
+                        const privacyLink = t('auth.consent.privacyLink');
+                        const full = t('auth.consent.privacy', { privacy: privacyLink });
+                        const parts = full.split(privacyLink);
+                        return <>{parts[0]}<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">{privacyLink}</a>{parts[1]}</>;
+                      })()}
+                    </label>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <input type="checkbox" id="ob-sensitive" checked={consent.sensitiveData} onChange={e => setConsent(c => ({ ...c, sensitiveData: e.target.checked }))} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
+                    <label htmlFor="ob-sensitive" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                      {t('auth.consent.sensitiveData')}
+                    </label>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <input type="checkbox" id="ob-age" checked={consent.age} onChange={e => setConsent(c => ({ ...c, age: e.target.checked }))} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
+                    <label htmlFor="ob-age" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                      {t('auth.consent.ageVerification')}
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex justify-between mt-6">
+                  <button onClick={prev} className="px-6 py-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Back</button>
+                  <button
+                    onClick={async () => {
+                      if (!consent.terms || !consent.privacy || !consent.sensitiveData || !consent.age) {
+                        setError('Please accept all required agreements to continue');
+                        return;
+                      }
+                      setError('');
+                      setSaving(true);
+                      try {
+                        const now = new Date().toISOString();
+                        await authApi.updateProfile({
+                          consent_terms_at: now,
+                          consent_privacy_at: now,
+                          consent_sensitive_data_at: now,
+                          consent_age_verified_at: now,
+                          consent_version: '2026-02-26',
+                        });
+                        next();
+                      } catch (err: any) {
+                        setError(err.message || 'Failed to save consent');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}
+                    disabled={saving || !consent.terms || !consent.privacy || !consent.sensitiveData || !consent.age}
+                    className="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+                  >
+                    {saving ? 'Saving...' : 'Continue'}
+                  </button>
+                </div>
               </motion.div>
             )}
 

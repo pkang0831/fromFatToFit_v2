@@ -101,7 +101,7 @@ export default function CaloriesPage() {
     }
   };
 
-  const calorieProgress = dailyData
+  const calorieProgress = dailyData && dailyData.calorie_goal > 0
     ? Math.min((dailyData.total_calories / dailyData.calorie_goal) * 100, 100)
     : 0;
 

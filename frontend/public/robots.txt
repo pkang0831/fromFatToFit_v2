@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /home
+Disallow: /calories
+Disallow: /food-camera
+Disallow: /workouts
+Disallow: /fasting
+Disallow: /progress
+Disallow: /body-scan
+Disallow: /chat
+Disallow: /profile
+Disallow: /upgrade
+Disallow: /onboarding
+Disallow: /auth/
+Disallow: /api/
+
+Sitemap: https://fromfattofit.com/sitemap.xml

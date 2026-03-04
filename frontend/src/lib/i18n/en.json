@@ -22,7 +22,8 @@
     "warning": "Warning",
     "credits": "credits",
     "buyMore": "Buy More",
-    "notEnoughCredits": "Not enough credits"
+    "notEnoughCredits": "Not enough credits",
+    "retry": "Retry"
   },
   "nav": {
     "home": "Home",
