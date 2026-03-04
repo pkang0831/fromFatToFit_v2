@@ -13,6 +13,10 @@ class UserRegister(BaseModel):
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
     activity_level: Optional[str] = None
+    consent_terms: bool = Field(False, description="Agreed to Terms of Service and Health Disclaimer")
+    consent_privacy: bool = Field(False, description="Agreed to Privacy Policy including third-party AI processing")
+    consent_sensitive_data: bool = Field(False, description="Consented to collection of sensitive personal data")
+    consent_age_verification: bool = Field(False, description="Confirmed at least 18 years of age")
 
 
 class UserLogin(BaseModel):

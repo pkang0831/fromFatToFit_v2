@@ -62,11 +62,15 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       return { hasAccess: false, remaining: 0, limit: 0 };
     }
 
-    const limit = usageLimits.limits[feature];
-    
+    const limit = usageLimits.limits?.[feature];
+
     // Premium users have unlimited access
-    if (usageLimits.is_premium || limit.is_premium) {
+    if (usageLimits.is_premium || limit?.is_premium) {
       return { hasAccess: true, remaining: -1, limit: -1 };
+    }
+
+    if (!limit) {
+      return { hasAccess: false, remaining: 0, limit: 0 };
     }
 
     // Check if user has remaining usage

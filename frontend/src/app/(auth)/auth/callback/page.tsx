@@ -2,54 +2,63 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { setAuthCookie } from '@/lib/utils/cookie';
 
 export default function AuthCallbackPage() {
   const [status, setStatus] = useState<'loading' | 'error'>('loading');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    const handleCallback = async () => {
+    let timeout: NodeJS.Timeout;
+
+    const tryGetSession = async (attempt: number): Promise<void> => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        // Check hash tokens first (implicit flow)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const hashAccess = hashParams.get('access_token');
+        const hashRefresh = hashParams.get('refresh_token');
 
-        if (error) throw error;
-        if (!data.session) {
-          // Supabase PKCE flow: exchange the code from the URL hash
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
-
-          if (accessToken && refreshToken) {
-            const { error: setErr } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-            if (setErr) throw setErr;
-
-            storeTokensAndRedirect(accessToken, refreshToken);
-            return;
-          }
-
-          // Try code exchange (PKCE flow used by newer Supabase versions)
-          const urlParams = new URLSearchParams(window.location.search);
-          const code = urlParams.get('code');
-          if (code) {
-            const { data: exchangeData, error: exchangeErr } =
-              await supabase.auth.exchangeCodeForSession(code);
-            if (exchangeErr) throw exchangeErr;
-            if (exchangeData.session) {
-              storeTokensAndRedirect(
-                exchangeData.session.access_token,
-                exchangeData.session.refresh_token,
-              );
-              return;
-            }
-          }
-
-          throw new Error('No session found after OAuth callback');
+        if (hashAccess && hashRefresh) {
+          const { error: setErr } = await supabase.auth.setSession({
+            access_token: hashAccess,
+            refresh_token: hashRefresh,
+          });
+          if (setErr) throw setErr;
+          storeTokensAndRedirect(hashAccess, hashRefresh);
+          return;
         }
 
-        storeTokensAndRedirect(data.session.access_token, data.session.refresh_token);
+        // Try code exchange (PKCE flow)
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        if (code) {
+          const { data: exchangeData, error: exchangeErr } =
+            await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeErr) throw exchangeErr;
+          if (exchangeData.session) {
+            storeTokensAndRedirect(
+              exchangeData.session.access_token,
+              exchangeData.session.refresh_token,
+            );
+            return;
+          }
+        }
+
+        // Supabase may have auto-processed the hash — poll getSession
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (data.session) {
+          storeTokensAndRedirect(data.session.access_token, data.session.refresh_token);
+          return;
+        }
+
+        // Retry up to 5 times with increasing delay
+        if (attempt < 5) {
+          timeout = setTimeout(() => tryGetSession(attempt + 1), 800 * attempt);
+          return;
+        }
+
+        throw new Error('No session found after OAuth callback');
       } catch (err: any) {
         console.error('OAuth callback error:', err);
         setErrorMsg(err.message || 'Authentication failed');
@@ -57,7 +66,19 @@ export default function AuthCallbackPage() {
       }
     };
 
-    handleCallback();
+    // Also listen for auth state change as a fallback
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        storeTokensAndRedirect(session.access_token, session.refresh_token);
+      }
+    });
+
+    tryGetSession(1);
+
+    return () => {
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -93,7 +114,7 @@ export default function AuthCallbackPage() {
 function storeTokensAndRedirect(accessToken: string, refreshToken: string) {
   localStorage.setItem('access_token', accessToken);
   localStorage.setItem('refresh_token', refreshToken);
-  document.cookie = `access_token=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-  document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+  setAuthCookie('access_token', accessToken);
+  setAuthCookie('refresh_token', refreshToken);
   window.location.href = '/home';
 }

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Send, Trash2, MessageCircle, Bot, User, Zap } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { chatApi } from '@/lib/api/services';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatMessage {
   id?: string;
@@ -15,6 +16,7 @@ interface ChatMessage {
 }
 
 export default function ChatPage() {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +66,7 @@ export default function ChatPage() {
     if (!trimmed || isLoading) return;
 
     if (remaining <= 0) {
-      setError(`Daily limit reached (${dailyLimit}/day). Come back tomorrow!`);
+      setError(t('chat.limitReached', { limit: dailyLimit }));
       return;
     }
 
@@ -86,9 +88,9 @@ export default function ChatPage() {
       setDailyLimit(res.data.daily_limit);
     } catch (err: any) {
       if (err.response?.status === 429) {
-        setError('Daily message limit reached. Come back tomorrow!');
+        setError(t('chat.limitReached', { limit: dailyLimit }));
       } else {
-        setError(err.response?.data?.detail || 'Failed to send message');
+        setError(err.response?.data?.detail || t('chat.failedToSend'));
       }
       setMessages(prev => prev.slice(0, -1));
     } finally {
@@ -101,10 +103,10 @@ export default function ChatPage() {
     try {
       await chatApi.clearHistory();
       setMessages([]);
-      toast.success('Chat history cleared');
+      toast.success(t('chat.chatCleared'));
     } catch {
-      toast.error('Failed to clear history');
-      setError('Failed to clear history');
+      toast.error(t('chat.failedToClear'));
+      setError(t('chat.failedToClear'));
     } finally {
       setShowClearConfirm(false);
     }
@@ -117,6 +119,13 @@ export default function ChatPage() {
     }
   };
 
+  const suggestions = [
+    t('chat.suggestion1'),
+    t('chat.suggestion2'),
+    t('chat.suggestion3'),
+    t('chat.suggestion4'),
+  ];
+
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto">
       {/* Header */}
@@ -126,8 +135,8 @@ export default function ChatPage() {
             <Bot className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white dark:text-white">AI Coach</h1>
-            <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-400">Free — ask anything about diet & fitness</p>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white dark:text-white">{t('chat.title')}</h1>
+            <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-400">{t('chat.subtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -136,13 +145,13 @@ export default function ChatPage() {
             <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
               {remaining}
             </span>
-            <span className="text-xs text-emerald-500 dark:text-emerald-400">/ {dailyLimit} today</span>
+            <span className="text-xs text-emerald-500 dark:text-emerald-400">{t('chat.todayCount', { limit: dailyLimit })}</span>
           </div>
           {messages.length > 0 && (
             <button
               onClick={() => setShowClearConfirm(true)}
               className="p-2 text-gray-600 dark:text-gray-400 hover:text-error rounded-lg hover:bg-error/10 transition-colors"
-              title="Clear chat"
+              title={t('chat.clearChat')}
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -154,9 +163,9 @@ export default function ChatPage() {
         isOpen={showClearConfirm}
         onClose={() => setShowClearConfirm(false)}
         onConfirm={handleClear}
-        title="Clear Chat History"
-        message="Are you sure you want to clear all chat history? This cannot be undone."
-        confirmText="Clear"
+        title={t('chat.clearConfirm')}
+        message={t('chat.clearConfirmDesc')}
+        confirmText={t('chat.clear')}
         variant="warning"
       />
 
@@ -171,20 +180,15 @@ export default function ChatPage() {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <MessageCircle className="w-8 h-8 text-primary" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Ask me anything about diet & fitness</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white dark:text-white mb-2">{t('chat.emptyTitle')}</h2>
             <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400 text-sm max-w-md mb-1">
-              I&apos;m trained on hundreds of expert diet coaching videos. Ask about weight loss, nutrition, exercise, body composition, and more.
+              {t('chat.emptyDesc')}
             </p>
             <p className="text-emerald-600 text-xs font-medium mb-6">
-              Free — {dailyLimit} messages per day
+              {t('chat.freeMessages', { limit: dailyLimit })}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg">
-              {[
-                'How can I lose belly fat effectively?',
-                'Is intermittent fasting good for weight loss?',
-                'How many calories should I eat to lose weight?',
-                'Why am I not losing weight even though I exercise?',
-              ].map((q) => (
+              {suggestions.map((q) => (
                 <button
                   key={q}
                   onClick={() => { setInput(q); inputRef.current?.focus(); }}
@@ -257,7 +261,7 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about diet, nutrition, exercise..."
+            placeholder={t('chat.inputPlaceholder')}
             rows={1}
             className="flex-1 resize-none rounded-xl border border-gray-100 dark:border-gray-700 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white dark:text-white placeholder:text-gray-500 dark:text-gray-500 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent max-h-32"
             style={{ minHeight: '44px' }}
@@ -273,8 +277,8 @@ export default function ChatPage() {
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-500 dark:text-gray-500 mt-1.5 text-center">
           {remaining > 0
-            ? `${remaining} messages remaining today`
-            : 'Daily limit reached — resets at midnight'}
+            ? t('chat.messagesRemaining', { count: remaining })
+            : t('chat.limitReached', { limit: dailyLimit })}
         </p>
       </div>
     </div>

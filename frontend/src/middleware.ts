@@ -5,30 +5,23 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value;
   const pathname = request.nextUrl.pathname;
   
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/auth/callback');
-  const isOnboarding = pathname.startsWith('/onboarding');
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
   const isDashboardPage = pathname.startsWith('/home') ||
                         pathname.startsWith('/calories') ||
                         pathname.startsWith('/food-camera') ||
                         pathname.startsWith('/workouts') ||
+                        pathname.startsWith('/fasting') ||
                         pathname.startsWith('/body-scan') ||
+                        pathname.startsWith('/chat') ||
                         pathname.startsWith('/profile') ||
                         pathname.startsWith('/progress') ||
-                        pathname.startsWith('/upgrade') ||
-                        pathname.startsWith('/chat') ||
-                        pathname.startsWith('/fasting');
+                        pathname.startsWith('/upgrade');
 
-  // Handle root path: authenticated users go to dashboard, others see landing page
+  // Handle root path — show landing page to unauthenticated, redirect to dashboard for authenticated
   if (pathname === '/') {
     if (token) {
       return NextResponse.redirect(new URL('/home', request.url));
     }
-    return NextResponse.next();
-  }
-
-  // Onboarding is accessible by authenticated users, not by unauthenticated
-  if (isOnboarding) {
-    if (!token) return NextResponse.redirect(new URL('/login', request.url));
     return NextResponse.next();
   }
 

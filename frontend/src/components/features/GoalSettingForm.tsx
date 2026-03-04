@@ -33,6 +33,11 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
       return;
     }
 
+    if (formData.target_body_fat_percentage !== undefined && formData.target_body_fat_percentage < 3) {
+      setError('A body fat target below 3% is dangerously low. Please consult a healthcare professional.');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -87,6 +92,13 @@ const GoalSettingForm: React.FC<GoalSettingFormProps> = ({
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Enter your target body fat % (e.g., 12%)
         </p>
+        {formData.target_body_fat_percentage !== undefined && formData.target_body_fat_percentage < 6 && (
+          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs text-amber-800">
+              <strong>Warning:</strong> Body fat below 6% is considered very low and can be harmful to health. Essential body fat is ~3% for men and ~12% for women. Please consult a healthcare professional.
+            </p>
+          </div>
+        )}
       </div>
 
       {error && (

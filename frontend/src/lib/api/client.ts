@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { supabase } from '@/lib/supabase';
+import { setAuthCookie } from '@/lib/utils/cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -32,9 +33,7 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-    } catch (error) {
-      console.error('Error getting auth token:', error);
-    }
+    } catch (_) { /* noop */ }
     return config;
   },
   (error) => Promise.reject(error)
@@ -79,8 +78,8 @@ api.interceptors.response.use(
 
         localStorage.setItem('access_token', newToken);
         localStorage.setItem('refresh_token', newRefresh);
-        document.cookie = `access_token=${newToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-        document.cookie = `refresh_token=${newRefresh}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`;
+        setAuthCookie('access_token', newToken);
+        setAuthCookie('refresh_token', newRefresh);
 
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         processQueue(null, newToken);

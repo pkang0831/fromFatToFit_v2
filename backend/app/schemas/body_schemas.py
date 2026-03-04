@@ -5,14 +5,12 @@ from datetime import datetime
 
 class BodyScanRequest(BaseModel):
     image_base64: str
-    scan_type: str = Field(..., description="bodyfat, percentile, transformation, or enhancement")
+    scan_type: str = Field(..., description="bodyfat, percentile, or transformation")
     gender: Optional[str] = None
     age: Optional[int] = None
     ethnicity: Optional[str] = None
     height_cm: Optional[float] = None
-    target_bf: Optional[float] = Field(None, description="Absolute target body fat % for transformation")
-    target_bf_reduction: Optional[float] = Field(None, description="Legacy: relative BF reduction")
-    enhancement_level: Optional[str] = Field(None, description="subtle, natural, or studio")
+    target_bf_reduction: Optional[float] = Field(None, description="For transformation previews")
 
 
 class BodyFatEstimateResponse(BaseModel):
@@ -37,23 +35,12 @@ class PercentileResponse(BaseModel):
     usage_remaining: int
 
 
-class ProgressFrame(BaseModel):
-    date: str
-    week: int
-    bf_pct: float
-    image_b64: str
-
-
 class TransformationResponse(BaseModel):
     original_image_url: str
     transformed_image_url: str
-    current_bf: Optional[float] = None
-    target_bf: Optional[float] = None
-    direction: Optional[str] = None
-    muscle_gain_estimate: Optional[str] = None
+    target_bf_reduction: float
     estimated_timeline_weeks: int
     recommendations: List[str]
-    progress_frames: Optional[List[ProgressFrame]] = None
     scan_id: str
 
 
@@ -62,6 +49,34 @@ class EnhancementResponse(BaseModel):
     enhanced_image_url: str
     enhancement_level: str
     scan_id: str
+
+
+class SegmentRequest(BaseModel):
+    image_base64: str = Field(..., description="Base64-encoded body photo (no data: prefix)")
+    click_x: float = Field(..., ge=0.0, le=1.0, description="Normalized x coordinate of click (0=left, 1=right)")
+    click_y: float = Field(..., ge=0.0, le=1.0, description="Normalized y coordinate of click (0=top, 1=bottom)")
+
+
+class SegmentResponse(BaseModel):
+    mask_base64: str = Field(..., description="Base64 PNG mask (white=selected, black=background)")
+    body_part_guess: str = Field(..., description="AI guess of the body part: shoulders, chest, abs, arms, etc.")
+    mask_area_pct: float = Field(..., description="Percentage of image covered by mask")
+
+
+class RegionTransformRequest(BaseModel):
+    image_base64: str = Field(..., description="Base64-encoded body photo")
+    mask_base64: str = Field(..., description="Base64 PNG mask from segmentation (possibly user-refined)")
+    body_part: str = Field(..., description="Body part label: shoulders, chest, abs, arms, back, thighs, legs")
+    goal: str = Field(..., description="Transformation goal: bigger, leaner, more_defined, slimmer")
+    gender: str = Field(default="male", description="male or female")
+    intensity: str = Field(default="moderate", description="subtle, moderate, or dramatic")
+
+
+class RegionTransformResponse(BaseModel):
+    transformed_image_url: str = Field(..., description="Data URI of the composited result")
+    body_part: str
+    goal: str
+    direction: str = Field(..., description="fat_loss, muscle_gain, or definition")
 
 
 class BodyScanHistoryItem(BaseModel):

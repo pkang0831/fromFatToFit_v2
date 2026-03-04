@@ -1,26 +1,34 @@
 'use client';
 
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
 export function FooterSection() {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-text py-16 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           <div className="md:col-span-1">
-            <h3 className="text-xl font-bold text-white mb-3">FromFatToFit</h3>
+            <h3 className="text-xl font-bold text-white mb-3">{t('common.appName')}</h3>
             <p className="text-white/50 text-sm leading-relaxed">
-              AI-powered fitness tracking to help you achieve your body transformation goals.
+              {t('footer.description')}
             </p>
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Product</h4>
+            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t('legal.product')}</h4>
             <ul className="space-y-2">
-              {['Features', 'Pricing', 'FAQ'].map((item) => (
-                <li key={item}>
-                  <a href={`#${item.toLowerCase()}`} className="text-white/50 hover:text-white text-sm transition-colors">
-                    {item}
+              {[
+                { labelKey: 'landing.features', href: '#features' },
+                { labelKey: 'landing.pricing', href: '#pricing' },
+                { labelKey: 'landing.faq', href: '#faq' },
+              ].map((item) => (
+                <li key={item.href}>
+                  <a href={item.href} className="text-white/50 hover:text-white text-sm transition-colors">
+                    {t(item.labelKey)}
                   </a>
                 </li>
               ))}
@@ -28,15 +36,15 @@ export function FooterSection() {
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Account</h4>
+            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t('legal.account')}</h4>
             <ul className="space-y-2">
               {[
-                { label: 'Sign In', href: '/login' },
-                { label: 'Register', href: '/register' },
+                { labelKey: 'auth.signInButton', href: '/login' },
+                { labelKey: 'auth.createOne', href: '/register' },
               ].map((item) => (
-                <li key={item.label}>
+                <li key={item.href}>
                   <Link href={item.href} className="text-white/50 hover:text-white text-sm transition-colors">
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 </li>
               ))}
@@ -44,21 +52,28 @@ export function FooterSection() {
           </div>
 
           <div>
-            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Legal</h4>
+            <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">{t('legal.legal')}</h4>
             <ul className="space-y-2">
-              {['Privacy Policy', 'Terms of Service'].map((item) => (
-                <li key={item}>
-                  <span className="text-white/50 text-sm cursor-default">{item}</span>
+              {[
+                { labelKey: 'legal.privacyPolicy', href: '/privacy' },
+                { labelKey: 'legal.termsOfService', href: '/terms' },
+                { labelKey: 'legal.healthDisclaimer', href: '/disclaimer' },
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="text-white/50 hover:text-white text-sm transition-colors">
+                    {t(item.labelKey)}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-8 text-center">
+        <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <p className="text-white/40 text-sm">
-            &copy; {new Date().getFullYear()} FromFatToFit. All rights reserved.
+            &copy; {new Date().getFullYear()} {t('common.appName')}. {t('legal.allRightsReserved')}
           </p>
+          <LanguageSwitcher variant="footer" />
         </div>
       </div>
     </footer>

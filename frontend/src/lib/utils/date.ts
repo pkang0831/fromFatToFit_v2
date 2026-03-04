@@ -43,6 +43,11 @@ export function formatLocalDate(dateString: string, options?: Intl.DateTimeForma
   });
 }
 
+/** Format date in local locale (alias for formatLocalDate for compatibility) */
+export function formatLocalDateKR(dateString: string, options?: Intl.DateTimeFormatOptions): string {
+  return formatLocalDate(dateString, options);
+}
+
 export function getRelativeTime(date: string | Date): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date;
   return formatDistance(dateObj, new Date(), { addSuffix: true });

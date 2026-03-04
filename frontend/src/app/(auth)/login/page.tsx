@@ -4,12 +4,14 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button, Input, Card, CardContent } from '@/components/ui';
 import { SocialLoginButtons } from '@/components/features/SocialLoginButtons';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,8 +45,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-2">Health & Wellness</h1>
-          <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
+          <h1 className="text-4xl font-bold text-primary mb-2">{t('common.appName')}</h1>
+          <p className="text-gray-600 dark:text-gray-400">{t('auth.signInTitle')}</p>
         </div>
 
         <Card variant="elevated">
@@ -53,19 +55,21 @@ export default function LoginPage() {
               <Input
                 type="email"
                 name="email"
-                label="Email"
+                label={t('auth.email')}
                 placeholder="you@example.com"
                 required
                 autoComplete="email"
+                data-testid="login-email"
               />
 
               <Input
                 type="password"
                 name="password"
-                label="Password"
+                label={t('auth.password')}
                 placeholder="••••••••"
                 required
                 autoComplete="current-password"
+                data-testid="login-password"
               />
 
               {error && (
@@ -80,19 +84,20 @@ export default function LoginPage() {
                 size="lg"
                 isLoading={isLoading}
                 className="w-full"
+                data-testid="login-submit"
               >
-                Sign In
+                {t('auth.signInButton')}
               </Button>
 
               <div className="text-center text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Don&apos;t have an account? </span>
-                <Link href="/register" className="text-primary hover:text-primary-dark font-medium">
-                  Create one
+                <span className="text-gray-600 dark:text-gray-400">{t('auth.noAccount')} </span>
+                <Link href="/register" className="text-primary hover:text-primary-dark font-medium" data-testid="login-register-link">
+                  {t('auth.createOne')}
                 </Link>
               </div>
             </form>
 
-            <SocialLoginButtons />
+            <SocialLoginButtons googleTestId="login-google" />
           </CardContent>
         </Card>
       </div>

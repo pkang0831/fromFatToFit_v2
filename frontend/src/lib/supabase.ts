@@ -5,10 +5,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
+    autoRefreshToken: true,
+    storageKey: 'sb-auth-token',
   },
 });
 
-export type OAuthProvider = 'google' | 'apple' | 'kakao' | 'github';
+export type OAuthProvider = 'google';

@@ -13,40 +13,46 @@ import {
   Crown,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { dashboardApi } from '@/lib/api/services';
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '@/components/ui';
+import dynamic from 'next/dynamic';
 import { QuickStatsCard } from '@/components/features/QuickStatsCard';
-import { CalorieBalanceChart } from '@/components/features/CalorieBalanceChart';
 import { StreakBadge } from '@/components/features/StreakBadge';
 import type { QuickStatsResponse } from '@/types/api';
 import { SkeletonStats, SkeletonChart, SkeletonCard } from '@/components/ui/Skeleton';
 
+const CalorieBalanceChart = dynamic(
+  () => import('@/components/features/CalorieBalanceChart').then(m => m.CalorieBalanceChart),
+  { loading: () => <SkeletonChart />, ssr: false }
+);
+
 const featureCards = [
   {
-    title: 'Calorie Tracker',
-    description: 'Log your meals and track daily nutrition',
+    titleKey: 'dashboard.calorieTracker',
+    descKey: 'dashboard.calorieTrackerDesc',
     icon: Utensils,
     href: '/calories',
     color: 'text-primary',
   },
   {
-    title: 'AI Food Camera',
-    description: 'Scan food photos for instant nutrition data',
+    titleKey: 'dashboard.aiFoodCamera',
+    descKey: 'dashboard.aiFoodCameraDesc',
     icon: Camera,
     href: '/food-camera',
     color: 'text-secondary',
   },
   {
-    title: 'Workout Tracker',
-    description: 'Log exercises and track your progress',
+    titleKey: 'dashboard.workoutTracker',
+    descKey: 'dashboard.workoutTrackerDesc',
     icon: Dumbbell,
     href: '/workouts',
     color: 'text-primary',
   },
   {
-    title: 'Body Scanner',
-    description: 'AI-powered body composition analysis',
+    titleKey: 'dashboard.bodyScanner',
+    descKey: 'dashboard.bodyScannerDesc',
     icon: Scan,
     href: '/body-scan',
     color: 'text-secondary',
@@ -56,6 +62,7 @@ const featureCards = [
 export default function HomePage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { isPremium } = useSubscription();
   const [stats, setStats] = useState<QuickStatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,11 +104,11 @@ export default function HomePage() {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">
-              Hello, {user?.full_name || 'there'}!
+            <h1 className="text-3xl font-bold text-text">
+              {t('dashboard.hello', { name: user?.full_name || 'there' })}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400 mt-1">
-              Welcome back to your health dashboard
+            <p className="text-text-secondary mt-1">
+              {t('dashboard.welcomeBack')}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -109,7 +116,7 @@ export default function HomePage() {
             {isPremium && (
               <Badge variant="premium" className="text-base px-4 py-2">
                 <Crown className="h-4 w-4 mr-2" />
-                Premium Member
+                {t('dashboard.premiumMember')}
               </Badge>
             )}
           </div>
@@ -120,9 +127,9 @@ export default function HomePage() {
       {stats ? (
         <div data-tour="home-stats" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <QuickStatsCard
-            title="Today's Calories"
+            title={t('dashboard.todayCalories')}
             value={Math.round(stats.today_calories)}
-            subtitle={`Goal: ${stats.calorie_goal} kcal`}
+            subtitle={t('dashboard.goalKcal', { goal: stats.calorie_goal })}
             icon={Utensils}
             progress={{
               current: stats.today_calories,
@@ -130,27 +137,27 @@ export default function HomePage() {
             }}
           />
           <QuickStatsCard
-            title="Today's Protein"
+            title={t('dashboard.todayProtein')}
             value={`${Math.round(stats.today_protein)}g`}
-            subtitle="Keep it up!"
+            subtitle={t('dashboard.keepItUp')}
             icon={TrendingUp}
           />
           <QuickStatsCard
-            title="Today's Burned"
+            title={t('dashboard.todayBurned')}
             value={Math.round(stats.total_burned)}
-            subtitle={`TDEE: ${Math.round(stats.tdee)} + Exercise: ${Math.round(stats.workout_calories)}`}
+            subtitle={t('dashboard.tdeeExercise', { tdee: Math.round(stats.tdee), exercise: Math.round(stats.workout_calories) })}
             icon={Flame}
           />
         </div>
       ) : null}
 
       {/* Calorie Balance Trend Chart */}
-      <Card data-tour="home-chart" variant="elevated" className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700">
+      <Card data-tour="home-chart" variant="elevated" className="bg-surface">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-6 w-6" />
-              Calorie Balance Trend
+              {t('dashboard.calorieBalanceTrend')}
             </CardTitle>
             <div className="flex gap-2">
               <Button 
@@ -158,14 +165,14 @@ export default function HomePage() {
                 variant={chartDays === 7 ? 'primary' : 'outline'}
                 onClick={() => setChartDays(7)}
               >
-                7 Days
+                {t('dashboard.days7')}
               </Button>
               <Button 
                 size="sm" 
                 variant={chartDays === 30 ? 'primary' : 'outline'}
                 onClick={() => setChartDays(30)}
               >
-                30 Days
+                {t('dashboard.days30')}
               </Button>
             </div>
           </div>
@@ -177,24 +184,24 @@ export default function HomePage() {
 
       {/* Feature Navigation Grid */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white dark:text-white mb-4">Quick Actions</h2>
+        <h2 className="text-2xl font-bold text-text mb-4">{t('dashboard.quickActions')}</h2>
         <div data-tour="home-actions" className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {featureCards.map((feature) => {
             const Icon = feature.icon;
             return (
               <Link key={feature.href} href={feature.href}>
-                <Card variant="outlined" className="hover:shadow-lg transition-all hover:-translate-y-1 h-full dark:bg-gray-800 dark:border-gray-700">
+                <Card variant="outlined" className="hover:shadow-lg transition-all hover:-translate-y-1 h-full">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
                       <div className={`p-3 bg-primary/10 rounded-lg ${feature.color}`}>
                         <Icon className="h-8 w-8" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white dark:text-white mb-2">
-                          {feature.title}
+                        <h3 className="text-xl font-semibold text-text mb-2">
+                          {t(feature.titleKey)}
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400">
-                          {feature.description}
+                        <p className="text-text-secondary">
+                          {t(feature.descKey)}
                         </p>
                       </div>
                     </div>
@@ -212,18 +219,18 @@ export default function HomePage() {
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex-1 text-center md:text-left">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white dark:text-white mb-2 flex items-center justify-center md:justify-start">
+                <h3 className="text-2xl font-bold text-text mb-2 flex items-center justify-center md:justify-start">
                   <Crown className="h-6 w-6 text-premium mr-2" />
-                  Upgrade to Premium
+                  {t('dashboard.upgradePremium')}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-4">
-                  Get unlimited AI food scans, body analysis, workout form checks, and more!
+                <p className="text-text-secondary mb-4">
+                  {t('dashboard.premiumCta')}
                 </p>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 space-y-2 mb-4">
-                  <li>✓ Unlimited food photo analysis</li>
-                  <li>✓ Unlimited body scans and tracking</li>
-                  <li>✓ Video form analysis for workouts</li>
-                  <li>✓ AI transformation previews</li>
+                <ul className="text-sm text-text-secondary space-y-2 mb-4">
+                  <li>&#10003; {t('dashboard.premiumBenefit1')}</li>
+                  <li>&#10003; {t('dashboard.premiumBenefit2')}</li>
+                  <li>&#10003; {t('dashboard.premiumBenefit3')}</li>
+                  <li>&#10003; {t('dashboard.premiumBenefit4')}</li>
                 </ul>
               </div>
               <div>
@@ -234,7 +241,7 @@ export default function HomePage() {
                   className="bg-premium text-primary hover:bg-premium-dark"
                 >
                   <Crown className="h-5 w-5 mr-2" />
-                  Get Premium
+                  {t('dashboard.getPremium')}
                 </Button>
               </div>
             </div>

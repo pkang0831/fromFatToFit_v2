@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { OAuthProvider } from '@/lib/supabase';
 
 const providers: { id: OAuthProvider; name: string; icon: React.ReactNode; bg: string; text: string }[] = [
@@ -19,47 +20,16 @@ const providers: { id: OAuthProvider; name: string; icon: React.ReactNode; bg: s
       </svg>
     ),
   },
-  {
-    id: 'apple',
-    name: 'Apple',
-    bg: 'bg-black hover:bg-gray-900',
-    text: 'text-white',
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-      </svg>
-    ),
-  },
-  {
-    id: 'kakao',
-    name: 'Kakao',
-    bg: 'bg-[#FEE500] hover:bg-[#FADA0A]',
-    text: 'text-[#191919]',
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="#191919">
-        <path d="M12 3C6.48 3 2 6.44 2 10.61c0 2.7 1.78 5.06 4.46 6.39-.14.52-.92 3.34-.95 3.56 0 0-.02.16.08.22.1.06.22.01.22.01.29-.04 3.36-2.2 3.89-2.57.74.11 1.51.17 2.3.17 5.52 0 10-3.44 10-7.78S17.52 3 12 3z"/>
-      </svg>
-    ),
-  },
-  {
-    id: 'github',
-    name: 'GitHub',
-    bg: 'bg-[#24292e] hover:bg-[#1b1f23]',
-    text: 'text-white',
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-      </svg>
-    ),
-  },
 ];
 
 interface SocialLoginButtonsProps {
   className?: string;
+  googleTestId?: string;
 }
 
-export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
+export function SocialLoginButtons({ className, googleTestId }: SocialLoginButtonsProps) {
   const { loginWithOAuth } = useAuth();
+  const { t } = useLanguage();
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
 
   const handleOAuth = async (provider: OAuthProvider) => {
@@ -78,11 +48,11 @@ export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
           <div className="w-full border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400">or continue with</span>
+          <span className="px-4 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400">{t('auth.orContinueWith')}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         {providers.map((p) => (
           <button
             key={p.id}
@@ -90,6 +60,7 @@ export function SocialLoginButtons({ className }: SocialLoginButtonsProps) {
             onClick={() => handleOAuth(p.id)}
             disabled={loadingProvider !== null}
             className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all ${p.bg} ${p.text} disabled:opacity-50 disabled:cursor-not-allowed`}
+            data-testid={p.id === 'google' ? googleTestId : undefined}
           >
             {loadingProvider === p.id ? (
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current" />

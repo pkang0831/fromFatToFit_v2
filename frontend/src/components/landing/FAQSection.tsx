@@ -2,35 +2,19 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const faqs = [
-  {
-    q: 'How accurate is the body fat scan?',
-    a: 'Our AI model is trained on thousands of labeled body images and achieves an accuracy comparable to skinfold caliper measurements (within 2-3% margin). For clinical precision, we still recommend DEXA scans.',
-  },
-  {
-    q: 'How does the credit system work?',
-    a: 'Every AI-powered feature costs a set number of credits. Free users get 10 credits per month. Pro subscribers get 100 credits per month. You can also purchase credit packs that never expire.',
-  },
-  {
-    q: 'Is the food camera accurate?',
-    a: 'The food camera uses advanced vision AI to identify foods and estimate portions. It works best with clearly visible, separated foods. You can always adjust the estimates manually for perfect accuracy.',
-  },
-  {
-    q: 'What is the transformation preview?',
-    a: 'It uses AI image editing to show you a realistic preview of what your body could look like at a different body fat percentage. It preserves your identity and produces natural-looking results.',
-  },
-  {
-    q: 'Can I cancel my subscription anytime?',
-    a: 'Yes, you can cancel your Pro subscription at any time. You will keep your credits until the end of the billing period. Purchased credit packs never expire regardless of subscription status.',
-  },
-  {
-    q: 'Is my data secure?',
-    a: 'Absolutely. All photos are processed securely and are never shared. Your health data is encrypted and stored following industry best practices. You can delete your data at any time.',
-  },
+const faqKeys = [
+  { qKey: 'faq.bodyfatAccuracy.q', aKey: 'faq.bodyfatAccuracy.a' },
+  { qKey: 'faq.credits.q', aKey: 'faq.credits.a' },
+  { qKey: 'faq.foodCamera.q', aKey: 'faq.foodCamera.a' },
+  { qKey: 'faq.transformation.q', aKey: 'faq.transformation.a' },
+  { qKey: 'faq.cancel.q', aKey: 'faq.cancel.a' },
+  { qKey: 'faq.dataSecurity.q', aKey: 'faq.dataSecurity.a' },
 ];
 
 export function FAQSection() {
+  const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
@@ -43,12 +27,12 @@ export function FAQSection() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Frequently Asked Questions</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">Got questions? We have answers.</p>
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('landing.faq')}</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{t('landing.faqSubtitle')}</p>
         </motion.div>
 
         <div className="space-y-4">
-          {faqs.map((faq, i) => (
+          {faqKeys.map((faq, i) => (
             <motion.div
               key={i}
               className="border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden"
@@ -61,7 +45,7 @@ export function FAQSection() {
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                 className="w-full flex items-center justify-between p-5 text-left bg-gray-50 dark:bg-gray-950 hover:bg-gray-100 dark:bg-gray-700 transition-colors"
               >
-                <span className="font-medium text-gray-900 dark:text-white pr-4">{faq.q}</span>
+                <span className="font-medium text-gray-900 dark:text-white pr-4">{t(faq.qKey)}</span>
                 <motion.svg
                   className="w-5 h-5 text-gray-500 dark:text-gray-500 flex-shrink-0"
                   fill="none"
@@ -83,7 +67,7 @@ export function FAQSection() {
                     className="overflow-hidden"
                   >
                     <div className="px-5 pb-5 text-gray-600 dark:text-gray-400 leading-relaxed">
-                      {faq.a}
+                      {t(faq.aKey)}
                     </div>
                   </motion.div>
                 )}

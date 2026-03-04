@@ -1,11 +1,11 @@
 """
 Food Decision and Recommendation API Router
 """
-from fastapi import APIRouter, Depends, HTTPException
-from starlette.requests import Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import Annotated
 from datetime import date
 import logging
+from ..rate_limit import limiter
 
 from ..schemas.food_decision_schemas import (
     ShouldIEatRequest,
@@ -28,7 +28,6 @@ from ..services.food_database_service import get_food_database
 from ..services import openai_service
 from ..middleware.auth_middleware import get_current_user
 from ..database import get_supabase
-from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -159,12 +158,14 @@ async def should_i_eat(
         
     except Exception as e:
         logger.error(f"Error in should_i_eat endpoint: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Food analysis failed")
 
 
 @router.post("/recommend", response_model=RecommendationResponse)
+@limiter.limit("10/minute")
 async def recommend_foods(
-    request: RecommendationRequest,
+    request: Request,
+    rec_request: RecommendationRequest,
     current_user: Annotated[dict, Depends(get_current_user)]
 ):
     """
@@ -184,9 +185,9 @@ async def recommend_foods(
         
         result = await recommendation_service.recommend_foods(
             user_id=current_user['id'],
-            meal_type=request.meal_type,
-            target_date=request.target_date or date.today(),
-            just_ate_food_id=request.just_ate_food_id
+            meal_type=rec_request.meal_type,
+            target_date=rec_request.target_date or date.today(),
+            just_ate_food_id=rec_request.just_ate_food_id
         )
         
         # Build response
@@ -203,11 +204,13 @@ async def recommend_foods(
         
     except Exception as e:
         logger.error(f"Error in recommend_foods endpoint: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Food recommendation failed")
 
 
 @router.get("/preferences", response_model=UserFoodPreferences)
+@limiter.limit("30/minute")
 async def get_preferences(
+    request: Request,
     current_user: Annotated[dict, Depends(get_current_user)]
 ):
     """
@@ -237,12 +240,14 @@ async def get_preferences(
         
     except Exception as e:
         logger.error(f"Error getting preferences: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to get preferences")
 
 
 @router.put("/preferences")
+@limiter.limit("20/minute")
 async def update_preferences(
-    request: UpdatePreferencesRequest,
+    request: Request,
+    pref_request: UpdatePreferencesRequest,
     current_user: Annotated[dict, Depends(get_current_user)]
 ):
     """
@@ -256,20 +261,20 @@ async def update_preferences(
             'user_id': current_user['id']
         }
         
-        if request.favorite_foods is not None:
-            update_data['favorite_foods'] = request.favorite_foods
-        if request.disliked_foods is not None:
-            update_data['disliked_foods'] = request.disliked_foods
-        if request.allergies is not None:
-            update_data['allergies'] = request.allergies
-        if request.dietary_restrictions is not None:
-            update_data['dietary_restrictions'] = request.dietary_restrictions
-        if request.avoid_high_sodium is not None:
-            update_data['avoid_high_sodium'] = request.avoid_high_sodium
-        if request.avoid_high_sugar is not None:
-            update_data['avoid_high_sugar'] = request.avoid_high_sugar
-        if request.prefer_high_protein is not None:
-            update_data['prefer_high_protein'] = request.prefer_high_protein
+        if pref_request.favorite_foods is not None:
+            update_data['favorite_foods'] = pref_request.favorite_foods
+        if pref_request.disliked_foods is not None:
+            update_data['disliked_foods'] = pref_request.disliked_foods
+        if pref_request.allergies is not None:
+            update_data['allergies'] = pref_request.allergies
+        if pref_request.dietary_restrictions is not None:
+            update_data['dietary_restrictions'] = pref_request.dietary_restrictions
+        if pref_request.avoid_high_sodium is not None:
+            update_data['avoid_high_sodium'] = pref_request.avoid_high_sodium
+        if pref_request.avoid_high_sugar is not None:
+            update_data['avoid_high_sugar'] = pref_request.avoid_high_sugar
+        if pref_request.prefer_high_protein is not None:
+            update_data['prefer_high_protein'] = pref_request.prefer_high_protein
         
         # Upsert (insert or update)
         result = supabase.table('user_food_preferences').upsert(
@@ -288,4 +293,4 @@ async def update_preferences(
         
     except Exception as e:
         logger.error(f"Error updating preferences: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to update preferences")

@@ -1,29 +1,17 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const testimonials = [
-  {
-    name: 'Alex R.',
-    role: 'Lost 15 lbs in 3 months',
-    quote: 'The food camera is a game-changer. I just snap a photo and it tracks everything. No more guessing calories.',
-    avatar: 'A',
-  },
-  {
-    name: 'Sarah K.',
-    role: 'Fitness enthusiast',
-    quote: 'Seeing my transformation preview gave me the motivation I needed. It made my goal feel real and achievable.',
-    avatar: 'S',
-  },
-  {
-    name: 'James L.',
-    role: 'Down from 25% to 15% BF',
-    quote: 'The body fat scanning is incredibly accurate. I was able to track my cut progress week by week without expensive DEXA scans.',
-    avatar: 'J',
-  },
+const testimonialDefs = [
+  { name: 'Alex R.', quoteKey: 'landing.testimonial1Quote', roleKey: 'landing.testimonial1Role', avatar: 'A' },
+  { name: 'Sarah K.', quoteKey: 'landing.testimonial2Quote', roleKey: 'landing.testimonial2Role', avatar: 'S' },
+  { name: 'James L.', quoteKey: 'landing.testimonial3Quote', roleKey: 'landing.testimonial3Role', avatar: 'J' },
 ];
 
 export function TestimonialsSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-24 px-6 bg-gray-50 dark:bg-gray-950">
       <div className="max-w-6xl mx-auto">
@@ -34,14 +22,14 @@ export function TestimonialsSection() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Loved by Users</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">Real results from real people.</p>
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('landing.testimonialsTitle')}</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{t('landing.testimonialsSubtitle')}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((t, i) => (
+          {testimonialDefs.map((item, i) => (
             <motion.div
-              key={t.name}
+              key={item.name}
               className="p-8 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -56,15 +44,15 @@ export function TestimonialsSection() {
                 ))}
               </div>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6 italic">
-                &ldquo;{t.quote}&rdquo;
+                &ldquo;{t(item.quoteKey)}&rdquo;
               </p>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center">
-                  {t.avatar}
+                  {item.avatar}
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900 dark:text-white text-sm">{t.name}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-500">{t.role}</div>
+                  <div className="font-semibold text-gray-900 dark:text-white text-sm">{item.name}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-500">{t(item.roleKey)}</div>
                 </div>
               </div>
             </motion.div>

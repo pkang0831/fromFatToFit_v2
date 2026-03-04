@@ -1,0 +1,262 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e8]:
+        - generic [ref=e10]: AI-Powered Fitness Tracking
+        - heading "Your Body, Transformed" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Track calories with your camera, scan your body fat with AI, and visualize your transformation — all in one app.
+        - generic [ref=e13]:
+          - link "Get Started Free" [ref=e14] [cursor=pointer]:
+            - /url: /register
+          - link "Sign In" [ref=e15] [cursor=pointer]:
+            - /url: /login
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: 10K+
+            - generic [ref=e19]: Active Users
+          - generic [ref=e20]:
+            - generic [ref=e21]: 500K+
+            - generic [ref=e22]: Meals Tracked
+          - generic [ref=e23]:
+            - generic [ref=e24]: 5+
+            - generic [ref=e25]: AI Models
+      - img [ref=e27]
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - heading "Everything You Need to Transform" [level=2] [ref=e32]
+        - paragraph [ref=e33]: Powered by cutting-edge AI to make tracking effortless and results visible.
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - img [ref=e37]
+          - heading "Food Camera" [level=3] [ref=e40]
+          - paragraph [ref=e41]: Snap a photo of your meal and our AI instantly estimates calories, macros, and portion sizes.
+        - generic [ref=e42]:
+          - img [ref=e44]
+          - heading "Body Fat Scan" [level=3] [ref=e46]
+          - paragraph [ref=e47]: Upload a photo and get an AI-estimated body fat percentage with confidence scoring.
+        - generic [ref=e48]:
+          - img [ref=e50]
+          - heading "Transformation Preview" [level=3] [ref=e52]
+          - paragraph [ref=e53]: See what you could look like at your target body fat percentage with AI-generated previews.
+        - generic [ref=e54]:
+          - img [ref=e56]
+          - heading "Workout Tracking" [level=3] [ref=e58]
+          - paragraph [ref=e59]: Log workouts with an extensive exercise library. Track sets, reps, and progressive overload.
+        - generic [ref=e60]:
+          - img [ref=e62]
+          - heading "Progress Charts" [level=3] [ref=e64]
+          - paragraph [ref=e65]: Visualize your weight, calorie, and body composition trends with beautiful interactive charts.
+        - generic [ref=e66]:
+          - img [ref=e68]
+          - heading "AI Recommendations" [level=3] [ref=e70]
+          - paragraph [ref=e71]: Get personalized meal suggestions and workout plans tailored to your goals and preferences.
+    - generic [ref=e73]:
+      - generic [ref=e74]:
+        - heading "How It Works" [level=2] [ref=e75]
+        - paragraph [ref=e76]: Three simple steps to a better you.
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - generic [ref=e81]:
+            - img [ref=e82]
+            - generic [ref=e84]: "01"
+          - heading "Sign Up" [level=3] [ref=e85]
+          - paragraph [ref=e86]: Create your free account in seconds. Set your body goals and preferences.
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - img [ref=e89]
+            - generic [ref=e91]: "02"
+          - heading "Track Daily" [level=3] [ref=e92]
+          - paragraph [ref=e93]: Log meals with your camera, record workouts, and monitor your weight trends.
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - img [ref=e96]
+            - generic [ref=e98]: "03"
+          - heading "Transform" [level=3] [ref=e99]
+          - paragraph [ref=e100]: Watch your progress unfold with AI insights, body scans, and transformation previews.
+    - generic [ref=e102]:
+      - generic [ref=e103]:
+        - heading "Simple, Credit-Based Pricing" [level=2] [ref=e104]
+        - paragraph [ref=e105]: Pay only for what you use. Every AI feature has a clear credit cost.
+      - generic [ref=e106]:
+        - generic [ref=e107]:
+          - heading "Free" [level=3] [ref=e108]
+          - generic [ref=e109]: $0forever
+          - paragraph [ref=e110]: 10 credits/month
+          - list [ref=e111]:
+            - listitem [ref=e112]:
+              - img [ref=e113]
+              - generic [ref=e115]: 10 credits per month
+            - listitem [ref=e116]:
+              - img [ref=e117]
+              - generic [ref=e119]: Food camera analysis (1 credit)
+            - listitem [ref=e120]:
+              - img [ref=e121]
+              - generic [ref=e123]: Body fat scan (5 credits)
+            - listitem [ref=e124]:
+              - img [ref=e125]
+              - generic [ref=e127]: Basic progress charts
+            - listitem [ref=e128]:
+              - img [ref=e129]
+              - generic [ref=e131]: Workout logging
+          - link "Start Free" [ref=e132] [cursor=pointer]:
+            - /url: /register
+        - generic [ref=e133]:
+          - generic [ref=e134]: Most Popular
+          - heading "Pro" [level=3] [ref=e135]
+          - generic [ref=e136]: $9.99/month
+          - paragraph [ref=e137]: 100 credits/month
+          - list [ref=e138]:
+            - listitem [ref=e139]:
+              - img [ref=e140]
+              - generic [ref=e142]: 100 credits per month
+            - listitem [ref=e143]:
+              - img [ref=e144]
+              - generic [ref=e146]: All AI features unlocked
+            - listitem [ref=e147]:
+              - img [ref=e148]
+              - generic [ref=e150]: Transformation previews (10 credits)
+            - listitem [ref=e151]:
+              - img [ref=e152]
+              - generic [ref=e154]: AI meal recommendations (2 credits)
+            - listitem [ref=e155]:
+              - img [ref=e156]
+              - generic [ref=e158]: Priority support
+            - listitem [ref=e159]:
+              - img [ref=e160]
+              - generic [ref=e162]: Advanced analytics
+          - link "Go Pro" [ref=e163] [cursor=pointer]:
+            - /url: /register
+        - generic [ref=e164]:
+          - heading "Credit Pack" [level=3] [ref=e165]
+          - generic [ref=e166]: $4.99one-time
+          - paragraph [ref=e167]: 50 credits
+          - list [ref=e168]:
+            - listitem [ref=e169]:
+              - img [ref=e170]
+              - generic [ref=e172]: 50 credits (never expire)
+            - listitem [ref=e173]:
+              - img [ref=e174]
+              - generic [ref=e176]: Stack on top of any plan
+            - listitem [ref=e177]:
+              - img [ref=e178]
+              - generic [ref=e180]: Use for any AI feature
+            - listitem [ref=e181]:
+              - img [ref=e182]
+              - generic [ref=e184]: Buy as many as you need
+          - link "Buy Credits" [ref=e185] [cursor=pointer]:
+            - /url: /register
+    - generic [ref=e187]:
+      - generic [ref=e188]:
+        - heading "Loved by Users" [level=2] [ref=e189]
+        - paragraph [ref=e190]: Real results from real people.
+      - generic [ref=e191]:
+        - generic [ref=e192]:
+          - generic [ref=e193]:
+            - img [ref=e194]
+            - img [ref=e196]
+            - img [ref=e198]
+            - img [ref=e200]
+            - img [ref=e202]
+          - paragraph [ref=e204]: “The food camera is a game-changer. I just snap a photo and it tracks everything. No more guessing calories.”
+          - generic [ref=e205]:
+            - generic [ref=e206]: A
+            - generic [ref=e207]:
+              - generic [ref=e208]: Alex R.
+              - generic [ref=e209]: Lost 15 lbs in 3 months
+        - generic [ref=e210]:
+          - generic [ref=e211]:
+            - img [ref=e212]
+            - img [ref=e214]
+            - img [ref=e216]
+            - img [ref=e218]
+            - img [ref=e220]
+          - paragraph [ref=e222]: “Seeing my transformation preview gave me the motivation I needed. It made my goal feel real and achievable.”
+          - generic [ref=e223]:
+            - generic [ref=e224]: S
+            - generic [ref=e225]:
+              - generic [ref=e226]: Sarah K.
+              - generic [ref=e227]: Fitness enthusiast
+        - generic [ref=e228]:
+          - generic [ref=e229]:
+            - img [ref=e230]
+            - img [ref=e232]
+            - img [ref=e234]
+            - img [ref=e236]
+            - img [ref=e238]
+          - paragraph [ref=e240]: “The body fat scanning is incredibly accurate. I was able to track my cut progress week by week without expensive DEXA scans.”
+          - generic [ref=e241]:
+            - generic [ref=e242]: J
+            - generic [ref=e243]:
+              - generic [ref=e244]: James L.
+              - generic [ref=e245]: Down from 25% to 15% BF
+    - generic [ref=e247]:
+      - generic [ref=e248]:
+        - heading "Frequently Asked Questions" [level=2] [ref=e249]
+        - paragraph [ref=e250]: Got questions? We have answers.
+      - generic [ref=e251]:
+        - button "How accurate is the body fat scan?" [ref=e253] [cursor=pointer]:
+          - generic [ref=e254]: How accurate is the body fat scan?
+          - img [ref=e255]
+        - button "How does the credit system work?" [ref=e258] [cursor=pointer]:
+          - generic [ref=e259]: How does the credit system work?
+          - img [ref=e260]
+        - button "Is the food camera accurate?" [ref=e263] [cursor=pointer]:
+          - generic [ref=e264]: Is the food camera accurate?
+          - img [ref=e265]
+        - button "What is the transformation preview?" [ref=e268] [cursor=pointer]:
+          - generic [ref=e269]: What is the transformation preview?
+          - img [ref=e270]
+        - button "Can I cancel my subscription anytime?" [ref=e273] [cursor=pointer]:
+          - generic [ref=e274]: Can I cancel my subscription anytime?
+          - img [ref=e275]
+        - button "Is my data secure?" [ref=e278] [cursor=pointer]:
+          - generic [ref=e279]: Is my data secure?
+          - img [ref=e280]
+    - generic [ref=e283]:
+      - generic [ref=e284]:
+        - generic [ref=e285]:
+          - heading "FromFatToFit" [level=3] [ref=e286]
+          - paragraph [ref=e287]: AI-powered fitness tracking to help you achieve your body transformation goals.
+        - generic [ref=e288]:
+          - heading "Product" [level=4] [ref=e289]
+          - list [ref=e290]:
+            - listitem [ref=e291]:
+              - link "Features" [ref=e292] [cursor=pointer]:
+                - /url: "#features"
+            - listitem [ref=e293]:
+              - link "Pricing" [ref=e294] [cursor=pointer]:
+                - /url: "#pricing"
+            - listitem [ref=e295]:
+              - link "Frequently Asked Questions" [ref=e296] [cursor=pointer]:
+                - /url: "#faq"
+        - generic [ref=e297]:
+          - heading "Account" [level=4] [ref=e298]
+          - list [ref=e299]:
+            - listitem [ref=e300]:
+              - link "Sign In" [ref=e301] [cursor=pointer]:
+                - /url: /login
+            - listitem [ref=e302]:
+              - link "Create one" [ref=e303] [cursor=pointer]:
+                - /url: /register
+        - generic [ref=e304]:
+          - heading "Legal" [level=4] [ref=e305]
+          - list [ref=e306]:
+            - listitem [ref=e307]:
+              - link "Privacy Policy" [ref=e308] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e309]:
+              - link "Terms of Service" [ref=e310] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e311]:
+              - link "Health Disclaimer" [ref=e312] [cursor=pointer]:
+                - /url: /disclaimer
+      - generic [ref=e313]:
+        - paragraph [ref=e314]: © 2026 FromFatToFit. All rights reserved.
+        - button "Change language" [ref=e316] [cursor=pointer]:
+          - img [ref=e317]
+          - generic [ref=e320]: English
+```

@@ -1,23 +1,21 @@
 'use client';
 
-import { useState, useRef, useEffect, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
-import { Camera, Upload, X, Coins } from 'lucide-react';
-import Image from 'next/image';
+import { Camera, Upload, X, Crown } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { useSubscription } from '@/lib/hooks/useSubscription';
-import { foodApi, foodDecisionApi, paymentApi } from '@/lib/api/services';
+import { foodApi, foodDecisionApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { FoodDecisionResult } from '@/components/features/FoodDecisionResult';
 import { FoodRecommendations } from '@/components/features/FoodRecommendations';
 import type { FoodAnalysisResponse, FoodItem } from '@/types/api';
-
-const FOOD_SCAN_COST = 1;
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function FoodCameraPage() {
   const router = useRouter();
   const { isPremium, checkFeatureAccess, refreshLimits } = useSubscription();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -29,22 +27,8 @@ export default function FoodCameraPage() {
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [flow, setFlow] = useState<'upload' | 'decision' | 'recommendations'>('upload');
-  const [creditBalance, setCreditBalance] = useState<number | null>(null);
 
   const featureAccess = checkFeatureAccess('food_scan');
-
-  const fetchCredits = async () => {
-    try {
-      const res = await paymentApi.getCreditBalance();
-      setCreditBalance(res.data.total_credits);
-    } catch {
-      setCreditBalance(null);
-    }
-  };
-
-  useEffect(() => { fetchCredits(); }, []);
-
-  const canScan = creditBalance !== null && creditBalance >= FOOD_SCAN_COST;
 
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,8 +53,9 @@ export default function FoodCameraPage() {
   const handleAnalyze = async () => {
     if (!selectedImage) return;
 
-    if (creditBalance !== null && creditBalance < FOOD_SCAN_COST) {
-      setError(`Not enough credits. Food scan costs ${FOOD_SCAN_COST} credit but you have ${creditBalance}.`);
+    // Check usage limits
+    if (!featureAccess.hasAccess && !isPremium) {
+      setError('You have reached your free scan limit. Upgrade to Premium for unlimited scans.');
       return;
     }
 
@@ -78,22 +63,19 @@ export default function FoodCameraPage() {
     setError(null);
 
     try {
-      // Extract base64 from data URL
       const base64 = selectedImage.split(',')[1];
-
-      // Call the new "Should I Eat?" API
       const response = await foodDecisionApi.shouldIEat(base64);
+
       setDecisionResult(response.data);
       setFlow('decision');
       await refreshLimits();
-      await fetchCredits();
     } catch (err: any) {
+      // Error handling
+
       if (err.response?.status === 402) {
-        setError('Not enough credits. Buy more credits to continue scanning.');
-        toast.error('Not enough credits');
+        setError('You have reached your scan limit. Upgrade to Premium for unlimited scans.');
       } else {
         setError(err.response?.data?.detail || 'Failed to analyze image');
-        toast.error('Failed to analyze image');
       }
     } finally {
       setIsAnalyzing(false);
@@ -122,8 +104,8 @@ export default function FoodCameraPage() {
       setRecommendations(response.data);
       setFlow('recommendations');
     } catch (err: any) {
+      // Failed to get recommendations
       setError('Failed to load recommendations');
-      toast.error('Failed to load recommendations');
     } finally {
       setIsLoadingRecommendations(false);
     }
@@ -142,11 +124,11 @@ export default function FoodCameraPage() {
   const getConfidenceBadge = (confidence: string) => {
     switch (confidence) {
       case 'high':
-        return <Badge variant="success">High Confidence</Badge>;
+        return <Badge variant="success">{t('food.highConfidence')}</Badge>;
       case 'medium':
-        return <Badge variant="warning">Medium Confidence</Badge>;
+        return <Badge variant="warning">{t('food.mediumConfidence')}</Badge>;
       case 'low':
-        return <Badge variant="error">Low Confidence</Badge>;
+        return <Badge variant="error">{t('food.lowConfidence')}</Badge>;
       default:
         return null;
     }
@@ -155,31 +137,28 @@ export default function FoodCameraPage() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Food Camera</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Scan food photos for instant nutritional information
+        <h1 className="text-3xl font-bold text-text">{t('dashboard.aiFoodCamera')}</h1>
+        <p className="text-text-secondary mt-1">
+          {t('dashboard.aiFoodCameraDesc')}
         </p>
         
-        {/* Credit Display */}
-        <div data-tour="camera-credits" className="mt-4 flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-xl max-w-md">
-          <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
-            <Coins className="h-4 w-4 text-amber-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-xs text-amber-800 dark:text-amber-300 font-medium">Your Credits</p>
-            <p className="text-lg font-bold text-amber-700 dark:text-amber-400">
-              {creditBalance !== null ? creditBalance : '—'}
-            </p>
-          </div>
-          <Badge variant="info" className="text-xs">
-            <Coins className="h-3 w-3 mr-1" />
-            {FOOD_SCAN_COST} per scan
-          </Badge>
+        {/* Usage Limits Display */}
+        <div className="mt-4 flex items-center gap-4">
+          {isPremium ? (
+            <Badge variant="premium" className="text-base px-4 py-2">
+              <Crown className="h-4 w-4 mr-2" />
+              {t('food.unlimitedScans')}
+            </Badge>
+          ) : (
+            <Badge variant={featureAccess.remaining > 0 ? 'info' : 'error'} className="text-base px-4 py-2">
+              {t('food.scansRemaining', { remaining: featureAccess.remaining, limit: featureAccess.limit })}
+            </Badge>
+          )}
         </div>
       </div>
 
       {/* Image Upload Area */}
-      <Card data-tour="camera-upload" variant="elevated">
+      <Card variant="elevated">
         <CardContent className="p-8">
           {!selectedImage ? (
             <div className="text-center">
@@ -193,31 +172,28 @@ export default function FoodCameraPage() {
               />
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-12 cursor-pointer hover:border-primary transition-colors"
+                className="border-2 border-dashed border-border rounded-lg p-12 cursor-pointer hover:border-primary transition-colors"
               >
-                <Camera className="h-16 w-16 text-gray-500 dark:text-gray-500 mx-auto mb-4" />
-                <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">Take or Upload a Photo</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Click to select an image of your food
+                <Camera className="h-16 w-16 text-text-light mx-auto mb-4" />
+                <p className="text-lg font-medium text-text mb-2">{t('food.takeOrUpload')}</p>
+                <p className="text-sm text-text-secondary">
+                  {t('food.clickToSelect')}
                 </p>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="relative">
-                <Image
+                <img
                   src={selectedImage}
-                  alt="Selected food"
-                  width={800}
-                  height={600}
+                  alt={t('food.selectedFood')}
                   className="w-full rounded-lg object-cover max-h-96"
-                  unoptimized
                 />
                 <button
                   onClick={handleClearImage}
-                  className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-100 dark:bg-gray-700 transition-colors"
+                  className="absolute top-2 right-2 p-2 bg-surface rounded-full shadow-lg hover:bg-surfaceAlt transition-colors"
                 >
-                  <X className="h-5 w-5 text-gray-900 dark:text-white" />
+                  <X className="h-5 w-5 text-text" />
                 </button>
               </div>
 
@@ -227,11 +203,11 @@ export default function FoodCameraPage() {
                   size="lg"
                   onClick={handleAnalyze}
                   isLoading={isAnalyzing}
-                  disabled={!canScan}
+                  disabled={!featureAccess.hasAccess && !isPremium}
                   className="w-full"
                 >
                   <Camera className="h-5 w-5 mr-2" />
-                  Analyze Food
+                  {t('food.analyzeFood')}
                 </Button>
               )}
             </div>
@@ -240,15 +216,15 @@ export default function FoodCameraPage() {
           {error && (
             <div className="mt-4 p-4 bg-error/10 border border-error rounded-lg">
               <p className="text-sm text-error">{error}</p>
-              {!canScan && (
+              {!isPremium && (
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={() => router.push('/upgrade')}
-                  className="mt-3"
+                  className="mt-3 bg-premium text-primary hover:bg-premium-dark"
                 >
-                  <Coins className="h-4 w-4 mr-2" />
-                  Buy Credits
+                  <Crown className="h-4 w-4 mr-2" />
+                  {t('dashboard.upgradePremium')}
                 </Button>
               )}
             </div>
@@ -270,7 +246,7 @@ export default function FoodCameraPage() {
             onClick={handleClearImage}
             className="w-full"
           >
-            Analyze Again
+            {t('food.reAnalyze')}
           </Button>
         </div>
       )}
@@ -288,7 +264,7 @@ export default function FoodCameraPage() {
             onClick={handleClearImage}
             className="w-full"
           >
-            Analyze New Photo
+            {t('food.newAnalysis')}
           </Button>
         </div>
       )}
@@ -298,7 +274,7 @@ export default function FoodCameraPage() {
         <Card>
           <CardContent className="p-12 text-center">
             <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Preparing food recommendations...</p>
+            <p className="text-gray-600">{t('food.preparingRec')}</p>
           </CardContent>
         </Card>
       )}

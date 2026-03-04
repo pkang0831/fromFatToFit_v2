@@ -5,6 +5,4 @@ export * from './Badge';
 export * from './Modal';
 export * from './ProgressBar';
 export * from './progress';
-export * from './ErrorBoundary';
-export * from './Skeleton';
 export * from './ConfirmDialog';

@@ -20,6 +20,19 @@ router = APIRouter()
 async def register(request: Request, user_data: UserRegister):
     """Register a new user"""
     try:
+        if not all([user_data.consent_terms, user_data.consent_privacy,
+                     user_data.consent_sensitive_data, user_data.consent_age_verification]):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="All consent agreements must be accepted to create an account"
+            )
+
+        if user_data.age is not None and user_data.age < 18:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You must be at least 18 years old to use this service"
+            )
+
         supabase = get_supabase()
         
         # Create user with Supabase Auth
@@ -47,6 +60,7 @@ async def register(request: Request, user_data: UserRegister):
         
         # Create user profile
         has_required = all([user_data.gender, user_data.age, user_data.height_cm])
+        consent_timestamp = datetime.utcnow().isoformat()
         profile_data = {
             "user_id": user.id,
             "email": user.email,
@@ -59,7 +73,12 @@ async def register(request: Request, user_data: UserRegister):
             "activity_level": user_data.activity_level,
             "premium_status": False,
             "onboarding_completed": has_required,
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": consent_timestamp,
+            "consent_terms_at": consent_timestamp,
+            "consent_privacy_at": consent_timestamp,
+            "consent_sensitive_data_at": consent_timestamp,
+            "consent_age_verified_at": consent_timestamp,
+            "consent_version": "2026-02-26",
         }
         supabase.table("user_profiles").insert(profile_data).execute()
         

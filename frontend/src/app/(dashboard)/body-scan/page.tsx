@@ -8,18 +8,28 @@ import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input, Select 
 import { ShareButtons } from '@/components/ui/ShareButtons';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { bodyApi, paymentApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { AxiosError } from 'axios';
-import { BellCurveChart } from '@/components/charts/BellCurveChart';
-import BodyPartSelector from '@/components/features/BodyPartSelector';
+import dynamic from 'next/dynamic';
 import type { BodyScanRequest, BodyFatEstimateResponse, PercentileResponse, TransformationResponse, EnhancementResponse, RegionTransformResponse } from '@/types/api';
+
+const BellCurveChart = dynamic(
+  () => import('@/components/charts/BellCurveChart').then(m => m.BellCurveChart),
+  { loading: () => <div className="h-[200px] bg-surfaceAlt animate-pulse rounded-lg" />, ssr: false }
+);
+const BodyPartSelector = dynamic(
+  () => import('@/components/features/BodyPartSelector'),
+  { loading: () => <div className="h-[400px] bg-surfaceAlt animate-pulse rounded-lg" />, ssr: false }
+);
 
 type ScanType = 'bodyfat' | 'percentile' | 'transformation' | 'enhancement' | 'region_transform';
 
 export default function BodyScanPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { isPremium, checkFeatureAccess, refreshLimits } = useSubscription();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,6 +54,7 @@ export default function BodyScanPage() {
   const [regionTransformLoading, setRegionTransformLoading] = useState(false);
   const [regionImageBase64, setRegionImageBase64] = useState<string | null>(null);
   const [regionTransformHistory, setRegionTransformHistory] = useState<RegionTransformResponse[]>([]);
+  const [photoConfirmed, setPhotoConfirmed] = useState(false);
 
   const SCAN_CREDIT_COSTS: Record<ScanType, number> = {
     bodyfat: 10,
@@ -121,40 +132,40 @@ export default function BodyScanPage() {
   const scanTypes = [
     {
       id: 'bodyfat' as ScanType,
-      title: 'Body Fat Estimate',
-      description: 'Estimate your body fat percentage from a photo',
+      title: t('bodyScan.bodyfat'),
+      description: t('bodyScan.bodyfatDesc'),
       icon: Scan,
       access: bodyFatAccess,
       creditCost: SCAN_CREDIT_COSTS.bodyfat,
     },
     {
       id: 'percentile' as ScanType,
-      title: 'Percentile Ranking',
-      description: 'Compare your body composition to demographic groups',
+      title: t('bodyScan.percentile'),
+      description: t('bodyScan.percentileDesc'),
       icon: Award,
       access: percentileAccess,
       creditCost: SCAN_CREDIT_COSTS.percentile,
     },
     {
       id: 'transformation' as ScanType,
-      title: 'Transformation Preview',
-      description: 'AI-generated preview of your body transformation',
+      title: t('bodyScan.transformation'),
+      description: t('bodyScan.transformationDesc'),
       icon: Sparkles,
       access: transformationAccess,
       creditCost: SCAN_CREDIT_COSTS.transformation,
     },
     {
       id: 'enhancement' as ScanType,
-      title: 'Photo Enhancement',
-      description: 'Professional body profile retouching — same body, polished look',
+      title: t('bodyScan.enhancement'),
+      description: t('bodyScan.enhancementDesc'),
       icon: Wand2,
       access: enhancementAccess,
       creditCost: SCAN_CREDIT_COSTS.enhancement,
     },
     {
       id: 'region_transform' as ScanType,
-      title: 'Region Transform',
-      description: 'Click a body part to select it, then transform with AI',
+      title: t('bodyScan.regionTransform'),
+      description: t('bodyScan.regionTransformDesc'),
       icon: Target,
       access: transformationAccess,
       creditCost: SCAN_CREDIT_COSTS.region_transform,
@@ -245,7 +256,7 @@ export default function BodyScanPage() {
 
       const requestData: BodyScanRequest = {
         image_base64: base64,
-        scan_type: selectedType,
+        scan_type: selectedType as 'bodyfat' | 'percentile' | 'transformation' | 'enhancement',
         gender: formData.gender as 'male' | 'female',
         age: formData.age ? Number(formData.age) : undefined,
         ethnicity: (formData.ethnicity as string) || undefined,
@@ -267,6 +278,14 @@ export default function BodyScanPage() {
         case 'enhancement':
           response = await bodyApi.generateEnhancement(requestData);
           break;
+        default:
+          setIsScanning(false);
+          return;
+      }
+
+      if (!response) {
+        setIsScanning(false);
+        return;
       }
 
       // Store result by type
@@ -422,7 +441,7 @@ export default function BodyScanPage() {
           return (
             <Card variant="elevated">
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-400 text-center">No body fat data available</p>
+                <p className="text-gray-600 dark:text-gray-400 text-center">{t('bodyScan.noData')}</p>
               </CardContent>
             </Card>
           );
@@ -430,7 +449,7 @@ export default function BodyScanPage() {
         return (
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle>Body Fat Estimate</CardTitle>
+              <CardTitle>{t('bodyScan.bodyfat')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center mb-6">
@@ -441,12 +460,12 @@ export default function BodyScanPage() {
                   bfResult.confidence === 'high' ? 'success' :
                   bfResult.confidence === 'medium' ? 'warning' : 'error'
                 }>
-                  {bfResult.confidence || 'medium'} Confidence
+                  {t('bodyScan.confidence', { level: bfResult.confidence || 'medium' })}
                 </Badge>
               </div>
               {bfResult.recommendations && bfResult.recommendations.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Recommendations:</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">{t('bodyScan.recommendations')}:</h4>
                   <ul className="space-y-2">
                     {bfResult.recommendations.map((rec, i) => (
                       <li key={i} className="text-gray-600 dark:text-gray-400">• {rec}</li>
@@ -464,7 +483,7 @@ export default function BodyScanPage() {
           return (
             <Card variant="elevated">
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-400 text-center">No percentile data available</p>
+                <p className="text-gray-600 dark:text-gray-400 text-center">{t('bodyScan.noData')}</p>
               </CardContent>
             </Card>
           );
@@ -472,13 +491,13 @@ export default function BodyScanPage() {
         return (
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle>Percentile Ranking</CardTitle>
+              <CardTitle>{t('bodyScan.percentile')}</CardTitle>
             </CardHeader>
             <CardContent>
               {/* Top Stats */}
               <div className="grid grid-cols-2 gap-4 mb-8">
                 <div className="text-center p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Your Ranking</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('bodyScan.yourRanking')}</p>
                   <p className="text-4xl font-bold text-primary mb-1">
                     Top {(100 - percResult.percentile_data.percentile).toFixed(0)}%
                   </p>
@@ -487,7 +506,7 @@ export default function BodyScanPage() {
                   </p>
                 </div>
                 <div className="text-center p-4 bg-gray-100 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Your Body Fat</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('bodyScan.yourBodyFat')}</p>
                   <p className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
                     {percResult.percentile_data.body_fat_percentage.toFixed(1)}%
                   </p>
@@ -501,7 +520,7 @@ export default function BodyScanPage() {
               {percResult.distribution_data && (
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 text-center">
-                    Population Distribution
+                    {t('bodyScan.populationDist')}
                   </h4>
                   <BellCurveChart
                     mean={percResult.distribution_data.mean}
@@ -516,7 +535,7 @@ export default function BodyScanPage() {
               {/* Interpretation */}
               <div className="mt-6 p-4 bg-primary/10 border border-primary/30 rounded-lg">
                 <p className="text-sm text-gray-900 dark:text-white">
-                  <span className="font-semibold">What this means:</span> You have{' '}
+                  <span className="font-semibold">{t('bodyScan.whatThisMeans')}</span> You have{' '}
                   <span className="font-bold text-primary">lower body fat</span> than{' '}
                   <span className="font-bold text-primary">
                     {percResult.percentile_data.percentile.toFixed(0)}%
@@ -537,23 +556,22 @@ export default function BodyScanPage() {
           return (
             <Card variant="elevated">
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-400 text-center">No transformation data available</p>
+                <p className="text-gray-600 dark:text-gray-400 text-center">{t('bodyScan.noData')}</p>
               </CardContent>
             </Card>
           );
         }
         const isCutting = transResult.direction === 'cutting';
-        const directionLabel = isCutting ? 'Cutting' : 'Bulking';
         const directionColor = isCutting ? 'text-blue-600' : 'text-orange-600';
         const directionBg = isCutting ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200';
         return (
           <Card variant="elevated">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Transformation Preview</CardTitle>
+                <CardTitle>{t('bodyScan.transformation')}</CardTitle>
                 {transResult.direction && (
                   <Badge variant={isCutting ? 'info' : 'warning'}>
-                    {isCutting ? 'Cutting' : 'Bulking'}
+                    {isCutting ? t('bodyScan.cutting') : t('bodyScan.bulking')}
                   </Badge>
                 )}
               </div>
@@ -561,7 +579,7 @@ export default function BodyScanPage() {
             <CardContent>
               <div className="grid md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Current</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('bodyScan.current')}</p>
                   <Image
                     src={selectedImage || ''}
                     alt="Current"
@@ -572,7 +590,7 @@ export default function BodyScanPage() {
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Projected</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('bodyScan.projected')}</p>
                   <Image
                     src={transResult.transformed_image_url}
                     alt="Transformation"
@@ -589,25 +607,25 @@ export default function BodyScanPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                 {transResult.current_bf != null && (
                   <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 dark:text-gray-400">Current Body Fat</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{t('bodyScan.currentBf')}</p>
                     <p className="text-xl font-bold text-gray-900 dark:text-white">{transResult.current_bf.toFixed(1)}%</p>
                   </div>
                 )}
                 {transResult.target_bf != null && (
                   <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 dark:text-gray-400">Target Body Fat</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{t('bodyScan.targetBfLabel')}</p>
                     <p className="text-xl font-bold text-primary">{transResult.target_bf.toFixed(1)}%</p>
                   </div>
                 )}
                 {transResult.muscle_gain_estimate && (
                   <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 dark:text-gray-400">Est. Muscle Gain</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{t('bodyScan.estMuscleGain')}</p>
                     <p className="text-xl font-bold text-gray-900 dark:text-white">+{transResult.muscle_gain_estimate}</p>
                   </div>
                 )}
                 <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-center">
-                  <p className="text-xs text-gray-600 dark:text-gray-400">Est. Timeline</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{transResult.estimated_timeline_weeks} weeks</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{t('bodyScan.estTimeline')}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{transResult.estimated_timeline_weeks} {t('bodyScan.weeks')}</p>
                 </div>
               </div>
 
@@ -616,15 +634,15 @@ export default function BodyScanPage() {
                 <div className={`p-3 rounded-lg border ${directionBg} mb-4`}>
                   <p className={`text-sm font-semibold ${directionColor}`}>
                     {isCutting
-                      ? 'Goal: Fat loss + muscle retention/gain'
-                      : 'Goal: Muscle gain + healthy bulk'}
+                      ? t('bodyScan.goalCutting')
+                      : t('bodyScan.goalBulking')}
                   </p>
                 </div>
               )}
 
               {transResult.recommendations && transResult.recommendations.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Recommendations:</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{t('bodyScan.recommendations')}:</h4>
                   <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                     {transResult.recommendations.map((rec, i) => (
                       <li key={i}>• {rec}</li>
@@ -642,21 +660,21 @@ export default function BodyScanPage() {
           return (
             <Card variant="elevated">
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-400 text-center">No enhancement data available</p>
+                <p className="text-gray-600 dark:text-gray-400 text-center">{t('bodyScan.noData')}</p>
               </CardContent>
             </Card>
           );
         }
-        const levelLabel = { subtle: 'Subtle', natural: 'Natural', studio: 'Studio' }[enhResult.enhancement_level] || 'Natural';
+        const levelLabel = { subtle: t('bodyScan.subtle'), natural: t('bodyScan.natural'), studio: t('bodyScan.studio') }[enhResult.enhancement_level] || t('bodyScan.natural');
         return (
           <Card variant="elevated">
             <CardHeader>
-              <CardTitle>Photo Enhancement</CardTitle>
+              <CardTitle>{t('bodyScan.enhancement')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Original</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('bodyScan.original')}</p>
                   <Image
                     src={selectedImage || ''}
                     alt="Original"
@@ -667,7 +685,7 @@ export default function BodyScanPage() {
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Enhanced</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('bodyScan.enhanced')}</p>
                   <Image
                     src={enhResult.enhanced_image_url}
                     alt="Enhanced"
@@ -680,11 +698,11 @@ export default function BodyScanPage() {
                 </div>
               </div>
               <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <p className="text-sm text-gray-600 dark:text-gray-400">Enhancement Level</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('bodyScan.enhancementLevel')}</p>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">{levelLabel}</p>
               </div>
               <p className="mt-4 text-xs text-gray-500 dark:text-gray-500 text-center">
-                Body proportions unchanged — only lighting, skin tone, and muscle definition enhanced
+                {t('bodyScan.bodyProportionsNote')}
               </p>
             </CardContent>
           </Card>
@@ -697,14 +715,14 @@ export default function BodyScanPage() {
           <Card variant="elevated">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Region Transform Result</CardTitle>
+                <CardTitle>{t('bodyScan.regionResult')}</CardTitle>
                 <Badge variant="info">{regionResult.body_part} — {regionResult.goal}</Badge>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Original</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('bodyScan.original')}</p>
                   {selectedImage && (
                     <Image
                       src={selectedImage}
@@ -717,7 +735,7 @@ export default function BodyScanPage() {
                   )}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Transformed</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('bodyScan.transformed')}</p>
                   <Image
                     src={regionResult.transformed_image_url}
                     alt="Transformed"
@@ -731,9 +749,9 @@ export default function BodyScanPage() {
               </div>
               <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  <span className="font-semibold">Body Part:</span> {regionResult.body_part} |{' '}
-                  <span className="font-semibold">Goal:</span> {regionResult.goal} |{' '}
-                  <span className="font-semibold">Direction:</span> {regionResult.direction}
+                  <span className="font-semibold">{t('bodyScan.bodyPart')}:</span> {regionResult.body_part} |{' '}
+                  <span className="font-semibold">{t('bodyScan.goal')}:</span> {regionResult.goal} |{' '}
+                  <span className="font-semibold">{t('bodyScan.direction')}:</span> {regionResult.direction}
                 </p>
               </div>
 
@@ -741,7 +759,7 @@ export default function BodyScanPage() {
               {regionTransformHistory.length > 1 && (
                 <div className="mt-4">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                    Regions transformed: {regionTransformHistory.map(r => r.body_part).join(' → ')}
+                    {t('bodyScan.regionsTransformed')} {regionTransformHistory.map(r => r.body_part).join(' → ')}
                   </p>
                 </div>
               )}
@@ -753,7 +771,7 @@ export default function BodyScanPage() {
                 onClick={handleTransformAnother}
               >
                 <Target className="h-4 w-4 mr-2" />
-                Transform Another Region ({SCAN_CREDIT_COSTS.region_transform} credits)
+                {t('bodyScan.transformAnother', { cost: SCAN_CREDIT_COSTS.region_transform })}
               </Button>
             </CardContent>
           </Card>
@@ -771,9 +789,9 @@ export default function BodyScanPage() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Body Scanner</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('bodyScan.title')}</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
-          AI-powered body composition analysis
+          {t('bodyScan.subtitle')}
         </p>
       </div>
 
@@ -783,7 +801,7 @@ export default function BodyScanPage() {
           <Coins className="h-5 w-5 text-amber-600" />
         </div>
         <div className="flex-1">
-          <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">Your Credits</p>
+          <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">{t('bodyScan.yourCredits')}</p>
           <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
             {creditBalance !== null ? creditBalance : '—'}
           </p>
@@ -794,7 +812,7 @@ export default function BodyScanPage() {
           onClick={() => router.push('/upgrade')}
           className="text-amber-900 bg-amber-100 border-amber-200 hover:bg-amber-200"
         >
-          Buy More
+          {t('common.buyMore')}
         </Button>
       </div>
 
@@ -819,14 +837,14 @@ export default function BodyScanPage() {
                   <Icon className="h-8 w-8 text-primary" />
                   <Badge variant="info" className="text-xs font-semibold">
                     <Coins className="h-3 w-3 mr-1" />
-                    {type.creditCost} credits
+                    {type.creditCost} {t('common.credits')}
                   </Badge>
                 </div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{type.title}</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{type.description}</p>
                 {creditBalance !== null && !canAfford && (
                   <Badge variant="error" className="text-xs">
-                    Not enough credits
+                    {t('common.notEnoughCredits')}
                   </Badge>
                 )}
               </CardContent>
@@ -863,9 +881,9 @@ export default function BodyScanPage() {
                     className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-12 text-center cursor-pointer hover:border-primary transition-colors"
                   >
                     <Target className="h-16 w-16 text-gray-500 dark:text-gray-500 mx-auto mb-4" />
-                    <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">Upload Body Photo</p>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('bodyScan.uploadPhoto')}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Then click on a body part to select and transform it
+                      {t('bodyScan.regionTransformDesc')}
                     </p>
                   </div>
                 </div>
@@ -874,23 +892,23 @@ export default function BodyScanPage() {
                   {/* Goal & Intensity controls */}
                   <div className="grid grid-cols-2 gap-3">
                     <Select
-                      label="Transformation Goal"
+                      label={t('bodyScan.transformGoal')}
                       value={regionGoal}
                       onChange={(e) => setRegionGoal(e.target.value)}
                     >
-                      <option value="bigger">Bigger / More Muscular</option>
-                      <option value="leaner">Leaner</option>
-                      <option value="more_defined">More Defined</option>
-                      <option value="slimmer">Slimmer</option>
+                      <option value="bigger">{t('bodyScan.bigger')}</option>
+                      <option value="leaner">{t('bodyScan.leaner')}</option>
+                      <option value="more_defined">{t('bodyScan.moreDefined')}</option>
+                      <option value="slimmer">{t('bodyScan.slimmer')}</option>
                     </Select>
                     <Select
-                      label="Intensity"
+                      label={t('bodyScan.intensity')}
                       value={regionIntensity}
                       onChange={(e) => setRegionIntensity(e.target.value)}
                     >
-                      <option value="subtle">Subtle</option>
-                      <option value="moderate">Moderate</option>
-                      <option value="dramatic">Dramatic</option>
+                      <option value="subtle">{t('bodyScan.subtle')}</option>
+                      <option value="moderate">{t('bodyScan.moderate')}</option>
+                      <option value="dramatic">{t('bodyScan.dramatic')}</option>
                     </Select>
                   </div>
 
@@ -917,9 +935,9 @@ export default function BodyScanPage() {
                 className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-12 text-center cursor-pointer hover:border-primary transition-colors"
               >
                 <Scan className="h-16 w-16 text-gray-500 dark:text-gray-500 mx-auto mb-4" />
-                <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">Upload Body Photo</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('bodyScan.uploadPhoto')}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Click to select a full-body photo
+                  {t('bodyScan.uploadPhotoHint')}
                 </p>
               </div>
             </div>
@@ -945,14 +963,14 @@ export default function BodyScanPage() {
                   className="space-y-4"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Select name="gender" label="Gender" required defaultValue={formDefaults.gender}>
-                      <option value="">Select...</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
+                    <Select name="gender" label={t('auth.gender')} required defaultValue={formDefaults.gender}>
+                      <option value="">{t('auth.select')}</option>
+                      <option value="male">{t('auth.male')}</option>
+                      <option value="female">{t('auth.female')}</option>
                     </Select>
                     <Input 
                       name="age" 
-                      label="Age" 
+                      label={t('auth.age')} 
                       type="number" 
                       placeholder="30" 
                       defaultValue={formDefaults.age}
@@ -962,26 +980,26 @@ export default function BodyScanPage() {
                   {selectedType === 'percentile' && (
                     <Select 
                       name="ethnicity" 
-                      label="Ethnicity" 
+                      label={t('auth.ethnicity')} 
                       defaultValue={formDefaults.ethnicity}
                       required
                     >
-                      <option value="">Select...</option>
-                      <option value="Asian">Asian</option>
-                      <option value="Caucasian">Caucasian</option>
-                      <option value="African">African</option>
-                      <option value="Hispanic">Hispanic</option>
-                      <option value="Middle Eastern">Middle Eastern</option>
-                      <option value="Pacific Islander">Pacific Islander</option>
-                      <option value="Mixed">Mixed</option>
-                      <option value="Other">Other</option>
+                      <option value="">{t('auth.select')}</option>
+                      <option value="Asian">{t('auth.ethnicity_options.asian')}</option>
+                      <option value="Caucasian">{t('auth.ethnicity_options.caucasian')}</option>
+                      <option value="African">{t('auth.ethnicity_options.african')}</option>
+                      <option value="Hispanic">{t('auth.ethnicity_options.hispanic')}</option>
+                      <option value="Middle Eastern">{t('auth.ethnicity_options.middleEastern')}</option>
+                      <option value="Pacific Islander">{t('auth.ethnicity_options.pacificIslander')}</option>
+                      <option value="Mixed">{t('auth.ethnicity_options.mixed')}</option>
+                      <option value="Other">{t('auth.ethnicity_options.other')}</option>
                     </Select>
                   )}
 
                   {selectedType === 'transformation' && (
                     <Input
                       name="target_bf"
-                      label="Target Body Fat %"
+                      label={t('bodyScan.targetBf')}
                       type="number"
                       step="0.5"
                       min="3"
@@ -992,31 +1010,46 @@ export default function BodyScanPage() {
                   )}
 
                   {selectedType === 'enhancement' && (
-                    <Select name="enhancement_level" label="Enhancement Level" defaultValue="natural">
-                      <option value="subtle">Subtle — Light retouch</option>
-                      <option value="natural">Natural — Natural retouch (Recommended)</option>
-                      <option value="studio">Studio — Studio-grade retouch</option>
+                    <Select name="enhancement_level" label={t('bodyScan.enhancementLevel')} defaultValue="natural">
+                      <option value="subtle">{t('bodyScan.subtleRetouch')}</option>
+                      <option value="natural">{t('bodyScan.naturalRetouch')}</option>
+                      <option value="studio">{t('bodyScan.studioRetouch')}</option>
                     </Select>
                   )}
 
                   <Input 
                     name="height_cm" 
-                    label="Height (cm)" 
+                    label={t('auth.height')} 
                     type="number" 
                     placeholder="170" 
                     defaultValue={formDefaults.height_cm}
                   />
+
+                  <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="photoConfirm"
+                        checked={photoConfirmed}
+                        onChange={(e) => setPhotoConfirmed(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                      />
+                      <label htmlFor="photoConfirm" className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer">
+                        {t('bodyScan.photoConfirm')}
+                      </label>
+                    </div>
+                  </div>
 
                   <Button
                     type="submit"
                     variant="primary"
                     size="lg"
                     isLoading={isScanning}
-                    disabled={!canScan}
+                    disabled={!canScan || !photoConfirmed}
                     className="w-full"
                   >
                     <Scan className="h-5 w-5 mr-2" />
-                    Start Scan
+                    {t('bodyScan.startScan')}
                   </Button>
 
                   {!canScan && (
@@ -1027,7 +1060,7 @@ export default function BodyScanPage() {
                       className="w-full"
                     >
                       <Coins className="h-5 w-5 mr-2" />
-                      Buy Credits ({selectedCost} needed)
+                      {t('bodyScan.buyCredits', { cost: selectedCost })}
                     </Button>
                   )}
                 </form>

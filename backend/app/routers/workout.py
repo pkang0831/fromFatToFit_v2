@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, Request, status, Depends
 import logging
 from datetime import date, datetime
 from typing import List, Optional
@@ -12,13 +12,16 @@ from ..services.openai_service import analyze_workout_form_video
 from ..services.usage_limiter import check_usage_limit
 from ..services.analytics import get_workout_trend_data
 from ..services.payment_service import check_premium_status
+from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.get("/exercises/library", response_model=List[ExerciseLibraryItem])
+@limiter.limit("60/minute")
 async def get_exercise_library(
+    request: Request,
     category: str = None,
     current_user: dict = Depends(get_current_user)
 ):
@@ -37,7 +40,7 @@ async def get_exercise_library(
         
     except Exception as e:
         logger.error(f"Error getting exercise library: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get exercise library")
 
 
 async def calculate_workout_calories(
@@ -103,7 +106,9 @@ async def calculate_workout_calories(
 
 
 @router.post("/log", response_model=WorkoutLogResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("30/minute")
 async def log_workout(
+    request: Request,
     workout_log: WorkoutLogCreate,
     current_user: dict = Depends(get_current_user)
 ):
@@ -140,11 +145,13 @@ async def log_workout(
         raise
     except Exception as e:
         logger.error(f"Error logging workout: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to log workout")
 
 
 @router.get("/logs/{target_date}", response_model=List[WorkoutLogResponse])
+@limiter.limit("60/minute")
 async def get_workout_logs(
+    request: Request,
     target_date: date,
     current_user: dict = Depends(get_current_user)
 ):
@@ -158,11 +165,13 @@ async def get_workout_logs(
         
     except Exception as e:
         logger.error(f"Error getting workout logs: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get workout logs")
 
 
 @router.get("/logs-range", response_model=List[WorkoutLogResponse])
+@limiter.limit("60/minute")
 async def get_workout_logs_range(
+    request: Request,
     start_date: str,
     end_date: str,
     current_user: dict = Depends(get_current_user)
@@ -188,11 +197,13 @@ async def get_workout_logs_range(
         
     except Exception as e:
         logger.error(f"Error getting workout logs range: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get workout logs")
 
 
 @router.get("/trends", response_model=WorkoutTrendResponse)
+@limiter.limit("30/minute")
 async def get_workout_trends(
+    request: Request,
     days: int = 30,
     current_user: dict = Depends(get_current_user)
 ):
@@ -212,32 +223,32 @@ async def get_workout_trends(
         
     except Exception as e:
         logger.error(f"Error getting workout trends: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get workout trends")
 
 
 @router.post("/analyze-form", response_model=FormAnalysisResponse)
+@limiter.limit("10/minute")
 async def analyze_workout_form(
-    request: FormAnalysisRequest,
+    request: Request,
+    form_data: FormAnalysisRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """Analyze workout form from video (Premium only)"""
     try:
-        # This feature is premium only
         is_premium = await check_premium_status(current_user["id"])
         
         try:
-            usage_info = await check_usage_limit(current_user["id"], "form_check", is_premium)
-        except Exception as usage_error:
+            await check_usage_limit(current_user["id"], "form_check", is_premium)
+        except Exception:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail="Form analysis requires premium subscription"
             )
         
-        # Analyze video with OpenAI
-        analysis_result = await analyze_workout_form_video(request.video_base64, request.exercise_name)
+        analysis_result = await analyze_workout_form_video(form_data.video_base64, form_data.exercise_name)
         
         return FormAnalysisResponse(
-            exercise_name=request.exercise_name,
+            exercise_name=form_data.exercise_name,
             form_score=analysis_result["form_score"],
             issues_detected=analysis_result["issues_detected"],
             corrections=analysis_result["corrections"],
@@ -252,23 +263,21 @@ async def analyze_workout_form(
 
 
 @router.delete("/log/{log_id}")
+@limiter.limit("30/minute")
 async def delete_workout_log(
+    request: Request,
     log_id: str,
     current_user: dict = Depends(get_current_user)
 ):
     """Delete a workout log entry"""
     try:
         supabase = get_supabase()
-        
         result = supabase.table("workout_logs").delete().eq("id", log_id).eq("user_id", current_user["id"]).execute()
-        
         if not result.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workout log not found")
-        
         return {"message": "Workout log deleted successfully"}
-        
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error deleting workout log: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete workout log")

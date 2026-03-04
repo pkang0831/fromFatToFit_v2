@@ -26,7 +26,8 @@ from .replicate_utils import (
 
 logger = logging.getLogger(__name__)
 
-SAM2_MODEL_URL = "https://api.replicate.com/v1/models/meta/sam-2/predictions"
+SAM2_PREDICTIONS_URL = "https://api.replicate.com/v1/predictions"
+SAM2_VERSION = "fe97b453a6455861e3bac769b441ca1f1086110da7466dbb65cf1eecfd60dc83"
 
 BODY_PART_Y_RANGES = [
     (0.00, 0.15, "head"),
@@ -100,6 +101,7 @@ async def segment_body_part(
     data_uri = image_to_data_uri(image_base64, "jpeg")
 
     payload = {
+        "version": SAM2_VERSION,
         "input": {
             "image": data_uri,
             "points_per_side": 32,
@@ -111,7 +113,7 @@ async def segment_body_part(
 
     loop = asyncio.get_event_loop()
     pred = await loop.run_in_executor(
-        None, curl_json, "POST", SAM2_MODEL_URL, api_key, payload,
+        None, curl_json, "POST", SAM2_PREDICTIONS_URL, api_key, payload,
     )
 
     pred_status = pred.get("status")

@@ -1,12 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const steps = [
   {
     number: '01',
-    title: 'Sign Up',
-    description: 'Create your free account in seconds. Set your body goals and preferences.',
+    titleKey: 'landing.step1Title',
+    descKey: 'landing.step1Desc',
     icon: (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -15,8 +16,8 @@ const steps = [
   },
   {
     number: '02',
-    title: 'Track Daily',
-    description: 'Log meals with your camera, record workouts, and monitor your weight trends.',
+    titleKey: 'landing.step2Title',
+    descKey: 'landing.step2Desc',
     icon: (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -25,8 +26,8 @@ const steps = [
   },
   {
     number: '03',
-    title: 'Transform',
-    description: 'Watch your progress unfold with AI insights, body scans, and transformation previews.',
+    titleKey: 'landing.step3Title',
+    descKey: 'landing.step3Desc',
     icon: (
       <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -36,6 +37,8 @@ const steps = [
 ];
 
 export function HowItWorksSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-24 px-6 bg-gray-50 dark:bg-gray-950">
       <div className="max-w-5xl mx-auto">
@@ -46,8 +49,8 @@ export function HowItWorksSection() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">How It Works</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">Three simple steps to a better you.</p>
+          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('landing.howItWorks')}</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{t('landing.howItWorksSubtitle')}</p>
         </motion.div>
 
         <div className="relative">
@@ -70,8 +73,8 @@ export function HowItWorksSection() {
                     {step.number}
                   </span>
                 </div>
-                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">{step.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed max-w-xs mx-auto">{step.description}</p>
+                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">{t(step.titleKey)}</h3>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed max-w-xs mx-auto">{t(step.descKey)}</p>
               </motion.div>
             ))}
           </div>

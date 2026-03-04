@@ -2,8 +2,11 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function HeroSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-surfaceAlt to-background">
       <div className="absolute inset-0 overflow-hidden">
@@ -26,7 +29,7 @@ export function HeroSection() {
           transition={{ duration: 0.8 }}
         >
           <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full mb-6">
-            AI-Powered Fitness Tracking
+            {t('landing.badge')}
           </span>
         </motion.div>
 
@@ -36,9 +39,9 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15 }}
         >
-          Your Body,{' '}
+          {t('landing.heroTitle')}{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-            Transformed
+            {t('landing.heroHighlight')}
           </span>
         </motion.h1>
 
@@ -48,8 +51,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
         >
-          Track calories with your camera, scan your body fat with AI,
-          and visualize your transformation — all in one app.
+          {t('landing.heroDescription')}
         </motion.p>
 
         <motion.div
@@ -61,14 +63,16 @@ export function HeroSection() {
           <Link
             href="/register"
             className="px-8 py-4 bg-primary text-white font-semibold rounded-xl text-lg shadow-lg hover:bg-primary-dark transition-all hover:shadow-xl hover:-translate-y-0.5"
+            data-testid="hero-cta"
           >
-            Get Started Free
+            {t('landing.getStarted')}
           </Link>
           <Link
             href="/login"
             className="px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-xl text-lg border border-gray-200 dark:border-gray-700 hover:border-primary/30 transition-all hover:-translate-y-0.5"
+            data-testid="hero-signin"
           >
-            Sign In
+            {t('landing.signIn')}
           </Link>
         </motion.div>
 
@@ -79,13 +83,13 @@ export function HeroSection() {
           transition={{ duration: 1, delay: 0.7 }}
         >
           {[
-            { value: '10K+', label: 'Active Users' },
-            { value: '500K+', label: 'Meals Tracked' },
-            { value: '98%', label: 'Accuracy' },
+            { value: '10K+', labelKey: 'landing.stats.users' },
+            { value: '500K+', labelKey: 'landing.stats.meals' },
+            { value: '5+', labelKey: 'landing.stats.aiModels' },
           ].map((stat) => (
-            <div key={stat.label} className="text-center">
+            <div key={stat.labelKey} className="text-center">
               <div className="text-2xl font-bold text-primary">{stat.value}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t(stat.labelKey)}</div>
             </div>
           ))}
         </motion.div>

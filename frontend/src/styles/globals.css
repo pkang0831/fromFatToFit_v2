@@ -3,21 +3,44 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-background: #FAF9F6;
+    --color-surface: #FFFFFF;
+    --color-surface-alt: #F5F0EB;
+    --color-text: #3E2723;
+    --color-text-secondary: #6D4C41;
+    --color-text-light: #8D6E63;
+    --color-border: #D7CCC8;
+    --color-border-light: #EFEBE9;
+  }
+
+  .dark {
+    --color-background: #111827;
+    --color-surface: #1f2937;
+    --color-surface-alt: #283548;
+    --color-text: #f3f4f6;
+    --color-text-secondary: #9ca3af;
+    --color-text-light: #6b7280;
+    --color-border: #374151;
+    --color-border-light: #4b5563;
+  }
+
   * {
-    @apply border-gray-200;
+    border-color: var(--color-border);
   }
-  .dark * {
-    border-color: #374151;
-  }
+
   body {
-    @apply bg-gray-50 text-gray-900;
-  }
-  .dark body {
-    background-color: #030712;
-    color: #f3f4f6;
-  }
-  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  select,
+  input,
+  textarea {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
   }
 }
 

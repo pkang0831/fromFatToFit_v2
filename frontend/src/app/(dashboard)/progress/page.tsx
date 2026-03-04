@@ -2,9 +2,15 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import GoalProjectionChart from '@/components/features/GoalProjectionChart';
+import dynamic from 'next/dynamic';
+import { useLanguage } from '@/contexts/LanguageContext';
 import WeightLogForm from '@/components/features/WeightLogForm';
 import GoalSettingForm from '@/components/features/GoalSettingForm';
+
+const GoalProjectionChart = dynamic(
+  () => import('@/components/features/GoalProjectionChart'),
+  { loading: () => <div className="h-[400px] bg-surfaceAlt animate-pulse rounded-lg" />, ssr: false }
+);
 import { Modal } from '@/components/ui/Modal';
 import { progressPhotoApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
@@ -31,6 +37,7 @@ interface CompareData {
 type Tab = 'goals' | 'photos';
 
 export default function ProgressPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>('goals');
   const [showWeightLogModal, setShowWeightLogModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -188,9 +195,9 @@ export default function ProgressPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Goal Progress Tracking</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('progress.title')}</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Track your weight, goals, and visual progress over time
+            {t('progress.subtitle')}
           </p>
         </div>
 
@@ -201,13 +208,13 @@ export default function ProgressPage() {
                 onClick={() => setShowGoalModal(true)}
                 className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-emerald-600 text-emerald-600 rounded-lg hover:bg-emerald-50 dark:hover:bg-gray-700 transition-colors font-medium"
               >
-                🎯 Set Goal
+                🎯 {t('progress.setGoal')}
               </button>
               <button
                 onClick={() => setShowWeightLogModal(true)}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
               >
-                ⚖️ Log Weight
+                ⚖️ {t('progress.logWeight')}
               </button>
             </>
           )}
@@ -222,14 +229,14 @@ export default function ProgressPage() {
                 }`}
               >
                 <ArrowLeftRight className="w-4 h-4" />
-                {compareMode ? 'Cancel Compare' : 'Compare'}
+                {compareMode ? t('progress.cancelCompare') : t('progress.compare')}
               </button>
               <button
                 onClick={() => setShowUpload(true)}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2"
               >
                 <Camera className="w-4 h-4" />
-                Add Photo
+                {t('progress.addPhoto')}
               </button>
             </>
           )}
@@ -246,7 +253,7 @@ export default function ProgressPage() {
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
         >
-          📊 Goals
+          📊 {t('progress.goals')}
         </button>
         <button
           onClick={() => setActiveTab('photos')}
@@ -256,7 +263,7 @@ export default function ProgressPage() {
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
         >
-          📸 Photos
+          📸 {t('progress.photos')}
         </button>
       </div>
 
@@ -269,14 +276,13 @@ export default function ProgressPage() {
               <div className="text-4xl">📊</div>
               <div>
                 <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-2">
-                  3-Day Moving Average Based Prediction
+                  {t('progress.movingAvgPrediction')}
                 </h3>
                 <p className="text-sm text-emerald-700 dark:text-emerald-400">
-                  Averages weight changes over the last 3 days to calculate daily rate of change,
-                  and provides an estimated goal date considering your current calorie deficit.
+                  {t('progress.movingAvgDesc')}
                 </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-2">
-                  💡 Tip: Weighing at the same time each day enables more accurate predictions.
+                  💡 {t('progress.weighTip')}
                 </p>
               </div>
             </div>
@@ -298,10 +304,10 @@ export default function ProgressPage() {
               <ArrowLeftRight className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                  Select 2 photos to compare side-by-side
+                  {t('progress.selectToCompare')}
                 </p>
                 <p className="text-xs text-amber-600 dark:text-amber-500">
-                  {selectedPhotos.length}/2 selected
+                  {t('progress.selected', { count: selectedPhotos.length })}
                 </p>
               </div>
               {selectedPhotos.length === 2 && (
@@ -310,7 +316,7 @@ export default function ProgressPage() {
                   disabled={loadingCompare}
                   className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm disabled:opacity-50"
                 >
-                  {loadingCompare ? 'Loading...' : 'Compare Now'}
+                  {loadingCompare ? t('common.loading') : t('progress.compareNow')}
                 </button>
               )}
             </div>
@@ -322,7 +328,7 @@ export default function ProgressPage() {
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                   <ArrowLeftRight className="w-5 h-5 text-emerald-600" />
-                  Side-by-Side Comparison
+                  {t('progress.sideByComparison')}
                 </h3>
                 <button
                   onClick={exitCompareMode}
@@ -340,7 +346,7 @@ export default function ProgressPage() {
                           ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                           : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
                       }`}>
-                        {idx === 0 ? 'Before' : 'After'}
+                        {idx === 0 ? t('progress.before') : t('progress.after')}
                       </span>
                     </div>
                     {photo.image_base64 && (
@@ -359,10 +365,10 @@ export default function ProgressPage() {
                         {formatDate(photo.taken_at)}
                       </p>
                       {photo.weight_kg && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{photo.weight_kg} kg</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{photo.weight_kg} {t('progress.kg')}</p>
                       )}
                       {photo.body_fat_pct && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{photo.body_fat_pct}% body fat</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{photo.body_fat_pct}{t('progress.bodyFatPct')}</p>
                       )}
                       {photo.notes && (
                         <p className="text-xs text-gray-400 dark:text-gray-500 italic">{photo.notes}</p>
@@ -385,17 +391,17 @@ export default function ProgressPage() {
             <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
               <ImageIcon className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
               <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                No progress photos yet
+                {t('progress.noPhotos')}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-                Take your first photo to start tracking your visual transformation over time.
+                {t('progress.noPhotosHint')}
               </p>
               <button
                 onClick={() => setShowUpload(true)}
                 className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium inline-flex items-center gap-2"
               >
                 <Camera className="w-5 h-5" />
-                Upload First Photo
+                {t('progress.uploadFirst')}
               </button>
             </div>
           ) : (
@@ -465,7 +471,7 @@ export default function ProgressPage() {
       )}
 
       {/* ==================== UPLOAD MODAL ==================== */}
-      <Modal isOpen={showUpload} onClose={() => setShowUpload(false)} title="Upload Progress Photo" size="lg">
+      <Modal isOpen={showUpload} onClose={() => setShowUpload(false)} title={t('progress.uploadModal')} size="lg">
         <div className="space-y-4">
           {/* File picker */}
           <div
@@ -486,10 +492,10 @@ export default function ProgressPage() {
               <div>
                 <Camera className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
                 <p className="text-gray-600 dark:text-gray-400 font-medium">
-                  Click to select a photo
+                  {t('progress.clickToSelect')}
                 </p>
                 <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
-                  JPG, PNG up to 10MB
+                  {t('progress.photoFormat')}
                 </p>
               </div>
             )}
@@ -506,7 +512,7 @@ export default function ProgressPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Weight (kg)
+                {t('progress.weightKg')}
               </label>
               <input
                 type="number"
@@ -519,7 +525,7 @@ export default function ProgressPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Body Fat (%)
+                {t('progress.bodyFat')}
               </label>
               <input
                 type="number"
@@ -534,12 +540,12 @@ export default function ProgressPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Notes
+              {t('progress.notes')}
             </label>
             <textarea
               value={uploadNotes}
               onChange={e => setUploadNotes(e.target.value)}
-              placeholder="How are you feeling? Any milestones?"
+              placeholder={t('progress.notesPlaceholder')}
               rows={2}
               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
             />
@@ -551,7 +557,7 @@ export default function ProgressPage() {
               onClick={() => { setShowUpload(false); setUploadPreview(null); setUploadFile(null); }}
               className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleUpload}
@@ -561,12 +567,12 @@ export default function ProgressPage() {
               {uploading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Uploading...
+                  {t('progress.uploading')}
                 </>
               ) : (
                 <>
                   <Plus className="w-4 h-4" />
-                  Upload
+                  {t('progress.upload')}
                 </>
               )}
             </button>
@@ -578,7 +584,7 @@ export default function ProgressPage() {
       <Modal
         isOpen={!!viewingPhoto}
         onClose={() => setViewingPhoto(null)}
-        title="Progress Photo"
+        title={t('progress.progressPhoto')}
         size="lg"
       >
         {viewingPhoto && (
@@ -611,12 +617,12 @@ export default function ProgressPage() {
                 <div className="flex items-center gap-3 mt-1">
                   {viewingPhoto.weight_kg && (
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {viewingPhoto.weight_kg} kg
+                      {viewingPhoto.weight_kg} {t('progress.kg')}
                     </span>
                   )}
                   {viewingPhoto.body_fat_pct && (
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {viewingPhoto.body_fat_pct}% body fat
+                      {viewingPhoto.body_fat_pct}{t('progress.bodyFatPct')}
                     </span>
                   )}
                 </div>
@@ -632,7 +638,7 @@ export default function ProgressPage() {
                 className="px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-medium"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>
@@ -643,7 +649,7 @@ export default function ProgressPage() {
       <Modal
         isOpen={showWeightLogModal}
         onClose={() => setShowWeightLogModal(false)}
-        title="Log Weight"
+        title={t('progress.logWeight')}
       >
         <WeightLogForm
           onSuccess={handleWeightLogSuccess}
@@ -655,7 +661,7 @@ export default function ProgressPage() {
       <Modal
         isOpen={showGoalModal}
         onClose={() => setShowGoalModal(false)}
-        title="Set Goal"
+        title={t('progress.setGoal')}
       >
         <GoalSettingForm
           onSuccess={handleGoalSuccess}

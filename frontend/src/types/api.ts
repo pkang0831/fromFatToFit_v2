@@ -25,6 +25,10 @@ export interface UserRegister {
   height_cm?: number;
   weight_kg?: number;
   activity_level?: string;
+  consent_terms: boolean;
+  consent_privacy: boolean;
+  consent_sensitive_data: boolean;
+  consent_age_verification: boolean;
 }
 
 export interface UserLogin {

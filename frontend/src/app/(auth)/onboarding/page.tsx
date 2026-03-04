@@ -206,11 +206,32 @@ export default function OnboardingPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">Target Weight (kg)</label>
                     <input type="number" value={goals.target_weight} onChange={e => setGoals(g => ({ ...g, target_weight: e.target.value }))} placeholder="65" className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
+                    {goals.target_weight && profile.height_cm && (() => {
+                      const heightM = Number(profile.height_cm) / 100;
+                      const bmi = heightM > 0 ? Number(goals.target_weight) / (heightM * heightM) : 0;
+                      if (bmi > 0 && bmi < 18.5) {
+                        return (
+                          <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                            <p className="text-xs text-amber-800 dark:text-amber-200">
+                              <strong>Warning:</strong> A target weight of {goals.target_weight} kg at your height results in a BMI of {bmi.toFixed(1)}, which is classified as underweight. Please consult a healthcare professional before setting this goal. Extreme weight loss can be dangerous.
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">Daily Calorie Goal</label>
                     <input type="number" value={goals.calorie_goal} onChange={e => setGoals(g => ({ ...g, calorie_goal: e.target.value }))} placeholder="2000" className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" />
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">We&apos;ll suggest a goal based on your profile if left blank.</p>
+                    {goals.calorie_goal && Number(goals.calorie_goal) < 1200 && (
+                      <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <p className="text-xs text-amber-800 dark:text-amber-200">
+                          <strong>Warning:</strong> A daily intake below 1,200 calories is generally considered unsafe without medical supervision. Please consult a healthcare professional.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Crown, Check, Sparkles, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { useSubscription } from '@/lib/hooks/useSubscription';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { paymentApi } from '@/lib/api/services';
 
 type PricingPeriod = 'monthly' | 'yearly';
@@ -17,14 +18,14 @@ interface CreditBalance {
   credit_costs: Record<string, number>;
 }
 
-const creditCostLabels: Record<string, string> = {
-  food_scan: 'Food Camera Analysis',
-  food_recommendation: 'AI Food Recommendations',
-  body_fat_scan: 'Body Fat Scan',
-  percentile_scan: 'Percentile Ranking',
-  form_check: 'Workout Form Check',
-  transformation: 'Transformation Preview',
-  enhancement: 'Photo Enhancement',
+const creditCostLabelKeys: Record<string, string> = {
+  food_scan: 'upgrade.foodCameraAnalysis',
+  food_recommendation: 'upgrade.aiFoodRec',
+  body_fat_scan: 'upgrade.bodyfatScan',
+  percentile_scan: 'upgrade.percentileRanking',
+  form_check: 'upgrade.workoutFormCheck',
+  transformation: 'upgrade.transformationPreview',
+  enhancement: 'upgrade.photoEnhancement',
 };
 
 const creditPacks = [
@@ -35,6 +36,7 @@ const creditPacks = [
 
 export default function UpgradePage() {
   const { isPremium } = useSubscription();
+  const { t } = useLanguage();
   const [selectedPeriod, setSelectedPeriod] = useState<PricingPeriod>('yearly');
   const [isLoading, setIsLoading] = useState(false);
   const [packLoading, setPackLoading] = useState<number | null>(null);
@@ -62,7 +64,7 @@ export default function UpgradePage() {
       });
       window.location.href = response.data.checkout_url;
     } catch {
-      toast.error('Failed to start checkout. Please try again.');
+      toast.error(t('upgrade.checkoutFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +80,7 @@ export default function UpgradePage() {
       });
       window.location.href = response.data.checkout_url;
     } catch {
-      toast.error('Failed to start checkout. Please try again.');
+      toast.error(t('upgrade.checkoutFailed'));
     } finally {
       setPackLoading(null);
     }
@@ -96,16 +98,16 @@ export default function UpgradePage() {
                   <Zap className="h-7 w-7 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Your Credit Balance</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{credits.total_credits} credits</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('upgrade.creditBalance')}</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{t('upgrade.creditsLabel', { count: credits.total_credits })}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-500">
-                    {credits.monthly_credits} monthly + {credits.bonus_credits} bonus
+                    {t('upgrade.monthlyBonus', { monthly: credits.monthly_credits, bonus: credits.bonus_credits })}
                   </p>
                 </div>
               </div>
               {credits.reset_date && (
                 <div className="text-sm text-gray-600 dark:text-gray-400 text-center sm:text-right">
-                  Monthly credits reset on<br />
+                  {t('upgrade.monthlyReset')}<br />
                   <span className="font-medium text-gray-900 dark:text-white">
                     {new Date(credits.reset_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
                   </span>
@@ -121,18 +123,18 @@ export default function UpgradePage() {
         {isPremium ? (
           <>
             <Crown className="h-12 w-12 text-premium mx-auto mb-3" />
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Pro Member</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">You receive 100 credits every month. Need more? Buy a credit pack below.</p>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{t('upgrade.proMember')}</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400">{t('upgrade.proDesc')}</p>
           </>
         ) : (
           <>
             <Badge variant="premium" className="text-base px-4 py-2 mb-4">
               <Sparkles className="h-4 w-4 mr-2" />
-              Upgrade
+              {t('upgrade.title')}
             </Badge>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">Choose Your Plan</h1>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">{t('upgrade.subtitle')}</h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Every AI feature costs credits. Free users get 10/month. Upgrade to Pro for 100/month.
+              {t('upgrade.subtitleDesc')}
             </p>
           </>
         )}
@@ -142,15 +144,15 @@ export default function UpgradePage() {
       {credits && (
         <Card>
           <CardHeader>
-            <CardTitle>Credit Costs per Feature</CardTitle>
+            <CardTitle>{t('upgrade.creditCosts')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {Object.entries(credits.credit_costs).map(([key, cost]) => (
                 <div key={key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
-                  <span className="text-sm text-gray-900 dark:text-white">{creditCostLabels[key] || key}</span>
+                  <span className="text-sm text-gray-900 dark:text-white">{creditCostLabelKeys[key] ? t(creditCostLabelKeys[key]) : key}</span>
                   <Badge variant={credits.total_credits >= cost ? 'default' : 'error'} className="text-xs">
-                    {cost} {cost === 1 ? 'credit' : 'credits'}
+                    {cost} {cost === 1 ? t('upgrade.credit') : t('upgrade.creditPlural')}
                   </Badge>
                 </div>
               ))}
@@ -172,7 +174,7 @@ export default function UpgradePage() {
                     : 'text-gray-900 dark:text-white hover:bg-white dark:bg-gray-800'
                 }`}
               >
-                Monthly
+                {t('upgrade.monthly')}
               </button>
               <button
                 onClick={() => setSelectedPeriod('yearly')}
@@ -182,9 +184,9 @@ export default function UpgradePage() {
                     : 'text-gray-900 dark:text-white hover:bg-white dark:bg-gray-800'
                 }`}
               >
-                Yearly
+                {t('upgrade.yearly')}
                 <Badge variant="premium" className="absolute -top-2 -right-2 text-xs">
-                  Save 25%
+                  {t('upgrade.save25')}
                 </Badge>
               </button>
             </div>
@@ -194,14 +196,14 @@ export default function UpgradePage() {
             {/* Free Plan */}
             <Card variant="outlined">
               <CardContent className="p-8 text-center">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Free</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t('upgrade.free')}</h3>
                 <div className="mb-4">
                   <span className="text-4xl font-bold text-gray-900 dark:text-white">$0</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-1">/ forever</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-1">{t('upgrade.freePriceForever')}</span>
                 </div>
-                <p className="text-primary font-medium text-sm mb-6">10 credits/month</p>
+                <p className="text-primary font-medium text-sm mb-6">{t('upgrade.freeCredits')}</p>
                 <ul className="space-y-3 text-left mb-8">
-                  {['10 credits per month', 'Food camera (1 credit)', 'Body fat scan (5 credits)', 'Basic workout logging', 'Progress charts'].map(f => (
+                  {[t('upgrade.freeCredits'), t('upgrade.freeFeature1'), t('upgrade.freeFeature2'), t('upgrade.freeFeature3'), t('upgrade.freeFeature4')].map(f => (
                     <li key={f} className="flex items-start gap-2">
                       <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">{f}</span>
@@ -209,7 +211,7 @@ export default function UpgradePage() {
                   ))}
                 </ul>
                 <Button variant="secondary" size="lg" className="w-full" disabled>
-                  Current Plan
+                  {t('upgrade.currentPlan')}
                 </Button>
               </CardContent>
             </Card>
@@ -217,20 +219,20 @@ export default function UpgradePage() {
             {/* Pro Plan */}
             <Card variant="elevated" className="border-2 border-premium/30 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge variant="premium" className="px-4 py-1">Most Popular</Badge>
+                <Badge variant="premium" className="px-4 py-1">{t('upgrade.mostPopular')}</Badge>
               </div>
               <CardContent className="p-8 text-center">
                 <Crown className="h-8 w-8 text-premium mx-auto mb-2" />
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Pro</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t('upgrade.pro')}</h3>
                 <div className="mb-4">
                   <span className="text-4xl font-bold text-gray-900 dark:text-white">
                     ${pricing[selectedPeriod].price}
                   </span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-1">/ {pricing[selectedPeriod].period}</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-1">{t('upgrade.perPeriod', { period: pricing[selectedPeriod].period })}</span>
                 </div>
-                <p className="text-primary font-medium text-sm mb-6">100 credits/month</p>
+                <p className="text-primary font-medium text-sm mb-6">{t('upgrade.proCredits')}</p>
                 <ul className="space-y-3 text-left mb-8">
-                  {['100 credits per month', 'All AI features unlocked', 'Transformation preview (10 credits)', 'AI meal recommendations (2 credits)', 'Priority support', 'Advanced analytics'].map(f => (
+                  {[t('upgrade.proCredits'), t('upgrade.proFeature1'), t('upgrade.proFeature2'), t('upgrade.proFeature3'), t('upgrade.proFeature4'), t('upgrade.proFeature5')].map(f => (
                     <li key={f} className="flex items-start gap-2">
                       <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
                       <span className="text-sm text-gray-600 dark:text-gray-400">{f}</span>
@@ -245,7 +247,7 @@ export default function UpgradePage() {
                   className="w-full bg-premium text-primary hover:bg-premium-dark"
                 >
                   <Crown className="h-5 w-5 mr-2" />
-                  Go Pro
+                  {t('upgrade.goPro')}
                 </Button>
               </CardContent>
             </Card>
@@ -255,9 +257,9 @@ export default function UpgradePage() {
 
       {/* Credit Packs */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">Buy Credit Packs</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">{t('upgrade.buyPacks')}</h2>
         <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-          Need more credits? Purchase packs that never expire.
+          {t('upgrade.buyPacksDesc')}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
           {creditPacks.map(pack => (
@@ -265,10 +267,10 @@ export default function UpgradePage() {
               <CardContent className="p-6 text-center">
                 <Zap className="h-8 w-8 text-primary mx-auto mb-3" />
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{pack.size}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">credits</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{t('common.credits')}</p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">${pack.price}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mb-6">
-                  ${(pack.price / pack.size * 100).toFixed(1)}c per credit
+                  {t('upgrade.perCredit', { price: (pack.price / pack.size * 100).toFixed(1) })}
                 </p>
                 <Button
                   variant="primary"
@@ -277,7 +279,7 @@ export default function UpgradePage() {
                   onClick={() => handleBuyPack(pack.size)}
                   isLoading={packLoading === pack.size}
                 >
-                  Buy Now
+                  {t('upgrade.buyNow')}
                 </Button>
               </CardContent>
             </Card>

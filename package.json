@@ -1,0 +1,23 @@
+{
+  "name": "hhu",
+  "version": "1.0.0",
+  "description": "AI-powered health and wellness application with calorie tracking, body analysis, workout logging, and transformation previews.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "npx playwright test",
+    "test:smoke": "npx playwright test --project=chromium --grep @smoke",
+    "test:regression": "npx playwright test --project=chromium --grep @regression",
+    "test:api": "npx playwright test --project=api --grep @api",
+    "test:report": "npx playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}

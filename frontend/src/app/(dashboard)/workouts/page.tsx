@@ -2,12 +2,20 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { Dumbbell, Plus, TrendingUp, Trash2, Flame } from 'lucide-react';
+import { Dumbbell, Plus, TrendingUp, Trash2, Flame, Search, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge, Modal, ConfirmDialog } from '@/components/ui';
 import { workoutApi } from '@/lib/api/services';
 import { getTodayString, formatDateLong } from '@/lib/utils/date';
 import type { ExerciseLibraryItem, WorkoutLog, WorkoutTrendResponse } from '@/types/api';
+import dynamic from 'next/dynamic';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { SkeletonStats, SkeletonList } from '@/components/ui/Skeleton';
+import { fetchExerciseGif } from '@/lib/api/exercisedb';
+
+const MuscleMap = dynamic(
+  () => import('@/components/features/MuscleMap').then(m => m.MuscleMap),
+  { loading: () => <div className="h-[200px] bg-surfaceAlt animate-pulse rounded-lg" />, ssr: false }
+);
 
 interface SetData {
   set_number: number;
@@ -16,6 +24,7 @@ interface SetData {
 }
 
 export default function WorkoutsPage() {
+  const { t } = useLanguage();
   const [exercises, setExercises] = useState<ExerciseLibraryItem[]>([]);
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [trends, setTrends] = useState<WorkoutTrendResponse | null>(null);
@@ -28,12 +37,15 @@ export default function WorkoutsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'cardio' | 'strength'>('all');
   const [activeLibraryTab, setActiveLibraryTab] = useState<'all' | 'cardio' | 'strength'>('all');
+  const [librarySearch, setLibrarySearch] = useState('');
   const [recentWorkouts, setRecentWorkouts] = useState<WorkoutLog[]>([]);
   const [sets, setSets] = useState<SetData[]>([{ set_number: 1, reps: 0, weight: 0 }]);
   const [duration, setDuration] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [exerciseGifUrl, setExerciseGifUrl] = useState<string | null>(null);
+  const [gifLoading, setGifLoading] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -88,14 +100,24 @@ export default function WorkoutsPage() {
     }
   };
 
+  useEffect(() => {
+    if (selectedExercise && showExerciseModal) {
+      setGifLoading(true);
+      setExerciseGifUrl(null);
+      fetchExerciseGif(selectedExercise.name)
+        .then(url => setExerciseGifUrl(url))
+        .finally(() => setGifLoading(false));
+    }
+  }, [selectedExercise, showExerciseModal]);
+
   const getDifficultyBadge = (difficulty: string) => {
     switch (difficulty) {
       case 'beginner':
-        return <Badge variant="success">Beginner</Badge>;
+        return <Badge variant="success">{t('workout.beginner')}</Badge>;
       case 'intermediate':
-        return <Badge variant="warning">Intermediate</Badge>;
+        return <Badge variant="warning">{t('workout.intermediate')}</Badge>;
       case 'advanced':
-        return <Badge variant="error">Advanced</Badge>;
+        return <Badge variant="error">{t('workout.advanced')}</Badge>;
       default:
         return null;
     }
@@ -142,10 +164,10 @@ export default function WorkoutsPage() {
       setShowLogForm(false);
       setSelectedExercise(null);
       await loadData();
-      toast.success('Workout logged successfully');
+      toast.success(t('workout.workoutLogged'));
     } catch (error) {
       console.error('Failed to log workout:', error);
-      toast.error('Failed to log workout. Please try again.');
+      toast.error(t('workout.failedToLog'));
     } finally {
       setIsSubmitting(false);
     }
@@ -157,10 +179,10 @@ export default function WorkoutsPage() {
     try {
       await workoutApi.deleteLog(deleteTarget.id);
       await loadData();
-      toast.success('Workout deleted');
+      toast.success(t('workout.workoutDeleted'));
     } catch (error) {
       console.error('Failed to delete workout:', error);
-      toast.error('Failed to delete workout log.');
+      toast.error(t('workout.failedToDelete'));
     } finally {
       setDeleteTarget(null);
     }
@@ -226,6 +248,18 @@ export default function WorkoutsPage() {
     strengthExercises: exercises.filter(ex => (ex as any).exercise_type === 'strength' || !(ex as any).exercise_type)
   }), [exercises]);
 
+  const libraryFiltered = useMemo(() => {
+    const base = activeLibraryTab === 'cardio' ? cardioExercises
+      : activeLibraryTab === 'strength' ? strengthExercises
+      : exercises;
+    if (!librarySearch.trim()) return base;
+    const q = librarySearch.toLowerCase();
+    return base.filter(ex =>
+      ex.name.toLowerCase().includes(q) ||
+      ex.muscle_groups.some(m => m.toLowerCase().includes(q))
+    );
+  }, [exercises, cardioExercises, strengthExercises, activeLibraryTab, librarySearch]);
+
   if (loading) return (
     <div className="space-y-6">
       <SkeletonStats count={3} />
@@ -237,17 +271,17 @@ export default function WorkoutsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">Workout Tracker</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">{t('workout.title')}</h1>
           <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400 mt-1">{formatDateLong(getTodayString())}</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={handleRecentWorkout} disabled={recentWorkouts.length === 0}>
             <TrendingUp className="h-5 w-5 mr-2" />
-            Quick Add
+            {t('workout.quickAdd')}
           </Button>
           <Button variant="primary" onClick={handleQuickSelect}>
             <Plus className="h-5 w-5 mr-2" />
-            Log Workout
+            {t('workout.logWorkout')}
           </Button>
         </div>
       </div>
@@ -259,7 +293,7 @@ export default function WorkoutsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">Total Workouts</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">{t('workout.totalWorkouts')}</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">{trends.total_workouts}</p>
                 </div>
                 <div className="p-3 bg-primary/10 rounded-lg">
@@ -273,7 +307,7 @@ export default function WorkoutsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">Per Week</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">{t('workout.perWeek')}</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">
                     {trends.average_per_week.toFixed(1)}
                   </p>
@@ -289,7 +323,7 @@ export default function WorkoutsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">Today&apos;s Logs</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400 mb-1">{t('workout.todaysLogs')}</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white dark:text-white">{workoutLogs.length}</p>
                 </div>
                 <div className="p-3 bg-accent/30 rounded-lg">
@@ -304,21 +338,21 @@ export default function WorkoutsPage() {
       {/* Today's Workouts */}
       <Card>
         <CardHeader>
-          <CardTitle>Today&apos;s Workouts</CardTitle>
+          <CardTitle>{t('workout.todaysWorkouts')}</CardTitle>
         </CardHeader>
         <CardContent>
           {workoutLogs.length === 0 ? (
             <div className="text-center py-16 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
               <Dumbbell className="h-20 w-20 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                No workouts logged today
+                {t('workout.noWorkoutsToday')}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
-                Start logging your workouts to build healthy habits!
+                {t('workout.noWorkoutsHint')}
               </p>
               <Button size="lg" onClick={handleQuickSelect}>
                 <Plus className="h-5 w-5 mr-2" />
-                Log Your First Workout
+                {t('workout.logFirstWorkout')}
               </Button>
             </div>
           ) : (
@@ -333,21 +367,21 @@ export default function WorkoutsPage() {
                     <button
                       onClick={() => setDeleteTarget({ id: log.id, name: log.exercise_name })}
                       className="p-2 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
-                      title="Delete workout log"
+                      title={t('workout.deleteWorkout')}
                     >
                       <Trash2 className="h-5 w-5 text-red-500 hover:text-red-700" />
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-600 dark:text-gray-400 dark:text-gray-400">Sets:</span>
+                      <span className="text-gray-600 dark:text-gray-400 dark:text-gray-400">{t('workout.sets')}:</span>
                       <span className="font-medium text-gray-900 dark:text-white dark:text-white ml-1">{log.sets.length}</span>
                     </div>
                     {log.duration_minutes && (
                       <div>
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-400">Duration:</span>
+                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-400">{t('workout.duration')}:</span>
                         <span className="font-medium text-gray-900 dark:text-white dark:text-white ml-1">
-                          {log.duration_minutes} min
+                          {log.duration_minutes} {t('workout.min')}
                         </span>
                       </div>
                     )}
@@ -356,7 +390,7 @@ export default function WorkoutsPage() {
                     <div className="flex items-center gap-2 mt-3 p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 rounded-lg border-2 border-orange-200 dark:border-orange-800">
                       <Flame className="h-5 w-5 text-orange-500" />
                       <span className="text-lg font-bold text-orange-600">
-                        {Math.round(log.calories_burned)} kcal burned
+                        {t('workout.kcalBurned', { calories: Math.round(log.calories_burned) })}
                       </span>
                     </div>
                   )}
@@ -373,8 +407,28 @@ export default function WorkoutsPage() {
       {/* Exercise Library with Tabs */}
       <Card id="exercise-library" data-tour="workout-library">
         <CardHeader>
-          <CardTitle>Exercise Library</CardTitle>
-          <div className="flex gap-2 mt-4 border-b-2 border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <CardTitle>{t('workout.exerciseLibrary')}</CardTitle>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
+              <input
+                type="text"
+                placeholder={t('workout.searchExercises')}
+                value={librarySearch}
+                onChange={e => setLibrarySearch(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 rounded-lg border border-border bg-surface text-text text-sm placeholder:text-text-light focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              {librarySearch && (
+                <button
+                  onClick={() => setLibrarySearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-surfaceAlt"
+                >
+                  <X className="h-3.5 w-3.5 text-text-secondary" />
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4 border-b-2 border-border">
             <button
               onClick={() => setActiveLibraryTab('all')}
               className={`pb-3 px-6 font-semibold transition-all relative ${
@@ -383,7 +437,7 @@ export default function WorkoutsPage() {
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
-              All ({exercises.length})
+              {t('workout.all')} ({exercises.length})
               {activeLibraryTab === 'all' && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full" />
               )}
@@ -396,7 +450,7 @@ export default function WorkoutsPage() {
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
-              🏃 Cardio ({cardioExercises.length})
+              🏃 {t('workout.cardio')} ({cardioExercises.length})
               {activeLibraryTab === 'cardio' && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-t-full" />
               )}
@@ -409,7 +463,7 @@ export default function WorkoutsPage() {
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
-              💪 Strength ({strengthExercises.length})
+              💪 {t('workout.strength')} ({strengthExercises.length})
               {activeLibraryTab === 'strength' && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-orange-500 rounded-t-full" />
               )}
@@ -418,9 +472,11 @@ export default function WorkoutsPage() {
         </CardHeader>
         <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(activeLibraryTab === 'all' ? exercises : 
-                activeLibraryTab === 'cardio' ? cardioExercises : 
-                strengthExercises).map((exercise) => {
+              {libraryFiltered.length === 0 ? (
+                <div className="col-span-full text-center py-12 text-text-secondary">
+                  No exercises found for &ldquo;{librarySearch}&rdquo;
+                </div>
+              ) : libraryFiltered.map((exercise) => {
                 const isCardio = (exercise as any).exercise_type === 'cardio';
                 return (
                   <div
@@ -444,7 +500,7 @@ export default function WorkoutsPage() {
                         variant={isCardio ? 'info' : 'warning'} 
                         className="text-xs"
                       >
-                        {isCardio ? '🏃 Cardio' : '💪 Strength'}
+                        {isCardio ? '🏃 ' + t('workout.cardio') : '💪 ' + t('workout.strength')}
                       </Badge>
                       {(exercise as any).met_value && (
                         <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
@@ -474,8 +530,8 @@ export default function WorkoutsPage() {
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={deleteWorkout}
-        title="Delete Workout"
-        message={`Are you sure you want to delete the "${deleteTarget?.name}" workout log? This cannot be undone.`}
+        title={t('workout.deleteWorkout')}
+        message={t('workout.deleteConfirm', { name: deleteTarget?.name })}
       />
 
       {/* Exercise Detail Modal */}
@@ -486,7 +542,7 @@ export default function WorkoutsPage() {
           title={selectedExercise.name}
           size="lg"
         >
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex items-center gap-2">
               {getDifficultyBadge(selectedExercise.difficulty)}
               <Badge variant="info" className="capitalize">
@@ -494,27 +550,49 @@ export default function WorkoutsPage() {
               </Badge>
             </div>
 
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Muscle Groups</h4>
-              <div className="flex flex-wrap gap-2">
-                {selectedExercise.muscle_groups.map((muscle) => (
-                  <Badge key={muscle} variant="default">
-                    {muscle}
-                  </Badge>
-                ))}
+            {/* Exercise GIF + Muscle Map side by side */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Exercise Animation GIF */}
+              <div className="rounded-xl overflow-hidden bg-surfaceAlt border border-border flex items-center justify-center min-h-[200px]">
+                {gifLoading ? (
+                  <div className="flex flex-col items-center gap-2 py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent" />
+                    <span className="text-xs text-text-secondary">Loading animation...</span>
+                  </div>
+                ) : exerciseGifUrl ? (
+                  <img
+                    src={exerciseGifUrl}
+                    alt={`${selectedExercise.name} animation`}
+                    className="w-full h-auto max-h-[280px] object-contain"
+                  />
+                ) : (
+                  <div className="text-center py-8 px-4">
+                    <Dumbbell className="h-12 w-12 text-text-light mx-auto mb-2" />
+                    <p className="text-sm text-text-secondary">No animation available</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Muscle Map */}
+              <div className="rounded-xl bg-surfaceAlt border border-border p-3">
+                <h4 className="text-xs font-semibold text-text-secondary text-center mb-1 uppercase tracking-wider">
+                  {t('workout.targetMuscles')}
+                </h4>
+                <MuscleMap activeMuscles={selectedExercise.muscle_groups} />
               </div>
             </div>
 
-            <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Form Instructions</h4>
-              <p className="text-gray-600 dark:text-gray-400 dark:text-gray-400 whitespace-pre-line">
+            {/* Form Instructions */}
+            <div className="bg-surfaceAlt rounded-xl p-4 border border-border">
+              <h4 className="font-semibold text-text mb-2">{t('workout.formInstructions')}</h4>
+              <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-line">
                 {selectedExercise.form_instructions}
               </p>
             </div>
 
             <Button variant="primary" className="w-full" onClick={handleLogExercise}>
               <Plus className="h-5 w-5 mr-2" />
-              Log This Exercise
+              {t('workout.logThisExercise')}
             </Button>
           </div>
         </Modal>
@@ -528,14 +606,14 @@ export default function WorkoutsPage() {
           setSelectedCategory('all');
           setSearchQuery('');
         }}
-        title="Select Exercise"
+        title={t('workout.selectExercise')}
         size="lg"
       >
         <div className="space-y-4">
           {/* Search Bar */}
           <Input
             type="text"
-            placeholder="Search exercises..."
+            placeholder={t('workout.searchExercises')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full"
@@ -551,7 +629,7 @@ export default function WorkoutsPage() {
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
-              All ({exercises.length})
+              {t('workout.all')} ({exercises.length})
             </button>
             <button
               onClick={() => setSelectedCategory('cardio')}
@@ -561,7 +639,7 @@ export default function WorkoutsPage() {
                   : 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-900/40'
               }`}
             >
-              🏃 Cardio ({cardioExercises.length})
+              🏃 {t('workout.cardio')} ({cardioExercises.length})
             </button>
             <button
               onClick={() => setSelectedCategory('strength')}
@@ -571,7 +649,7 @@ export default function WorkoutsPage() {
                   : 'bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:hover:bg-orange-900/40'
               }`}
             >
-              💪 Strength ({strengthExercises.length})
+              💪 {t('workout.strength')} ({strengthExercises.length})
             </button>
           </div>
 
@@ -600,7 +678,7 @@ export default function WorkoutsPage() {
                             variant={isCardio ? 'info' : 'warning'} 
                             className="text-xs"
                           >
-                            {isCardio ? '🏃 Cardio' : '💪 Strength'}
+                            {isCardio ? '🏃 ' + t('workout.cardio') : '💪 ' + t('workout.strength')}
                           </Badge>
                           {(exercise as any).met_value && (
                             <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
@@ -634,13 +712,13 @@ export default function WorkoutsPage() {
       <Modal
         isOpen={showRecentWorkoutsModal}
         onClose={() => setShowRecentWorkoutsModal(false)}
-        title="Recent Workouts"
+        title={t('workout.recentWorkouts')}
         size="lg"
       >
         <div className="space-y-3">
           {recentWorkouts.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600 dark:text-gray-400">No recent workouts found</p>
+              <p className="text-gray-600 dark:text-gray-400">{t('workout.noRecentWorkouts')}</p>
               <Button
                 variant="primary"
                 onClick={() => {
@@ -650,7 +728,7 @@ export default function WorkoutsPage() {
                 className="mt-4"
               >
                 <Plus className="h-5 w-5 mr-2" />
-                Log New Workout
+                {t('workout.logNewWorkout')}
               </Button>
             </div>
           ) : (
@@ -664,8 +742,8 @@ export default function WorkoutsPage() {
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900 dark:text-white dark:text-white mb-2">{log.exercise_name}</h4>
                     <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400">
-                      <span>{log.sets.length} sets</span>
-                      {log.duration_minutes && <span>{log.duration_minutes} min</span>}
+                      <span>{log.sets.length} {t('workout.sets')}</span>
+                      {log.duration_minutes && <span>{log.duration_minutes} {t('workout.min')}</span>}
                       {log.sets[0] && (
                         <span>
                           Last: {log.sets[0].reps} reps × {log.sets[0].weight}kg
@@ -673,7 +751,7 @@ export default function WorkoutsPage() {
                       )}
                     </div>
                   </div>
-                  <Badge variant="info">Repeat</Badge>
+                  <Badge variant="info">{t('workout.repeat')}</Badge>
                 </div>
               </button>
             ))
@@ -686,7 +764,7 @@ export default function WorkoutsPage() {
         <Modal
           isOpen={showLogForm}
           onClose={() => setShowLogForm(false)}
-          title={`Log Workout: ${selectedExercise.name}`}
+          title={`${t('workout.logWorkout')}: ${selectedExercise.name}`}
           size="lg"
         >
           <div className="space-y-6">
@@ -696,11 +774,11 @@ export default function WorkoutsPage() {
                 variant={(selectedExercise as any).exercise_type === 'cardio' ? 'info' : 'warning'}
                 className="text-base px-4 py-2"
               >
-                {(selectedExercise as any).exercise_type === 'cardio' ? '🏃 Cardio Exercise' : '💪 Strength Exercise'}
+                {(selectedExercise as any).exercise_type === 'cardio' ? '🏃 ' + t('workout.cardioExercise') : '💪 ' + t('workout.strengthExercise')}
               </Badge>
               {(selectedExercise as any).met_value && (
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Calories burned: MET {(selectedExercise as any).met_value}
+                  {t('workout.caloriesBurned')}: MET {(selectedExercise as any).met_value}
                 </span>
               )}
             </div>
@@ -709,18 +787,18 @@ export default function WorkoutsPage() {
             {(selectedExercise as any).exercise_type === 'cardio' ? (
               <div className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                  ⏱️ Duration (required)
+                  ⏱️ {t('workout.durationRequired')}
                 </h4>
                 <Input
                   type="number"
-                  placeholder="minutes (e.g., 30)"
+                  placeholder={t('workout.durationMinutes')}
                   value={duration || ''}
                   onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
                   className="text-lg"
                 />
                 {duration > 0 && (selectedExercise as any).met_value && (
                   <p className="text-sm text-blue-700 dark:text-blue-400 mt-2">
-                    💡 Est. calories burned: ~ {Math.round((selectedExercise as any).met_value * 70 * (duration / 60))} kcal (based on 70kg)
+                    💡 {t('workout.estCalories', { calories: Math.round((selectedExercise as any).met_value * 70 * (duration / 60)) })}
                   </p>
                 )}
               </div>
@@ -728,23 +806,23 @@ export default function WorkoutsPage() {
               <>
                 {/* Sets (for Strength) */}
                 <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-3">Sets</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-3">{t('workout.sets')}</h4>
               <div className="space-y-3">
                 {sets.map((set, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400 dark:text-gray-400 w-12">
-                      Set {set.set_number}
+                      {t('workout.set')} {set.set_number}
                     </span>
                     <Input
                       type="number"
-                      placeholder="Reps"
+                      placeholder={t('workout.reps')}
                       value={set.reps || ''}
                       onChange={(e) => updateSet(index, 'reps', parseInt(e.target.value) || 0)}
                       className="flex-1"
                     />
                     <Input
                       type="number"
-                      placeholder="Weight (kg)"
+                      placeholder={t('workout.weightKg')}
                       value={set.weight || ''}
                       onChange={(e) => updateSet(index, 'weight', parseFloat(e.target.value) || 0)}
                       className="flex-1"
@@ -756,7 +834,7 @@ export default function WorkoutsPage() {
                         onClick={() => removeSet(index)}
                         className="text-error"
                       >
-                        Remove
+                        {t('workout.remove')}
                       </Button>
                     )}
                   </div>
@@ -764,21 +842,21 @@ export default function WorkoutsPage() {
               </div>
               <Button variant="outline" size="sm" onClick={addSet} className="mt-3">
                 <Plus className="h-4 w-4 mr-1" />
-                Add Set
+                {t('workout.addSet')}
               </Button>
             </div>
 
             {/* Duration (optional for strength) */}
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Duration (optional)</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">{t('workout.durationOptional')}</h4>
               <Input
                 type="number"
-                placeholder="minutes (optional)"
+                placeholder={t('workout.minutesOptional')}
                 value={duration || ''}
                 onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Will be auto-estimated if left blank
+                {t('workout.autoEstimated')}
               </p>
             </div>
             </>
@@ -786,11 +864,11 @@ export default function WorkoutsPage() {
 
             {/* Notes */}
             <div>
-              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">Notes (optional)</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-white dark:text-white mb-2">{t('workout.notesOptional')}</h4>
               <textarea
                 className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 rows={3}
-                placeholder="Add notes about your workout..."
+                placeholder={t('workout.notesPlaceholder')}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -804,7 +882,7 @@ export default function WorkoutsPage() {
                 onClick={() => setShowLogForm(false)}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 variant="primary"
@@ -812,7 +890,7 @@ export default function WorkoutsPage() {
                 onClick={submitWorkout}
                 isLoading={isSubmitting}
               >
-                Save Workout
+                {t('workout.saveWorkout')}
               </Button>
             </div>
           </div>
