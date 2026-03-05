@@ -1,45 +1,13 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Button, Input, Card, CardContent } from '@/components/ui';
+import { Card, CardContent } from '@/components/ui';
 import { SocialLoginButtons } from '@/components/features/SocialLoginButtons';
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { login } = useAuth();
   const { t } = useLanguage();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (window.location.search) {
-      window.history.replaceState({}, '', '/login');
-    }
-  }, []);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-
-    try {
-      await login({ email, password });
-      // Use window.location to ensure cookies are sent with the next request
-      window.location.href = '/home';
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Login failed';
-      setError(message);
-      setIsLoading(false);
-    }
-  };
+  const [error] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
@@ -51,53 +19,13 @@ export default function LoginPage() {
 
         <Card variant="elevated">
           <CardContent>
-            <form method="post" action="" onSubmit={handleSubmit} className="space-y-6">
-              <Input
-                type="email"
-                name="email"
-                label={t('auth.email')}
-                placeholder="you@example.com"
-                required
-                autoComplete="email"
-                data-testid="login-email"
-              />
-
-              <Input
-                type="password"
-                name="password"
-                label={t('auth.password')}
-                placeholder="••••••••"
-                required
-                autoComplete="current-password"
-                data-testid="login-password"
-              />
-
-              {error && (
-                <div className="p-3 bg-error/10 border border-error rounded-lg">
-                  <p className="text-sm text-error">{error}</p>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                isLoading={isLoading}
-                className="w-full"
-                data-testid="login-submit"
-              >
-                {t('auth.signInButton')}
-              </Button>
-
-              <div className="text-center text-sm">
-                <span className="text-gray-600 dark:text-gray-400">{t('auth.noAccount')} </span>
-                <Link href="/register" className="text-primary hover:text-primary-dark font-medium" data-testid="login-register-link">
-                  {t('auth.createOne')}
-                </Link>
-              </div>
-            </form>
-
             <SocialLoginButtons googleTestId="login-google" />
+
+            {error && (
+              <div className="mt-4 p-3 bg-error/10 border border-error rounded-lg">
+                <p className="text-sm text-error">{error}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
