@@ -79,7 +79,10 @@ export default function OnboardingPage() {
       await authApi.updateProfile(update);
       next();
     } catch (err: any) {
-      setError(err.message || 'Failed to save profile');
+      const msg = err.response?.data?.detail ?? err.message;
+      setError(msg === 'Network Error' || err.code === 'ERR_NETWORK' || !err.response
+        ? 'Could not reach the server. Check your connection and try again.'
+        : (typeof msg === 'string' ? msg : 'Failed to save profile'));
     } finally {
       setSaving(false);
     }
@@ -135,6 +138,21 @@ export default function OnboardingPage() {
                 <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">Please review and accept the following to continue.</p>
 
                 <div className="space-y-4 flex-1">
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <input
+                      type="checkbox"
+                      id="ob-agree-all"
+                      checked={consent.terms && consent.privacy && consent.sensitiveData && consent.age}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setConsent({ terms: checked, privacy: checked, sensitiveData: checked, age: checked });
+                      }}
+                      className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                    />
+                    <label htmlFor="ob-agree-all" className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                      Agree to all
+                    </label>
+                  </div>
                   <div className="flex items-start gap-3">
                     <input type="checkbox" id="ob-terms" checked={consent.terms} onChange={e => setConsent(c => ({ ...c, terms: e.target.checked }))} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
                     <label htmlFor="ob-terms" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
@@ -197,7 +215,12 @@ export default function OnboardingPage() {
                         });
                         next();
                       } catch (err: any) {
-                        setError(err.message || 'Failed to save consent');
+                        const msg = err.response?.data?.detail ?? err.message;
+                        if (msg === 'Network Error' || err.code === 'ERR_NETWORK' || !err.response) {
+                          setError('Could not reach the server. Check your connection and that the app is configured correctly, then try again.');
+                        } else {
+                          setError(typeof msg === 'string' ? msg : 'Failed to save consent');
+                        }
                       } finally {
                         setSaving(false);
                       }

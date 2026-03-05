@@ -97,6 +97,11 @@ class UserProfileUpdate(BaseModel):
     activity_level: Optional[str] = None
     calorie_goal: Optional[float] = None
     onboarding_completed: Optional[bool] = None
+    consent_terms_at: Optional[str] = None
+    consent_privacy_at: Optional[str] = None
+    consent_sensitive_data_at: Optional[str] = None
+    consent_age_verified_at: Optional[str] = None
+    consent_version: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
