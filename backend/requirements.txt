@@ -20,6 +20,12 @@ stripe==11.4.0
 # Replicate (FLUX Kontext Pro)
 replicate==1.0.4
 
+# Google Gemini
+google-genai==1.0.0
+
+# Anthropic Claude
+anthropic==0.40.0
+
 # HTTP requests
 httpx==0.28.0
 
