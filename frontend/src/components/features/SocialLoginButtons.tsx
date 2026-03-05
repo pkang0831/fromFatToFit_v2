@@ -43,16 +43,7 @@ export function SocialLoginButtons({ className, googleTestId }: SocialLoginButto
 
   return (
     <div className={className}>
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400">{t('auth.orContinueWith')}</span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-3 mt-2">
         {providers.map((p) => (
           <button
             key={p.id}
