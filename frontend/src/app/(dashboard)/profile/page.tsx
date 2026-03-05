@@ -107,7 +107,7 @@ export default function ProfilePage() {
         <CardContent>
           <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700 dark:border-gray-700">
             <p className="text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400">
-              {t('profile.memberSince')} {user?.created_at ? formatDateLong(user.created_at) : 'N/A'}
+              {t('profile.memberSince', { date: user?.created_at ? formatDateLong(user.created_at) : 'N/A' })}
             </p>
             <div className="flex items-center gap-2">
               <Link href="/profile/notifications">
@@ -136,7 +136,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-xl">
               <Coins className="w-5 h-5 text-amber-600" />
               <span className="text-lg font-bold text-amber-700 dark:text-amber-300">
-                {creditBalance !== null ? creditBalance : '—'}
+                {creditBalance ?? 0}
               </span>
               <span className="text-sm text-amber-500 dark:text-amber-400">credits</span>
             </div>

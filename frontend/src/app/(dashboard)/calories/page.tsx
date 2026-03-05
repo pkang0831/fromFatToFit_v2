@@ -135,53 +135,56 @@ export default function CaloriesPage() {
       {/* Date Navigation */}
       <Card variant="outlined">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePreviousDay}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              {t('calories.prevDay')}
-            </Button>
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+            <div className="flex items-center justify-between w-full sm:w-auto sm:flex-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousDay}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('calories.prevDay')}</span>
+              </Button>
 
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-primary" />
-              <div className="text-center">
-                <p className="text-lg font-bold text-text">
+              <div className="flex items-center gap-2 mx-2">
+                <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
+                <p className="text-sm sm:text-lg font-bold text-text whitespace-nowrap">
                   {formatLocalDateKR(selectedDate)}
                 </p>
-                {!isToday && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleToday}
-                    className="text-xs text-primary mt-1"
-                  >
-                    {t('calories.goToday')}
-                  </Button>
-                )}
               </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextDay}
+                disabled={!canGoForward}
+                className="flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="hidden sm:inline">{t('calories.nextDay')}</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {!isToday && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToday}
+                  className="text-xs text-primary"
+                >
+                  {t('calories.goToday')}
+                </Button>
+              )}
               <input
                 type="date"
                 value={selectedDate}
                 max={getTodayString()}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="px-2 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNextDay}
-              disabled={!canGoForward}
-              className="flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {t('calories.nextDay')}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
           </div>
         </CardContent>
       </Card>

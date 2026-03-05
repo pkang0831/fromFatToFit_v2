@@ -129,7 +129,7 @@ export default function HomePage() {
           <QuickStatsCard
             title={t('dashboard.todayCalories')}
             value={Math.round(stats.today_calories)}
-            subtitle={t('dashboard.goalKcal', { goal: stats.calorie_goal })}
+            subtitle={t('dashboard.goalKcal', { value: stats.calorie_goal })}
             icon={Utensils}
             progress={{
               current: stats.today_calories,
