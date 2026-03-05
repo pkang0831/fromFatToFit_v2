@@ -111,10 +111,27 @@ export default function AuthCallbackPage() {
   );
 }
 
-function storeTokensAndRedirect(accessToken: string, refreshToken: string) {
+async function storeTokensAndRedirect(accessToken: string, refreshToken: string) {
   localStorage.setItem('access_token', accessToken);
   localStorage.setItem('refresh_token', refreshToken);
   setAuthCookie('access_token', accessToken);
   setAuthCookie('refresh_token', refreshToken);
+
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+    const res = await fetch(`${API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.ok) {
+      const user = await res.json();
+      if (user.onboarding_completed) {
+        window.location.href = '/home';
+        return;
+      }
+    }
+  } catch {
+    // Fall through to onboarding if check fails
+  }
+
   window.location.href = '/onboarding';
 }
