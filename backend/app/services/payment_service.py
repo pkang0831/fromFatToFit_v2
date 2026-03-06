@@ -261,6 +261,38 @@ async def verify_revenuecat_purchase(receipt_token: str, platform: str) -> bool:
         return False
 
 
+async def deduct_credits(user_id: str, amount: int, feature: str = "unknown") -> Dict[str, Any]:
+    """Atomically deduct credits from a user's balance via Supabase RPC."""
+    try:
+        supabase = get_supabase()
+        result = supabase.rpc("deduct_user_credits", {
+            "p_user_id": user_id,
+            "p_amount": amount,
+        }).execute()
+
+        data = result.data if result.data else {}
+        if isinstance(data, list) and len(data) > 0:
+            data = data[0]
+        if isinstance(data, str):
+            import json
+            data = json.loads(data)
+
+        if not data.get("success"):
+            error_msg = data.get("error", "Credit deduction failed")
+            logger.warning(f"Credit deduction failed for {user_id}: {error_msg} (feature={feature})")
+            from fastapi import HTTPException
+            raise HTTPException(status_code=402, detail=error_msg)
+
+        logger.info(f"Deducted {amount} credits from {user_id} for {feature}. Remaining: {data.get('total')}")
+        return data
+
+    except Exception as e:
+        if "HTTPException" in type(e).__name__:
+            raise
+        logger.error(f"Error deducting credits: {e}")
+        raise
+
+
 async def check_premium_status(user_id: str) -> bool:
     """
     Check if user has active premium subscription

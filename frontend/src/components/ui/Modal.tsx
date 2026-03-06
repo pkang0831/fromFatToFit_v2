@@ -39,33 +39,29 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-text/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal content */}
       <div
         className={cn(
-          'relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full mx-4 max-h-[90vh] overflow-y-auto',
+          'relative bg-surface border border-border rounded-2xl shadow-xl w-full mx-4 max-h-[90vh] overflow-y-auto',
           sizes[size]
         )}
       >
-        {/* Header */}
         {title && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
+          <div className="flex items-center justify-between p-6 border-b border-border">
+            <h2 className="text-xl font-bold text-text">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:text-white transition-colors"
+              className="text-text-secondary hover:text-text transition-colors rounded-lg p-1 hover:bg-white/10"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         )}
 
-        {/* Body */}
         <div className="p-6">{children}</div>
       </div>
     </div>

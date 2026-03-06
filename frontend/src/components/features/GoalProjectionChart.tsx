@@ -104,11 +104,11 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-6">
-        <p className="text-red-600 dark:text-red-400">{error}</p>
+      <div className="bg-error/[0.06] border border-error/20 rounded-2xl p-6">
+        <p className="text-error">{error}</p>
         <button
           onClick={() => fetchProjection()}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          className="mt-4 px-4 py-2 bg-error text-white rounded-xl hover:bg-error/80 transition-colors"
         >
           Retry
         </button>
@@ -118,14 +118,14 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
 
   if (!projection || (projection.historical_data.length === 0 && projection.projection_data.length === 0)) {
     return (
-      <div className="bg-gray-100 dark:bg-gray-700 border border-gray-100 dark:border-gray-700 rounded-xl p-8 text-center">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="bg-white/[0.02] border border-border rounded-2xl p-8 text-center">
+        <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Weight Data Yet</h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
+        <h3 className="text-lg font-semibold text-text mb-2">No Weight Data Yet</h3>
+        <p className="text-text-secondary text-sm">
           Start logging your weight to see trends and goal projections here.
         </p>
       </div>
@@ -233,7 +233,7 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               type="number"
               value={deficitInput}
               onChange={(e) => handleDeficitChange(e.target.value)}
-              className="w-20 text-center text-lg font-bold text-purple-700 dark:text-purple-300 bg-white/70 dark:bg-gray-800/70 border border-purple-200 dark:border-purple-700 rounded-md px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-purple-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-20 text-center text-lg font-bold text-secondary dark:text-secondary-light bg-surface border border-secondary/20 rounded-lg px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-secondary/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               min={0}
               max={5000}
               step={50}
@@ -296,24 +296,28 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
       </div>
 
       {/* Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+      <div className="bg-surface rounded-2xl p-6 border border-border">
+        <h3 className="text-lg font-semibold text-text mb-4">
           Weight Trend & Goal Projection
         </h3>
         
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
             <XAxis
               dataKey="date"
               tickFormatter={formatDate}
-              stroke="#6b7280"
+              stroke="rgba(255,255,255,0.3)"
               style={{ fontSize: '12px' }}
+              axisLine={false}
+              tickLine={false}
             />
             <YAxis
-              stroke="#6b7280"
+              stroke="rgba(255,255,255,0.3)"
               style={{ fontSize: '12px' }}
-              label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft' }}
+              axisLine={false}
+              tickLine={false}
+              label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft', fill: 'rgba(255,255,255,0.3)' }}
             />
             <Tooltip
               contentStyle={{
@@ -413,19 +417,19 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
 
       {/* Body Fat (if available) */}
       {projection.current_body_fat && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Body Fat %</h3>
+        <div className="bg-surface rounded-2xl p-6 border border-border">
+          <h3 className="text-lg font-semibold text-text mb-4">Body Fat %</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Current</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-sm text-text-secondary">Current</p>
+              <p className="text-2xl font-bold text-primary font-number">
                 {projection.current_body_fat}%
               </p>
             </div>
             {projection.target_body_fat && (
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Target</p>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-sm text-text-secondary">Target</p>
+                <p className="text-2xl font-bold text-emerald-400 font-number">
                   {projection.target_body_fat}%
                 </p>
               </div>

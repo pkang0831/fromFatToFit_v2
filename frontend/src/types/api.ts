@@ -417,6 +417,80 @@ export interface RegionTransformResponse {
   direction: string;
 }
 
+// Beauty Analysis types
+export interface BeautyAnalyzeRequest {
+  image_base64: string;
+  gender: string;
+  generate_images: boolean;
+}
+
+export interface BeautyAnalysis {
+  face_shape: string;
+  face_shape_description: string;
+  skin_tone: string;
+  skin_undertone: string;
+  personal_color_season: string;
+  personal_color_sub: string;
+  personal_color_description: string;
+  best_colors: string[];
+  avoid_colors: string[];
+  hairstyle_recommendations: Array<{ style: string; reason: string }>;
+  hair_color_recommendations: Array<{ color: string; hex: string; reason: string }>;
+  makeup_recommendations: {
+    foundation_tone: string;
+    lip_colors: string[];
+    eye_shadow: string[];
+    blush: string;
+  };
+  skincare_recommendations: string[];
+  styling_suggestions: Array<{ title: string; description: string }>;
+}
+
+export interface StyledImage {
+  title: string;
+  description: string;
+  image_url: string | null;
+  error?: string;
+}
+
+export interface BeautyAnalyzeResponse {
+  analysis: BeautyAnalysis;
+  styled_images: StyledImage[];
+  credits_used: number;
+}
+
+// Fashion types
+export interface FashionRecommendRequest {
+  season: string;
+  gender: string;
+  height_cm?: number;
+  body_notes?: string;
+  personal_color?: string;
+  best_colors?: string;
+  image_base64?: string;
+  generate_images: boolean;
+}
+
+export interface OutfitRecommendation {
+  style_name: string;
+  top: string;
+  bottom: string;
+  outerwear: string | null;
+  accessories: string[];
+  color_palette: string[];
+  color_reasoning: string;
+  occasion: string;
+  image_url?: string | null;
+  image_prompt?: string;
+  error?: string;
+}
+
+export interface FashionRecommendResponse {
+  season: string;
+  outfits: OutfitRecommendation[];
+  credits_used: number;
+}
+
 // Generic API error
 export interface APIError {
   detail: string;

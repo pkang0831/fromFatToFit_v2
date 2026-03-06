@@ -34,28 +34,28 @@ const featureCards = [
     descKey: 'dashboard.calorieTrackerDesc',
     icon: Utensils,
     href: '/calories',
-    color: 'text-primary',
+    gradient: 'from-cyan-500 to-cyan-600',
   },
   {
     titleKey: 'dashboard.aiFoodCamera',
     descKey: 'dashboard.aiFoodCameraDesc',
     icon: Camera,
     href: '/food-camera',
-    color: 'text-secondary',
+    gradient: 'from-violet-500 to-violet-600',
   },
   {
     titleKey: 'dashboard.workoutTracker',
     descKey: 'dashboard.workoutTrackerDesc',
     icon: Dumbbell,
     href: '/workouts',
-    color: 'text-primary',
+    gradient: 'from-emerald-500 to-emerald-600',
   },
   {
     titleKey: 'dashboard.bodyScanner',
     descKey: 'dashboard.bodyScannerDesc',
     icon: Scan,
     href: '/body-scan',
-    color: 'text-secondary',
+    gradient: 'from-amber-500 to-orange-500',
   },
 ];
 
@@ -98,6 +98,13 @@ export default function HomePage() {
     </div>
   );
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
@@ -105,7 +112,7 @@ export default function HomePage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-text">
-              {t('dashboard.hello', { name: user?.full_name || 'there' })}
+              {getGreeting()}, <span className="gradient-text">{user?.full_name || 'there'}</span>
             </h1>
             <p className="text-text-secondary mt-1">
               {t('dashboard.welcomeBack')}
@@ -190,11 +197,11 @@ export default function HomePage() {
             const Icon = feature.icon;
             return (
               <Link key={feature.href} href={feature.href}>
-                <Card variant="outlined" className="hover:shadow-lg transition-all hover:-translate-y-1 h-full">
+                <Card hover className="h-full">
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
-                      <div className={`p-3 bg-primary/10 rounded-lg ${feature.color}`}>
-                        <Icon className="h-8 w-8" />
+                      <div className={`p-3 bg-gradient-to-br ${feature.gradient} rounded-xl`}>
+                        <Icon className="h-8 w-8 text-white" />
                       </div>
                       <div className="flex-1">
                         <h3 className="text-xl font-semibold text-text mb-2">
@@ -215,7 +222,7 @@ export default function HomePage() {
 
       {/* Premium Upgrade CTA (for free users) */}
       {!isPremium && (
-        <Card variant="elevated" className="bg-gradient-to-r from-premium/10 to-secondary/10 border-2 border-premium/30">
+        <Card variant="elevated" className="bg-gradient-to-r from-primary/[0.06] to-secondary/[0.06] border border-primary/20">
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex-1 text-center md:text-left">
@@ -238,7 +245,6 @@ export default function HomePage() {
                   variant="primary"
                   size="lg"
                   onClick={() => router.push('/upgrade')}
-                  className="bg-premium text-primary hover:bg-premium-dark"
                 >
                   <Crown className="h-5 w-5 mr-2" />
                   {t('dashboard.getPremium')}

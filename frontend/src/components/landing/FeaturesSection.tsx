@@ -1,15 +1,17 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Camera, BarChart3, Scan, Zap, TrendingUp, Brain } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-const featureIcons = [
-  <svg key="f1" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
-  <svg key="f2" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
-  <svg key="f3" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>,
-  <svg key="f4" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-  <svg key="f5" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>,
-  <svg key="f6" className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>,
+const features = [
+  { icon: Camera, color: 'from-cyan-400 to-cyan-600' },
+  { icon: BarChart3, color: 'from-violet-400 to-violet-600' },
+  { icon: Scan, color: 'from-cyan-400 to-violet-500' },
+  { icon: Zap, color: 'from-amber-400 to-orange-500' },
+  { icon: TrendingUp, color: 'from-emerald-400 to-emerald-600' },
+  { icon: Brain, color: 'from-pink-400 to-rose-600' },
 ];
 
 const featureKeys = [
@@ -23,10 +25,17 @@ const featureKeys = [
 
 export function FeaturesSection() {
   const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <section className="py-24 px-6 bg-white dark:bg-gray-800">
-      <div className="max-w-6xl mx-auto">
+    <section className="py-24 px-6 bg-[#0a0a0f] relative overflow-hidden">
+      {/* Subtle background gradient */}
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(6,182,212,0.08) 0%, transparent 60%)' }}
+      />
+
+      <div className="max-w-6xl mx-auto relative z-10">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -34,32 +43,93 @@ export function FeaturesSection() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
             {t('landing.featuresTitle')}{' '}
-            <span className="text-primary">{t('landing.featuresHighlight')}</span>
+            <span className="gradient-text">{t('landing.featuresHighlight')}</span>
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-lg text-white/50 max-w-2xl mx-auto">
             {t('landing.featuresSubtitle')}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featureKeys.map((feature, i) => (
-            <motion.div
-              key={feature.titleKey}
-              className="p-8 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-100 dark:border-gray-700 hover:border-primary/20 hover:shadow-lg transition-all group"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-            >
-              <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-5 group-hover:bg-primary/20 transition-colors">
-                {featureIcons[i]}
+        {/* Tab navigation */}
+        <motion.div
+          className="flex flex-wrap justify-center gap-2 mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          {featureKeys.map((feature, i) => {
+            const Icon = features[i].icon;
+            return (
+              <button
+                key={feature.titleKey}
+                onClick={() => setActiveTab(i)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  activeTab === i
+                    ? 'bg-gradient-primary text-white shadow-glow-cyan'
+                    : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{t(feature.titleKey)}</span>
+              </button>
+            );
+          })}
+        </motion.div>
+
+        {/* Active feature detail */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-8 md:p-12 mb-16"
+          >
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${features[activeTab].color} flex items-center justify-center flex-shrink-0`}>
+                {(() => {
+                  const Icon = features[activeTab].icon;
+                  return <Icon className="w-10 h-10 text-white" />;
+                })()}
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{t(feature.titleKey)}</h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{t(feature.descKey)}</p>
-            </motion.div>
-          ))}
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-3">{t(featureKeys[activeTab].titleKey)}</h3>
+                <p className="text-white/50 leading-relaxed text-lg">{t(featureKeys[activeTab].descKey)}</p>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Feature grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {featureKeys.map((feature, i) => {
+            const Icon = features[i].icon;
+            return (
+              <motion.div
+                key={feature.titleKey}
+                className={`group p-6 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                  activeTab === i
+                    ? 'border-primary/30 bg-primary/[0.04]'
+                    : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04]'
+                }`}
+                onClick={() => setActiveTab(i)}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+              >
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${features[i].color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">{t(feature.titleKey)}</h3>
+                <p className="text-sm text-white/40 leading-relaxed">{t(feature.descKey)}</p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

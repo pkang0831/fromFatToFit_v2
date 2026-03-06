@@ -109,7 +109,7 @@ export function Autocomplete({
   return (
     <div ref={containerRef} className="relative">
       {label && (
-        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">
+        <label className="block text-sm font-medium text-text mb-1">
           {label}
           {required && <span className="text-error ml-1">*</span>}
         </label>
@@ -128,13 +128,13 @@ export function Autocomplete({
           disabled={disabled}
           className={`
             w-full px-4 py-2 pr-10
-            border rounded-lg
-            bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-            placeholder:text-gray-500
-            focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
+            border rounded-xl
+            bg-surface text-text
+            placeholder:text-text-light
+            focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40
             disabled:opacity-50 disabled:cursor-not-allowed
             transition-all
-            ${error ? 'border-error' : 'border-gray-200 dark:border-gray-700 hover:border-primary'}
+            ${error ? 'border-error' : 'border-border hover:border-primary/40'}
           `}
         />
         
@@ -142,7 +142,7 @@ export function Autocomplete({
           {loading ? (
             <Loader2 className="h-4 w-4 text-primary animate-spin" />
           ) : (
-            <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+            <Search className="h-4 w-4 text-text-light" />
           )}
         </div>
       </div>
@@ -152,16 +152,16 @@ export function Autocomplete({
       )}
 
       {showDropdown && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-border rounded-xl shadow-lg max-h-64 overflow-y-auto">
           {loading && options.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <div className="px-4 py-3 text-sm text-text-secondary flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               Searching...
             </div>
           ) : options.length === 0 ? (
             <div className="px-4 py-3">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{emptyMessage}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              <p className="text-sm text-text-secondary">{emptyMessage}</p>
+              <p className="text-xs text-text-light mt-1">
                 You can type a food name and enter calories manually below.
               </p>
             </div>
@@ -173,7 +173,7 @@ export function Autocomplete({
               return (
                 <div key={option.id}>
                   {showGroupHeader && (
-                    <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
+                    <div className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-light bg-surfaceAlt border-t border-border">
                       {option.group}
                     </div>
                   )}
@@ -182,16 +182,16 @@ export function Autocomplete({
                     onClick={() => handleSelectOption(option)}
                     className={`
                       w-full px-4 py-2.5 text-left
-                      hover:bg-primary/10 dark:hover:bg-primary/20
+                      hover:bg-primary/10
                       transition-colors
-                      ${index === highlightedIndex ? 'bg-primary/10 dark:bg-primary/20' : ''}
-                      ${!showGroupHeader && index !== 0 ? 'border-t border-gray-100 dark:border-gray-700' : ''}
+                      ${index === highlightedIndex ? 'bg-primary/10' : ''}
+                      ${!showGroupHeader && index !== 0 ? 'border-t border-border' : ''}
                     `}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
-                    <div className="font-medium text-sm text-gray-900 dark:text-white">{option.label}</div>
+                    <div className="font-medium text-sm text-text">{option.label}</div>
                     {option.subtitle && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      <div className="text-xs text-text-secondary mt-0.5">
                         {option.subtitle}
                       </div>
                     )}

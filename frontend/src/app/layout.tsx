@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import '@/styles/globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -9,7 +9,17 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GoogleAnalytics } from '@/components/Analytics';
 
-const inter = Inter({ subsets: ['latin'] });
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -62,7 +72,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <GoogleAnalytics />
       </head>
-      <body className={inter.className}>
+      <body className={`${jakarta.variable} ${spaceGrotesk.variable} font-sans`}>
         <ThemeProvider>
           <LanguageProvider>
             <ErrorBoundary>

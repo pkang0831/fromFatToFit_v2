@@ -34,7 +34,7 @@ export function ConfirmDialog({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <div className="space-y-4">
-        <p className="text-gray-600 dark:text-gray-400">{message}</p>
+        <p className="text-text-secondary">{message}</p>
         <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={onClose}>
             Cancel

@@ -194,6 +194,10 @@ async def get_credit_balance(user_id: str, is_premium: bool = False) -> Dict[str
             "transformation": 30,
             "enhancement": 50,
             "region_transform": 15,
+            "beauty_scan": 10,
+            "beauty_styling": 30,
+            "fashion_recommend": 5,
+            "fashion_images": 15,
         }
 
         return {

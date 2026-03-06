@@ -34,6 +34,8 @@
     "progress": "Progress",
     "bodyScan": "Body Scan",
     "chat": "AI Coach",
+    "beautyScan": "Beauty Scan",
+    "fashion": "Fashion",
     "profile": "Profile",
     "upgrade": "Upgrade",
     "signOut": "Sign Out"

@@ -39,10 +39,10 @@ function normalizeMuscleName(name: string): string[] {
   return matched.length > 0 ? matched : [lower];
 }
 
-const PRIMARY_COLOR = '#E65100';
-const PRIMARY_GLOW = '#FF6D00';
-const INACTIVE_COLOR = '#D7CCC8';
-const INACTIVE_STROKE = '#BCAAA4';
+const PRIMARY_COLOR = '#06b6d4';
+const PRIMARY_GLOW = '#22d3ee';
+const INACTIVE_COLOR = '#334155';
+const INACTIVE_STROKE = '#475569';
 
 function FrontBody({ active }: { active: Set<string> }) {
   const mc = (muscle: string) => active.has(muscle) ? PRIMARY_COLOR : INACTIVE_COLOR;
@@ -62,10 +62,10 @@ function FrontBody({ active }: { active: Set<string> }) {
       </defs>
 
       {/* Head */}
-      <ellipse cx="100" cy="32" rx="22" ry="28" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="1.2" />
+      <ellipse cx="100" cy="32" rx="22" ry="28" fill="#1e293b" stroke="#475569" strokeWidth="1.2" />
 
       {/* Neck */}
-      <rect x="90" y="58" width="20" height="16" rx="4" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="1" />
+      <rect x="90" y="58" width="20" height="16" rx="4" fill="#1e293b" stroke="#475569" strokeWidth="1" />
 
       {/* Shoulders / Deltoids */}
       <ellipse cx="58" cy="88" rx="18" ry="14" fill={mc('shoulders')} stroke={sc('shoulders')} strokeWidth="1.2"
@@ -145,12 +145,12 @@ function FrontBody({ active }: { active: Set<string> }) {
         filter={isActive('tibialis') ? 'url(#glow)' : undefined} opacity={isActive('tibialis') ? 1 : 0.5} />
 
       {/* Feet */}
-      <ellipse cx="82" cy="398" rx="14" ry="6" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
-      <ellipse cx="118" cy="398" rx="14" ry="6" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
+      <ellipse cx="82" cy="398" rx="14" ry="6" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+      <ellipse cx="118" cy="398" rx="14" ry="6" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
 
       {/* Hands */}
-      <ellipse cx="32" cy="196" rx="8" ry="12" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
-      <ellipse cx="168" cy="196" rx="8" ry="12" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
+      <ellipse cx="32" cy="196" rx="8" ry="12" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+      <ellipse cx="168" cy="196" rx="8" ry="12" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
 
       {/* Label */}
       <text x="100" y="416" textAnchor="middle" className="text-[10px] fill-current opacity-50" fontFamily="sans-serif">FRONT</text>
@@ -176,10 +176,10 @@ function BackBody({ active }: { active: Set<string> }) {
       </defs>
 
       {/* Head */}
-      <ellipse cx="100" cy="32" rx="22" ry="28" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="1.2" />
+      <ellipse cx="100" cy="32" rx="22" ry="28" fill="#1e293b" stroke="#475569" strokeWidth="1.2" />
 
       {/* Neck */}
-      <rect x="90" y="58" width="20" height="16" rx="4" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="1" />
+      <rect x="90" y="58" width="20" height="16" rx="4" fill="#1e293b" stroke="#475569" strokeWidth="1" />
 
       {/* Traps */}
       <path d="M78,68 L100,74 L122,68 L130,82 Q115,78 100,80 Q85,78 70,82 Z"
@@ -245,12 +245,12 @@ function BackBody({ active }: { active: Set<string> }) {
         filter={isActive('calves') ? 'url(#glow2)' : undefined} opacity={isActive('calves') ? 1 : 0.6} />
 
       {/* Feet */}
-      <ellipse cx="82" cy="398" rx="14" ry="6" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
-      <ellipse cx="118" cy="398" rx="14" ry="6" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
+      <ellipse cx="82" cy="398" rx="14" ry="6" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+      <ellipse cx="118" cy="398" rx="14" ry="6" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
 
       {/* Hands */}
-      <ellipse cx="32" cy="196" rx="8" ry="12" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
-      <ellipse cx="168" cy="196" rx="8" ry="12" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
+      <ellipse cx="32" cy="196" rx="8" ry="12" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+      <ellipse cx="168" cy="196" rx="8" ry="12" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
 
       {/* Label */}
       <text x="100" y="416" textAnchor="middle" className="text-[10px] fill-current opacity-50" fontFamily="sans-serif">BACK</text>
