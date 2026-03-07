@@ -86,7 +86,7 @@ export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h4 className="font-semibold text-gray-900 dark:text-white">{meal.food_name}</h4>
+              <h4 className="font-semibold text-text">{meal.food_name}</h4>
               <Badge variant={getMealTypeBadgeVariant(meal.meal_type)}>
                 {meal.meal_type}
               </Badge>
@@ -94,31 +94,31 @@ export function MealCard({ meal, onDelete, onUpdate }: MealCardProps) {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
               <div>
-                <span className="text-gray-600 dark:text-gray-400">Calories:</span>
-                <span className="font-medium text-gray-900 dark:text-white ml-1">{Math.round(meal.calories)}</span>
+                <span className="text-text-secondary">Calories:</span>
+                <span className="font-medium text-text ml-1 font-number">{Math.round(meal.calories)}</span>
               </div>
               {meal.protein !== undefined && (
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400">Protein:</span>
-                  <span className="font-medium text-gray-900 dark:text-white ml-1">{Math.round(meal.protein)}g</span>
+                  <span className="text-text-secondary">Protein:</span>
+                  <span className="font-medium text-text ml-1 font-number">{Math.round(meal.protein)}g</span>
                 </div>
               )}
               {meal.carbs !== undefined && (
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400">Carbs:</span>
-                  <span className="font-medium text-gray-900 dark:text-white ml-1">{Math.round(meal.carbs)}g</span>
+                  <span className="text-text-secondary">Carbs:</span>
+                  <span className="font-medium text-text ml-1 font-number">{Math.round(meal.carbs)}g</span>
                 </div>
               )}
               {meal.fat !== undefined && (
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400">Fat:</span>
-                  <span className="font-medium text-gray-900 dark:text-white ml-1">{Math.round(meal.fat)}g</span>
+                  <span className="text-text-secondary">Fat:</span>
+                  <span className="font-medium text-text ml-1 font-number">{Math.round(meal.fat)}g</span>
                 </div>
               )}
             </div>
 
             {meal.serving_size && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-sm text-text-secondary mt-2">
                 Serving: {meal.serving_size}
               </p>
             )}

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import '@/styles/globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -9,27 +9,37 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GoogleAnalytics } from '@/components/Analytics';
 
-const inter = Inter({ subsets: ['latin'] });
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
-    default: 'FromFatToFit — AI-Powered Fitness Tracking',
-    template: '%s | FromFatToFit',
+    default: 'Devenira — AI-Powered Fitness Tracking',
+    template: '%s | Devenira',
   },
   description: 'Track calories with your camera, scan your body fat with AI, and visualize your transformation. All-in-one AI fitness app.',
   keywords: ['fitness tracker', 'calorie counter', 'body fat scanner', 'AI fitness', 'workout tracker', 'meal tracker', 'body transformation'],
-  authors: [{ name: 'FromFatToFit' }],
+  authors: [{ name: 'Devenira' }],
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://fromfattofit.com',
-    siteName: 'FromFatToFit',
-    title: 'FromFatToFit — AI-Powered Fitness Tracking',
+    url: 'https://devenira.com',
+    siteName: 'Devenira',
+    title: 'Devenira — AI-Powered Fitness Tracking',
     description: 'Track calories with your camera, scan your body fat with AI, and visualize your transformation.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FromFatToFit — AI-Powered Fitness Tracking',
+    title: 'Devenira — AI-Powered Fitness Tracking',
     description: 'Track calories with your camera, scan your body fat with AI, and visualize your transformation.',
   },
   robots: {
@@ -44,6 +54,8 @@ const themeScript = `
     var stored = localStorage.getItem('theme');
     var dark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
     if (dark) document.documentElement.classList.add('dark');
+    var ct = localStorage.getItem('color-theme');
+    if (ct && ct !== 'cyan') document.documentElement.classList.add('theme-' + ct);
     var lang = localStorage.getItem('ftf-locale');
     if (lang) document.documentElement.lang = lang;
     if (lang === 'ar') document.documentElement.dir = 'rtl';
@@ -62,7 +74,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <GoogleAnalytics />
       </head>
-      <body className={inter.className}>
+      <body className={`${jakarta.variable} ${spaceGrotesk.variable} font-sans`}>
         <ThemeProvider>
           <LanguageProvider>
             <ErrorBoundary>

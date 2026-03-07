@@ -177,12 +177,12 @@ export default function CaloriesPage() {
                   {t('calories.goToday')}
                 </Button>
               )}
-              <input
+                <input
                 type="date"
                 value={selectedDate}
                 max={getTodayString()}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-2 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                className="px-2 py-1 border border-border rounded-xl text-sm bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
             </div>
           </div>
@@ -259,7 +259,7 @@ export default function CaloriesPage() {
                   key={`${food.food_name}-${idx}`}
                   onClick={() => handleQuickLog(food)}
                   disabled={quickLogging === food.food_name}
-                  className="p-4 border-2 border-gray-200 rounded-lg hover:border-primary hover:bg-primary/5 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md"
+                  className="p-4 border border-border rounded-xl hover:border-primary/40 hover:bg-primary/5 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h4 className="font-semibold text-text line-clamp-2">
@@ -327,11 +327,11 @@ export default function CaloriesPage() {
         ) : (
           <Card className="border-dashed border-2">
             <CardContent className="py-16 text-center">
-              <Utensils className="h-20 w-20 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              <Utensils className="h-20 w-20 text-text-light mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-text mb-2">
                 {t('calories.noMealsToday')}
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-text-secondary mb-6">
                 {t('calories.noMealsHint')}
               </p>
               <div className="flex gap-4 justify-center">

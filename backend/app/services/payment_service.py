@@ -55,7 +55,7 @@ async def create_credit_pack_checkout(user_id: str, pack_size: int, success_url:
                 'currency': 'usd',
                 'product_data': {
                     'name': f'{pack_size} Credit Pack',
-                    'description': f'{pack_size} credits for FromFatToFit AI features (never expire)',
+                    'description': f'{pack_size} credits for Devenira AI features (never expire)',
                 },
                 'unit_amount': price_cents,
             },
@@ -259,6 +259,56 @@ async def verify_revenuecat_purchase(receipt_token: str, platform: str) -> bool:
     except Exception as e:
         logger.error(f"Error verifying RevenueCat purchase: {e}")
         return False
+
+
+async def _ensure_credit_record(user_id: str) -> None:
+    """Create a credit record for the user if one doesn't exist."""
+    supabase = get_supabase()
+    existing = supabase.table("user_credits").select("user_id").eq("user_id", user_id).execute()
+    if not existing.data:
+        next_month = (datetime.now(timezone.utc).replace(day=1) + timedelta(days=32)).replace(day=1)
+        supabase.table("user_credits").insert({
+            "user_id": user_id,
+            "monthly_credits": 10,
+            "bonus_credits": 0,
+            "reset_date": next_month.isoformat(),
+        }).execute()
+        logger.info(f"Created credit record for user {user_id} with 10 monthly credits")
+
+
+async def deduct_credits(user_id: str, amount: int, feature: str = "unknown") -> Dict[str, Any]:
+    """Atomically deduct credits from a user's balance via Supabase RPC."""
+    try:
+        supabase = get_supabase()
+
+        await _ensure_credit_record(user_id)
+
+        result = supabase.rpc("deduct_user_credits", {
+            "p_user_id": user_id,
+            "p_amount": amount,
+        }).execute()
+
+        data = result.data if result.data else {}
+        if isinstance(data, list) and len(data) > 0:
+            data = data[0]
+        if isinstance(data, str):
+            import json
+            data = json.loads(data)
+
+        if not data.get("success"):
+            error_msg = data.get("error", "Credit deduction failed")
+            logger.warning(f"Credit deduction failed for {user_id}: {error_msg} (feature={feature})")
+            from fastapi import HTTPException
+            raise HTTPException(status_code=402, detail=error_msg)
+
+        logger.info(f"Deducted {amount} credits from {user_id} for {feature}. Remaining: {data.get('total')}")
+        return data
+
+    except Exception as e:
+        if "HTTPException" in type(e).__name__:
+            raise
+        logger.error(f"Error deducting credits: {e}")
+        raise
 
 
 async def check_premium_status(user_id: str) -> bool:

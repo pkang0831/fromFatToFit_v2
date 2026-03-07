@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 
 interface MuscleMapProps {
   activeMuscles: string[];
@@ -39,14 +39,24 @@ function normalizeMuscleName(name: string): string[] {
   return matched.length > 0 ? matched : [lower];
 }
 
-const PRIMARY_COLOR = '#E65100';
-const PRIMARY_GLOW = '#FF6D00';
-const INACTIVE_COLOR = '#D7CCC8';
-const INACTIVE_STROKE = '#BCAAA4';
+const INACTIVE_COLOR = '#334155';
+const INACTIVE_STROKE = '#475569';
 
-function FrontBody({ active }: { active: Set<string> }) {
-  const mc = (muscle: string) => active.has(muscle) ? PRIMARY_COLOR : INACTIVE_COLOR;
-  const sc = (muscle: string) => active.has(muscle) ? PRIMARY_GLOW : INACTIVE_STROKE;
+function useThemeMuscleColors() {
+  const [colors, setColors] = useState({ primary: '#06b6d4', glow: '#22d3ee' });
+  useEffect(() => {
+    const s = getComputedStyle(document.documentElement);
+    setColors({
+      primary: s.getPropertyValue('--color-primary-hex').trim() || '#06b6d4',
+      glow: s.getPropertyValue('--color-primary-light-hex').trim() || '#22d3ee',
+    });
+  }, []);
+  return colors;
+}
+
+function FrontBody({ active, primaryColor, glowColor }: { active: Set<string>; primaryColor: string; glowColor: string }) {
+  const mc = (muscle: string) => active.has(muscle) ? primaryColor : INACTIVE_COLOR;
+  const sc = (muscle: string) => active.has(muscle) ? glowColor : INACTIVE_STROKE;
   const isActive = (muscle: string) => active.has(muscle);
 
   return (
@@ -62,10 +72,10 @@ function FrontBody({ active }: { active: Set<string> }) {
       </defs>
 
       {/* Head */}
-      <ellipse cx="100" cy="32" rx="22" ry="28" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="1.2" />
+      <ellipse cx="100" cy="32" rx="22" ry="28" fill="#1e293b" stroke="#475569" strokeWidth="1.2" />
 
       {/* Neck */}
-      <rect x="90" y="58" width="20" height="16" rx="4" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="1" />
+      <rect x="90" y="58" width="20" height="16" rx="4" fill="#1e293b" stroke="#475569" strokeWidth="1" />
 
       {/* Shoulders / Deltoids */}
       <ellipse cx="58" cy="88" rx="18" ry="14" fill={mc('shoulders')} stroke={sc('shoulders')} strokeWidth="1.2"
@@ -145,12 +155,12 @@ function FrontBody({ active }: { active: Set<string> }) {
         filter={isActive('tibialis') ? 'url(#glow)' : undefined} opacity={isActive('tibialis') ? 1 : 0.5} />
 
       {/* Feet */}
-      <ellipse cx="82" cy="398" rx="14" ry="6" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
-      <ellipse cx="118" cy="398" rx="14" ry="6" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
+      <ellipse cx="82" cy="398" rx="14" ry="6" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+      <ellipse cx="118" cy="398" rx="14" ry="6" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
 
       {/* Hands */}
-      <ellipse cx="32" cy="196" rx="8" ry="12" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
-      <ellipse cx="168" cy="196" rx="8" ry="12" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
+      <ellipse cx="32" cy="196" rx="8" ry="12" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+      <ellipse cx="168" cy="196" rx="8" ry="12" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
 
       {/* Label */}
       <text x="100" y="416" textAnchor="middle" className="text-[10px] fill-current opacity-50" fontFamily="sans-serif">FRONT</text>
@@ -158,9 +168,9 @@ function FrontBody({ active }: { active: Set<string> }) {
   );
 }
 
-function BackBody({ active }: { active: Set<string> }) {
-  const mc = (muscle: string) => active.has(muscle) ? PRIMARY_COLOR : INACTIVE_COLOR;
-  const sc = (muscle: string) => active.has(muscle) ? PRIMARY_GLOW : INACTIVE_STROKE;
+function BackBody({ active, primaryColor, glowColor }: { active: Set<string>; primaryColor: string; glowColor: string }) {
+  const mc = (muscle: string) => active.has(muscle) ? primaryColor : INACTIVE_COLOR;
+  const sc = (muscle: string) => active.has(muscle) ? glowColor : INACTIVE_STROKE;
   const isActive = (muscle: string) => active.has(muscle);
 
   return (
@@ -176,10 +186,10 @@ function BackBody({ active }: { active: Set<string> }) {
       </defs>
 
       {/* Head */}
-      <ellipse cx="100" cy="32" rx="22" ry="28" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="1.2" />
+      <ellipse cx="100" cy="32" rx="22" ry="28" fill="#1e293b" stroke="#475569" strokeWidth="1.2" />
 
       {/* Neck */}
-      <rect x="90" y="58" width="20" height="16" rx="4" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="1" />
+      <rect x="90" y="58" width="20" height="16" rx="4" fill="#1e293b" stroke="#475569" strokeWidth="1" />
 
       {/* Traps */}
       <path d="M78,68 L100,74 L122,68 L130,82 Q115,78 100,80 Q85,78 70,82 Z"
@@ -245,12 +255,12 @@ function BackBody({ active }: { active: Set<string> }) {
         filter={isActive('calves') ? 'url(#glow2)' : undefined} opacity={isActive('calves') ? 1 : 0.6} />
 
       {/* Feet */}
-      <ellipse cx="82" cy="398" rx="14" ry="6" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
-      <ellipse cx="118" cy="398" rx="14" ry="6" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
+      <ellipse cx="82" cy="398" rx="14" ry="6" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+      <ellipse cx="118" cy="398" rx="14" ry="6" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
 
       {/* Hands */}
-      <ellipse cx="32" cy="196" rx="8" ry="12" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
-      <ellipse cx="168" cy="196" rx="8" ry="12" fill="#EFEBE9" stroke="#BCAAA4" strokeWidth="0.8" />
+      <ellipse cx="32" cy="196" rx="8" ry="12" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+      <ellipse cx="168" cy="196" rx="8" ry="12" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
 
       {/* Label */}
       <text x="100" y="416" textAnchor="middle" className="text-[10px] fill-current opacity-50" fontFamily="sans-serif">BACK</text>
@@ -259,6 +269,7 @@ function BackBody({ active }: { active: Set<string> }) {
 }
 
 export function MuscleMap({ activeMuscles, className = '' }: MuscleMapProps) {
+  const { primary: primaryColor, glow: glowColor } = useThemeMuscleColors();
   const activeSet = useMemo(() => {
     const set = new Set<string>();
     for (const muscle of activeMuscles) {
@@ -279,10 +290,10 @@ export function MuscleMap({ activeMuscles, className = '' }: MuscleMapProps) {
     <div className={`${className}`}>
       <div className="flex gap-2 justify-center">
         <div className="w-1/2 max-w-[160px]">
-          <FrontBody active={activeSet} />
+          <FrontBody active={activeSet} primaryColor={primaryColor} glowColor={glowColor} />
         </div>
         <div className="w-1/2 max-w-[160px]">
-          <BackBody active={activeSet} />
+          <BackBody active={activeSet} primaryColor={primaryColor} glowColor={glowColor} />
         </div>
       </div>
       {activeList.length > 0 && (

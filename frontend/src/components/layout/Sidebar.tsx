@@ -24,7 +24,8 @@ import { Badge } from '@/components/ui';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { paymentApi } from '@/lib/api/services';
 import { TOUR_START_EVENT, resetAllTours } from '@/components/tour/FeatureTour';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, COLOR_THEMES } from '@/contexts/ThemeContext';
+import { Check } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
@@ -44,7 +45,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { isPremium } = useSubscription();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, colorTheme, toggleTheme, setColorTheme } = useTheme();
   const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
@@ -60,9 +61,8 @@ export function Sidebar() {
 
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-surface border-r border-border h-screen sticky top-0">
-      {/* Logo/Brand */}
       <div className="p-6 border-b border-border">
-        <h1 className="text-2xl font-bold text-primary">FromFatToFit</h1>
+        <h1 className="text-2xl font-bold gradient-text">Devenira</h1>
         <div className="flex items-center gap-2 mt-2">
           {isPremium && (
             <Badge variant="premium">
@@ -73,14 +73,13 @@ export function Sidebar() {
           {credits !== null && (
             <Link href="/upgrade" className="flex items-center gap-1 text-xs text-text-secondary hover:text-primary transition-colors">
               <Zap className="h-3 w-3" />
-              {credits} credits
+              <span className="font-number">{credits}</span> credits
             </Link>
           )}
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-3 space-y-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -92,46 +91,66 @@ export function Sidebar() {
               href={item.href}
               data-tour={tourId}
               className={cn(
-                'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors',
+                'flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all duration-200',
                 isActive
-                  ? 'bg-primary text-white'
-                  : 'text-text hover:bg-surfaceAlt'
+                  ? 'bg-gradient-primary text-white shadow-glow-cyan'
+                  : 'text-text-secondary hover:bg-surfaceAlt hover:text-text'
               )}
             >
               <Icon className="h-5 w-5" />
-              <span className="font-medium">{t(item.labelKey)}</span>
+              <span className="font-medium text-sm">{t(item.labelKey)}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Start Tour, Theme Toggle & Language Switcher */}
-      <div className="px-4 pb-2 space-y-1">
+      <div className="px-3 pb-2 space-y-1">
         <div className="flex items-center justify-between px-4 py-2">
           <LanguageSwitcher variant="compact" />
         </div>
+
+        <div className="flex items-center gap-2 px-4 py-2">
+          {COLOR_THEMES.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setColorTheme(t.id)}
+              title={t.label}
+              className="relative w-7 h-7 rounded-full flex-shrink-0 transition-transform hover:scale-110"
+              style={{ background: `linear-gradient(135deg, ${t.primary}, ${t.secondary})` }}
+            >
+              {colorTheme === t.id && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <Check className="w-3.5 h-3.5 text-white drop-shadow-md" strokeWidth={3} />
+                </span>
+              )}
+              {colorTheme === t.id && (
+                <span className="absolute -inset-[3px] rounded-full border-2 border-white/40" />
+              )}
+            </button>
+          ))}
+        </div>
+
         <button
           onClick={toggleTheme}
-          className="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-text-secondary hover:bg-surfaceAlt transition-colors w-full"
+          className="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-text-secondary hover:bg-surfaceAlt hover:text-text transition-all duration-200 w-full"
         >
           {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           <span className="text-sm font-medium">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
         </button>
         <button
           onClick={startTour}
-          className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-text-secondary hover:bg-surfaceAlt hover:text-text w-full"
+          className="flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-text-secondary hover:bg-surfaceAlt hover:text-text w-full"
         >
           <Play className="h-5 w-5" />
-          <span className="font-medium">Start Tour</span>
+          <span className="text-sm font-medium">Start Tour</span>
         </button>
       </div>
 
-      {/* Upgrade CTA for free users */}
       {!isPremium && (
-        <div className="p-4 border-t border-border">
+        <div className="p-3 border-t border-border">
           <Link
             href="/upgrade"
-            className="flex items-center justify-center space-x-2 w-full px-4 py-3 bg-premium text-primary font-semibold rounded-lg hover:bg-premium-dark transition-colors"
+            className="flex items-center justify-center space-x-2 w-full px-4 py-3 bg-gradient-primary text-white font-semibold rounded-xl hover:shadow-glow-cyan transition-all duration-200"
           >
             <Crown className="h-5 w-5" />
             <span>{t('nav.upgrade')}</span>

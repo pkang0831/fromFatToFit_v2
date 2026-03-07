@@ -10,24 +10,29 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
     const variants = {
-      primary: 'bg-primary text-white hover:bg-primary-dark active:bg-primary-dark',
-      secondary: 'bg-secondary text-white hover:bg-[#B8571A] active:bg-[#B8571A]',
-      outline: 'border-2 border-primary text-primary bg-transparent hover:bg-primary/10',
-      ghost: 'text-primary hover:bg-primary/10',
-      danger: 'bg-error text-white hover:bg-red-700 active:bg-red-700',
+      primary:
+        'bg-gradient-primary text-white hover:shadow-glow-cyan active:scale-[0.97] btn-glow',
+      secondary:
+        'bg-secondary text-white hover:bg-secondary-light active:scale-[0.97]',
+      outline:
+        'border-2 border-primary/30 text-primary bg-transparent hover:bg-primary/10 hover:border-primary/50',
+      ghost:
+        'text-primary hover:bg-primary/10',
+      danger:
+        'bg-error text-white hover:bg-red-500 active:scale-[0.97]',
     };
 
     const sizes = {
-      sm: 'text-sm px-3 py-1.5 rounded',
-      md: 'text-base px-4 py-2 rounded-lg',
-      lg: 'text-lg px-6 py-3 rounded-lg',
+      sm: 'text-sm px-3.5 py-1.5 rounded-lg',
+      md: 'text-sm px-5 py-2.5 rounded-xl',
+      lg: 'text-base px-7 py-3 rounded-xl',
     };
 
     return (
       <button
         ref={ref}
         className={cn(
-          'font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
+          'relative font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100',
           variants[variant],
           sizes[size],
           className
@@ -36,9 +41,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center gap-2">
             <svg
-              className="animate-spin -ml-1 mr-2 h-4 w-4"
+              className="animate-spin h-4 w-4"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -57,7 +62,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            Loading...
+            <span>Loading...</span>
           </div>
         ) : (
           children

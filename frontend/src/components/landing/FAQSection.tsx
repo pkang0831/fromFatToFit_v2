@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const faqKeys = [
@@ -18,8 +19,8 @@ export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-24 px-6 bg-white dark:bg-gray-800">
-      <div className="max-w-3xl mx-auto">
+    <section className="py-24 px-6 bg-[#0a0a0f] relative overflow-hidden">
+      <div className="max-w-3xl mx-auto relative z-10">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -27,15 +28,15 @@ export function FAQSection() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('landing.faq')}</h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">{t('landing.faqSubtitle')}</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">{t('landing.faq')}</h2>
+          <p className="text-lg text-white/50">{t('landing.faqSubtitle')}</p>
         </motion.div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {faqKeys.map((faq, i) => (
             <motion.div
               key={i}
-              className="border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden"
+              className="border border-white/[0.06] rounded-xl overflow-hidden hover:border-white/[0.12] transition-colors"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-30px' }}
@@ -43,19 +44,16 @@ export function FAQSection() {
             >
               <button
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                className="w-full flex items-center justify-between p-5 text-left bg-gray-50 dark:bg-gray-950 hover:bg-gray-100 dark:bg-gray-700 transition-colors"
+                className="w-full flex items-center justify-between p-5 text-left bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
               >
-                <span className="font-medium text-gray-900 dark:text-white pr-4">{t(faq.qKey)}</span>
-                <motion.svg
-                  className="w-5 h-5 text-gray-500 dark:text-gray-500 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <span className="font-medium text-white pr-4">{t(faq.qKey)}</span>
+                <motion.div
+                  className="flex-shrink-0 text-white/40"
                   animate={{ rotate: openIndex === i ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </motion.svg>
+                  <ChevronDown className="w-5 h-5" />
+                </motion.div>
               </button>
               <AnimatePresence>
                 {openIndex === i && (
@@ -66,7 +64,7 @@ export function FAQSection() {
                     transition={{ duration: 0.25 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-5 pb-5 text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <div className="px-5 pb-5 text-white/50 leading-relaxed">
                       {t(faq.aKey)}
                     </div>
                   </motion.div>

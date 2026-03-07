@@ -417,6 +417,128 @@ export interface RegionTransformResponse {
   direction: string;
 }
 
+// Beauty Analysis types
+export interface BeautyAnalyzeRequest {
+  image_base64: string;
+  gender: string;
+  generate_images: boolean;
+}
+
+export interface FeatureAnalysis {
+  shape: string;
+  description: string;
+  recommendations: string[];
+  size?: string;
+  spacing?: string;
+  thickness?: string;
+  arch?: string;
+  fullness?: string;
+  symmetry?: string;
+  bridge?: string;
+  tip?: string;
+}
+
+export interface BeautyAnalysis {
+  face_shape: string;
+  face_shape_description: string;
+  forehead_ratio?: string;
+  cheekbone_ratio?: string;
+  jawline_ratio?: string;
+  face_characteristics?: {
+    apple_cheeks: string;
+    cheekbone: string;
+    chin: string;
+    temple: string;
+    jaw_angle?: string;
+  };
+  feature_scores?: {
+    eyebrows: number;
+    eyes: number;
+    lips: number;
+    nose: number;
+    skin: number;
+    symmetry: number;
+    overall: number;
+  };
+  eyes_analysis?: FeatureAnalysis;
+  brows_analysis?: FeatureAnalysis;
+  lips_analysis?: FeatureAnalysis;
+  nose_analysis?: FeatureAnalysis;
+  skin_tone: string;
+  skin_undertone: string;
+  personal_color_season: string;
+  personal_color_sub: string;
+  personal_color_description: string;
+  best_colors: string[];
+  avoid_colors: string[];
+  hairstyle_recommendations: Array<{ style: string; reason: string }>;
+  hair_color_recommendations: Array<{ color: string; hex: string; reason: string }>;
+  makeup_recommendations: {
+    foundation_tone: string;
+    lip_colors: string[];
+    eye_shadow: string[];
+    blush: string;
+  };
+  skincare_recommendations: string[];
+  style_recommendations?: string[];
+  styling_suggestions: Array<{ title: string; description: string }>;
+}
+
+export interface StyledImage {
+  title: string;
+  description: string;
+  image_url: string | null;
+  error?: string;
+}
+
+export interface BeautyAnalyzeResponse {
+  analysis: BeautyAnalysis;
+  styled_images: StyledImage[];
+  credits_used: number;
+}
+
+// Fashion types
+export interface FashionRecommendRequest {
+  season: string;
+  gender: string;
+  height_cm?: number;
+  weight_kg?: number;
+  body_notes?: string;
+  personal_color?: string;
+  best_colors?: string;
+  avoid_colors?: string;
+  face_shape?: string;
+  forehead_ratio?: string;
+  cheekbone_ratio?: string;
+  jawline_ratio?: string;
+  chin_type?: string;
+  skin_tone?: string;
+  skin_undertone?: string;
+  image_base64?: string;
+  generate_images: boolean;
+}
+
+export interface OutfitRecommendation {
+  style_name: string;
+  top: string;
+  bottom: string;
+  outerwear: string | null;
+  accessories: string[];
+  color_palette: string[];
+  color_reasoning: string;
+  fit_reasoning?: string;
+  occasion: string;
+  image_url?: string | null;
+  image_prompt?: string;
+  error?: string;
+}
+
+export interface FashionRecommendResponse {
+  season: string;
+  outfits: OutfitRecommendation[];
+  credits_used: number;
+}
+
 // Generic API error
 export interface APIError {
   detail: string;

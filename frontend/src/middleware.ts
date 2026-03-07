@@ -12,6 +12,8 @@ export function middleware(request: NextRequest) {
                         pathname.startsWith('/workouts') ||
                         pathname.startsWith('/fasting') ||
                         pathname.startsWith('/body-scan') ||
+                        pathname.startsWith('/beauty-scan') ||
+                        pathname.startsWith('/fashion') ||
                         pathname.startsWith('/chat') ||
                         pathname.startsWith('/profile') ||
                         pathname.startsWith('/progress') ||

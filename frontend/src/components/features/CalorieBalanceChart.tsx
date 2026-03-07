@@ -16,6 +16,7 @@ import {
 import { dashboardApi } from '@/lib/api/services';
 import type { CalorieBalanceTrendPoint } from '@/types/api';
 import { Card, CardContent } from '@/components/ui';
+import { useThemeColors } from '@/contexts/ThemeContext';
 
 interface Props {
   days: number;
@@ -25,6 +26,7 @@ export function CalorieBalanceChart({ days }: Props) {
   const [data, setData] = useState<CalorieBalanceTrendPoint[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { primary, secondary } = useThemeColors();
 
   useEffect(() => {
     loadData();
@@ -51,32 +53,30 @@ export function CalorieBalanceChart({ days }: Props) {
   const CustomTooltip = ({ active, payload }: any) => {
     if (!active || !payload || !payload.length) return null;
 
-    const data = payload[0].payload;
-    const isDeficitPositive = data.deficit > 0;
+    const d = payload[0].payload;
+    const isDeficitPositive = d.deficit > 0;
 
     return (
-      <div className="bg-surface p-4 shadow-2xl rounded-lg border-2 border-border">
-        <p className="font-bold text-text mb-3">{formatDate(data.date)}</p>
+      <div className="bg-surface p-4 shadow-xl rounded-xl border border-border backdrop-blur-xl">
+        <p className="font-bold text-text mb-3">{formatDate(d.date)}</p>
         <div className="space-y-2 text-sm">
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-orange-500">Intake:</span>
-            <span className="font-semibold text-text">{Math.round(data.consumed)} kcal</span>
+          <div className="flex items-center justify-between gap-6">
+            <span className="text-orange-400">Intake:</span>
+            <span className="font-semibold text-text font-number">{Math.round(d.consumed)} kcal</span>
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <span className="text-blue-500">Burned:</span>
-            <span className="font-semibold text-text">{Math.round(data.burned)} kcal</span>
+          <div className="flex items-center justify-between gap-6">
+            <span className="text-cyan-400">Burned:</span>
+            <span className="font-semibold text-text font-number">{Math.round(d.burned)} kcal</span>
           </div>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-6">
             <span className="text-text-secondary">Net Cal:</span>
-            <span className="font-semibold text-text">{Math.round(data.net)} kcal</span>
+            <span className="font-semibold text-text font-number">{Math.round(d.net)} kcal</span>
           </div>
           <div className="border-t border-border pt-2 mt-2">
-            <div className="flex items-center justify-between gap-4">
-              <span className={isDeficitPositive ? 'text-green-500' : 'text-red-500'}>
-                Deficit:
-              </span>
-              <span className={`font-bold ${isDeficitPositive ? 'text-green-500' : 'text-red-500'}`}>
-                {isDeficitPositive ? '+' : ''}{Math.round(data.deficit)} kcal
+            <div className="flex items-center justify-between gap-6">
+              <span className={isDeficitPositive ? 'text-emerald-400' : 'text-rose-400'}>Deficit:</span>
+              <span className={`font-bold font-number ${isDeficitPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {isDeficitPositive ? '+' : ''}{Math.round(d.deficit)} kcal
               </span>
             </div>
           </div>
@@ -86,11 +86,7 @@ export function CalorieBalanceChart({ days }: Props) {
   };
 
   if (loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="h-80 bg-surfaceAlt rounded-lg"></div>
-      </div>
-    );
+    return <div className="h-80 bg-surfaceAlt dark:bg-white/[0.04] rounded-2xl skeleton-shimmer" />;
   }
 
   if (!data || data.length === 0) {
@@ -105,53 +101,51 @@ export function CalorieBalanceChart({ days }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Chart */}
       <ResponsiveContainer width="100%" height={350}>
-        <AreaChart
-          data={data}
-          margin={{ top: 10, right: 60, left: 0, bottom: 0 }}
-        >
+        <AreaChart data={data} margin={{ top: 10, right: 60, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="consumedGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#F97316" stopOpacity={0.3}/>
+              <stop offset="5%" stopColor="#F97316" stopOpacity={0.2}/>
               <stop offset="95%" stopColor="#F97316" stopOpacity={0}/>
             </linearGradient>
             <linearGradient id="burnedGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+              <stop offset="5%" stopColor={primary} stopOpacity={0.2}/>
+              <stop offset="95%" stopColor={primary} stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
           <XAxis 
             dataKey="date" 
             tickFormatter={formatDate}
-            stroke="#6B7280"
+            stroke="rgba(255,255,255,0.3)"
             style={{ fontSize: '12px' }}
+            axisLine={false}
+            tickLine={false}
           />
           <YAxis 
-            stroke="#6B7280"
+            stroke="rgba(255,255,255,0.3)"
             style={{ fontSize: '12px' }}
+            axisLine={false}
+            tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
-            wrapperStyle={{ fontSize: '14px', paddingTop: '10px' }}
+            wrapperStyle={{ fontSize: '13px', paddingTop: '10px' }}
             formatter={(value) => {
-              if (value === 'consumed') return '🍽️ Intake';
-              if (value === 'burned') return '🔥 Burned';
-              if (value === 'net') return '📊 Net Cal';
+              if (value === 'consumed') return 'Intake';
+              if (value === 'burned') return 'Burned';
+              if (value === 'net') return 'Net Cal';
               return value;
             }}
           />
           
-          {/* Reference line for goal */}
           <ReferenceLine 
             y={avgGoal} 
-            stroke="#9CA3AF" 
+            stroke="rgba(255,255,255,0.2)" 
             strokeDasharray="5 5"
-            label={{ value: `Goal`, position: 'right', fill: '#6B7280', fontSize: 12 }}
+            label={{ value: 'Goal', position: 'right', fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
           />
           
-          {/* Areas */}
           <Area 
             type="monotone" 
             dataKey="consumed" 
@@ -162,59 +156,57 @@ export function CalorieBalanceChart({ days }: Props) {
           <Area 
             type="monotone" 
             dataKey="burned" 
-            stroke="#3B82F6" 
+            stroke={primary} 
             fill="url(#burnedGradient)"
             strokeWidth={2}
           />
           
-          {/* Net line */}
           <Line 
             type="monotone" 
             dataKey="net" 
-            stroke="#10B981" 
+            stroke={secondary} 
             strokeWidth={3}
-            dot={{ fill: '#10B981', r: 4 }}
-            activeDot={{ r: 6 }}
+            dot={{ fill: secondary, r: 3, strokeWidth: 0 }}
+            activeDot={{ r: 5, fill: secondary, stroke: secondary, strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
 
-      {/* Summary Cards */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/40 dark:to-orange-900/30 border-orange-200 dark:border-orange-800">
+          <Card className="border-orange-500/20 dark:border-orange-500/10 bg-orange-500/[0.04]">
             <CardContent className="p-4 text-center">
-              <div className="text-sm text-orange-700 dark:text-orange-400 mb-1">Avg Intake</div>
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+              <div className="text-sm text-orange-400 mb-1">Avg Intake</div>
+              <div className="text-3xl font-bold text-orange-400 font-number">
                 {Math.round(summary.avg_consumed)}
               </div>
-              <div className="text-xs text-orange-600 dark:text-orange-500 mt-1">kcal/day</div>
+              <div className="text-xs text-orange-400/60 mt-1">kcal/day</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/30 border-blue-200 dark:border-blue-800">
+          <Card className="border-primary/20 dark:border-primary/10 bg-primary/[0.04]">
             <CardContent className="p-4 text-center">
-              <div className="text-sm text-blue-700 dark:text-blue-400 mb-1">Avg Burned</div>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="text-sm text-primary mb-1">Avg Burned</div>
+              <div className="text-3xl font-bold text-primary font-number">
                 {Math.round(summary.avg_burned)}
               </div>
-              <div className="text-xs text-blue-600 dark:text-blue-500 mt-1">kcal/day</div>
+              <div className="text-xs text-primary/60 mt-1">kcal/day</div>
             </CardContent>
           </Card>
 
-          <Card className={`bg-gradient-to-br ${
+          <Card className={`${
             summary.avg_deficit > 0 
-              ? 'from-green-50 to-green-100 dark:from-green-950/40 dark:to-green-900/30 border-green-200 dark:border-green-800' 
-              : 'from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/30 border-red-200 dark:border-red-800'
+              ? 'border-emerald-500/20 dark:border-emerald-500/10 bg-emerald-500/[0.04]'
+              : 'border-rose-500/20 dark:border-rose-500/10 bg-rose-500/[0.04]'
           }`}>
             <CardContent className="p-4 text-center">
-              <div className={`text-sm mb-1 ${summary.avg_deficit > 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+              <div className={`text-sm mb-1 ${summary.avg_deficit > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 Avg Deficit
               </div>
-              <div className={`text-3xl font-bold ${summary.avg_deficit > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              <div className={`text-3xl font-bold font-number ${summary.avg_deficit > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {summary.avg_deficit > 0 ? '+' : ''}{Math.round(summary.avg_deficit)}
               </div>
-              <div className={`text-xs mt-1 ${summary.avg_deficit > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+              <div className={`text-xs mt-1 ${summary.avg_deficit > 0 ? 'text-emerald-400/60' : 'text-rose-400/60'}`}>
                 kcal/day
               </div>
             </CardContent>

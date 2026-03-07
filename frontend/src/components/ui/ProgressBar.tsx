@@ -5,7 +5,7 @@ export interface ProgressBarProps {
   value: number;
   max?: number;
   size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'success' | 'warning' | 'error';
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'gradient';
   showLabel?: boolean;
   label?: string;
   className?: string;
@@ -23,7 +23,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   const percentage = Math.min((value / max) * 100, 100);
 
   const sizes = {
-    sm: 'h-1',
+    sm: 'h-1.5',
     md: 'h-2',
     lg: 'h-3',
   };
@@ -33,9 +33,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     success: 'bg-success',
     warning: 'bg-warning',
     error: 'bg-error',
+    gradient: 'bg-gradient-primary',
   };
 
-  // Auto-select variant based on percentage
   let autoVariant = variant;
   if (variant === 'default') {
     if (percentage >= 90) {
@@ -51,15 +51,15 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className={cn('w-full', className)}>
       {(showLabel || label) && (
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-gray-900 dark:text-white">{label}</span>
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-sm font-medium text-text">{label}</span>
+          <span className="text-sm text-text-secondary font-number">
             {value} / {max}
           </span>
         </div>
       )}
-      <div className={cn('w-full bg-border-light rounded-full overflow-hidden', sizes[size])}>
+      <div className={cn('w-full bg-black/[0.06] dark:bg-white/[0.06] rounded-full overflow-hidden', sizes[size])}>
         <div
-          className={cn('h-full rounded-full transition-all duration-300', variants[autoVariant])}
+          className={cn('h-full rounded-full transition-all duration-500 ease-out', variants[autoVariant])}
           style={{ width: `${percentage}%` }}
         />
       </div>

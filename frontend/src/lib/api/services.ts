@@ -8,6 +8,10 @@ import type {
   FoodLog,
   FoodAnalysisRequest,
   FoodAnalysisResponse,
+  BeautyAnalyzeRequest,
+  BeautyAnalyzeResponse,
+  FashionRecommendRequest,
+  FashionRecommendResponse,
   DailySummaryResponse,
   TrendResponse,
   RecentFoodsResponse,
@@ -309,4 +313,16 @@ export const fastingApi = {
     api.post('/fasting/start', { protocol, target_hours: targetHours }),
   endFast: (notes?: string) => api.post('/fasting/end', { notes }),
   getHistory: (days?: number) => api.get('/fasting/history', { params: { days: days || 30 } }),
+};
+
+// Beauty API
+export const beautyApi = {
+  analyze: (data: BeautyAnalyzeRequest) =>
+    api.post<BeautyAnalyzeResponse>('/beauty/analyze', data),
+};
+
+// Fashion API
+export const fashionApi = {
+  recommend: (data: FashionRecommendRequest) =>
+    api.post<FashionRecommendResponse>('/fashion/recommend', data),
 };
