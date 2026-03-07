@@ -10,7 +10,7 @@ import { FooterSection } from '@/components/landing/FooterSection';
 
 export default function LandingPage() {
   return (
-    <main className="overflow-hidden">
+    <main className="overflow-hidden bg-[#0a0a0f] text-white">
       <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />

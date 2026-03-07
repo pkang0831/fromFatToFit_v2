@@ -16,8 +16,6 @@ import {
   MessageCircle,
   User,
   X,
-  Sparkles,
-  Shirt,
 } from 'lucide-react';
 
 const mainItems = [
@@ -31,8 +29,6 @@ const moreItems = [
   { href: '/food-camera', label: 'Food Camera', icon: Camera },
   { href: '/fasting', label: 'Fasting', icon: Timer },
   { href: '/body-scan', label: 'Body Scan', icon: Scan },
-  { href: '/beauty-scan', label: 'Beauty', icon: Sparkles },
-  { href: '/fashion', label: 'Fashion', icon: Shirt },
   { href: '/chat', label: 'AI Coach', icon: MessageCircle },
   { href: '/profile', label: 'Profile', icon: User },
 ];

@@ -92,44 +92,32 @@ export function HeroSection() {
           </Link>
         </motion.div>
 
-        {/* Social proof + stats */}
+        {/* Visual hook: Before → After concept */}
         <motion.div
-          className="mt-20 flex flex-col items-center gap-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.7 }}
+          className="mt-16 max-w-lg mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.7 }}
         >
-          {/* Avatar stack */}
-          <div className="flex items-center gap-3">
-            <div className="flex -space-x-3">
-              {['A', 'S', 'J', 'M', 'K'].map((letter, i) => (
-                <div
-                  key={letter}
-                  className="w-9 h-9 rounded-full border-2 border-[#0a0a0f] bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center text-white/80 text-xs font-bold"
-                  style={{ zIndex: 5 - i }}
-                >
-                  {letter}
-                </div>
-              ))}
-            </div>
-            <span className="text-sm text-white/40">
-              Join <span className="text-primary font-semibold font-number">10,000+</span> users
-            </span>
-          </div>
-
-          {/* Stats bar */}
-          <div className="grid grid-cols-3 gap-8 md:gap-16">
-            {[
-              { value: '10K+', labelKey: 'landing.stats.users' },
-              { value: '500K+', labelKey: 'landing.stats.meals' },
-              { value: '5+', labelKey: 'landing.stats.aiModels' },
-            ].map((stat) => (
-              <div key={stat.labelKey} className="text-center">
-                <div className="text-2xl md:text-3xl font-bold gradient-text font-number">{stat.value}</div>
-                <div className="text-xs md:text-sm text-white/40 mt-1">{t(stat.labelKey)}</div>
+          <div className="flex items-center justify-center gap-4">
+            <div className="flex-1 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] text-center">
+              <div className="w-16 h-16 rounded-full bg-white/[0.06] mx-auto mb-2 flex items-center justify-center">
+                <span className="text-2xl">📷</span>
               </div>
-            ))}
+              <p className="text-xs text-white/40">Your photo today</p>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-primary text-2xl">→</span>
+              <span className="text-[10px] text-primary/60 font-medium uppercase tracking-wider">AI</span>
+            </div>
+            <div className="flex-1 p-4 rounded-2xl border border-primary/30 bg-primary/[0.04] text-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 mx-auto mb-2 flex items-center justify-center">
+                <span className="text-2xl">✨</span>
+              </div>
+              <p className="text-xs text-primary/70">Your future body</p>
+            </div>
           </div>
+          <p className="text-center text-xs text-white/30 mt-4">First transformation preview is free</p>
         </motion.div>
       </div>
 

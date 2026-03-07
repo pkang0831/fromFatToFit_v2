@@ -6,6 +6,8 @@ import { Scan, Crown, TrendingUp, Award, Sparkles, Wand2, Coins, Target } from '
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input, Select } from '@/components/ui';
 import { ShareButtons } from '@/components/ui/ShareButtons';
+import { ShareableResultCard } from '@/components/features/ShareableResultCard';
+import { WeeklyRescanPrompt } from '@/components/features/WeeklyRescanPrompt';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -309,6 +311,19 @@ export default function BodyScanPage() {
       }
       
       setResults(newResults);
+
+      // Track scan history for weekly rescan flow + shareable cards
+      if (selectedType === 'bodyfat' && newResults.bodyfat) {
+        try {
+          const prevBf = localStorage.getItem('devenira_current_bodyfat');
+          if (prevBf) localStorage.setItem('devenira_prev_bodyfat', prevBf);
+          localStorage.setItem('devenira_current_bodyfat', String(newResults.bodyfat.body_fat_percentage));
+          localStorage.setItem('devenira_last_scan_date', new Date().toISOString());
+          const count = parseInt(localStorage.getItem('devenira_scan_count') || '0') + 1;
+          localStorage.setItem('devenira_scan_count', String(count));
+        } catch {}
+      }
+
       await refreshLimits();
       await fetchCredits();
     } catch (err: unknown) {
@@ -473,6 +488,27 @@ export default function BodyScanPage() {
                   </ul>
                 </div>
               )}
+
+              {/* Shareable result card */}
+              <div className="mt-6 pt-6 border-t border-border">
+                <ShareableResultCard
+                  bodyFatPercent={bfResult.body_fat_percentage}
+                  previousBodyFat={(() => {
+                    try {
+                      const prev = localStorage.getItem('devenira_prev_bodyfat');
+                      return prev ? parseFloat(prev) : undefined;
+                    } catch { return undefined; }
+                  })()}
+                  weekNumber={(() => {
+                    try {
+                      const n = localStorage.getItem('devenira_scan_count');
+                      return n ? parseInt(n) : 1;
+                    } catch { return 1; }
+                  })()}
+                  currentImageUrl={selectedImage || undefined}
+                  userName={user?.full_name || undefined}
+                />
+              </div>
             </CardContent>
           </Card>
         );
@@ -788,6 +824,9 @@ export default function BodyScanPage() {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
+      {/* Weekly rescan prompt */}
+      <WeeklyRescanPrompt variant="full" />
+
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('bodyScan.title')}</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-1">

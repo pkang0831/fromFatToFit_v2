@@ -424,9 +424,46 @@ export interface BeautyAnalyzeRequest {
   generate_images: boolean;
 }
 
+export interface FeatureAnalysis {
+  shape: string;
+  description: string;
+  recommendations: string[];
+  size?: string;
+  spacing?: string;
+  thickness?: string;
+  arch?: string;
+  fullness?: string;
+  symmetry?: string;
+  bridge?: string;
+  tip?: string;
+}
+
 export interface BeautyAnalysis {
   face_shape: string;
   face_shape_description: string;
+  forehead_ratio?: string;
+  cheekbone_ratio?: string;
+  jawline_ratio?: string;
+  face_characteristics?: {
+    apple_cheeks: string;
+    cheekbone: string;
+    chin: string;
+    temple: string;
+    jaw_angle?: string;
+  };
+  feature_scores?: {
+    eyebrows: number;
+    eyes: number;
+    lips: number;
+    nose: number;
+    skin: number;
+    symmetry: number;
+    overall: number;
+  };
+  eyes_analysis?: FeatureAnalysis;
+  brows_analysis?: FeatureAnalysis;
+  lips_analysis?: FeatureAnalysis;
+  nose_analysis?: FeatureAnalysis;
   skin_tone: string;
   skin_undertone: string;
   personal_color_season: string;
@@ -443,6 +480,7 @@ export interface BeautyAnalysis {
     blush: string;
   };
   skincare_recommendations: string[];
+  style_recommendations?: string[];
   styling_suggestions: Array<{ title: string; description: string }>;
 }
 
@@ -464,9 +502,18 @@ export interface FashionRecommendRequest {
   season: string;
   gender: string;
   height_cm?: number;
+  weight_kg?: number;
   body_notes?: string;
   personal_color?: string;
   best_colors?: string;
+  avoid_colors?: string;
+  face_shape?: string;
+  forehead_ratio?: string;
+  cheekbone_ratio?: string;
+  jawline_ratio?: string;
+  chin_type?: string;
+  skin_tone?: string;
+  skin_undertone?: string;
   image_base64?: string;
   generate_images: boolean;
 }
@@ -479,6 +526,7 @@ export interface OutfitRecommendation {
   accessories: string[];
   color_palette: string[];
   color_reasoning: string;
+  fit_reasoning?: string;
   occasion: string;
   image_url?: string | null;
   image_prompt?: string;

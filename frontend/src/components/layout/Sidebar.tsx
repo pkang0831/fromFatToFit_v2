@@ -19,14 +19,13 @@ import {
   Moon,
   Sun,
   Timer,
-  Sparkles,
-  Shirt,
 } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { paymentApi } from '@/lib/api/services';
 import { TOUR_START_EVENT, resetAllTours } from '@/components/tour/FeatureTour';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, COLOR_THEMES } from '@/contexts/ThemeContext';
+import { Check } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
@@ -39,8 +38,6 @@ const navItems = [
   { href: '/progress', labelKey: 'nav.progress', icon: TrendingUp },
   { href: '/body-scan', labelKey: 'nav.bodyScan', icon: Scan },
   { href: '/chat', labelKey: 'nav.chat', icon: MessageCircle },
-  { href: '/beauty-scan', labelKey: 'nav.beautyScan', icon: Sparkles },
-  { href: '/fashion', labelKey: 'nav.fashion', icon: Shirt },
   { href: '/profile', labelKey: 'nav.profile', icon: User },
 ];
 
@@ -48,7 +45,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { isPremium } = useSubscription();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, colorTheme, toggleTheme, setColorTheme } = useTheme();
   const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
@@ -65,7 +62,7 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-surface border-r border-border h-screen sticky top-0">
       <div className="p-6 border-b border-border">
-        <h1 className="text-2xl font-bold gradient-text">FromFatToFit</h1>
+        <h1 className="text-2xl font-bold gradient-text">Devenira</h1>
         <div className="flex items-center gap-2 mt-2">
           {isPremium && (
             <Badge variant="premium">
@@ -111,6 +108,28 @@ export function Sidebar() {
         <div className="flex items-center justify-between px-4 py-2">
           <LanguageSwitcher variant="compact" />
         </div>
+
+        <div className="flex items-center gap-2 px-4 py-2">
+          {COLOR_THEMES.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setColorTheme(t.id)}
+              title={t.label}
+              className="relative w-7 h-7 rounded-full flex-shrink-0 transition-transform hover:scale-110"
+              style={{ background: `linear-gradient(135deg, ${t.primary}, ${t.secondary})` }}
+            >
+              {colorTheme === t.id && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <Check className="w-3.5 h-3.5 text-white drop-shadow-md" strokeWidth={3} />
+                </span>
+              )}
+              {colorTheme === t.id && (
+                <span className="absolute -inset-[3px] rounded-full border-2 border-white/40" />
+              )}
+            </button>
+          ))}
+        </div>
+
         <button
           onClick={toggleTheme}
           className="flex items-center space-x-3 px-4 py-2.5 rounded-xl text-text-secondary hover:bg-surfaceAlt hover:text-text transition-all duration-200 w-full"

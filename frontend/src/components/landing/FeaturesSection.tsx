@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, BarChart3, Scan, Zap, TrendingUp, Brain } from 'lucide-react';
+import { Sparkles, Scan, TrendingUp, Camera, Dumbbell, Brain } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const features = [
-  { icon: Camera, color: 'from-cyan-400 to-cyan-600' },
-  { icon: BarChart3, color: 'from-violet-400 to-violet-600' },
-  { icon: Scan, color: 'from-cyan-400 to-violet-500' },
-  { icon: Zap, color: 'from-amber-400 to-orange-500' },
+  { icon: Sparkles, color: 'from-cyan-400 to-violet-500' },
+  { icon: Scan, color: 'from-violet-400 to-violet-600' },
   { icon: TrendingUp, color: 'from-emerald-400 to-emerald-600' },
+  { icon: Camera, color: 'from-cyan-400 to-cyan-600' },
+  { icon: Dumbbell, color: 'from-amber-400 to-orange-500' },
   { icon: Brain, color: 'from-pink-400 to-rose-600' },
 ];
 

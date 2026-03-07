@@ -1,13 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { UserPlus, ClipboardCheck, TrendingUp } from 'lucide-react';
+import { Camera, Sparkles, BarChart3 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const steps = [
-  { number: '01', icon: UserPlus },
-  { number: '02', icon: ClipboardCheck },
-  { number: '03', icon: TrendingUp },
+  { number: '01', icon: Camera },
+  { number: '02', icon: Sparkles },
+  { number: '03', icon: BarChart3 },
 ];
 
 const stepKeys = [

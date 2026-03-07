@@ -22,6 +22,7 @@ import { QuickStatsCard } from '@/components/features/QuickStatsCard';
 import { StreakBadge } from '@/components/features/StreakBadge';
 import type { QuickStatsResponse } from '@/types/api';
 import { SkeletonStats, SkeletonChart, SkeletonCard } from '@/components/ui/Skeleton';
+import { WeeklyRescanPrompt } from '@/components/features/WeeklyRescanPrompt';
 
 const CalorieBalanceChart = dynamic(
   () => import('@/components/features/CalorieBalanceChart').then(m => m.CalorieBalanceChart),
@@ -188,6 +189,9 @@ export default function HomePage() {
           <CalorieBalanceChart days={chartDays} />
         </CardContent>
       </Card>
+
+      {/* Weekly body scan prompt */}
+      <WeeklyRescanPrompt variant="compact" />
 
       {/* Feature Navigation Grid */}
       <div>
