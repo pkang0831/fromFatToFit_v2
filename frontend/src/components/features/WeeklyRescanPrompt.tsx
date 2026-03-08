@@ -3,46 +3,34 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Scan, ArrowRight, Clock, TrendingDown, Trophy } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { bodyApi } from '@/lib/api/services';
+import type { GapToGoalResponse } from '@/types/api';
 
-interface ScanHistory {
-  lastScanDate: string | null;
-  currentBodyFat: number | null;
-  previousBodyFat: number | null;
-  scanCount: number;
-}
-
-function getScanHistory(): ScanHistory {
-  try {
-    return {
-      lastScanDate: localStorage.getItem('devenira_last_scan_date'),
-      currentBodyFat: (() => {
-        const v = localStorage.getItem('devenira_current_bodyfat');
-        return v ? parseFloat(v) : null;
-      })(),
-      previousBodyFat: (() => {
-        const v = localStorage.getItem('devenira_prev_bodyfat');
-        return v ? parseFloat(v) : null;
-      })(),
-      scanCount: parseInt(localStorage.getItem('devenira_scan_count') || '0'),
-    };
-  } catch {
-    return { lastScanDate: null, currentBodyFat: null, previousBodyFat: null, scanCount: 0 };
-  }
-}
+type PromptState = 'first_scan' | 'too_early' | 'ready' | 'overdue';
 
 function daysSince(dateStr: string): number {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
 }
 
-type PromptState = 'first_scan' | 'too_early' | 'ready' | 'overdue';
-
-function getPromptState(history: ScanHistory): PromptState {
-  if (history.scanCount === 0 || !history.lastScanDate) return 'first_scan';
-  const days = daysSince(history.lastScanDate);
+function getPromptState(data: GapToGoalResponse): PromptState {
+  if (data.scan_count === 0 || !data.last_scan_date) return 'first_scan';
+  const days = daysSince(data.last_scan_date);
   if (days < 5) return 'too_early';
-  if (days >= 5 && days <= 10) return 'ready';
+  if (days <= 10) return 'ready';
   return 'overdue';
+}
+
+function syncToLocalStorage(data: GapToGoalResponse) {
+  try {
+    if (data.current_bf != null) localStorage.setItem('devenira_current_bodyfat', String(data.current_bf));
+    if (data.last_scan_date) localStorage.setItem('devenira_last_scan_date', data.last_scan_date);
+    localStorage.setItem('devenira_scan_count', String(data.scan_count));
+    if (data.target_bf != null) localStorage.setItem('devenira_target_bodyfat', String(data.target_bf));
+
+    if (data.scan_history.length >= 2) {
+      localStorage.setItem('devenira_prev_bodyfat', String(data.scan_history[data.scan_history.length - 2].bf));
+    }
+  } catch {}
 }
 
 interface WeeklyRescanPromptProps {
@@ -50,26 +38,26 @@ interface WeeklyRescanPromptProps {
 }
 
 export function WeeklyRescanPrompt({ variant = 'full' }: WeeklyRescanPromptProps) {
-  const { t } = useLanguage();
-  const [history, setHistory] = useState<ScanHistory | null>(null);
+  const [data, setData] = useState<GapToGoalResponse | null>(null);
   const [state, setState] = useState<PromptState>('first_scan');
 
   useEffect(() => {
-    const h = getScanHistory();
-    setHistory(h);
-    setState(getPromptState(h));
+    bodyApi.getGapToGoal()
+      .then(res => {
+        setData(res.data);
+        setState(getPromptState(res.data));
+        syncToLocalStorage(res.data);
+      })
+      .catch(() => {});
   }, []);
 
-  if (!history) return null;
-
-  // Don't show anything if scanned recently (too_early) in compact mode
+  if (!data) return null;
   if (variant === 'compact' && state === 'too_early') return null;
 
-  const daysAgo = history.lastScanDate ? daysSince(history.lastScanDate) : 0;
+  const daysAgo = data.last_scan_date ? daysSince(data.last_scan_date) : 0;
   const daysUntilReady = Math.max(0, 7 - daysAgo);
-  const delta = history.previousBodyFat && history.currentBodyFat
-    ? history.previousBodyFat - history.currentBodyFat
-    : null;
+  const prevBf = data.scan_history.length >= 2 ? data.scan_history[data.scan_history.length - 2].bf : null;
+  const delta = prevBf != null && data.current_bf != null ? prevBf - data.current_bf : null;
 
   if (variant === 'compact') {
     return (
@@ -84,16 +72,12 @@ export function WeeklyRescanPrompt({ variant = 'full' }: WeeklyRescanPromptProps
         }`}
       >
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-          state === 'ready' || state === 'overdue'
-            ? 'bg-primary/20'
-            : 'bg-white/[0.06]'
+          state === 'ready' || state === 'overdue' ? 'bg-primary/20' : 'bg-white/[0.06]'
         }`}>
           {state === 'ready' || state === 'overdue' ? (
             <Scan className="w-6 h-6 text-primary animate-pulse" />
-          ) : state === 'first_scan' ? (
-            <Scan className="w-6 h-6 text-primary" />
           ) : (
-            <Clock className="w-6 h-6 text-text-light" />
+            <Scan className="w-6 h-6 text-primary" />
           )}
         </div>
 
@@ -106,9 +90,9 @@ export function WeeklyRescanPrompt({ variant = 'full' }: WeeklyRescanPromptProps
           </p>
           <p className="text-xs text-text-secondary truncate">
             {state === 'first_scan' && 'AI body fat estimation from a photo'}
-            {state === 'ready' && 'Track your week-over-week progress'}
-            {(state === 'overdue') && 'Scan now to stay on track'}
-            {state === 'too_early' && history.currentBodyFat && `Current: ${history.currentBodyFat.toFixed(1)}% body fat`}
+            {state === 'ready' && (data.gap != null ? `${data.gap.toFixed(1)}% gap to close` : 'Track your week-over-week progress')}
+            {state === 'overdue' && 'Scan now to stay on track'}
+            {state === 'too_early' && data.current_bf != null && `Current: ${data.current_bf.toFixed(1)}% body fat`}
           </p>
         </div>
 
@@ -119,7 +103,7 @@ export function WeeklyRescanPrompt({ variant = 'full' }: WeeklyRescanPromptProps
     );
   }
 
-  // Full variant (for body-scan page top)
+  // Full variant
   return (
     <div className={`rounded-2xl border p-6 ${
       state === 'ready' || state === 'overdue'
@@ -132,10 +116,8 @@ export function WeeklyRescanPrompt({ variant = 'full' }: WeeklyRescanPromptProps
         }`}>
           {state === 'ready' || state === 'overdue' ? (
             <Scan className="w-7 h-7 text-primary" />
-          ) : state === 'first_scan' ? (
-            <Scan className="w-7 h-7 text-text-secondary" />
           ) : (
-            <Clock className="w-7 h-7 text-text-light" />
+            <Scan className="w-7 h-7 text-text-secondary" />
           )}
         </div>
 
@@ -157,13 +139,19 @@ export function WeeklyRescanPrompt({ variant = 'full' }: WeeklyRescanPromptProps
               <p className="text-sm text-text-secondary">
                 Weekly scans give the most accurate progress tracking. Your body needs time to show changes.
               </p>
-              {history.currentBodyFat && (
+              {data.current_bf != null && (
                 <div className="mt-3 flex items-center gap-4">
                   <div className="px-3 py-1.5 rounded-lg bg-surfaceAlt">
                     <span className="text-xs text-text-light">Current</span>
-                    <span className="text-sm font-bold text-text ml-2 font-number">{history.currentBodyFat.toFixed(1)}%</span>
+                    <span className="text-sm font-bold text-text ml-2 font-number">{data.current_bf.toFixed(1)}%</span>
                   </div>
-                  {delta !== null && (
+                  {data.gap != null && (
+                    <div className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                      <span className="text-xs text-primary/70">Gap to goal</span>
+                      <span className="text-sm font-bold text-primary ml-2 font-number">{data.gap.toFixed(1)}%</span>
+                    </div>
+                  )}
+                  {delta != null && (
                     <div className="flex items-center gap-1">
                       {delta > 0 ? (
                         <TrendingDown className="w-4 h-4 text-emerald-400" />
@@ -201,20 +189,26 @@ export function WeeklyRescanPrompt({ variant = 'full' }: WeeklyRescanPromptProps
                   : 'Your weekly scan is ready!'}
               </h3>
               <p className="text-sm text-text-secondary">
-                {history.scanCount > 1
-                  ? `Week ${history.scanCount + 1} check-in. See how your body has changed since your last scan.`
+                {data.scan_count > 1
+                  ? `Week ${data.scan_count + 1} check-in. ${data.gap != null ? `${data.gap.toFixed(1)}% gap remaining.` : 'See how your body has changed.'}`
                   : 'Get your second data point and start seeing real trends.'}
               </p>
-              {history.currentBodyFat && (
+              {data.current_bf != null && (
                 <div className="mt-3 flex items-center gap-4">
                   <div className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
                     <span className="text-xs text-primary/70">Last result</span>
-                    <span className="text-sm font-bold text-primary ml-2 font-number">{history.currentBodyFat.toFixed(1)}%</span>
+                    <span className="text-sm font-bold text-primary ml-2 font-number">{data.current_bf.toFixed(1)}%</span>
                   </div>
-                  {history.scanCount > 1 && (
+                  {data.gap != null && (
+                    <div className="px-3 py-1.5 rounded-lg bg-surfaceAlt">
+                      <span className="text-xs text-text-light">Gap to goal</span>
+                      <span className="text-sm font-bold text-text ml-2 font-number">{data.gap.toFixed(1)}%</span>
+                    </div>
+                  )}
+                  {data.scan_count > 1 && (
                     <div className="flex items-center gap-1.5">
                       <Trophy className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs text-text-secondary">{history.scanCount} scans completed</span>
+                      <span className="text-xs text-text-secondary">{data.scan_count} scans</span>
                     </div>
                   )}
                 </div>

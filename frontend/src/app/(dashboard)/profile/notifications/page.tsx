@@ -13,6 +13,7 @@ interface Preferences {
   email_credit_low: boolean;
   push_meal_reminder: boolean;
   push_workout_reminder: boolean;
+  push_weekly_body_scan: boolean;
   push_daily_summary: boolean;
   meal_reminder_time: string;
   workout_reminder_days: string[];
@@ -148,6 +149,7 @@ export default function NotificationSettingsPage() {
             </button>
           </div>
 
+          <ToggleRow label="Weekly Body Scan Reminder" desc="Get reminded when your weekly scan is ready" checked={prefs.push_weekly_body_scan} onChange={() => toggle('push_weekly_body_scan')} />
           <ToggleRow label={t('notifications.mealReminder')} desc={t('notifications.mealReminderDesc')} checked={prefs.push_meal_reminder} onChange={() => toggle('push_meal_reminder')} />
           <ToggleRow label={t('notifications.workoutReminder')} desc={t('notifications.workoutReminderDesc')} checked={prefs.push_workout_reminder} onChange={() => toggle('push_workout_reminder')} />
           <ToggleRow label={t('notifications.dailySummary')} desc={t('notifications.dailySummaryDesc')} checked={prefs.push_daily_summary} onChange={() => toggle('push_daily_summary')} />
