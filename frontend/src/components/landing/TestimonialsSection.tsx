@@ -5,9 +5,9 @@ import { Star } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const testimonialDefs = [
-  { name: 'Alex R.', quoteKey: 'landing.testimonial1Quote', roleKey: 'landing.testimonial1Role', avatar: 'A', gradient: 'from-cyan-400 to-cyan-600' },
-  { name: 'Sarah K.', quoteKey: 'landing.testimonial2Quote', roleKey: 'landing.testimonial2Role', avatar: 'S', gradient: 'from-violet-400 to-violet-600' },
-  { name: 'James L.', quoteKey: 'landing.testimonial3Quote', roleKey: 'landing.testimonial3Role', avatar: 'J', gradient: 'from-cyan-400 to-violet-500' },
+  { name: 'Alex R.', quoteKey: 'landing.testimonial1Quote', roleKey: 'landing.testimonial1Role', avatar: 'A', gradient: 'from-amber-600/80 to-amber-800/80' },
+  { name: 'Sarah K.', quoteKey: 'landing.testimonial2Quote', roleKey: 'landing.testimonial2Role', avatar: 'S', gradient: 'from-stone-400/80 to-stone-600/80' },
+  { name: 'James L.', quoteKey: 'landing.testimonial3Quote', roleKey: 'landing.testimonial3Role', avatar: 'J', gradient: 'from-amber-600/80 to-stone-500/80' },
 ];
 
 export function TestimonialsSection() {
@@ -17,10 +17,10 @@ export function TestimonialsSection() {
     <section className="py-24 px-6 bg-[#080810] relative overflow-hidden">
       <div
         className="absolute inset-0 opacity-30"
-        style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.06) 0%, transparent 60%)' }}
+        style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(168,139,122,0.06) 0%, transparent 60%)' }}
       />
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-5xl mx-auto relative z-10">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -56,7 +56,7 @@ export function TestimonialsSection() {
                 </div>
                 <div>
                   <div className="font-semibold text-white text-sm">{item.name}</div>
-                  <div className="text-xs text-white/40">{t(item.roleKey)}</div>
+                  <div className="text-xs text-primary/70 font-medium">{t(item.roleKey)}</div>
                 </div>
               </div>
             </motion.div>

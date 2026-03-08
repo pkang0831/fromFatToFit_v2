@@ -249,6 +249,21 @@ export interface BodyScanHistoryItem {
   image_url?: string;
 }
 
+export interface ScanHistoryPoint {
+  date: string;
+  bf: number;
+}
+
+export interface GapToGoalResponse {
+  current_bf: number | null;
+  target_bf: number | null;
+  goal_image_url: string | null;
+  gap: number | null;
+  scan_count: number;
+  last_scan_date: string | null;
+  scan_history: ScanHistoryPoint[];
+}
+
 // Payment types
 export interface CreateCheckoutSessionRequest {
   price_id: string;

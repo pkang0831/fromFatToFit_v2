@@ -19,6 +19,7 @@ import {
   Moon,
   Sun,
   Timer,
+  ChevronDown,
 } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import { useSubscription } from '@/lib/hooks/useSubscription';
@@ -29,16 +30,19 @@ import { Check } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
-const navItems = [
+const coreItems = [
   { href: '/home', labelKey: 'nav.home', icon: Home },
+  { href: '/body-scan', labelKey: 'nav.bodyScan', icon: Scan },
+  { href: '/chat', labelKey: 'nav.chat', icon: MessageCircle },
+  { href: '/profile', labelKey: 'nav.profile', icon: User },
+];
+
+const extraItems = [
+  { href: '/progress', labelKey: 'nav.progress', icon: TrendingUp },
   { href: '/calories', labelKey: 'nav.calories', icon: Utensils },
   { href: '/food-camera', labelKey: 'nav.foodCamera', icon: Camera },
   { href: '/workouts', labelKey: 'nav.workouts', icon: Dumbbell },
   { href: '/fasting', labelKey: 'nav.fasting', icon: Timer },
-  { href: '/progress', labelKey: 'nav.progress', icon: TrendingUp },
-  { href: '/body-scan', labelKey: 'nav.bodyScan', icon: Scan },
-  { href: '/chat', labelKey: 'nav.chat', icon: MessageCircle },
-  { href: '/profile', labelKey: 'nav.profile', icon: User },
 ];
 
 export function Sidebar() {
@@ -47,11 +51,20 @@ export function Sidebar() {
   const { isPremium } = useSubscription();
   const { theme, colorTheme, toggleTheme, setColorTheme } = useTheme();
   const [credits, setCredits] = useState<number | null>(null);
+  const [extrasOpen, setExtrasOpen] = useState(() => {
+    return extraItems.some((item) => item.href === pathname);
+  });
 
   useEffect(() => {
     paymentApi.getCreditBalance()
       .then(res => setCredits(res.data.total_credits))
       .catch(() => {});
+  }, [pathname]);
+
+  useEffect(() => {
+    if (extraItems.some((item) => item.href === pathname)) {
+      setExtrasOpen(true);
+    }
   }, [pathname]);
 
   const startTour = () => {
@@ -79,8 +92,8 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 p-3 space-y-1">
-        {navItems.map((item) => {
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        {coreItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
           const tourId = `nav-${item.href.slice(1)}`;
@@ -102,6 +115,45 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Extras collapsible */}
+        <div className="pt-2">
+          <button
+            onClick={() => setExtrasOpen(!extrasOpen)}
+            className="flex items-center justify-between w-full px-4 py-2 rounded-xl text-text-light hover:bg-surfaceAlt hover:text-text-secondary transition-all duration-200"
+          >
+            <span className="text-xs font-semibold uppercase tracking-wider">Extras</span>
+            <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', extrasOpen && 'rotate-180')} />
+          </button>
+
+          <div className={cn(
+            'space-y-0.5 overflow-hidden transition-all duration-200',
+            extrasOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'
+          )}>
+            {extraItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              const tourId = `nav-${item.href.slice(1)}`;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  data-tour={tourId}
+                  className={cn(
+                    'flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-200',
+                    isActive
+                      ? 'bg-gradient-primary text-white shadow-glow-cyan'
+                      : 'text-text-light hover:bg-surfaceAlt hover:text-text-secondary'
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="font-medium text-sm">{t(item.labelKey)}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </nav>
 
       <div className="px-3 pb-2 space-y-1">
