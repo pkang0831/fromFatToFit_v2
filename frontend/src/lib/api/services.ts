@@ -23,6 +23,7 @@ import type {
   BodyFatEstimateResponse,
   PercentileResponse,
   TransformationResponse,
+  TransformationJourneyResponse,
   EnhancementResponse,
   BodyScanHistoryItem,
   SegmentRequest,
@@ -137,7 +138,7 @@ export const bodyApi = {
     api.post<PercentileResponse>('/body/percentile', data),
 
   generateTransformation: (data: BodyScanRequest) =>
-    api.post<TransformationResponse>('/body/transformation', data),
+    api.post<TransformationJourneyResponse>('/body/transformation', data),
 
   generateEnhancement: (data: BodyScanRequest) =>
     api.post<EnhancementResponse>('/body/enhancement', data),

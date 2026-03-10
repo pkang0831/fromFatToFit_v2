@@ -142,6 +142,9 @@
   },
   "auth": {
     "signInTitle": "Entre na sua conta",
+    "inAppBrowserTitle": "Navegador integrado detectado",
+    "inAppBrowserDesc": "O login com Google não é compatível com navegadores integrados. Abra no Safari ou Chrome para continuar.",
+    "openInBrowser": "Abrir no navegador",
     "createAccount": "Crie sua conta",
     "email": "E-mail",
     "password": "Senha",

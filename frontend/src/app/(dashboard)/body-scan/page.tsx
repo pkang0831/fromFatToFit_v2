@@ -2,12 +2,12 @@
 
 import { useState, useRef, useCallback, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Scan, Crown, Sparkles, Coins, ArrowRight, Dumbbell, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Scan, Crown, Sparkles, Coins, ArrowRight, Dumbbell } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input, Select } from '@/components/ui';
-import { ShareButtons } from '@/components/ui/ShareButtons';
 import { ShareableResultCard } from '@/components/features/ShareableResultCard';
 import { WeeklyRescanPrompt } from '@/components/features/WeeklyRescanPrompt';
+import { JourneyResult } from '@/components/features/JourneyResult';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -15,7 +15,7 @@ import { bodyApi, paymentApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { AxiosError } from 'axios';
 import dynamic from 'next/dynamic';
-import type { BodyScanRequest, BodyFatEstimateResponse, PercentileResponse, TransformationResponse, GapToGoalResponse } from '@/types/api';
+import type { BodyScanRequest, BodyFatEstimateResponse, PercentileResponse, TransformationJourneyResponse, GapToGoalResponse } from '@/types/api';
 
 const BellCurveChart = dynamic(
   () => import('@/components/charts/BellCurveChart').then(m => m.BellCurveChart),
@@ -47,8 +47,7 @@ export default function BodyScanPage() {
   const [journeyImage, setJourneyImage] = useState<string | null>(null);
   const [journeyFile, setJourneyFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [journeyResult, setJourneyResult] = useState<TransformationResponse | null>(null);
-  const [journeyStep, setJourneyStep] = useState(0);
+  const [journeyResult, setJourneyResult] = useState<TransformationJourneyResponse | null>(null);
 
   // Muscle gain inputs
   const [muscleGains, setMuscleGains] = useState({
@@ -64,7 +63,7 @@ export default function BodyScanPage() {
   const journeyCost = 30;
 
   const [formDefaults, setFormDefaults] = useState({
-    gender: '', age: '', height_cm: '', ethnicity: ''
+    gender: '', age: '', height_cm: '', ethnicity: '', weight_kg: '', activity_level: '',
   });
 
   useEffect(() => {
@@ -73,7 +72,9 @@ export default function BodyScanPage() {
         gender: user.gender ? user.gender.toLowerCase() : '',
         age: user.age ? String(user.age) : '',
         height_cm: user.height_cm ? String(user.height_cm) : '',
-        ethnicity: user.ethnicity || ''
+        ethnicity: user.ethnicity || '',
+        weight_kg: user.weight_kg ? String(user.weight_kg) : '',
+        activity_level: user.activity_level || '',
       });
     }
   }, [user]);
@@ -202,34 +203,30 @@ export default function BodyScanPage() {
 
     try {
       const base64 = await compressAndConvertToBase64(journeyFile);
+
       const requestData: BodyScanRequest = {
         image_base64: base64,
         scan_type: 'transformation',
         gender: formData.gender as 'male' | 'female',
         age: formData.age ? Number(formData.age) : undefined,
         target_bf: Number(formData.target_bf),
+        weight_kg: formData.weight_kg ? Number(formData.weight_kg) : undefined,
+        height_cm: formData.height_cm ? Number(formData.height_cm) : undefined,
+        activity_level: (formData.activity_level as string) || undefined,
+        muscle_gains: muscleGains,
       };
 
       const response = await bodyApi.generateTransformation(requestData);
       setJourneyResult(response.data);
-      setJourneyStep(0);
 
-      // Auto-save goal for gap-to-goal loop
-      if (response.data.transformed_image_url) {
-        bodyApi.saveGoal({
-          goal_image_url: response.data.transformed_image_url,
-          target_bf: Number(formData.target_bf),
-        }).catch(() => {});
-        fetchGapData();
-      }
-
+      fetchGapData();
       await refreshLimits();
       await fetchCredits();
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
-        setError(err.response?.status === 402
+        setError(err.response?.data?.detail || (err.response?.status === 402
           ? 'Not enough credits for journey generation.'
-          : err.response?.data?.detail || 'Journey generation failed');
+          : 'Journey generation failed'));
       } else {
         setError(err instanceof Error ? err.message : 'Journey generation failed');
       }
@@ -519,6 +516,17 @@ export default function BodyScanPage() {
                       </Select>
                       <Input name="age" label="Age" type="number" placeholder="30" defaultValue={formDefaults.age} />
                     </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <Input name="weight_kg" label="Weight (kg)" type="number" step="0.1" min="30" max="300" placeholder="75" defaultValue={formDefaults.weight_kg} />
+                      <Input name="height_cm" label="Height (cm)" type="number" step="1" min="120" max="250" placeholder="175" defaultValue={formDefaults.height_cm} />
+                      <Select name="activity_level" label="Activity" defaultValue={formDefaults.activity_level || 'moderate'}>
+                        <option value="sedentary">Sedentary</option>
+                        <option value="light">Light</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="active">Active</option>
+                        <option value="very_active">Very Active</option>
+                      </Select>
+                    </div>
 
                     {/* Goal Settings */}
                     <div className="p-4 bg-surfaceAlt rounded-xl border border-border space-y-4">
@@ -575,6 +583,11 @@ export default function BodyScanPage() {
                       <Sparkles className="h-5 w-5 mr-2" />
                       Generate My Journey ({journeyCost} credits)
                     </Button>
+                    {isGenerating && (
+                      <p className="text-center text-sm text-text-secondary animate-pulse">
+                        Generating 4 stage images + diet &amp; workout plan... this may take up to 2 minutes.
+                      </p>
+                    )}
 
                     {!canJourney && (
                       <Button type="button" variant="secondary" onClick={() => router.push('/upgrade')} className="w-full">
@@ -585,115 +598,11 @@ export default function BodyScanPage() {
                   </form>
                 </div>
               ) : (
-                /* Journey Result */
-                <div className="space-y-6">
-                  {/* Current vs Goal */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-text-secondary mb-2">Current</p>
-                      <Image src={journeyImage} alt="Current" width={800} height={600} className="w-full rounded-lg" unoptimized />
-                      {journeyResult.current_bf != null && (
-                        <p className="text-center text-sm text-text-secondary mt-2">{journeyResult.current_bf.toFixed(1)}% body fat</p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-text-secondary mb-2">Goal Preview</p>
-                      <Image src={journeyResult.transformed_image_url} alt="Goal" width={800} height={600} className="w-full rounded-lg border-2 border-primary/30" unoptimized />
-                      {journeyResult.target_bf != null && (
-                        <p className="text-center text-sm text-primary font-medium mt-2">{journeyResult.target_bf.toFixed(1)}% body fat</p>
-                      )}
-                      <ShareButtons imageUrl={journeyResult.transformed_image_url} />
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="p-3 bg-surfaceAlt rounded-lg text-center">
-                      <p className="text-xs text-text-secondary">Direction</p>
-                      <p className="text-lg font-bold text-text capitalize">{journeyResult.direction}</p>
-                    </div>
-                    {journeyResult.muscle_gain_estimate && (
-                      <div className="p-3 bg-surfaceAlt rounded-lg text-center">
-                        <p className="text-xs text-text-secondary">Est. Muscle Gain</p>
-                        <p className="text-lg font-bold text-text">+{journeyResult.muscle_gain_estimate}</p>
-                      </div>
-                    )}
-                    <div className="p-3 bg-surfaceAlt rounded-lg text-center">
-                      <p className="text-xs text-text-secondary">Timeline</p>
-                      <p className="text-lg font-bold text-text">{journeyResult.estimated_timeline_weeks} weeks</p>
-                    </div>
-                  </div>
-
-                  {/* Progress Steps (using progress_frames if available) */}
-                  {journeyResult.progress_frames && journeyResult.progress_frames.length > 0 && (
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-text">Your 10-Step Journey</h3>
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => setJourneyStep(Math.max(0, journeyStep - 1))}
-                          disabled={journeyStep === 0}
-                          className="p-2 rounded-lg bg-surfaceAlt border border-border disabled:opacity-30"
-                        >
-                          <ChevronLeft className="h-5 w-5 text-text" />
-                        </button>
-                        <div className="flex-1 text-center">
-                          <p className="text-sm font-medium text-primary mb-2">
-                            Step {journeyStep + 1} of {journeyResult.progress_frames.length}
-                          </p>
-                          <Image
-                            src={journeyResult.progress_frames[journeyStep].image_b64}
-                            alt={`Step ${journeyStep + 1}`}
-                            width={600}
-                            height={400}
-                            className="w-full max-h-80 object-contain rounded-lg"
-                            unoptimized
-                          />
-                        </div>
-                        <button
-                          onClick={() => setJourneyStep(Math.min(journeyResult.progress_frames!.length - 1, journeyStep + 1))}
-                          disabled={journeyStep === journeyResult.progress_frames.length - 1}
-                          className="p-2 rounded-lg bg-surfaceAlt border border-border disabled:opacity-30"
-                        >
-                          <ChevronRight className="h-5 w-5 text-text" />
-                        </button>
-                      </div>
-                      {/* Step indicators */}
-                      <div className="flex justify-center gap-1.5">
-                        {journeyResult.progress_frames.map((_, i) => (
-                          <button
-                            key={i}
-                            onClick={() => setJourneyStep(i)}
-                            className={`w-2.5 h-2.5 rounded-full transition-all ${
-                              i === journeyStep ? 'bg-primary scale-125' : i < journeyStep ? 'bg-primary/40' : 'bg-border'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Recommendations */}
-                  {journeyResult.recommendations && journeyResult.recommendations.length > 0 && (
-                    <div className="p-4 bg-surfaceAlt rounded-xl border border-border">
-                      <h3 className="font-semibold text-text mb-3">What It Takes</h3>
-                      <ul className="space-y-2">
-                        {journeyResult.recommendations.map((rec, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-text-secondary">
-                            <span className="text-primary font-bold">{i + 1}.</span>
-                            {rec}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* New Journey */}
-                  <div className="text-center">
-                    <Button variant="secondary" size="sm" onClick={() => { setJourneyImage(null); setJourneyFile(null); setJourneyResult(null); setPhotoConfirmed(false); }}>
-                      Start New Journey
-                    </Button>
-                  </div>
-                </div>
+                <JourneyResult
+                  result={journeyResult}
+                  originalImage={journeyImage}
+                  onReset={() => { setJourneyImage(null); setJourneyFile(null); setJourneyResult(null); setPhotoConfirmed(false); }}
+                />
               )}
             </CardContent>
           </Card>

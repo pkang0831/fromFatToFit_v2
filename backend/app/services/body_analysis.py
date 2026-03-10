@@ -111,33 +111,6 @@ def calculate_percentile(body_fat: float, age: int, gender: str, ethnicity: str)
         raise
 
 
-def estimate_transformation_timeline(current_bf: float, target_bf: float, is_aggressive: bool = False) -> int:
-    """
-    Estimate weeks needed for body fat reduction
-    
-    Args:
-        current_bf: Current body fat %
-        target_bf: Target body fat %
-        is_aggressive: Whether using aggressive approach
-        
-    Returns:
-        Estimated weeks
-    """
-    bf_reduction = current_bf - target_bf
-    
-    # Healthy fat loss: 0.5-1% body fat per month
-    # Aggressive: 1-1.5% per month
-    if is_aggressive:
-        rate_per_month = 1.25
-    else:
-        rate_per_month = 0.75
-    
-    months = bf_reduction / rate_per_month
-    weeks = int(months * 4.33)  # Average weeks per month
-    
-    return max(4, weeks)  # Minimum 4 weeks
-
-
 def generate_recommendations(body_fat: float, gender: str) -> list:
     """
     Generate personalized recommendations based on body fat percentage

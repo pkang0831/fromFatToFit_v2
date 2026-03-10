@@ -142,6 +142,9 @@
   },
   "auth": {
     "signInTitle": "アカウントにサインイン",
+    "inAppBrowserTitle": "アプリ内ブラウザが検出されました",
+    "inAppBrowserDesc": "アプリ内ブラウザではGoogleログインはサポートされていません。SafariまたはChromeで開いてください。",
+    "openInBrowser": "ブラウザで開く",
     "createAccount": "アカウントを作成",
     "email": "メールアドレス",
     "password": "パスワード",

@@ -1,9 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import type { OAuthProvider } from '@/lib/supabase';
+
+function isInAppBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || navigator.vendor || '';
+  return /FBAN|FBAV|Instagram|Line\/|KakaoTalk|NAVER|Snapchat|Twitter|MicroMessenger|WeChat/i.test(ua);
+}
 
 const providers: { id: OAuthProvider; name: string; icon: React.ReactNode; bg: string; text: string }[] = [
   {
@@ -31,6 +37,17 @@ export function SocialLoginButtons({ className, googleTestId }: SocialLoginButto
   const { loginWithOAuth } = useAuth();
   const { t } = useLanguage();
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
+  const [inAppBrowser, setInAppBrowser] = useState(false);
+
+  useEffect(() => {
+    setInAppBrowser(isInAppBrowser());
+  }, []);
+
+  const handleOpenInSystemBrowser = () => {
+    const url = window.location.href;
+    window.open(url, '_system');
+    window.location.href = url;
+  };
 
   const handleOAuth = async (provider: OAuthProvider) => {
     setLoadingProvider(provider);
@@ -40,6 +57,28 @@ export function SocialLoginButtons({ className, googleTestId }: SocialLoginButto
       setLoadingProvider(null);
     }
   };
+
+  if (inAppBrowser) {
+    return (
+      <div className={className}>
+        <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg text-center space-y-3">
+          <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+            {t('auth.inAppBrowserTitle')}
+          </p>
+          <p className="text-xs text-amber-700 dark:text-amber-300">
+            {t('auth.inAppBrowserDesc')}
+          </p>
+          <button
+            type="button"
+            onClick={handleOpenInSystemBrowser}
+            className="w-full px-4 py-3 bg-primary text-white rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors"
+          >
+            {t('auth.openInBrowser')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={className}>
