@@ -7,8 +7,13 @@ from .prompts import FOOD_ANALYSIS_PROMPT
 
 logger = logging.getLogger(__name__)
 
-# Configure Gemini client
-client = genai.Client(api_key=settings.gemini_api_key)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=settings.gemini_api_key)
+    return _client
 
 
 async def analyze_food_image_gemini(image_base64: str) -> Dict[str, Any]:
@@ -28,7 +33,7 @@ async def analyze_food_image_gemini(image_base64: str) -> Dict[str, Any]:
         import base64
         
         # Use Gemini 2.5 Flash (latest stable) for cost efficiency
-        response = client.models.generate_content(
+        response = _get_client().models.generate_content(
             model='gemini-2.5-flash',
             contents=[
                 types.Content(

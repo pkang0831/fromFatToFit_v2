@@ -12,8 +12,13 @@ from ..config import settings
 
 logger = logging.getLogger(__name__)
 
-# Configure Gemini client
-client = genai.Client(api_key=settings.gemini_api_key)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=settings.gemini_api_key)
+    return _client
 
 
 async def estimate_body_fat_percentage(image_base64: str, gender: str, age: int) -> Dict[str, Any]:
@@ -52,7 +57,7 @@ Output ONLY valid JSON (no markdown):
 Response:"""
 
         # Prepare image data
-        response = client.models.generate_content(
+        response = _get_client().models.generate_content(
             model='gemini-2.5-flash',
             contents=[
                 types.Content(

@@ -8,11 +8,16 @@ from ..config import settings
 
 logger = logging.getLogger(__name__)
 
-# Grok API is compatible with OpenAI SDK
-grok_client = OpenAI(
-    api_key=settings.grok_api_key,
-    base_url="https://api.x.ai/v1"
-)
+_grok_client = None
+
+def _get_grok_client():
+    global _grok_client
+    if _grok_client is None:
+        _grok_client = OpenAI(
+            api_key=settings.grok_api_key or "placeholder",
+            base_url="https://api.x.ai/v1"
+        )
+    return _grok_client
 
 
 async def estimate_body_fat_percentage(image_base64: str, gender: str, age: int) -> Dict[str, Any]:
@@ -49,7 +54,7 @@ Return ONLY a valid JSON object (no markdown, no code blocks):
 
 Response:"""
 
-        response = grok_client.chat.completions.create(
+        response = _get_grok_client().chat.completions.create(
             model="grok-2-vision-1212",
             messages=[
                 {

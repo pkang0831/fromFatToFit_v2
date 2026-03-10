@@ -18,7 +18,13 @@ def _b64_to_bytes(data: str) -> io.BytesIO:
 
 logger = logging.getLogger(__name__)
 
-client = AsyncOpenAI(api_key=settings.openai_api_key)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = AsyncOpenAI(api_key=settings.openai_api_key or None)
+    return _client
 
 FASHION_PROMPT = """You are an elite fashion stylist who tailors every recommendation to the client's unique facial structure, body proportions, and personal color palette.
 
@@ -149,7 +155,7 @@ async def recommend_outfits(
             season=season,
         )
 
-        response = await client.chat.completions.create(
+        response = await _get_client().chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": prompt},
@@ -200,7 +206,7 @@ async def generate_outfit_images(
             if image_base64:
                 image_bytes = _b64_to_bytes(image_base64)
 
-                response = await client.images.edit(
+                response = await _get_client().images.edit(
                     model="gpt-image-1",
                     image=image_bytes,
                     prompt=f"Dress this person in: {prompt}. Keep face recognizable. Professional fashion photo.",
@@ -208,7 +214,7 @@ async def generate_outfit_images(
                     size="1024x1024",
                 )
             else:
-                response = await client.images.generate(
+                response = await _get_client().images.generate(
                     model="gpt-image-1",
                     prompt=f"Fashion photo: {prompt}",
                     n=1,
