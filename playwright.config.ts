@@ -30,18 +30,21 @@ export default defineConfig({
       testMatch: /api\/.*/,
     },
   ],
-  webServer: [
-    {
-      command: 'cd frontend && npm run dev',
-      url: 'http://localhost:3000',
-      reuseExistingServer: true,
-      timeout: 30000,
-    },
-    {
-      command: 'cd backend && source venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000',
-      url: 'http://localhost:8000/health',
-      reuseExistingServer: true,
-      timeout: 30000,
-    },
-  ],
+  webServer: process.env.CI
+    ? undefined
+    : [
+        {
+          command: 'cd frontend && npm run dev',
+          url: 'http://localhost:3000',
+          reuseExistingServer: true,
+          timeout: 30000,
+        },
+        {
+          command:
+            'cd backend && source venv/bin/activate && uvicorn app.main:app --host 0.0.0.0 --port 8000',
+          url: 'http://localhost:8000/health',
+          reuseExistingServer: true,
+          timeout: 30000,
+        },
+      ],
 });
