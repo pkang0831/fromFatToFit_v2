@@ -8,8 +8,7 @@ test.describe('Smoke Tests @smoke', () => {
       await expect(page).toHaveURL('/');
 
       await expect(page.locator('h1')).toBeVisible();
-      await expect(page.getByRole('link', { name: /get started free|무료로 시작/i })).toBeVisible();
-      await expect(page.getByRole('link', { name: /sign in|로그인/i }).first()).toBeVisible();
+      await expect(page.locator('[data-testid="hero-cta"]')).toBeVisible();
 
       const headings = await page.locator('h2').allTextContents();
       expect(headings.length).toBeGreaterThanOrEqual(5);
@@ -44,7 +43,7 @@ test.describe('Smoke Tests @smoke', () => {
     test('FAQ accordion opens and closes', async ({ page }) => {
       await page.goto('/');
       await page.waitForTimeout(1500);
-      const firstFaq = page.locator('button').filter({ hasText: /body fat scan|체지방 스캔/i }).first();
+      const firstFaq = page.locator('button').filter({ hasText: /photos|사진/i }).first();
       await firstFaq.waitFor({ state: 'attached', timeout: 5000 });
       await firstFaq.scrollIntoViewIfNeeded();
       await firstFaq.click();
@@ -64,45 +63,26 @@ test.describe('Smoke Tests @smoke', () => {
   });
 
   test.describe('Login Page', () => {
-    test('renders login form', async ({ page }) => {
+    test('renders login page with Google OAuth', async ({ page }) => {
       await page.goto('/login');
       await expect(page.locator('h1')).toContainText(/Devenira/);
-      await expect(page.getByRole('textbox').first()).toBeVisible();
-      await expect(page.getByRole('button', { name: /sign in|로그인/i })).toBeVisible();
       await expect(page.getByRole('button', { name: /google/i })).toBeVisible();
-    });
-
-    test('shows validation on empty submit', async ({ page }) => {
-      await page.goto('/login');
-      const emailInput = page.getByRole('textbox').first();
-      await expect(emailInput).toHaveAttribute('required', '');
-    });
-
-    test('create account link navigates to register', async ({ page }) => {
-      await page.goto('/login');
-      await page.getByRole('link', { name: /create one|만들기/i }).click();
-      await expect(page).toHaveURL('/register');
     });
   });
 
   test.describe('Register Page', () => {
-    test('renders all form fields and consent checkboxes', async ({ page }) => {
+    test('renders register page with Google OAuth', async ({ page }) => {
       await page.goto('/register');
-
       await expect(page.locator('h1')).toContainText(/Devenira/);
-      const checkboxes = page.getByRole('checkbox');
-      await expect(checkboxes).toHaveCount(4);
-
-      await expect(page.getByRole('button', { name: /create account|계정 만들기/i })).toBeVisible();
       await expect(page.getByRole('button', { name: /google/i })).toBeVisible();
     });
 
-    test('consent checkboxes are required', async ({ page }) => {
+    test('has link back to login', async ({ page }) => {
       await page.goto('/register');
-      const checkboxes = page.getByRole('checkbox');
-      for (let i = 0; i < 4; i++) {
-        await expect(checkboxes.nth(i)).toHaveAttribute('required', '');
-      }
+      const signInLink = page.getByRole('link', { name: /sign in|로그인/i });
+      await expect(signInLink).toBeVisible();
+      await signInLink.click();
+      await expect(page).toHaveURL('/login');
     });
   });
 
@@ -132,7 +112,7 @@ test.describe('Smoke Tests @smoke', () => {
       await koButton.click();
       await page.waitForTimeout(500);
 
-      await expect(page.locator('h1')).toContainText(/변화하다/);
+      await expect(page.locator('h1')).toContainText(/미래 몸/);
 
       await langButton.scrollIntoViewIfNeeded();
       await langButton.click();
@@ -140,7 +120,7 @@ test.describe('Smoke Tests @smoke', () => {
       await enButton.click();
       await page.waitForTimeout(500);
 
-      await expect(page.locator('h1')).toContainText(/Transformed/);
+      await expect(page.locator('h1')).toContainText(/Future Body/);
     });
   });
 
