@@ -49,13 +49,14 @@ jobs:
         run: |
           source venv/bin/activate
           uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-          sleep 5
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ENVIRONMENT: development
+      - name: Wait for backend
+        run: npx wait-on http://127.0.0.1:8000/health --timeout 30000
       - name: Run API tests
         run: npx playwright test --project=api
       - uses: actions/upload-artifact@v4
@@ -97,7 +98,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3000
       - name: Wait for frontend
-        run: npx wait-on http://localhost:3000 --timeout 60000
+        run: npx wait-on http://127.0.0.1:3000 --timeout 60000
       - name: Run E2E smoke tests
         run: npx playwright test --project=chromium
       - uses: actions/upload-artifact@v4
