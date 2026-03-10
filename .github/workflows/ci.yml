@@ -69,7 +69,7 @@ jobs:
           ENVIRONMENT: development
       - name: Wait for backend
         run: |
-          npx wait-on http://127.0.0.1:8000/health --timeout 30000 || {
+          npx wait-on http-get://127.0.0.1:8000/health --timeout 30000 || {
             echo "=== Backend failed to start. Logs: ==="
             cat backend.log || true
             echo "=== Process status: ==="
@@ -117,7 +117,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_APP_URL: http://localhost:3000
       - name: Wait for frontend
-        run: npx wait-on http://127.0.0.1:3000 --timeout 60000
+        run: npx wait-on http-get://127.0.0.1:3000 --timeout 60000
       - name: Run E2E smoke tests
         run: npx playwright test --project=chromium
       - uses: actions/upload-artifact@v4
