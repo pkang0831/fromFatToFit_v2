@@ -10,7 +10,13 @@ from .prompts import FOOD_ANALYSIS_PROMPT
 
 logger = logging.getLogger(__name__)
 
-client = OpenAI(api_key=settings.openai_api_key)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = OpenAI(api_key=settings.openai_api_key or None)
+    return _client
 
 
 async def analyze_food_image(image_base64: str) -> Dict[str, Any]:
@@ -26,7 +32,7 @@ async def analyze_food_image(image_base64: str) -> Dict[str, Any]:
     try:
         prompt = FOOD_ANALYSIS_PROMPT
 
-        response = client.chat.completions.create(
+        response = _get_client().chat.completions.create(
             model="gpt-4o",
             messages=[
                 {
@@ -113,7 +119,7 @@ Return ONLY a valid JSON object (no markdown):
   "overall_feedback": "detailed feedback"
 }}"""
 
-        response = client.chat.completions.create(
+        response = _get_client().chat.completions.create(
             model="gpt-4o",
             messages=[
                 {
@@ -177,7 +183,7 @@ Return ONLY valid JSON (no markdown):
         
         for model_name in models_to_try:
             try:
-                response = client.chat.completions.create(
+                response = _get_client().chat.completions.create(
                     model=model_name,
                     messages=[
                         {
@@ -305,7 +311,7 @@ async def generate_body_transformation(
         image_file = io.BytesIO(image_bytes)
         image_file.name = "body_photo.png"
 
-        response = client.images.edit(
+        response = _get_client().images.edit(
             model="gpt-image-1",
             image=image_file,
             prompt=prompt,
@@ -379,7 +385,7 @@ async def generate_body_enhancement(
         image_file = io.BytesIO(image_bytes)
         image_file.name = "body_photo.png"
 
-        response = client.images.edit(
+        response = _get_client().images.edit(
             model="gpt-image-1",
             image=image_file,
             prompt=prompt,
@@ -414,7 +420,7 @@ async def simple_completion(prompt: str, max_tokens: int = 150) -> str:
         The generated text response
     """
     try:
-        response = client.chat.completions.create(
+        response = _get_client().chat.completions.create(
             model="gpt-4o-mini",  # Cheaper for simple tasks
             messages=[
                 {"role": "system", "content": "You are a friendly and encouraging nutrition coach. Provide concise, motivating advice."},

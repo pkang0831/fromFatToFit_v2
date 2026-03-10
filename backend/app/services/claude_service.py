@@ -8,8 +8,13 @@ from ..config import settings
 
 logger = logging.getLogger(__name__)
 
-# Claude client
-claude_client = Anthropic(api_key=settings.anthropic_api_key)
+_claude_client = None
+
+def _get_claude_client():
+    global _claude_client
+    if _claude_client is None:
+        _claude_client = Anthropic(api_key=settings.anthropic_api_key or None)
+    return _claude_client
 
 
 async def estimate_body_fat_percentage(image_base64: str, gender: str, age: int) -> Dict[str, Any]:
@@ -47,7 +52,7 @@ Return ONLY a valid JSON object (no markdown, no code blocks):
 Response:"""
 
         # Claude API only supports synchronous calls
-        response = claude_client.messages.create(
+        response = _get_claude_client().messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=500,
             temperature=0.2,

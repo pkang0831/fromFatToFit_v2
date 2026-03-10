@@ -7,7 +7,13 @@ from .prompts import FOOD_ANALYSIS_PROMPT
 
 logger = logging.getLogger(__name__)
 
-client = Anthropic(api_key=settings.anthropic_api_key)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = Anthropic(api_key=settings.anthropic_api_key or None)
+    return _client
 
 
 async def analyze_food_image_claude(image_base64: str) -> Dict[str, Any]:
@@ -35,7 +41,7 @@ async def analyze_food_image_claude(image_base64: str) -> Dict[str, Any]:
             image_type = "image/webp"
 
         # Use Claude Sonnet for high accuracy
-        response = client.messages.create(
+        response = _get_client().messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=1024,
             messages=[

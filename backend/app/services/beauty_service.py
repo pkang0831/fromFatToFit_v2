@@ -18,7 +18,13 @@ def _b64_to_bytes(data: str) -> io.BytesIO:
 
 logger = logging.getLogger(__name__)
 
-client = AsyncOpenAI(api_key=settings.openai_api_key)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = AsyncOpenAI(api_key=settings.openai_api_key or None)
+    return _client
 
 FACE_ANALYSIS_PROMPT = """You are a professional facial proportion analyst and personal color consultant.
 The user has explicitly consented to receive an honest facial feature analysis for personal styling and cosmetics purposes.
@@ -197,7 +203,7 @@ async def analyze_face(image_base64: str, gender: str = "female") -> Dict[str, A
     for model in MODELS_TO_TRY:
         try:
             logger.info(f"Trying beauty analysis with {model}")
-            response = await client.chat.completions.create(
+            response = await _get_client().chat.completions.create(
                 model=model,
                 messages=messages,
                 max_tokens=3500,
@@ -249,7 +255,7 @@ async def generate_styled_images(
                 f"Professional photography quality, studio lighting."
             )
 
-            response = await client.images.edit(
+            response = await _get_client().images.edit(
                 model="gpt-image-1",
                 image=image_bytes,
                 prompt=prompt,
