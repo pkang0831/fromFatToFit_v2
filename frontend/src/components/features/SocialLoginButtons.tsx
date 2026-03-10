@@ -11,6 +11,11 @@ function isInAppBrowser(): boolean {
   return /FBAN|FBAV|Instagram|Line\/|KakaoTalk|NAVER|Snapchat|Twitter|MicroMessenger|WeChat/i.test(ua);
 }
 
+function isAndroid(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
 const providers: { id: OAuthProvider; name: string; icon: React.ReactNode; bg: string; text: string }[] = [
   {
     id: 'google',
@@ -38,6 +43,7 @@ export function SocialLoginButtons({ className, googleTestId }: SocialLoginButto
   const { t } = useLanguage();
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
   const [inAppBrowser, setInAppBrowser] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setInAppBrowser(isInAppBrowser());
@@ -45,8 +51,32 @@ export function SocialLoginButtons({ className, googleTestId }: SocialLoginButto
 
   const handleOpenInSystemBrowser = () => {
     const url = window.location.href;
-    window.open(url, '_system');
-    window.location.href = url;
+    if (isAndroid()) {
+      const intentUrl = `intent://${url.replace(/https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end`;
+      window.location.href = intentUrl;
+      return;
+    }
+    window.location.href = `googlechrome://${url.replace(/https?:\/\//, '')}`;
+    setTimeout(() => { window.location.href = url; }, 500);
+  };
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const textArea = document.createElement('textarea');
+      textArea.value = window.location.href;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleOAuth = async (provider: OAuthProvider) => {
@@ -75,6 +105,16 @@ export function SocialLoginButtons({ className, googleTestId }: SocialLoginButto
           >
             {t('auth.openInBrowser')}
           </button>
+          <button
+            type="button"
+            onClick={handleCopyUrl}
+            className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            {copied ? t('auth.urlCopied') : t('auth.copyUrl')}
+          </button>
+          <p className="text-[11px] text-amber-600 dark:text-amber-400 leading-relaxed">
+            {t('auth.inAppBrowserHint')}
+          </p>
         </div>
       </div>
     );
