@@ -142,6 +142,9 @@
   },
   "auth": {
     "signInTitle": "登录您的账户",
+    "inAppBrowserTitle": "检测到应用内浏览器",
+    "inAppBrowserDesc": "应用内浏览器不支持Google登录。请在Safari或Chrome中打开。",
+    "openInBrowser": "在浏览器中打开",
     "createAccount": "创建您的账户",
     "email": "邮箱",
     "password": "密码",

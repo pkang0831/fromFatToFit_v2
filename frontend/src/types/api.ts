@@ -192,6 +192,9 @@ export interface BodyScanRequest {
   target_bf?: number;
   target_bf_reduction?: number;
   enhancement_level?: 'subtle' | 'natural' | 'studio';
+  muscle_gains?: MuscleGainsInput;
+  weight_kg?: number;
+  activity_level?: string;
 }
 
 export interface BodyFatEstimateResponse {
@@ -232,6 +235,82 @@ export interface TransformationResponse {
   recommendations: string[];
   progress_frames?: ProgressFrame[];
   scan_id: string;
+}
+
+// ── Transformation Journey types ───────────────────────────────────────────
+
+export interface MuscleGainsInput {
+  arms: number;
+  chest: number;
+  back: number;
+  shoulders: number;
+  legs: number;
+  core: number;
+}
+
+export interface StageDescriptor {
+  face: string;
+  waist: string;
+  abdomen: string;
+  chest: string;
+  arms: string;
+  shoulders: string;
+  legs: string;
+  overall: string;
+}
+
+export interface TransformationStage {
+  stage_number: number;
+  label: string;
+  week: number;
+  bf_pct: number;
+  weight_kg?: number;
+  lean_mass_delta_kg: number;
+  fat_mass_delta_kg: number;
+  body_state: StageDescriptor;
+  image_url?: string;
+  warnings: string[];
+}
+
+export interface NutritionPlanResponse {
+  daily_calories: number;
+  protein_g: number;
+  carbs_g_min: number;
+  carbs_g_max: number;
+  fat_g_min: number;
+  fat_g_max: number;
+  meal_structure: string[];
+  weekly_adjustment: string;
+  checkin_cadence: string;
+  stage_notes: Record<string, string>;
+  assumptions: string[];
+  disclaimer: string;
+}
+
+export interface WorkoutPlanResponse {
+  split_type: string;
+  sessions_per_week: number;
+  exercises: Array<{ name: string; muscle_group: string; type: string }>;
+  sets_reps_guidance: string;
+  progression_scheme: string;
+  cardio_guidance: string;
+  recovery_notes: string;
+  deload_protocol: string;
+  stage_adjustments: Record<string, string>;
+}
+
+export interface TransformationJourneyResponse {
+  mode: string;
+  current_bf: number;
+  target_bf: number;
+  target_bf_clamped?: number;
+  total_weeks: number;
+  stages: TransformationStage[];
+  nutrition: NutritionPlanResponse;
+  workout: WorkoutPlanResponse;
+  warnings: string[];
+  disclaimer: string;
+  scan_id?: string;
 }
 
 export interface EnhancementResponse {

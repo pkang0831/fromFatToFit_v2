@@ -142,6 +142,9 @@
   },
   "auth": {
     "signInTitle": "Melden Sie sich in Ihrem Konto an",
+    "inAppBrowserTitle": "In-App-Browser erkannt",
+    "inAppBrowserDesc": "Die Google-Anmeldung wird in In-App-Browsern nicht unterstützt. Bitte öffnen Sie die Seite in Safari oder Chrome.",
+    "openInBrowser": "Im Browser öffnen",
     "createAccount": "Erstellen Sie Ihr Konto",
     "email": "E-Mail",
     "password": "Passwort",

@@ -142,6 +142,9 @@
   },
   "auth": {
     "signInTitle": "سجّل الدخول إلى حسابك",
+    "inAppBrowserTitle": "تم اكتشاف متصفح مدمج",
+    "inAppBrowserDesc": "لا يُدعم تسجيل الدخول بجوجل في المتصفحات المدمجة. يرجى الفتح في Safari أو Chrome.",
+    "openInBrowser": "فتح في المتصفح",
     "createAccount": "أنشئ حسابك",
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",

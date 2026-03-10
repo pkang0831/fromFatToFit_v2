@@ -3,6 +3,15 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 
+class MuscleGainsInput(BaseModel):
+    arms: float = 0
+    chest: float = 0
+    back: float = 0
+    shoulders: float = 0
+    legs: float = 0
+    core: float = 0
+
+
 class BodyScanRequest(BaseModel):
     image_base64: str
     scan_type: str = Field(..., description="bodyfat, percentile, or transformation")
@@ -13,6 +22,9 @@ class BodyScanRequest(BaseModel):
     target_bf_reduction: Optional[float] = Field(None, description="Deprecated — use target_bf instead")
     target_bf: Optional[float] = Field(None, description="Target body fat percentage")
     enhancement_level: Optional[str] = Field(None, description="subtle, natural, or studio")
+    muscle_gains: Optional[MuscleGainsInput] = None
+    weight_kg: Optional[float] = None
+    activity_level: Optional[str] = None
 
 
 class BodyFatEstimateResponse(BaseModel):
@@ -141,3 +153,70 @@ class UserProfileUpdate(BaseModel):
     consent_sensitive_data_at: Optional[str] = None
     consent_age_verified_at: Optional[str] = None
     consent_version: Optional[str] = None
+
+
+# ── Transformation Journey response models ──────────────────────────────────
+
+class StageDescriptorResponse(BaseModel):
+    face: str
+    waist: str
+    abdomen: str
+    chest: str
+    arms: str
+    shoulders: str
+    legs: str
+    overall: str
+
+
+class TransformationStageResponse(BaseModel):
+    stage_number: int
+    label: str
+    week: int
+    bf_pct: float
+    weight_kg: Optional[float] = None
+    lean_mass_delta_kg: float = 0
+    fat_mass_delta_kg: float = 0
+    body_state: StageDescriptorResponse
+    image_url: Optional[str] = None
+    warnings: List[str] = []
+
+
+class NutritionPlanResponse(BaseModel):
+    daily_calories: int
+    protein_g: int
+    carbs_g_min: int
+    carbs_g_max: int
+    fat_g_min: int
+    fat_g_max: int
+    meal_structure: List[str]
+    weekly_adjustment: str
+    checkin_cadence: str
+    stage_notes: Dict[str, str]
+    assumptions: List[str]
+    disclaimer: str
+
+
+class WorkoutPlanResponse(BaseModel):
+    split_type: str
+    sessions_per_week: int
+    exercises: List[Dict[str, Any]]
+    sets_reps_guidance: str
+    progression_scheme: str
+    cardio_guidance: str
+    recovery_notes: str
+    deload_protocol: str
+    stage_adjustments: Dict[str, str]
+
+
+class TransformationJourneyResponse(BaseModel):
+    mode: str
+    current_bf: float
+    target_bf: float
+    target_bf_clamped: Optional[float] = None
+    total_weeks: int
+    stages: List[TransformationStageResponse]
+    nutrition: NutritionPlanResponse
+    workout: WorkoutPlanResponse
+    warnings: List[str] = []
+    disclaimer: str
+    scan_id: Optional[str] = None

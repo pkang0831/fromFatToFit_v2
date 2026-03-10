@@ -142,6 +142,9 @@
   },
   "auth": {
     "signInTitle": "Connectez-vous à votre compte",
+    "inAppBrowserTitle": "Navigateur intégré détecté",
+    "inAppBrowserDesc": "La connexion Google n'est pas prise en charge dans les navigateurs intégrés. Veuillez ouvrir dans Safari ou Chrome.",
+    "openInBrowser": "Ouvrir dans le navigateur",
     "createAccount": "Créez votre compte",
     "email": "Adresse e-mail",
     "password": "Mot de passe",

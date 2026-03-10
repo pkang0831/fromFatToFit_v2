@@ -142,6 +142,9 @@
   },
   "auth": {
     "signInTitle": "Inicie sesión en su cuenta",
+    "inAppBrowserTitle": "Navegador integrado detectado",
+    "inAppBrowserDesc": "El inicio de sesión con Google no es compatible con navegadores integrados. Abra en Safari o Chrome para continuar.",
+    "openInBrowser": "Abrir en el navegador",
     "createAccount": "Cree su cuenta",
     "email": "Correo electrónico",
     "password": "Contraseña",

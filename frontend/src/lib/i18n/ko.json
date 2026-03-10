@@ -136,6 +136,9 @@
   },
   "auth": {
     "signInTitle": "계정에 로그인하세요",
+    "inAppBrowserTitle": "인앱 브라우저가 감지되었습니다",
+    "inAppBrowserDesc": "인앱 브라우저에서는 Google 로그인이 지원되지 않습니다. Safari 또는 Chrome에서 열어주세요.",
+    "openInBrowser": "브라우저에서 열기",
     "createAccount": "계정을 만드세요",
     "email": "이메일",
     "password": "비밀번호",

@@ -137,6 +137,9 @@
   },
   "auth": {
     "signInTitle": "Sign in to your account",
+    "inAppBrowserTitle": "In-app browser detected",
+    "inAppBrowserDesc": "Google sign-in is not supported in in-app browsers. Please open in Safari or Chrome to continue.",
+    "openInBrowser": "Open in Browser",
     "createAccount": "Create your account",
     "email": "Email",
     "password": "Password",

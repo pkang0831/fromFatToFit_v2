@@ -193,6 +193,7 @@ async def get_credit_balance(user_id: str, is_premium: bool = False) -> Dict[str
             "body_fat_scan": 0 if is_premium else 10,
             "percentile_scan": 0 if is_premium else 10,
             "transformation": 30,
+            "journey": 100,
             "enhancement": 50,
             "region_transform": 15,
             "beauty_scan": 10,

@@ -9,15 +9,22 @@ from ..schemas.body_schemas import (
     SegmentRequest, SegmentResponse,
     RegionTransformRequest, RegionTransformResponse,
     GapToGoalResponse, ScanHistoryPoint, SaveGoalRequest,
+    TransformationJourneyResponse, TransformationStageResponse,
+    StageDescriptorResponse, NutritionPlanResponse, WorkoutPlanResponse,
 )
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services import openai_service, grok_service, claude_service, gemini_body_service
 from ..services import replicate_service
 from ..services.sam_service import segment_body_part
-from ..services.body_analysis import calculate_percentile, estimate_transformation_timeline, generate_recommendations
-from ..services.usage_limiter import check_usage_limit, increment_usage
-from ..services.payment_service import check_premium_status
+from ..services.body_analysis import calculate_percentile, generate_recommendations
+from ..services.transformation_planner import build_plan
+from ..services.transformation_types import MuscleGainSpec
+from ..services.journey_telemetry import (
+    JourneyRequestRecord, start_timer, elapsed_ms, record_journey, get_counters,
+)
+from ..services.usage_limiter import check_usage_limit, increment_usage, get_credit_balance
+from ..services.payment_service import check_premium_status, deduct_credits
 from ..config import settings
 from ..rate_limit import limiter
 
@@ -258,91 +265,140 @@ async def calculate_body_percentile(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Percentile calculation failed")
 
 
-@router.post("/transformation", response_model=TransformationResponse)
-@limiter.limit("5/minute")
-async def generate_transformation_preview(
+@router.post("/transformation", response_model=TransformationJourneyResponse)
+@limiter.limit("3/minute")
+async def generate_transformation_journey(
     request: Request,
     scan_request: BodyScanRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
-    """Generate body transformation preview using Replicate FLUX Kontext Pro (Premium only)"""
+    """Generate a multi-stage body transformation journey with diet + workout plans."""
+    t_start = start_timer()
+    rec = JourneyRequestRecord(user_id=current_user.get("id", ""))
     try:
         if not scan_request.gender:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Gender is required"
+                detail="Gender is required",
             )
         if not scan_request.target_bf:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Target body fat percentage is required"
+                detail="Target body fat percentage is required",
             )
 
         is_premium = await check_premium_status(current_user["id"])
+        JOURNEY_COST = 30
 
-        try:
-            usage_info = await check_usage_limit(current_user["id"], "transformation", is_premium)
-        except Exception as usage_error:
+        balance = await get_credit_balance(current_user["id"], is_premium)
+        if not is_premium and balance["total_credits"] < JOURNEY_COST:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Transformation preview requires premium subscription"
+                detail=f"Not enough credits. Need {JOURNEY_COST}, have {balance['total_credits']}.",
             )
 
-        # Step 1: estimate current body fat via AI vision
+        # 1. Estimate current body fat via AI vision
         current_bf = None
-        bf_analysis = {}
+        bf_analysis: dict = {}
         try:
             bf_analysis = await estimate_body_fat_with_fallback(
                 scan_request.image_base64,
                 scan_request.gender,
-                scan_request.age or 30
+                scan_request.age or 30,
             )
             current_bf = bf_analysis["body_fat_percentage"]
         except Exception as bf_err:
             logger.warning(f"Body fat estimation failed, using default: {bf_err}")
 
-        # Fall back to a sensible default so transformation can still proceed
         estimated_bf = current_bf or (18.0 if scan_request.gender == "male" else 25.0)
-        target_bf = scan_request.target_bf
 
-        # Step 2: generate transformation image via Replicate
-        result_data = await replicate_service.generate_body_transformation(
-            image_base64=scan_request.image_base64,
+        # 2. Build muscle gain spec from request
+        mg = MuscleGainSpec()
+        if scan_request.muscle_gains:
+            mg = MuscleGainSpec(
+                arms_kg=scan_request.muscle_gains.arms,
+                chest_kg=scan_request.muscle_gains.chest,
+                back_kg=scan_request.muscle_gains.back,
+                shoulders_kg=scan_request.muscle_gains.shoulders,
+                legs_kg=scan_request.muscle_gains.legs,
+                core_kg=scan_request.muscle_gains.core,
+            )
+
+        # 3. Build the structured transformation plan
+        plan = build_plan(
             current_bf=estimated_bf,
-            target_bf=target_bf,
+            target_bf=scan_request.target_bf,
             gender=scan_request.gender,
+            muscle_gains=mg,
+            weight_kg=scan_request.weight_kg,
+            height_cm=scan_request.height_cm,
+            age=scan_request.age,
+            activity_level=scan_request.activity_level,
         )
 
-        direction = result_data["direction"]
-        timeline_weeks = estimate_transformation_timeline(estimated_bf, target_bf)
+        # 4. Collect prompts for generated stages (1-4)
+        stage_prompts = [
+            (s.stage_number, s.prompt)
+            for s in plan.stages if s.stage_number > 0 and s.prompt
+        ]
 
-        if direction == "cutting":
-            recommendations = [
-                "Maintain calorie deficit of 300-500 kcal/day",
-                "Aim for 0.5-1% bodyweight loss per week",
-                "Increase protein intake to 0.8-1g per lb bodyweight",
-                "Combine resistance training with cardio",
-                "Track progress weekly with photos and measurements",
-            ]
-        else:
-            recommendations = [
-                "Maintain calorie surplus of 200-400 kcal/day",
-                "Aim for 0.25-0.5% bodyweight gain per week",
-                "Increase protein to 1-1.2g per lb bodyweight",
-                "Focus on progressive overload in resistance training",
-                "Track progress monthly with photos and strength benchmarks",
-            ]
+        if not stage_prompts:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="No stages to generate — goal may be too close to current state.",
+            )
 
+        # 5. Generate stage images via Replicate (parallel, original as input)
+        stage_images = await replicate_service.generate_journey_images(
+            scan_request.image_base64, stage_prompts,
+        )
+
+        succeeded_nums = {si["stage_number"] for si in stage_images}
+        all_nums = {n for n, _ in stage_prompts}
+        rec.stages_requested = len(stage_prompts)
+        rec.stages_succeeded = len(stage_images)
+        rec.stages_failed = len(stage_prompts) - len(stage_images)
+        rec.failed_stage_numbers = sorted(all_nums - succeeded_nums)
+        rec.stage_latencies_ms = {si["stage_number"]: si.get("latency_ms", 0) for si in stage_images}
+        rec.mode = plan.mode.value
+        rec.stage_count = len(plan.stages)
+
+        MIN_REQUIRED_STAGES = 3
+        if len(stage_images) < MIN_REQUIRED_STAGES:
+            rec.outcome = "below_threshold"
+            rec.total_latency_ms = elapsed_ms(t_start)
+            record_journey(rec)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=(
+                    f"Only {len(stage_images)} of {len(stage_prompts)} stage images "
+                    f"generated successfully. No credits were charged. Please try again."
+                ),
+            )
+
+        if len(stage_images) < len(stage_prompts):
+            plan.warnings.append(
+                f"{len(stage_prompts) - len(stage_images)} of {len(stage_prompts)} "
+                f"stage image(s) failed to generate."
+            )
+
+        image_map = {si["stage_number"]: si["image_data_uri"] for si in stage_images}
+
+        # 6. Deduct credits (only after enough stages succeeded)
+        await deduct_credits(current_user["id"], JOURNEY_COST, "transformation_journey")
+
+        # 7. Persist to body_scans
         supabase = get_supabase()
         scan_data = {
             "user_id": current_user["id"],
             "scan_type": "transformation",
             "result_data": {
+                "mode": plan.mode.value,
                 "current_bf": estimated_bf,
-                "target_bf": target_bf,
-                "direction": direction,
-                "muscle_gain_estimate": result_data["muscle_gain_estimate"],
-                "timeline_weeks": timeline_weeks,
+                "target_bf": plan.target_bf,
+                "total_weeks": plan.total_weeks,
+                "stage_count": len(plan.stages),
+                "warnings": plan.warnings,
             },
             "ai_analysis": bf_analysis,
             "created_at": datetime.utcnow().isoformat(),
@@ -350,35 +406,107 @@ async def generate_transformation_preview(
         db_result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = db_result.data[0]["id"] if db_result.data else None
 
-        # Auto-save goal to user_profiles for gap-to-goal loop
-        try:
-            supabase.table("user_profiles").update({
-                "goal_image_url": result_data["transformed_image_url"],
-                "target_body_fat_percentage": target_bf,
-            }).eq("id", current_user["id"]).execute()
-        except Exception as goal_err:
-            logger.warning(f"Failed to save goal to profile: {goal_err}")
+        # 8. Auto-save final stage goal image
+        final_image = image_map.get(4)
+        if final_image:
+            try:
+                supabase.table("user_profiles").update({
+                    "goal_image_url": final_image,
+                    "target_body_fat_percentage": plan.target_bf,
+                }).eq("id", current_user["id"]).execute()
+            except Exception:
+                pass
 
-        return TransformationResponse(
-            original_image_url="",
-            transformed_image_url=result_data["transformed_image_url"],
+        # 9. Build response
+        stages_out: list[TransformationStageResponse] = []
+        for s in plan.stages:
+            stages_out.append(TransformationStageResponse(
+                stage_number=s.stage_number,
+                label=s.label,
+                week=s.week,
+                bf_pct=s.bf_pct,
+                weight_kg=s.weight_kg,
+                lean_mass_delta_kg=s.lean_mass_delta_kg,
+                fat_mass_delta_kg=s.fat_mass_delta_kg,
+                body_state=StageDescriptorResponse(
+                    face=s.body_state.face,
+                    waist=s.body_state.waist,
+                    abdomen=s.body_state.abdomen,
+                    chest=s.body_state.chest,
+                    arms=s.body_state.arms,
+                    shoulders=s.body_state.shoulders,
+                    legs=s.body_state.legs,
+                    overall=s.body_state.overall,
+                ),
+                image_url=image_map.get(s.stage_number),
+                warnings=s.warnings,
+            ))
+
+        nutrition_out = NutritionPlanResponse(
+            daily_calories=plan.nutrition.daily_calories,
+            protein_g=plan.nutrition.protein_g,
+            carbs_g_min=plan.nutrition.carbs_g_min,
+            carbs_g_max=plan.nutrition.carbs_g_max,
+            fat_g_min=plan.nutrition.fat_g_min,
+            fat_g_max=plan.nutrition.fat_g_max,
+            meal_structure=plan.nutrition.meal_structure,
+            weekly_adjustment=plan.nutrition.weekly_adjustment,
+            checkin_cadence=plan.nutrition.checkin_cadence,
+            stage_notes={str(k): v for k, v in plan.nutrition.stage_notes.items()},
+            assumptions=plan.nutrition.assumptions,
+            disclaimer=plan.nutrition.disclaimer,
+        )
+
+        workout_out = WorkoutPlanResponse(
+            split_type=plan.workout.split_type,
+            sessions_per_week=plan.workout.sessions_per_week,
+            exercises=plan.workout.exercises,
+            sets_reps_guidance=plan.workout.sets_reps_guidance,
+            progression_scheme=plan.workout.progression_scheme,
+            cardio_guidance=plan.workout.cardio_guidance,
+            recovery_notes=plan.workout.recovery_notes,
+            deload_protocol=plan.workout.deload_protocol,
+            stage_adjustments={str(k): v for k, v in plan.workout.stage_adjustments.items()},
+        )
+
+        rec.outcome = "partial" if rec.stages_failed > 0 else "success"
+        rec.credits_charged = JOURNEY_COST
+        rec.warnings = list(plan.warnings)
+        rec.total_latency_ms = elapsed_ms(t_start)
+        record_journey(rec)
+
+        return TransformationJourneyResponse(
+            mode=plan.mode.value,
             current_bf=estimated_bf,
-            target_bf=target_bf,
-            direction=direction,
-            muscle_gain_estimate=result_data["muscle_gain_estimate"],
-            estimated_timeline_weeks=timeline_weeks,
-            recommendations=recommendations,
-            progress_frames=result_data.get("progress_frames"),
+            target_bf=plan.target_bf,
+            target_bf_clamped=plan.target_bf_clamped,
+            total_weeks=plan.total_weeks,
+            stages=stages_out,
+            nutrition=nutrition_out,
+            workout=workout_out,
+            warnings=plan.warnings,
+            disclaimer=plan.disclaimer,
             scan_id=scan_id,
         )
 
     except HTTPException:
         raise
     except ValueError as e:
+        rec.outcome = "error"
+        rec.error_detail = str(e)
+        rec.total_latency_ms = elapsed_ms(t_start)
+        record_journey(rec)
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
-        logger.error(f"Error generating transformation: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Transformation generation failed")
+        rec.outcome = "error"
+        rec.error_detail = str(e)
+        rec.total_latency_ms = elapsed_ms(t_start)
+        record_journey(rec)
+        logger.error(f"Transformation journey error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Transformation generation failed. Please try again.",
+        )
 
 
 @router.post("/enhancement", response_model=EnhancementResponse)
@@ -397,13 +525,13 @@ async def generate_body_enhancement(
             )
 
         is_premium = await check_premium_status(current_user["id"])
+        ENHANCEMENT_COST = 50
 
-        try:
-            usage_info = await check_usage_limit(current_user["id"], "enhancement", is_premium)
-        except Exception as usage_error:
+        balance = await get_credit_balance(current_user["id"], is_premium)
+        if not is_premium and balance["total_credits"] < ENHANCEMENT_COST:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Body enhancement requires premium subscription"
+                detail=f"Not enough credits. Need {ENHANCEMENT_COST}, have {balance['total_credits']}.",
             )
 
         enhancement_level = scan_request.enhancement_level or "natural"
@@ -415,6 +543,8 @@ async def generate_body_enhancement(
             gender=scan_request.gender,
             enhancement_level=enhancement_level
         )
+
+        await deduct_credits(current_user["id"], ENHANCEMENT_COST, "enhancement")
 
         supabase = get_supabase()
         scan_data = {
@@ -628,13 +758,13 @@ async def transform_body_region(
     """
     try:
         is_premium = await check_premium_status(current_user["id"])
+        REGION_TRANSFORM_COST = 15
 
-        try:
-            await check_usage_limit(current_user["id"], "region_transform", is_premium)
-        except Exception as usage_error:
+        balance = await get_credit_balance(current_user["id"], is_premium)
+        if not is_premium and balance["total_credits"] < REGION_TRANSFORM_COST:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=str(usage_error),
+                detail=f"Not enough credits. Need {REGION_TRANSFORM_COST}, have {balance['total_credits']}.",
             )
 
         result = await replicate_service.controlnet_transform_region(
@@ -664,8 +794,7 @@ async def transform_body_region(
         }
         supabase.table("body_scans").insert(scan_data).execute()
 
-        if not is_premium:
-            await increment_usage(current_user["id"], "region_transform")
+        await deduct_credits(current_user["id"], REGION_TRANSFORM_COST, "region_transform")
 
         return RegionTransformResponse(
             transformed_image_url=result["transformed_image_url"],
@@ -682,3 +811,17 @@ async def transform_body_region(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Region transformation failed. Please try again.",
         )
+
+
+# ---------------------------------------------------------------------------
+# Dev/staging-only telemetry endpoint
+# ---------------------------------------------------------------------------
+
+@router.get("/journey-telemetry")
+async def get_journey_telemetry(
+    current_user: dict = Depends(get_current_user),
+):
+    """Return in-process journey telemetry counters (dev/staging only)."""
+    if settings.is_production:
+        raise HTTPException(status_code=404, detail="Not found")
+    return get_counters()
