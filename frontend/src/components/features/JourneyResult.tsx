@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import {
-  ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp,
   Utensils, Dumbbell, AlertTriangle, Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ShareButtons } from '@/components/ui/ShareButtons';
-import type { TransformationJourneyResponse, TransformationStage } from '@/types/api';
+import type { TransformationJourneyResponse } from '@/types/api';
 
 const MODE_LABELS: Record<string, string> = {
   cut: 'Fat Loss',
@@ -34,14 +34,13 @@ interface Props {
 }
 
 export function JourneyResult({ result, originalImage, onReset }: Props) {
-  const [activeStage, setActiveStage] = useState(0);
   const [showNutrition, setShowNutrition] = useState(false);
   const [showWorkout, setShowWorkout] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   const stages = result.stages;
-  const current: TransformationStage = stages[activeStage];
-  const stageImage = activeStage === 0 ? originalImage : current.image_url;
+  const finalStage = stages[stages.length - 1];
+  const afterImage = finalStage?.image_url;
 
   return (
     <div className="space-y-6">
@@ -70,65 +69,51 @@ export function JourneyResult({ result, originalImage, onReset }: Props) {
         </span>
       </div>
 
-      {/* Stage carousel */}
+      {/* Before / After comparison */}
       <div className="space-y-3">
-        <h3 className="font-semibold text-text">Your Journey</h3>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setActiveStage(Math.max(0, activeStage - 1))}
-            disabled={activeStage === 0}
-            className="p-2 rounded-lg bg-surfaceAlt border border-border disabled:opacity-30"
-          >
-            <ChevronLeft className="h-5 w-5 text-text" />
-          </button>
-
-          <div className="flex-1 text-center">
-            <p className="text-sm font-medium text-primary mb-2">
-              {current.label} — {current.bf_pct.toFixed(1)}% BF
-              {current.week > 0 && ` (Week ${current.week})`}
+        <h3 className="font-semibold text-text">Before &amp; After</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-text-secondary text-center">
+              Now — {result.current_bf.toFixed(1)}% BF
             </p>
-            {stageImage && (
+            <Image
+              src={originalImage}
+              alt="Before"
+              width={400}
+              height={600}
+              className="w-full rounded-lg object-contain max-h-[32rem]"
+              unoptimized
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-text-secondary text-center">
+              Goal — {result.target_bf.toFixed(1)}% BF
+              {result.total_weeks > 0 && ` (${result.total_weeks} wk)`}
+            </p>
+            {afterImage ? (
               <Image
-                src={stageImage}
-                alt={current.label}
-                width={600}
-                height={400}
-                className="w-full max-h-[28rem] object-contain rounded-lg"
+                src={afterImage}
+                alt="After"
+                width={400}
+                height={600}
+                className="w-full rounded-lg object-contain max-h-[32rem]"
                 unoptimized
               />
-            )}
-            {activeStage === stages.length - 1 && stageImage && (
-              <ShareButtons imageUrl={stageImage} />
+            ) : (
+              <div className="w-full aspect-[3/4] bg-surfaceAlt rounded-lg flex items-center justify-center text-text-light text-sm">
+                Image unavailable
+              </div>
             )}
           </div>
-
-          <button
-            onClick={() => setActiveStage(Math.min(stages.length - 1, activeStage + 1))}
-            disabled={activeStage === stages.length - 1}
-            className="p-2 rounded-lg bg-surfaceAlt border border-border disabled:opacity-30"
-          >
-            <ChevronRight className="h-5 w-5 text-text" />
-          </button>
         </div>
-
-        {/* Stage dots */}
-        <div className="flex justify-center gap-1.5">
-          {stages.map((s, i) => (
-            <button
-              key={s.stage_number}
-              onClick={() => setActiveStage(i)}
-              className={`w-2.5 h-2.5 rounded-full transition-all ${
-                i === activeStage ? 'bg-primary scale-125'
-                  : i < activeStage ? 'bg-primary/40'
-                    : 'bg-border'
-              }`}
-            />
-          ))}
-        </div>
+        {afterImage && (
+          <ShareButtons imageUrl={afterImage} />
+        )}
       </div>
 
-      {/* Body-state descriptors for active stage */}
-      {current.stage_number > 0 && (
+      {/* Body composition details */}
+      {finalStage && (
         <div>
           <button
             onClick={() => setShowDetails(!showDetails)}
@@ -139,7 +124,7 @@ export function JourneyResult({ result, originalImage, onReset }: Props) {
           </button>
           {showDetails && (
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-text-secondary">
-              {Object.entries(current.body_state).map(([key, val]) => {
+              {Object.entries(finalStage.body_state).map(([key, val]) => {
                 if (key === 'overall') return null;
                 return (
                   <div key={key} className="p-2 bg-surfaceAlt rounded-lg">
@@ -148,15 +133,15 @@ export function JourneyResult({ result, originalImage, onReset }: Props) {
                   </div>
                 );
               })}
-              {current.weight_kg != null && (
+              {finalStage.weight_kg != null && (
                 <div className="p-2 bg-surfaceAlt rounded-lg col-span-2">
                   <span className="font-medium text-text">Est. weight: </span>
-                  {current.weight_kg} kg
-                  {current.fat_mass_delta_kg !== 0 && (
+                  {finalStage.weight_kg} kg
+                  {finalStage.fat_mass_delta_kg !== 0 && (
                     <span className="ml-2 text-text-light">
-                      (fat {current.fat_mass_delta_kg > 0 ? '+' : ''}{current.fat_mass_delta_kg.toFixed(1)} kg
-                      {current.lean_mass_delta_kg !== 0 &&
-                        `, lean ${current.lean_mass_delta_kg > 0 ? '+' : ''}${current.lean_mass_delta_kg.toFixed(1)} kg`
+                      (fat {finalStage.fat_mass_delta_kg > 0 ? '+' : ''}{finalStage.fat_mass_delta_kg.toFixed(1)} kg
+                      {finalStage.lean_mass_delta_kg !== 0 &&
+                        `, lean ${finalStage.lean_mass_delta_kg > 0 ? '+' : ''}${finalStage.lean_mass_delta_kg.toFixed(1)} kg`
                       })
                     </span>
                   )}

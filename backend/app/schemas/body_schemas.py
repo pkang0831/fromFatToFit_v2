@@ -125,6 +125,33 @@ class SaveGoalRequest(BaseModel):
     target_bf: float
 
 
+# ── Auto-segmentation ───────────────────────────────────────────────────────
+
+class AutoSegmentRequest(BaseModel):
+    image_base64: str = Field(..., description="Base64-encoded body photo (no data: prefix)")
+
+
+class SegClassInfo(BaseModel):
+    id: int
+    key: str
+    label: str
+
+
+class AutoSegmentResponse(BaseModel):
+    width: int = Field(..., description="Original image width in pixels")
+    height: int = Field(..., description="Original image height in pixels")
+    label_map_base64: str = Field(
+        ...,
+        description=(
+            "Grayscale PNG at original resolution. "
+            "Pixel value = class ID (0=background, 1-7=body parts). "
+            "left/right = person's anatomical left/right."
+        ),
+    )
+    classes: List[SegClassInfo]
+    debug_info: Optional[Dict[str, Any]] = None
+
+
 class GuestScanRequest(BaseModel):
     image_base64: str
     gender: str = Field(..., description="male or female")

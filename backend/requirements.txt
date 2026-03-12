@@ -13,6 +13,8 @@ openai==1.58.0
 
 # Image processing
 Pillow==11.0.0
+opencv-python-headless==4.10.0.84
+mediapipe==0.10.32
 
 # Payment processing
 stripe==11.4.0

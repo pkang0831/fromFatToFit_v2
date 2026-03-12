@@ -52,14 +52,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const dir = LANGUAGES[locale].dir;
 
-  if (!mounted) {
-    return (
-      <LanguageContext.Provider value={{ locale, setLocale, t, dir }}>
-        <div style={{ visibility: 'hidden' }}>{children}</div>
-      </LanguageContext.Provider>
-    );
-  }
-
   return (
     <LanguageContext.Provider value={{ locale, setLocale, t, dir }}>
       {children}

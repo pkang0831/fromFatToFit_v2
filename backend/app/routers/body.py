@@ -11,14 +11,17 @@ from ..schemas.body_schemas import (
     GapToGoalResponse, ScanHistoryPoint, SaveGoalRequest,
     TransformationJourneyResponse, TransformationStageResponse,
     StageDescriptorResponse, NutritionPlanResponse, WorkoutPlanResponse,
+    AutoSegmentRequest, AutoSegmentResponse, SegClassInfo,
 )
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services import openai_service, grok_service, claude_service, gemini_body_service
 from ..services import replicate_service
 from ..services.sam_service import segment_body_part
+from ..services.sam2_auto_segmenter import SAM2AutoSegmenter
 from ..services.body_analysis import calculate_percentile, generate_recommendations
 from ..services.transformation_planner import build_plan
+from ..services.transformation_prompts import render_stage_prompt
 from ..services.transformation_types import MuscleGainSpec
 from ..services.journey_telemetry import (
     JourneyRequestRecord, start_timer, elapsed_ms, record_journey, get_counters,
@@ -112,7 +115,7 @@ async def estimate_bodyfat(
     scan_request: BodyScanRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Estimate body fat percentage from photo (1 free scan)"""
+    """Estimate body fat percentage from photo (1 free scan, then credits)"""
     try:
         if not scan_request.gender or not scan_request.age:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Gender and age required")
@@ -120,14 +123,15 @@ async def estimate_bodyfat(
         # Check if user is premium
         is_premium = await check_premium_status(current_user["id"])
         
-        # Check usage limit
+        # Check usage limit — if free scans exhausted, try credit deduction
+        used_credits = False
         try:
             usage_info = await check_usage_limit(current_user["id"], "body_fat_scan", is_premium)
-        except Exception as usage_error:
-            raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=str(usage_error)
-            )
+        except Exception:
+            credit_info = await get_credit_balance(current_user["id"], is_premium)
+            cost = credit_info["credit_costs"].get("body_fat_scan", 10)
+            await deduct_credits(current_user["id"], cost, "body_fat_scan")
+            used_credits = True
         
         # Analyze image with AI (with fallback)
         analysis_result = await estimate_body_fat_with_fallback(
@@ -157,12 +161,15 @@ async def estimate_bodyfat(
         result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = result.data[0]["id"] if result.data else None
         
-        # Increment usage count
-        if not is_premium:
+        # Increment usage count (only for free scans, credits already deducted)
+        if not is_premium and not used_credits:
             await increment_usage(current_user["id"], "body_fat_scan")
         
         # Get updated usage info
-        updated_usage = await check_usage_limit(current_user["id"], "body_fat_scan", is_premium)
+        try:
+            updated_usage = await check_usage_limit(current_user["id"], "body_fat_scan", is_premium)
+        except Exception:
+            updated_usage = {"remaining": 0}
         
         return BodyFatEstimateResponse(
             body_fat_percentage=body_fat,
@@ -186,7 +193,7 @@ async def calculate_body_percentile(
     scan_request: BodyScanRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Calculate body fat percentile ranking (1 free scan)"""
+    """Calculate body fat percentile ranking (1 free scan, then credits)"""
     try:
         if not all([scan_request.gender, scan_request.age, scan_request.ethnicity]):
             raise HTTPException(
@@ -197,14 +204,15 @@ async def calculate_body_percentile(
         # Check if user is premium
         is_premium = await check_premium_status(current_user["id"])
         
-        # Check usage limit
+        # Check usage limit — if free scans exhausted, try credit deduction
+        used_credits = False
         try:
             usage_info = await check_usage_limit(current_user["id"], "percentile_scan", is_premium)
-        except Exception as usage_error:
-            raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=str(usage_error)
-            )
+        except Exception:
+            credit_info = await get_credit_balance(current_user["id"], is_premium)
+            cost = credit_info["credit_costs"].get("percentile_scan", 10)
+            await deduct_credits(current_user["id"], cost, "percentile_scan")
+            used_credits = True
         
         # First, estimate body fat
         bf_analysis = await estimate_body_fat_with_fallback(
@@ -239,12 +247,15 @@ async def calculate_body_percentile(
         result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = result.data[0]["id"] if result.data else None
         
-        # Increment usage count
-        if not is_premium:
+        # Increment usage count (only for free scans, credits already deducted)
+        if not is_premium and not used_credits:
             await increment_usage(current_user["id"], "percentile_scan")
         
         # Get updated usage info
-        updated_usage = await check_usage_limit(current_user["id"], "percentile_scan", is_premium)
+        try:
+            updated_usage = await check_usage_limit(current_user["id"], "percentile_scan", is_premium)
+        except Exception:
+            updated_usage = {"remaining": 0}
         
         return PercentileResponse(
             percentile_data={
@@ -336,53 +347,36 @@ async def generate_transformation_journey(
             activity_level=scan_request.activity_level,
         )
 
-        # 4. Collect prompts for generated stages (1-4)
-        stage_prompts = [
-            (s.stage_number, s.prompt)
-            for s in plan.stages if s.stage_number > 0 and s.prompt
-        ]
-
-        if not stage_prompts:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="No stages to generate — goal may be too close to current state.",
-            )
-
-        # 5. Generate stage images via Replicate (parallel, original as input)
-        stage_images = await replicate_service.generate_journey_images(
-            scan_request.image_base64, stage_prompts,
+        # 4. Build prompt for the final "after" image using the last stage
+        final_stage = plan.stages[-1]
+        final_prompt = render_stage_prompt(
+            stage=final_stage,
+            mode=plan.mode,
+            gender=scan_request.gender,
+            current_bf=estimated_bf,
+            muscle_gains=mg,
         )
 
-        succeeded_nums = {si["stage_number"] for si in stage_images}
-        all_nums = {n for n, _ in stage_prompts}
-        rec.stages_requested = len(stage_prompts)
-        rec.stages_succeeded = len(stage_images)
-        rec.stages_failed = len(stage_prompts) - len(stage_images)
-        rec.failed_stage_numbers = sorted(all_nums - succeeded_nums)
-        rec.stage_latencies_ms = {si["stage_number"]: si.get("latency_ms", 0) for si in stage_images}
+        if not final_prompt:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="No transformation to generate — goal may be too close to current state.",
+            )
+
+        # 5. Generate single "after" image via Replicate
+        rec.stages_requested = 1
         rec.mode = plan.mode.value
         rec.stage_count = len(plan.stages)
 
-        MIN_REQUIRED_STAGES = 3
-        if len(stage_images) < MIN_REQUIRED_STAGES:
-            rec.outcome = "below_threshold"
-            rec.total_latency_ms = elapsed_ms(t_start)
-            record_journey(rec)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=(
-                    f"Only {len(stage_images)} of {len(stage_prompts)} stage images "
-                    f"generated successfully. No credits were charged. Please try again."
-                ),
-            )
+        after_result = await replicate_service.generate_transformation_image(
+            scan_request.image_base64, final_prompt,
+        )
 
-        if len(stage_images) < len(stage_prompts):
-            plan.warnings.append(
-                f"{len(stage_prompts) - len(stage_images)} of {len(stage_prompts)} "
-                f"stage image(s) failed to generate."
-            )
+        rec.stages_succeeded = 1
+        rec.stages_failed = 0
+        rec.stage_latencies_ms = {4: after_result.get("latency_ms", 0)}
 
-        image_map = {si["stage_number"]: si["image_data_uri"] for si in stage_images}
+        after_image_uri = after_result["image_data_uri"]
 
         # 6. Deduct credits (only after enough stages succeeded)
         await deduct_credits(current_user["id"], JOURNEY_COST, "transformation_journey")
@@ -406,20 +400,25 @@ async def generate_transformation_journey(
         db_result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = db_result.data[0]["id"] if db_result.data else None
 
-        # 8. Auto-save final stage goal image
-        final_image = image_map.get(4)
-        if final_image:
-            try:
-                supabase.table("user_profiles").update({
-                    "goal_image_url": final_image,
-                    "target_body_fat_percentage": plan.target_bf,
-                }).eq("id", current_user["id"]).execute()
-            except Exception:
-                pass
+        # 8. Auto-save final goal image
+        try:
+            supabase.table("user_profiles").update({
+                "goal_image_url": after_image_uri,
+                "target_body_fat_percentage": plan.target_bf,
+            }).eq("id", current_user["id"]).execute()
+        except Exception:
+            pass
 
-        # 9. Build response
+        # 9. Build response — only original (stage 0) and final (stage 4) have images
         stages_out: list[TransformationStageResponse] = []
         for s in plan.stages:
+            if s.stage_number == 0:
+                stage_image = None
+            elif s.stage_number == plan.stages[-1].stage_number:
+                stage_image = after_image_uri
+            else:
+                stage_image = None
+
             stages_out.append(TransformationStageResponse(
                 stage_number=s.stage_number,
                 label=s.label,
@@ -438,7 +437,7 @@ async def generate_transformation_journey(
                     legs=s.body_state.legs,
                     overall=s.body_state.overall,
                 ),
-                image_url=image_map.get(s.stage_number),
+                image_url=stage_image,
                 warnings=s.warnings,
             ))
 
@@ -469,7 +468,7 @@ async def generate_transformation_journey(
             stage_adjustments={str(k): v for k, v in plan.workout.stage_adjustments.items()},
         )
 
-        rec.outcome = "partial" if rec.stages_failed > 0 else "success"
+        rec.outcome = "success"
         rec.credits_charged = JOURNEY_COST
         rec.warnings = list(plan.warnings)
         rec.total_latency_ms = elapsed_ms(t_start)
@@ -711,6 +710,42 @@ async def save_goal(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to save goal"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Auto-segmentation (full body, label map)
+# ---------------------------------------------------------------------------
+
+@router.post("/auto-segment", response_model=AutoSegmentResponse)
+@limiter.limit("3/minute")
+async def auto_segment_body(
+    request: Request,
+    seg_request: AutoSegmentRequest,
+):
+    """Run SAM2 auto-segmentation and return a semantic label map.
+
+    The label map is a grayscale PNG at original resolution where each
+    pixel value is a class ID (0=background, 1-7=body parts).
+    left/right = person's anatomical left/right.
+    """
+    try:
+        segmenter = SAM2AutoSegmenter()
+        result = await segmenter.segment(seg_request.image_base64)
+
+        return AutoSegmentResponse(
+            width=result.width,
+            height=result.height,
+            label_map_base64=result.label_map_b64,
+            classes=[SegClassInfo(**c) for c in result.classes],
+            debug_info=result.debug_info,
+        )
+
+    except Exception as e:
+        logger.error(f"Auto-segmentation error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Auto-segmentation failed. Please try again.",
         )
 
 

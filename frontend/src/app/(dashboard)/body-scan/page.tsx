@@ -176,9 +176,12 @@ export default function BodyScanPage() {
       fetchGapData();
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
-        setError(err.response?.status === 402
-          ? 'Not enough credits. Upgrade to Pro for unlimited scans.'
-          : err.response?.data?.detail || 'Scan failed');
+        const detail = err.response?.data?.detail || '';
+        if (err.response?.status === 402) {
+          setError(`Not enough credits (${scanCost} needed). Buy more or upgrade to Pro.`);
+        } else {
+          setError(detail || 'Scan failed. Please try again.');
+        }
       } else {
         setError(err instanceof Error ? err.message : 'Scan failed');
       }
