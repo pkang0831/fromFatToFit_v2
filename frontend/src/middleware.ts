@@ -14,10 +14,14 @@ export function middleware(request: NextRequest) {
                         pathname.startsWith('/body-scan') ||
                         pathname.startsWith('/beauty-scan') ||
                         pathname.startsWith('/fashion') ||
+                        pathname.startsWith('/goal-planner') ||
                         pathname.startsWith('/chat') ||
                         pathname.startsWith('/profile') ||
                         pathname.startsWith('/progress') ||
-                        pathname.startsWith('/upgrade');
+                        pathname.startsWith('/upgrade') ||
+                        pathname.startsWith('/onboarding') ||
+                        pathname.startsWith('/mask-editor') ||
+                        pathname.startsWith('/body-editor');
 
   // Handle root path — show landing page to unauthenticated, redirect to dashboard for authenticated
   if (pathname === '/') {
@@ -34,7 +38,12 @@ export function middleware(request: NextRequest) {
 
   // Redirect unauthenticated users away from dashboard pages
   if (isDashboardPage && !token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const loginUrl = new URL('/login', request.url);
+    const nextPath = `${pathname}${request.nextUrl.search}`;
+    if (nextPath && nextPath !== '/login') {
+      loginUrl.searchParams.set('next', nextPath);
+    }
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

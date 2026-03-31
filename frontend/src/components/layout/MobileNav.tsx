@@ -15,17 +15,21 @@ import {
   Scan,
   MessageCircle,
   User,
+  Target,
   X,
+  Flame,
 } from 'lucide-react';
 
 const mainItems = [
   { href: '/home', label: 'Home', icon: Home },
   { href: '/body-scan', label: 'Body Scan', icon: Scan },
+  { href: '/goal-planner', label: 'Goal Plan', icon: Target },
   { href: '/chat', label: 'AI Coach', icon: MessageCircle },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
 const moreItems = [
+  { href: '/challenge', label: '7-day loop', icon: Flame },
   { href: '/progress', label: 'Progress', icon: TrendingUp },
   { href: '/calories', label: 'Calories', icon: Utensils },
   { href: '/food-camera', label: 'Food Camera', icon: Camera },

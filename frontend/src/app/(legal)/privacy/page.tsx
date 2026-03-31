@@ -1,8 +1,14 @@
+import {
+  ACCOUNT_DELETION_BLOCKING_REQUIREMENT,
+  ACCOUNT_DELETION_DELETED_IMMEDIATELY,
+  ACCOUNT_DELETION_RETAINED_OUTSIDE_APP,
+} from '@/lib/constants/accountDeletion';
+
 export default function PrivacyPolicyPage() {
   return (
     <article className="prose prose-gray dark:prose-invert max-w-none">
       <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Last updated: February 26, 2026</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">Last updated: March 30, 2026</p>
 
       <section className="mb-8">
         <h2>1. Introduction</h2>
@@ -170,9 +176,9 @@ export default function PrivacyPolicyPage() {
           We recognize that body images are especially sensitive. The following additional protections apply:
         </p>
         <ul>
-          <li><strong>Purpose Limitation:</strong> Body images are used exclusively for the specific feature you request (body fat analysis, transformation preview, etc.) and are not used for any other purpose.</li>
-          <li><strong>AI Processing:</strong> Images are transmitted to AI providers via encrypted connections (HTTPS/TLS). We do not control how long third-party AI providers retain submitted data — please refer to their respective data retention policies.</li>
-          <li><strong>Storage:</strong> Original images may be stored in our secure cloud storage (Supabase) linked to your account. You may request deletion at any time.</li>
+          <li><strong>Purpose Limitation:</strong> Body images are used only to run the feature you request inside the app.</li>
+          <li><strong>AI Processing:</strong> Images may be sent to third-party AI providers over encrypted connections (HTTPS/TLS). We do not control provider-side retention and cannot promise provider-side deletion from this self-serve flow.</li>
+          <li><strong>Storage in Denevira:</strong> Guest try-flow photos are not saved to a Denevira account. Account-linked progress photos are stored in a private Supabase bucket until you delete them or delete your account.</li>
           <li><strong>No Human Review:</strong> Under normal operations, your body images are processed only by automated AI systems. Human review may occur only in cases of abuse investigation or legal requirement.</li>
         </ul>
       </section>
@@ -180,10 +186,22 @@ export default function PrivacyPolicyPage() {
       <section className="mb-8">
         <h2>6. Data Retention</h2>
         <ul>
-          <li><strong>Active Account:</strong> Your data is retained as long as your account is active.</li>
-          <li><strong>Account Deletion:</strong> Upon account deletion request, we will delete your personal data within 30 days, except where retention is required by law or for legitimate business purposes (e.g., billing records).</li>
-          <li><strong>AI Provider Retention:</strong> Data transmitted to third-party AI providers is subject to their respective retention policies. We are unable to guarantee deletion from third-party systems.</li>
-          <li><strong>Backups:</strong> Deleted data may persist in encrypted backups for up to 90 days before being permanently removed.</li>
+          <li><strong>Active Account:</strong> Account-linked app data stays in Denevira until you delete it or delete your account.</li>
+          <li><strong>Self-Serve Account Deletion:</strong> From Profile, you can permanently delete your Denevira account and the app data tied to it immediately, including stored progress photo files.</li>
+          <li><strong>Billing and Provider Retention:</strong> Billing records may remain with Stripe, RevenueCat, Apple, or Google under their own policies. Third-party AI providers may retain submitted inputs under their own policies.</li>
+          <li><strong>Subscription Requirement:</strong> {ACCOUNT_DELETION_BLOCKING_REQUIREMENT}</li>
+        </ul>
+        <p><strong>Deleted immediately from Denevira:</strong></p>
+        <ul>
+          {ACCOUNT_DELETION_DELETED_IMMEDIATELY.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+        <p><strong>Not deleted from third parties by this flow:</strong></p>
+        <ul>
+          {ACCOUNT_DELETION_RETAINED_OUTSIDE_APP.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
       </section>
 
@@ -210,7 +228,7 @@ export default function PrivacyPolicyPage() {
         <ul>
           <li><strong>Access:</strong> Request a copy of your personal data.</li>
           <li><strong>Correction:</strong> Request correction of inaccurate or incomplete data.</li>
-          <li><strong>Deletion:</strong> Request deletion of your personal data (&ldquo;right to be forgotten&rdquo;).</li>
+          <li><strong>Deletion:</strong> Delete your Denevira account from Profile, or contact us if you cannot access the app.</li>
           <li><strong>Portability:</strong> Request your data in a structured, machine-readable format.</li>
           <li><strong>Restriction:</strong> Request restriction of processing of your data.</li>
           <li><strong>Objection:</strong> Object to processing of your data for certain purposes.</li>
@@ -219,7 +237,7 @@ export default function PrivacyPolicyPage() {
         <p>
           To exercise any of these rights, please contact us at{' '}
           <a href="mailto:privacy@devenira.com" className="text-primary hover:underline">privacy@devenira.com</a>.
-          We will respond within 30 days.
+          If you can still sign in, the delete flow in Profile is the fastest way to remove your Denevira account data.
         </p>
       </section>
 
@@ -253,7 +271,7 @@ export default function PrivacyPolicyPage() {
           <li>Onboarding state tracking.</li>
         </ul>
         <p>
-          We do not currently use third-party advertising cookies or tracking pixels.
+          We do not currently use third-party advertising cookies or tracking pixels in the web app codebase.
         </p>
       </section>
 

@@ -54,8 +54,8 @@ async def get_quick_stats(request: Request, current_user: dict = Depends(get_cur
         if profile_result.data:
             p = profile_result.data
             tdee = CalorieCalculator.calculate_tdee(
-                p.get('weight_kg', 70.0), p.get('height_cm', 170.0),
-                p.get('age', 30), p.get('gender', 'male'), p.get('activity_level', 'moderate')
+                p.get('weight_kg') or 70.0, p.get('height_cm') or 170.0,
+                p.get('age') or 30, p.get('gender') or 'male', p.get('activity_level') or 'moderate'
             )
 
         workout_calories_result = supabase.table("workout_logs").select(

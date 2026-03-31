@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Literal
 from datetime import datetime
+
+ActivityLevel = Literal["sedentary", "light", "moderate", "active", "very_active"]
 
 
 class MuscleGainsInput(BaseModel):
@@ -24,7 +26,11 @@ class BodyScanRequest(BaseModel):
     enhancement_level: Optional[str] = Field(None, description="subtle, natural, or studio")
     muscle_gains: Optional[MuscleGainsInput] = None
     weight_kg: Optional[float] = None
-    activity_level: Optional[str] = None
+    activity_level: Optional[ActivityLevel] = None
+    ownership_confirmed: bool = Field(
+        default=False,
+        description="Uploader confirms this is their own photo or that they have permission to upload it",
+    )
 
 
 class BodyFatEstimateResponse(BaseModel):
@@ -88,6 +94,10 @@ class RegionTransformRequest(BaseModel):
     goal: str = Field(..., description="Transformation goal: bigger, leaner, more_defined, slimmer")
     gender: str = Field(default="male", description="male or female")
     intensity: str = Field(default="moderate", description="subtle, moderate, or dramatic")
+    ownership_confirmed: bool = Field(
+        default=False,
+        description="Uploader confirms this is their own photo or that they have permission to upload it",
+    )
 
 
 class RegionTransformResponse(BaseModel):
@@ -137,6 +147,17 @@ class SegClassInfo(BaseModel):
     label: str
 
 
+class CandidateSegmentInfo(BaseModel):
+    segment_id: int
+    assigned_class: int = Field(..., description="Class ID 0-7 (0 = rejected/unassigned)")
+    score: float = Field(..., description="Assignment confidence ∈ [0, 1]")
+    bbox: List[int] = Field(..., description="[x0, y0, x1, y1] in image pixels")
+    area: int = Field(..., description="Pixel count of the mask")
+    centroid: List[float] = Field(..., description="[cx, cy] normalized ∈ [0,1]²")
+    mask_rle: str = Field(..., description="COCO-style run-length encoding")
+    rejection_reason: Optional[str] = Field(None, description="None = accepted")
+
+
 class AutoSegmentResponse(BaseModel):
     width: int = Field(..., description="Original image width in pixels")
     height: int = Field(..., description="Original image height in pixels")
@@ -148,14 +169,125 @@ class AutoSegmentResponse(BaseModel):
             "left/right = person's anatomical left/right."
         ),
     )
+    foreground_mask_base64: str = Field(
+        "",
+        description="Binary PNG — white = union of accepted person masks",
+    )
+    editable_region_base64: str = Field(
+        "",
+        description="Binary PNG — white = dilated foreground (safe edit zone)",
+    )
     classes: List[SegClassInfo]
+    candidate_segments: List[CandidateSegmentInfo] = Field(
+        default_factory=list,
+        description="All SAM2 proposals with scoring metadata for click-to-reassign",
+    )
+    debug_info: Optional[Dict[str, Any]] = None
+
+
+# ── CUT edit preparation ────────────────────────────────────────────────────
+
+class CutEditPrepRequest(BaseModel):
+    image_base64: str = Field(..., description="Base64-encoded body photo (no data: prefix)")
+    intensity: float = Field(
+        default=0.5, ge=0.0, le=1.0,
+        description="Global edit strength multiplier (0 = minimal, 1 = maximum)",
+    )
+    user_protect_mask_base64: Optional[str] = Field(
+        None,
+        description="Optional user-drawn protection mask (base64 PNG, white = protect)",
+    )
+
+
+class CutEditPrepResponse(BaseModel):
+    width: int = Field(..., description="Original image width in pixels")
+    height: int = Field(..., description="Original image height in pixels")
+    protect_mask_base64: str = Field(
+        ..., description="Binary PNG — white = protected (never edit)",
+    )
+    edit_mask_base64: str = Field(
+        ..., description="Binary PNG — white = editable region",
+    )
+    weight_map_base64: str = Field(
+        ..., description="Grayscale PNG — 0=no edit, 255=max edit intensity",
+    )
+    feather_mask_base64: str = Field(
+        ..., description="Grayscale PNG — soft boundary falloff (0=edge, 255=deep inside)",
+    )
+    combined_map_base64: str = Field(
+        ..., description="Grayscale PNG — weight_map * feather_mask, ready for warp/diffusion",
+    )
+    debug_info: Optional[Dict[str, Any]] = None
+
+
+# ── CUT warp preview ────────────────────────────────────────────────────────
+
+class CutWarpPreviewRequest(BaseModel):
+    image_base64: str = Field(..., description="Base64-encoded body photo (no data: prefix)")
+    preset: str = Field(
+        default="medium",
+        description="Warp intensity preset: mild, medium, or strong",
+    )
+    intensity: float = Field(
+        default=0.5, ge=0.0, le=1.0,
+        description="Edit-prep weight map intensity (0 = minimal, 1 = maximum)",
+    )
+
+
+class CutWarpPreviewResponse(BaseModel):
+    width: int
+    height: int
+    warped_image_base64: str = Field(
+        ..., description="JPEG base64 — the warped preview image",
+    )
+    displacement_viz_base64: str = Field(
+        ..., description="PNG base64 — displacement field debug visualization (R=dx, G=dy, B=magnitude)",
+    )
     debug_info: Optional[Dict[str, Any]] = None
 
 
 class GuestScanRequest(BaseModel):
     image_base64: str
     gender: str = Field(..., description="male or female")
-    age: int = Field(..., ge=10, le=100)
+    age: int = Field(..., ge=18, le=100)
+    ownership_confirmed: bool = Field(
+        default=False,
+        description="Uploader confirms this is their own photo or that they have permission to upload it",
+    )
+    adult_confirmed: bool = Field(
+        default=False,
+        description="Uploader confirms the pictured subject is 18 or older",
+    )
+    framing: Literal["upper_body", "full_body"] = Field(
+        default="upper_body",
+        description="Must match the framing used in /guest/validate-photo for this image",
+    )
+
+
+class BodyPhotoQualityRequest(BaseModel):
+    image_base64: str = Field(..., description="Base64-encoded body photo (optional data: URI prefix)")
+    framing: Literal["upper_body", "full_body"] = Field(
+        default="upper_body",
+        description="upper_body: waist-up / mirror selfie; full_body: stricter full-body framing",
+    )
+
+
+class BodyPhotoQualityResponse(BaseModel):
+    ok: bool
+    body_area_ratio: float
+    bbox_area_ratio: float = 0.0
+    mask_fill_ratio: float = 0.0
+    is_front_facing: bool
+    pose_detected: bool
+    is_shirtless: bool = True
+    brightness: float = 0.0
+    failure_codes: List[str] = Field(default_factory=list)
+    messages: List[str] = Field(default_factory=list)
+    width: int = 0
+    height: int = 0
+    framing: str = "upper_body"
+    min_body_area_ratio: float = 0.38
+    min_mask_fill_ratio: float = 0.34
 
 
 class GuestScanResponse(BaseModel):
@@ -169,10 +301,11 @@ class UserProfileUpdate(BaseModel):
     full_name: Optional[str] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
+    target_weight_kg: Optional[float] = None
     age: Optional[int] = None
     gender: Optional[str] = None
     ethnicity: Optional[str] = None
-    activity_level: Optional[str] = None
+    activity_level: Optional[ActivityLevel] = None
     calorie_goal: Optional[float] = None
     onboarding_completed: Optional[bool] = None
     consent_terms_at: Optional[str] = None

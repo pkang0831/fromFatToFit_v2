@@ -20,6 +20,8 @@ import {
   Sun,
   Timer,
   ChevronDown,
+  Target,
+  Flame,
 } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import { useSubscription } from '@/lib/hooks/useSubscription';
@@ -33,6 +35,8 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 const coreItems = [
   { href: '/home', labelKey: 'nav.home', icon: Home },
   { href: '/body-scan', labelKey: 'nav.bodyScan', icon: Scan },
+  { href: '/challenge', labelKey: 'nav.challengeSevenDay', icon: Flame },
+  { href: '/goal-planner', labelKey: 'nav.goalPlanner', icon: Target },
   { href: '/chat', labelKey: 'nav.chat', icon: MessageCircle },
   { href: '/profile', labelKey: 'nav.profile', icon: User },
 ];

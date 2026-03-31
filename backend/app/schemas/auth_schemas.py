@@ -1,6 +1,8 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
+
+ActivityLevel = Literal["sedentary", "light", "moderate", "active", "very_active"]
 
 
 class UserRegister(BaseModel):
@@ -12,7 +14,7 @@ class UserRegister(BaseModel):
     age: Optional[int] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
-    activity_level: Optional[str] = None
+    activity_level: Optional[ActivityLevel] = None
     consent_terms: bool = Field(False, description="Agreed to Terms of Service and Health Disclaimer")
     consent_privacy: bool = Field(False, description="Agreed to Privacy Policy including third-party AI processing")
     consent_sensitive_data: bool = Field(False, description="Consented to collection of sensitive personal data")
@@ -38,10 +40,11 @@ class UserResponse(BaseModel):
     full_name: Optional[str]
     height_cm: Optional[float]
     weight_kg: Optional[float]
+    target_weight_kg: Optional[float] = None
     age: Optional[int]
     gender: Optional[str]
     ethnicity: Optional[str]
-    activity_level: Optional[str]
+    activity_level: Optional[ActivityLevel]
     calorie_goal: Optional[float]
     premium_status: bool
     onboarding_completed: bool = False
@@ -54,3 +57,10 @@ class PasswordReset(BaseModel):
 
 class PasswordUpdate(BaseModel):
     new_password: str = Field(..., min_length=8)
+
+
+class AccountDeletionResponse(BaseModel):
+    message: str
+    deleted_immediately: list[str]
+    retained_outside_app: list[str]
+    blocking_requirements: list[str]

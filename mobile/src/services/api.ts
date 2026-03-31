@@ -1,5 +1,6 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './auth';
 
 // API configuration
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -13,11 +14,24 @@ const api: AxiosInstance = axios.create({
   },
 });
 
+/** Prefer Supabase session JWT (auto-refreshed); fallback to legacy AsyncStorage key. */
+async function getBearerToken(): Promise<string | null> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      return session.access_token;
+    }
+  } catch (e) {
+    console.error('getSession failed:', e);
+  }
+  return AsyncStorage.getItem('access_token');
+}
+
 // Request interceptor - add auth token
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await AsyncStorage.getItem('access_token');
+      const token = await getBearerToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -31,14 +45,29 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors
+// Response interceptor - refresh once on 401, then clear session if still unauthorized
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid - clear storage and redirect to login
+    const original = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+    if (error.response?.status === 401 && original && !original._retry) {
+      original._retry = true;
+      try {
+        const { data: { session }, error: refreshErr } = await supabase.auth.refreshSession();
+        if (!refreshErr && session?.access_token) {
+          await AsyncStorage.setItem('access_token', session.access_token);
+          if (session.refresh_token) {
+            await AsyncStorage.setItem('refresh_token', session.refresh_token);
+          }
+          original.headers = original.headers ?? {};
+          original.headers.Authorization = `Bearer ${session.access_token}`;
+          return api.request(original);
+        }
+      } catch {
+        // fall through to logout
+      }
       await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user']);
-      // You can emit an event here to trigger navigation to login
+      await supabase.auth.signOut();
     }
     return Promise.reject(error);
   }

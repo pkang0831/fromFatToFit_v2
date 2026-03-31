@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, TrendingUp, Utensils, Clock, Plus, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
-import { FoodLogForm } from '@/components/features/FoodLogForm';
 import { MealCard } from '@/components/features/MealCard';
 import { foodApi } from '@/lib/api/services';
 import { getTodayString, formatDateLong, formatLocalDateKR } from '@/lib/utils/date';
@@ -16,6 +15,19 @@ const CalorieTrendChart = dynamic(() => import('@/components/features/CalorieTre
   loading: () => <div className="h-[300px] bg-surfaceAlt animate-pulse rounded-lg" />,
   ssr: false,
 });
+
+/** Barcode scanner + units + autocomplete — defer to shrink initial /calories JS. */
+const FoodLogForm = dynamic(
+  () => import('@/components/features/FoodLogForm').then((m) => m.FoodLogForm),
+  {
+    loading: () => (
+      <Card variant="outlined" className="animate-pulse">
+        <CardContent className="p-6 h-56" />
+      </Card>
+    ),
+    ssr: false,
+  },
+);
 
 export default function CaloriesPage() {
   const router = useRouter();

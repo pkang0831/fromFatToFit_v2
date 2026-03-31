@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import WeightLogForm from '@/components/features/WeightLogForm';
 import GoalSettingForm from '@/components/features/GoalSettingForm';
@@ -12,9 +13,11 @@ const GoalProjectionChart = dynamic(
   { loading: () => <div className="h-[400px] bg-surfaceAlt animate-pulse rounded-lg" />, ssr: false }
 );
 import { Modal } from '@/components/ui/Modal';
-import { progressPhotoApi } from '@/lib/api/services';
+import { homeApi, progressPhotoApi } from '@/lib/api/services';
+import { trackRetentionEvent } from '@/lib/analytics';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
-import { Camera, ImageIcon, ArrowLeftRight, Trash2, X, Plus, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Camera, ImageIcon, ArrowLeftRight, Trash2, X, Plus, ChevronLeft, ChevronRight, Check, ArrowRight, Target, CalendarClock } from 'lucide-react';
+import type { HomeSummaryResponse } from '@/types/api';
 
 interface ProgressPhoto {
   id: string;
@@ -23,7 +26,8 @@ interface ProgressPhoto {
   body_fat_pct: number | null;
   taken_at: string;
   created_at: string;
-  image_base64?: string;
+  image_base64?: string | null;
+  image_url?: string | null;
 }
 
 interface CompareData {
@@ -37,15 +41,22 @@ interface CompareData {
 type Tab = 'goals' | 'photos';
 
 export default function ProgressPage() {
+  const router = useRouter();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<Tab>('goals');
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<Tab>(searchParams.get('tab') === 'photos' ? 'photos' : 'goals');
   const [showWeightLogModal, setShowWeightLogModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const historyTrackedRef = useRef<{ photos: boolean; goals: boolean }>({ photos: false, goals: false });
+  const focusAppliedRef = useRef<string | null>(null);
+  const compareTrackedRef = useRef<string | null>(null);
+  const reminderTrackedRef = useRef(false);
 
   // Photo state
   const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
   const [loadingPhotos, setLoadingPhotos] = useState(false);
+  const [homeSummary, setHomeSummary] = useState<HomeSummaryResponse | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadNotes, setUploadNotes] = useState('');
@@ -77,23 +88,147 @@ export default function ProgressPage() {
     setRefreshKey(prev => prev + 1);
   };
 
-  const fetchPhotos = useCallback(async () => {
+  const fetchPhotos = useCallback(async (): Promise<ProgressPhoto[]> => {
     setLoadingPhotos(true);
     try {
       const res = await progressPhotoApi.getAll();
       setPhotos(res.data);
+      return res.data as ProgressPhoto[];
     } catch {
       console.error('Failed to fetch photos');
+      return [];
     } finally {
       setLoadingPhotos(false);
     }
   }, []);
 
+  const fetchHomeSummary = useCallback(async () => {
+    try {
+      const res = await homeApi.getSummary();
+      setHomeSummary(res.data);
+      return res.data as HomeSummaryResponse;
+    } catch {
+      setHomeSummary(null);
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get('tab') === 'photos' ? 'photos' : 'goals';
+    setActiveTab(requestedTab);
+  }, [searchParams]);
+
+  const openUploadModal = useCallback((source: string) => {
+    setShowUpload(true);
+    trackRetentionEvent('progress_proof_started', {
+      surface: 'progress_page',
+      source,
+      photo_count: photos.length,
+    });
+  }, [photos.length]);
+
+  const loadLatestCompare = useCallback(async (photoList: ProgressPhoto[]) => {
+    if (photoList.length < 2) {
+      setCompareData(null);
+      return null;
+    }
+
+    setLoadingCompare(true);
+    try {
+      const res = await progressPhotoApi.compare(photoList[1].id, photoList[0].id);
+      setCompareData(res.data);
+      return res.data as CompareData;
+    } catch {
+      console.error('Compare failed');
+      return null;
+    } finally {
+      setLoadingCompare(false);
+    }
+  }, []);
+
+  const resetUploadState = () => {
+    setShowUpload(false);
+    setUploadPreview(null);
+    setUploadFile(null);
+    setUploadNotes('');
+    setUploadWeight('');
+    setUploadBodyFat('');
+  };
+
   useEffect(() => {
     if (activeTab === 'photos') {
-      fetchPhotos();
+      void fetchPhotos();
+      void fetchHomeSummary();
     }
-  }, [activeTab, fetchPhotos]);
+  }, [activeTab, fetchPhotos, fetchHomeSummary]);
+
+  useEffect(() => {
+    if (historyTrackedRef.current[activeTab]) return;
+    historyTrackedRef.current[activeTab] = true;
+    trackRetentionEvent('history_viewed', {
+      surface: 'progress_page',
+      target: activeTab === 'photos' ? 'progress_proof' : 'goals',
+    });
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (reminderTrackedRef.current) return;
+    if (searchParams.get('from') !== 'weekly_reminder') return;
+    if (activeTab !== 'photos') return;
+
+    reminderTrackedRef.current = true;
+    trackRetentionEvent('reengagement_session', {
+      surface: 'progress_page',
+      source: 'weekly_reminder',
+      entry_state: 'progress_proof',
+    });
+  }, [activeTab, searchParams]);
+
+  useEffect(() => {
+    if (activeTab !== 'photos' || compareMode) return;
+    if (photos.length >= 2) {
+      void loadLatestCompare(photos);
+      return;
+    }
+    setCompareData(null);
+  }, [activeTab, compareMode, photos, loadLatestCompare]);
+
+  useEffect(() => {
+    if (activeTab !== 'photos') return;
+
+    const focus = searchParams.get('focus');
+    if (!focus || focusAppliedRef.current === focus) return;
+
+    if (focus === 'upload') {
+      focusAppliedRef.current = focus;
+      openUploadModal(searchParams.get('from') || 'progress_focus_upload');
+      return;
+    }
+
+    if (focus === 'compare' && photos.length >= 2) {
+      focusAppliedRef.current = focus;
+      void loadLatestCompare(photos);
+    }
+  }, [activeTab, searchParams, photos, openUploadModal, loadLatestCompare]);
+
+  useEffect(() => {
+    if (!compareData) return;
+
+    const compareKey = `${compareData.before.id}:${compareData.after.id}`;
+    if (compareTrackedRef.current === compareKey) return;
+    compareTrackedRef.current = compareKey;
+
+    trackRetentionEvent('progress_compare_viewed', {
+      surface: 'progress_page',
+      before_photo_id: compareData.before.id,
+      after_photo_id: compareData.after.id,
+      days_between: compareData.days_between,
+      weight_change: compareData.weight_change,
+      bf_change: compareData.bf_change,
+      goal_gap: homeSummary?.goal_summary.gap,
+      prompt_state: homeSummary?.scan_summary.prompt_state,
+    });
+  }, [compareData, homeSummary]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,13 +250,17 @@ export default function ProgressPage() {
         uploadWeight ? parseFloat(uploadWeight) : undefined,
         uploadBodyFat ? parseFloat(uploadBodyFat) : undefined
       );
-      setShowUpload(false);
-      setUploadPreview(null);
-      setUploadFile(null);
-      setUploadNotes('');
-      setUploadWeight('');
-      setUploadBodyFat('');
-      fetchPhotos();
+      resetUploadState();
+      const refreshedPhotos = await fetchPhotos();
+      await fetchHomeSummary();
+      trackRetentionEvent('progress_proof_completed', {
+        surface: 'progress_page',
+        photo_count: refreshedPhotos.length,
+        has_compare_ready: refreshedPhotos.length >= 2,
+      });
+      if (refreshedPhotos.length >= 2) {
+        await loadLatestCompare(refreshedPhotos);
+      }
     } catch {
       console.error('Upload failed');
     } finally {
@@ -135,6 +274,7 @@ export default function ProgressPage() {
       await progressPhotoApi.delete(photoId);
       setPhotos(prev => prev.filter(p => p.id !== photoId));
       if (viewingPhoto?.id === photoId) setViewingPhoto(null);
+      await fetchHomeSummary();
     } catch {
       console.error('Delete failed');
     } finally {
@@ -179,6 +319,10 @@ export default function ProgressPage() {
   const exitCompareMode = () => {
     setCompareMode(false);
     setSelectedPhotos([]);
+    if (photos.length >= 2) {
+      void loadLatestCompare(photos);
+      return;
+    }
     setCompareData(null);
   };
 
@@ -189,6 +333,65 @@ export default function ProgressPage() {
       year: 'numeric',
     });
   };
+
+  const getPhotoSrc = (photo: ProgressPhoto | null | undefined) => {
+    if (!photo) return null;
+    if (photo.image_url) return photo.image_url;
+    if (photo.image_base64) return `data:image/jpeg;base64,${photo.image_base64}`;
+    return null;
+  };
+
+  const latestPhoto = photos[0] ?? null;
+  const proofBranch = photos.length === 0 ? 'empty' : photos.length === 1 ? 'single' : 'compare';
+  const latestScanLabel = homeSummary?.goal_summary.current_bf != null
+    ? `${homeSummary.goal_summary.current_bf.toFixed(1)}% BF`
+    : 'No recent scan yet';
+  const latestScanDateLabel = homeSummary?.scan_summary.last_scan_date
+    ? formatDate(homeSummary.scan_summary.last_scan_date)
+    : 'No scan date yet';
+  const goalGapLabel = homeSummary?.goal_summary.gap != null
+    ? `${homeSummary.goal_summary.gap.toFixed(1)}% to goal`
+    : 'Gap unknown';
+
+  const progressAction = (() => {
+    if (proofBranch === 'empty') {
+      return {
+        label: 'Upload progress proof',
+        description: 'Lock this week with a proof photo before the next scan replaces the feeling.',
+        onClick: () => openUploadModal(searchParams.get('from') || 'progress_empty_state'),
+      };
+    }
+
+    if (proofBranch === 'single') {
+      return {
+        label: 'Upload next proof',
+        description: 'One proof photo is a start. Two gives you an actual before/after story.',
+        onClick: () => openUploadModal('progress_second_proof'),
+      };
+    }
+
+    if (homeSummary?.scan_summary.prompt_state === 'ready' || homeSummary?.scan_summary.prompt_state === 'overdue') {
+      return {
+        label: 'Do weekly check-in',
+        description: 'Your proof is in place. Refresh the next scan so the loop stays current.',
+        onClick: () => router.push('/body-scan?tab=scan'),
+      };
+    }
+
+    if (homeSummary?.scan_summary.latest_transformation) {
+      return {
+        label: 'Open journey',
+        description: 'Compare the proof against the goal image before the next weekly check-in.',
+        onClick: () => router.push('/body-scan?tab=journey#transformation'),
+      };
+    }
+
+    return {
+      label: 'Open planner',
+      description: 'Use the proof with a concrete goal so the next scan has context.',
+      onClick: () => router.push('/goal-planner'),
+    };
+  })();
 
   return (
     <div className="space-y-6">
@@ -232,7 +435,7 @@ export default function ProgressPage() {
                 {compareMode ? t('progress.cancelCompare') : t('progress.compare')}
               </button>
               <button
-                onClick={() => setShowUpload(true)}
+                onClick={() => openUploadModal('progress_header_button')}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2"
               >
                 <Camera className="w-4 h-4" />
@@ -298,6 +501,108 @@ export default function ProgressPage() {
       {/* ==================== PHOTOS TAB ==================== */}
       {activeTab === 'photos' && (
         <div data-tour="progress-photos" className="space-y-6">
+          <div
+            data-testid="progress-proof-loop"
+            data-proof-branch={proofBranch}
+            className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-5"
+          >
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="space-y-2 max-w-2xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/60 bg-white/70 dark:bg-black/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+                  <CalendarClock className="h-3.5 w-3.5" />
+                  Progress proof loop
+                </div>
+                <div>
+                  <h3
+                    data-testid={`progress-proof-branch-${proofBranch}`}
+                    className="text-xl font-bold text-gray-900 dark:text-white"
+                  >
+                    {proofBranch === 'empty'
+                      ? 'Your scan needs visual proof'
+                      : proofBranch === 'single'
+                        ? 'You have one proof shot'
+                        : 'Your proof loop is active'}
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    {proofBranch === 'empty'
+                      ? 'A scan tells you where you stand. A proof photo gives you something concrete to compare later.'
+                      : proofBranch === 'single'
+                        ? 'You have a starting point. The next proof photo turns this into a real comparison, not a memory.'
+                        : 'Use the latest scan, proof photo, and goal gap together so the next action is based on evidence.'}
+                  </p>
+                </div>
+              </div>
+              <div className="lg:min-w-[240px]">
+                <button
+                  data-testid="progress-proof-primary-action"
+                  onClick={progressAction.onClick}
+                  className="w-full px-5 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium inline-flex items-center justify-center gap-2"
+                >
+                  {progressAction.label}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <p className="mt-2 text-xs text-center text-emerald-800/80 dark:text-emerald-300/80">
+                  {progressAction.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5">
+              <div className="rounded-lg bg-white/80 dark:bg-gray-900/50 border border-white/80 dark:border-gray-800 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Latest scan summary</p>
+                <p className="mt-2 text-lg font-bold text-gray-900 dark:text-white">{latestScanLabel}</p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{latestScanDateLabel}</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                  {homeSummary?.scan_summary.scan_count
+                    ? `${homeSummary.scan_summary.scan_count} scan data point${homeSummary.scan_summary.scan_count === 1 ? '' : 's'} logged`
+                    : 'No scan history connected yet'}
+                </p>
+              </div>
+
+              <div className="rounded-lg bg-white/80 dark:bg-gray-900/50 border border-white/80 dark:border-gray-800 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Latest progress photo</p>
+                {latestPhoto && getPhotoSrc(latestPhoto) ? (
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="relative h-16 w-12 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
+                      <Image src={getPhotoSrc(latestPhoto)!} alt="Latest proof" fill className="object-cover" unoptimized />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{formatDate(latestPhoto.taken_at)}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        {latestPhoto.weight_kg != null ? `${latestPhoto.weight_kg} kg` : 'No weight logged'}
+                        {latestPhoto.body_fat_pct != null ? ` · ${latestPhoto.body_fat_pct}% BF` : ''}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">No proof photo uploaded yet.</p>
+                )}
+              </div>
+
+              <div className="rounded-lg bg-white/80 dark:bg-gray-900/50 border border-white/80 dark:border-gray-800 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Goal and gap</p>
+                <p className="mt-2 text-lg font-bold text-gray-900 dark:text-white">
+                  {homeSummary?.goal_summary.target_bf != null ? `${homeSummary.goal_summary.target_bf.toFixed(1)}% target` : 'No saved target'}
+                </p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{goalGapLabel}</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                  {homeSummary?.goal_summary.goal_image_url ? 'Goal image saved' : 'No goal image saved'}
+                </p>
+              </div>
+
+              <div className="rounded-lg bg-white/80 dark:bg-gray-900/50 border border-white/80 dark:border-gray-800 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Next recommended action</p>
+                <p className="mt-2 text-lg font-bold text-gray-900 dark:text-white">{progressAction.label}</p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{progressAction.description}</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                  {homeSummary?.scan_summary.next_check_in_label
+                    ? `Next check-in: ${homeSummary.scan_summary.next_check_in_label}`
+                    : 'Next check-in unknown'}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Compare mode banner */}
           {compareMode && !compareData && (
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-center gap-3">
@@ -324,18 +629,51 @@ export default function ProgressPage() {
 
           {/* Compare View */}
           {compareData && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div
+              data-testid="progress-compare-surface"
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+            >
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                   <ArrowLeftRight className="w-5 h-5 text-emerald-600" />
                   {t('progress.sideByComparison')}
                 </h3>
-                <button
-                  onClick={exitCompareMode}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                {compareMode ? (
+                  <button
+                    onClick={exitCompareMode}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setCompareMode(true)}
+                    className="text-sm font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300"
+                  >
+                    Choose photos
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Elapsed</p>
+                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                    {compareData.days_between != null ? `${compareData.days_between} days` : 'Unknown'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Weight change</p>
+                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                    {compareData.weight_change != null ? `${compareData.weight_change > 0 ? '+' : ''}${compareData.weight_change.toFixed(1)} kg` : 'Not logged'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Body fat change</p>
+                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                    {compareData.bf_change != null ? `${compareData.bf_change > 0 ? '+' : ''}${compareData.bf_change.toFixed(1)}%` : 'Not logged'}
+                  </p>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-0.5 bg-gray-200 dark:bg-gray-700">
                 {[compareData.before, compareData.after].map((photo, idx) => (
@@ -349,10 +687,10 @@ export default function ProgressPage() {
                         {idx === 0 ? t('progress.before') : t('progress.after')}
                       </span>
                     </div>
-                    {photo.image_base64 && (
+                    {getPhotoSrc(photo) && (
                       <div className="relative aspect-[3/4] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900">
                         <Image
-                          src={`data:image/jpeg;base64,${photo.image_base64}`}
+                          src={getPhotoSrc(photo)!}
                           alt={idx === 0 ? 'Before' : 'After'}
                           fill
                           className="object-cover"
@@ -377,6 +715,35 @@ export default function ProgressPage() {
                   </div>
                 ))}
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-900/40 border-t border-gray-200 dark:border-gray-700">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Latest scan</p>
+                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">{latestScanLabel}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{latestScanDateLabel}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Goal / gap-to-goal</p>
+                  <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">
+                    {homeSummary?.goal_summary.target_bf != null ? `${homeSummary.goal_summary.target_bf.toFixed(1)}% target` : 'No saved target'}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{goalGapLabel}</p>
+                </div>
+                <div className="flex flex-col items-start md:items-end gap-2">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Next recommended action</p>
+                    <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white">{progressAction.label}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{progressAction.description}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={progressAction.onClick}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium inline-flex items-center gap-2"
+                  >
+                    {progressAction.label}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -397,7 +764,7 @@ export default function ProgressPage() {
                 {t('progress.noPhotosHint')}
               </p>
               <button
-                onClick={() => setShowUpload(true)}
+                onClick={() => openUploadModal('progress_empty_state')}
                 className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium inline-flex items-center gap-2"
               >
                 <Camera className="w-5 h-5" />
@@ -418,10 +785,21 @@ export default function ProgressPage() {
                     }`}
                     onClick={() => compareMode ? togglePhotoSelection(photo.id) : handleViewPhoto(photo)}
                   >
-                    {/* Thumbnail placeholder — the list endpoint doesn't return image_base64 */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800">
-                      <ImageIcon className="w-10 h-10 text-gray-400 dark:text-gray-500" />
-                    </div>
+                    {getPhotoSrc(photo) ? (
+                      <div className="absolute inset-0">
+                        <Image
+                          src={getPhotoSrc(photo)!}
+                          alt={`Progress photo from ${formatDate(photo.taken_at)}`}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800">
+                        <ImageIcon className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+                      </div>
+                    )}
 
                     {/* Compare checkbox */}
                     {compareMode && (
@@ -471,8 +849,8 @@ export default function ProgressPage() {
       )}
 
       {/* ==================== UPLOAD MODAL ==================== */}
-      <Modal isOpen={showUpload} onClose={() => setShowUpload(false)} title={t('progress.uploadModal')} size="lg">
-        <div className="space-y-4">
+      <Modal isOpen={showUpload} onClose={resetUploadState} title={t('progress.uploadModal')} size="lg">
+        <div data-testid="progress-upload-modal" className="space-y-4">
           {/* File picker */}
           <div
             onClick={() => fileInputRef.current?.click()}
@@ -553,9 +931,9 @@ export default function ProgressPage() {
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
-            <button
-              onClick={() => { setShowUpload(false); setUploadPreview(null); setUploadFile(null); }}
-              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
+              <button
+                onClick={resetUploadState}
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
             >
               {t('common.cancel')}
             </button>
@@ -593,10 +971,10 @@ export default function ProgressPage() {
               <div className="aspect-[3/4] rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center">
                 <div className="w-8 h-8 border-3 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
               </div>
-            ) : viewingPhoto.image_base64 ? (
+            ) : getPhotoSrc(viewingPhoto) ? (
               <div className="relative aspect-[3/4] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900">
                 <Image
-                  src={`data:image/jpeg;base64,${viewingPhoto.image_base64}`}
+                  src={getPhotoSrc(viewingPhoto)!}
                   alt="Progress photo"
                   fill
                   className="object-contain"

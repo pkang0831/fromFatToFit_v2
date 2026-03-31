@@ -29,7 +29,8 @@ const processQueue = (error: unknown, token: string | null = null) => {
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (typeof window === 'undefined') return config;
+      const token = localStorage.getItem('access_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -39,66 +40,70 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+function expireSession() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  window.dispatchEvent(new Event('session-expired'));
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({
-            resolve: (token: string) => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              resolve(api(originalRequest));
-            },
-            reject,
-          });
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const { data, error: refreshError } = await supabase.auth.refreshSession();
-
-        if (refreshError || !data.session) {
-          processQueue(refreshError, null);
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new Event('session-expired'));
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-          }
-          return Promise.reject(error);
-        }
-
-        const newToken = data.session.access_token;
-        const newRefresh = data.session.refresh_token;
-
-        localStorage.setItem('access_token', newToken);
-        localStorage.setItem('refresh_token', newRefresh);
-        setAuthCookie('access_token', newToken);
-        setAuthCookie('refresh_token', newRefresh);
-
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        processQueue(null, newToken);
-
-        return api(originalRequest);
-      } catch (refreshErr) {
-        processQueue(refreshErr, null);
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('session-expired'));
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-        }
-        return Promise.reject(refreshErr);
-      } finally {
-        isRefreshing = false;
-      }
+    if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    if (originalRequest._retry) {
+      expireSession();
+      return Promise.reject(error);
+    }
+
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({
+          resolve: (token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          },
+          reject,
+        });
+      });
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const { data, error: refreshError } = await supabase.auth.refreshSession();
+
+      if (refreshError || !data.session) {
+        processQueue(refreshError, null);
+        expireSession();
+        return Promise.reject(error);
+      }
+
+      const newToken = data.session.access_token;
+      const newRefresh = data.session.refresh_token;
+
+      localStorage.setItem('access_token', newToken);
+      localStorage.setItem('refresh_token', newRefresh);
+      setAuthCookie('access_token', newToken);
+      setAuthCookie('refresh_token', newRefresh);
+
+      originalRequest.headers.Authorization = `Bearer ${newToken}`;
+      processQueue(null, newToken);
+
+      return api(originalRequest);
+    } catch (refreshErr) {
+      processQueue(refreshErr, null);
+      expireSession();
+      return Promise.reject(refreshErr);
+    } finally {
+      isRefreshing = false;
+    }
   }
 );
 

@@ -74,19 +74,28 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <GoogleAnalytics />
       </head>
-      <body className={`${jakarta.variable} ${spaceGrotesk.variable} font-sans`}>
-        <ThemeProvider>
-          <LanguageProvider>
-            <ErrorBoundary>
-              <AuthProvider>
-                <SubscriptionProvider>
-                  {children}
-                  <Toaster position="top-center" />
-                </SubscriptionProvider>
-              </AuthProvider>
-            </ErrorBoundary>
-          </LanguageProvider>
-        </ThemeProvider>
+      <body className={`${jakarta.variable} ${spaceGrotesk.variable} font-sans antialiased bg-[#0a0a0f] text-white min-h-screen`}>
+        {/* Fallback when client bundle has not loaded yet (e.g. ChunkLoadError) */}
+        <div id="root-fallback" className="fixed inset-0 z-0 flex items-center justify-center bg-[#0a0a0f]" aria-hidden="true">
+          <div className="text-center text-white/90">
+            <p className="text-lg font-medium">Devenira</p>
+            <p className="text-sm text-white/50 mt-1">Loading…</p>
+          </div>
+        </div>
+        <div id="root-app" className="relative z-10 min-h-screen">
+          <ThemeProvider>
+            <LanguageProvider>
+              <ErrorBoundary>
+                <AuthProvider>
+                  <SubscriptionProvider>
+                    {children}
+                    <Toaster position="top-center" />
+                  </SubscriptionProvider>
+                </AuthProvider>
+              </ErrorBoundary>
+            </LanguageProvider>
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   );

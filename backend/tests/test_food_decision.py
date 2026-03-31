@@ -172,7 +172,7 @@ class TestFoodDecisionService:
     @pytest.mark.asyncio
     async def test_find_alternatives(self, service, mock_db):
         """Test alternative food suggestions"""
-        with patch('app.services.food_decision_service.get_food_database') as mock_food_db:
+        with patch('app.services.food_database_service.get_food_database') as mock_food_db:
             # Mock food database
             mock_food_db.return_value.foods = [
                 {

@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { Upload, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { importLabelMapPng, type SegmentationExport, type LabelMap } from '@/lib/segmentation';
@@ -58,11 +59,22 @@ export default function MaskEditorPage() {
         }
 
         const data = await resp.json();
+        console.log('[MaskEditor] Auto-segment API response', {
+          width: data.width,
+          height: data.height,
+          hasLabelMap: Boolean(data.label_map_base64?.length),
+          debugInfo: data.debug_info,
+        });
         const lm = await importLabelMapPng(data.label_map_base64, data.width, data.height);
+        console.log('[MaskEditor] LabelMap imported', {
+          width: lm.width,
+          height: lm.height,
+          hasLabels: lm.hasLabels(),
+        });
         setInitialLabelMap(lm);
         setPhase('editing');
       } catch (err: unknown) {
-        console.error('Auto-segment error:', err);
+        console.error('[MaskEditor] Auto-segment error:', err);
         setSegError(err instanceof Error ? err.message : 'Segmentation failed');
         // Fall through to blank editor so user can still paint manually
         setInitialLabelMap(null);
@@ -158,10 +170,15 @@ export default function MaskEditorPage() {
             </div>
             <div className="space-y-1">
               <span className="text-xs text-gray-400">Label map (class IDs as grayscale)</span>
-              <img src={`data:image/png;base64,${exportResult.labelMapPng}`}
+              <Image
+                src={`data:image/png;base64,${exportResult.labelMapPng}`}
                 alt="label map"
+                width={320}
+                height={320}
+                unoptimized
                 className="w-full max-w-xs rounded border border-gray-700 bg-gray-800"
-                style={{ imageRendering: 'pixelated' }} />
+                style={{ imageRendering: 'pixelated' }}
+              />
             </div>
             <div className="space-y-1">
               <span className="text-xs text-gray-400">Per-class binary masks</span>
@@ -169,8 +186,14 @@ export default function MaskEditorPage() {
                 {Object.entries(exportResult.perClassMasks).map(([key, b64]) => (
                   <div key={key} className="space-y-1">
                     <span className="text-xs text-gray-500">{key}</span>
-                    <img src={`data:image/png;base64,${b64}`} alt={key}
-                      className="w-full rounded border border-gray-700 bg-gray-800" />
+                    <Image
+                      src={`data:image/png;base64,${b64}`}
+                      alt={key}
+                      width={200}
+                      height={200}
+                      unoptimized
+                      className="w-full rounded border border-gray-700 bg-gray-800"
+                    />
                   </div>
                 ))}
               </div>

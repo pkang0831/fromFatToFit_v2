@@ -1,48 +1,50 @@
 from supabase import create_client, Client, ClientOptions
 from .config import settings
 
-# NOTE: For user data queries, prefer get_user_supabase(token) which respects RLS.
-# get_supabase() uses the service key and bypasses RLS — use only for admin operations
-# or system-level queries (webhooks, scheduled jobs, etc.)
+# supabase-py mutates the client's PostgREST auth headers when auth
+# operations (sign_in, get_user, etc.) are called.  We keep ONE singleton
+# exclusively for auth endpoints (login / register) — those need a warm
+# GoTrue client.  All data (PostgREST) calls use fresh per-request
+# clients so state from one request never leaks into another.
 
-_supabase: Client | None = None
-_supabase_admin: Client | None = None
+_auth_client: Client | None = None
 
 
-def _init_client() -> Client:
+def _ensure_settings():
     if not settings.supabase_url or not settings.supabase_service_key:
         raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set")
-    return create_client(settings.supabase_url, settings.supabase_service_key)
+
+
+def get_supabase_auth() -> Client:
+    """Singleton used ONLY for GoTrue auth operations (sign_in, sign_up, get_user).
+    Do NOT use this client for PostgREST table queries — its auth headers
+    get mutated by GoTrue calls."""
+    global _auth_client
+    if _auth_client is None:
+        _ensure_settings()
+        _auth_client = create_client(settings.supabase_url, settings.supabase_service_key)
+    return _auth_client
 
 
 def get_supabase() -> Client:
-    """Get Supabase client instance (service key — bypasses RLS)."""
-    global _supabase
-    if _supabase is None:
-        _supabase = _init_client()
-    return _supabase
+    """Fresh Supabase client for PostgREST data operations (service key).
+    Returns a new instance each time to prevent auth state pollution."""
+    _ensure_settings()
+    return create_client(settings.supabase_url, settings.supabase_service_key)
 
 
 def get_supabase_admin() -> Client:
-    """Get Supabase admin client instance."""
-    global _supabase_admin
-    if _supabase_admin is None:
-        _supabase_admin = _init_client()
-    return _supabase_admin
+    """Alias for get_supabase()."""
+    return get_supabase()
 
 
 def get_user_supabase(access_token: str) -> Client:
-    """Create a Supabase client scoped to a specific user's JWT.
-    This client respects RLS policies, so queries are automatically
-    filtered to only return the user's own data.
-    """
+    """Fresh client scoped to a user's JWT (satisfies RLS)."""
+    _ensure_settings()
     return create_client(
         settings.supabase_url,
-        settings.supabase_anon_key,
+        settings.supabase_service_key,
         options=ClientOptions(
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "apikey": settings.supabase_anon_key,
-            }
+            headers={"Authorization": f"Bearer {access_token}"},
         ),
     )

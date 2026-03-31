@@ -54,7 +54,7 @@ export default function FoodCameraPage() {
     if (!selectedImage) return;
 
     // Check usage limits
-    if (!featureAccess.hasAccess && !isPremium) {
+    if (!featureAccess.hasAccess) {
       setError('You have reached your free scan limit. Upgrade to Premium for unlimited scans.');
       return;
     }
@@ -221,7 +221,7 @@ export default function FoodCameraPage() {
                   size="lg"
                   onClick={handleAnalyze}
                   isLoading={isAnalyzing}
-                  disabled={!featureAccess.hasAccess && !isPremium}
+                  disabled={!featureAccess.hasAccess}
                   className="w-full"
                 >
                   <Camera className="h-5 w-5 mr-2" />

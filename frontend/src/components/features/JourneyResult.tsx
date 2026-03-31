@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   ChevronDown, ChevronUp,
-  Utensils, Dumbbell, AlertTriangle, Info,
+  Utensils, Dumbbell, AlertTriangle, Info, Zap,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ShareButtons } from '@/components/ui/ShareButtons';
+import { challengeApi } from '@/lib/api/services';
 import type { TransformationJourneyResponse } from '@/types/api';
 
 const MODE_LABELS: Record<string, string> = {
@@ -27,16 +30,70 @@ const MODE_COLORS: Record<string, string> = {
   unsupported: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
 };
 
+export interface JourneyPrefill {
+  weightKg?: string;
+  age?: string;
+  heightCm?: string;
+  activityLevel?: string;
+  gender?: string;
+}
+
 interface Props {
   result: TransformationJourneyResponse;
   originalImage: string;
   onReset: () => void;
+  journeyPrefill?: JourneyPrefill;
 }
 
-export function JourneyResult({ result, originalImage, onReset }: Props) {
+function buildGoalPlannerQuery(
+  result: TransformationJourneyResponse,
+  prefill?: JourneyPrefill,
+): string {
+  const p = new URLSearchParams();
+  p.set('cbf', String(result.current_bf));
+  p.set('tbf', String(result.target_bf));
+  p.set('wks', String(result.total_weeks));
+  if (prefill?.weightKg) p.set('cw', prefill.weightKg);
+  if (prefill?.age) p.set('age', prefill.age);
+  if (prefill?.heightCm) p.set('hcm', prefill.heightCm);
+  if (prefill?.activityLevel) p.set('act', prefill.activityLevel);
+  if (prefill?.gender) p.set('g', prefill.gender);
+  return p.toString();
+}
+
+export function JourneyResult({ result, originalImage, onReset, journeyPrefill }: Props) {
+  const router = useRouter();
   const [showNutrition, setShowNutrition] = useState(false);
   const [showWorkout, setShowWorkout] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [softTimelineOpen, setSoftTimelineOpen] = useState(false);
+  const [gateDismissed, setGateDismissed] = useState(false);
+  const [startingSeven, setStartingSeven] = useState(false);
+
+  const softWeeks = Math.max(result.total_weeks + 1, Math.ceil(result.total_weeks * 1.45));
+
+  const goToGoalPlanner = useCallback(() => {
+    const q = buildGoalPlannerQuery(result, journeyPrefill);
+    router.push(`/goal-planner?${q}`);
+  }, [result, journeyPrefill, router]);
+
+  const startSevenDay = useCallback(async () => {
+    setStartingSeven(true);
+    try {
+      await challengeApi.startSevenDay({
+        ai_weeks_snapshot: result.total_weeks,
+        ai_current_bf: result.current_bf,
+        ai_target_bf: result.target_bf,
+      });
+      toast.success('7-day loop started — one quick check-in per day.');
+      router.push('/challenge');
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { detail?: string } } };
+      toast.error(err?.response?.data?.detail || 'Could not start challenge');
+    } finally {
+      setStartingSeven(false);
+    }
+  }, [result, router]);
 
   const stages = result.stages;
   const finalStage = stages[stages.length - 1];
@@ -111,6 +168,76 @@ export function JourneyResult({ result, originalImage, onReset }: Props) {
           <ShareButtons imageUrl={afterImage} />
         )}
       </div>
+
+      {/* Decision gate: separate browsers vs executors */}
+      {!gateDismissed && (
+        <div className="rounded-2xl border border-amber-500/35 bg-gradient-to-br from-amber-950/40 to-surfaceAlt p-5 space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-amber-200/90">
+            You saw the vision — now pick a lane
+          </p>
+          <p className="text-sm text-text leading-relaxed">
+            Getting to ~{result.target_bf.toFixed(1)}% body fat from ~{result.current_bf.toFixed(1)}% is not a weekend project.
+            At the pace we modeled, you&apos;re looking at about{' '}
+            <span className="font-bold text-text">{result.total_weeks} weeks</span> of aligned eating and training — not endless scrolling.
+          </p>
+          <div className="p-3 rounded-xl bg-black/25 border border-white/10 text-sm text-text-secondary">
+            <span className="text-rose-300/90 font-medium">Reality check: </span>
+            If nothing changes, you don&apos;t stay still — you drift. The gap between today and that goal image is measured in weeks of execution, not motivation.
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button type="button" variant="primary" className="w-full justify-center" onClick={goToGoalPlanner}>
+              Start my {result.total_weeks}-week plan
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-center border-primary/40"
+              onClick={() => setSoftTimelineOpen((v) => !v)}
+            >
+              See a more realistic timeline
+            </Button>
+            {softTimelineOpen && (
+              <p className="text-xs text-text-secondary px-1 py-2 border-l-2 border-primary/50">
+                Aggressive timelines break people. A sustainable pace often lands closer to{' '}
+                <span className="font-semibold text-text">{softWeeks} weeks</span> for the same BF change — same direction, less whiplash.
+                You can still start the structured plan and adjust intensity inside Goal Planner.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => setGateDismissed(true)}
+              className="text-center text-xs text-text-light hover:text-text-secondary py-2 transition-colors"
+            >
+              Not for me right now — I&apos;m just browsing
+            </button>
+          </div>
+          <div className="pt-2 border-t border-white/10">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="w-full"
+              onClick={startSevenDay}
+              disabled={startingSeven}
+              isLoading={startingSeven}
+            >
+              <Zap className="h-4 w-4 mr-2 shrink-0" />
+              Lock in 7-day check-ins (daily, ~30s)
+            </Button>
+            <p className="text-[11px] text-text-light mt-2 text-center">
+              Builds the habit loop: one check-in per day so the app becomes a system, not a gallery.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {gateDismissed && (
+        <p className="text-xs text-center text-text-light">
+          Whenever you&apos;re ready: <button type="button" className="text-primary underline" onClick={goToGoalPlanner}>Goal Planner</button>
+          {' · '}
+          <button type="button" className="text-primary underline" onClick={startSevenDay}>7-day challenge</button>
+        </p>
+      )}
 
       {/* Body composition details */}
       {finalStage && (

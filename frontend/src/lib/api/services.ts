@@ -20,12 +20,14 @@ import type {
   WorkoutLog,
   WorkoutTrendResponse,
   BodyScanRequest,
+  BodyPhotoQualityRequest,
+  BodyPhotoQualityResponse,
   BodyFatEstimateResponse,
   PercentileResponse,
-  TransformationResponse,
   TransformationJourneyResponse,
   EnhancementResponse,
   BodyScanHistoryItem,
+  AccountDeletionResponse,
   SegmentRequest,
   SegmentResponse,
   RegionTransformRequest,
@@ -33,6 +35,7 @@ import type {
   CreateCheckoutSessionRequest,
   CheckoutSessionResponse,
   SubscriptionResponse,
+  BillingPortalSessionResponse,
   UsageLimitsResponse,
   QuickStatsResponse,
   CalorieBalanceTrendResponse,
@@ -41,12 +44,24 @@ import type {
   WeightLog,
   GoalUpdate,
   GoalProjectionResponse,
+  HomeSummaryResponse,
+  ReminderStatusResponse,
 } from '@/types/api';
 
 // Guest API (no auth required)
 export const guestApi = {
-  bodyScan: (data: { image_base64: string; gender: string; age: number }) =>
+  bodyScan: (data: {
+    image_base64: string;
+    gender: string;
+    age: number;
+    ownership_confirmed?: boolean;
+    adult_confirmed?: boolean;
+    framing?: 'upper_body' | 'full_body';
+  }) =>
     api.post<{ body_fat_percentage: number; confidence: string; category: string; insight: string }>('/guest/body-scan', data),
+
+  validatePhoto: (data: BodyPhotoQualityRequest) =>
+    api.post<BodyPhotoQualityResponse>('/guest/validate-photo', data),
 };
 
 // Auth API
@@ -65,6 +80,9 @@ export const authApi = {
 
   updateProfile: (data: Partial<User>) =>
     api.put<User>('/auth/profile', data),
+
+  deleteAccount: () =>
+    api.delete<AccountDeletionResponse>('/auth/account'),
 
   resetPassword: (email: string) =>
     api.post('/auth/reset-password', { email }),
@@ -131,6 +149,9 @@ export const workoutApi = {
 
 // Body API
 export const bodyApi = {
+  validatePhoto: (data: BodyPhotoQualityRequest) =>
+    api.post<BodyPhotoQualityResponse>('/body/validate-photo', data),
+
   estimateBodyFat: (data: BodyScanRequest) =>
     api.post<BodyFatEstimateResponse>('/body/estimate-bodyfat', data),
 
@@ -170,6 +191,9 @@ export const paymentApi = {
   getSubscriptionStatus: () =>
     api.get<SubscriptionResponse>('/payments/subscription'),
 
+  createBillingPortalSession: (returnUrl: string) =>
+    api.post<BillingPortalSessionResponse>('/payments/billing-portal', { return_url: returnUrl }),
+
   getUsageLimits: () =>
     api.get<UsageLimitsResponse>('/payments/usage-limits'),
 
@@ -192,6 +216,27 @@ export const dashboardApi = {
     api.get<CalorieBalanceTrendResponse>('/dashboard/calorie-balance-trend', {
       params: { days }
     }),
+};
+
+export const homeApi = {
+  getSummary: () =>
+    api.get<HomeSummaryResponse>('/home/summary'),
+};
+
+export const analyticsApi = {
+  captureRetentionEvent: (data: {
+    event_name:
+      | 'reengagement_session'
+      | 'history_viewed'
+      | 'progress_proof_started'
+      | 'progress_proof_completed'
+      | 'progress_compare_viewed'
+      | 'progress_checkin_started'
+      | 'progress_checkin_completed'
+      | 'progress_checkin_failed';
+    surface: string;
+    properties?: Record<string, string | number | boolean | null>;
+  }) => api.post('/analytics/retention', data),
 };
 
 // Food Database API
@@ -247,6 +292,9 @@ export const foodDecisionApi = {
 export const notificationApi = {
   getPreferences: () =>
     api.get('/notifications/preferences'),
+
+  getReminderStatus: () =>
+    api.get<ReminderStatusResponse>('/notifications/reminder-status'),
 
   updatePreferences: <T extends object>(data: T) =>
     api.put('/notifications/preferences', data),
@@ -338,4 +386,104 @@ export const beautyApi = {
 export const fashionApi = {
   recommend: (data: FashionRecommendRequest) =>
     api.post<FashionRecommendResponse>('/fashion/recommend', data),
+};
+
+// Goal Planner API (interactive wizard)
+export const goalPlanApi = {
+  compareTiers: (data: {
+    current_weight_kg: number;
+    current_bf_pct: number;
+    target_weight_kg?: number;
+    target_bf_pct: number;
+    gender: 'male' | 'female';
+    age: number;
+    height_cm: number;
+    activity_level: string;
+  }) => api.post('/goal-plan/tiers', data),
+
+  getMacros: (data: {
+    daily_calories: number;
+    weight_kg: number;
+    preset?: string;
+    carb_pct?: number;
+    protein_pct?: number;
+    fat_pct?: number;
+  }) => api.post('/goal-plan/macros', data),
+
+  suggestFoods: (data: {
+    protein_g: number;
+    carb_g: number;
+    fat_g: number;
+    priority?: string;
+    categories?: string[];
+    limit?: number;
+  }) => api.post('/goal-plan/foods', data),
+
+  composeDishes: (data: {
+    ingredients: { food_id: string; amount_g: number }[];
+    target_calories?: number;
+    target_protein_g?: number;
+    target_carb_g?: number;
+    target_fat_g?: number;
+    meals_per_day?: number;
+  }) => api.post('/goal-plan/dishes', data),
+
+  recommendMeals: (data: {
+    daily_calories: number;
+    protein_g: number;
+    carb_g: number;
+    fat_g: number;
+    meals_per_day?: number;
+  }) => api.post('/goal-plan/recommend-meals', data),
+
+  getExerciseRoutine: (data: {
+    mode: string;
+    gender: 'male' | 'female';
+    experience?: string;
+    available_equipment?: string[];
+    sessions_per_week?: number;
+  }) => api.post('/goal-plan/exercise', data),
+
+  getCardioPlan: (data: {
+    weight_kg: number;
+    gender: 'male' | 'female';
+    height_cm: number;
+    age: number;
+    target_calories: number;
+    preferred_activities?: string[];
+  }) => api.post('/goal-plan/cardio', data),
+
+  savePlan: (data: { plan: Record<string, unknown> }) =>
+    api.post<{ status: 'ok'; updated_at: string }>('/goal-plan/saved-plan', data),
+
+  getSavedPlan: () =>
+    api.get<{ plan: Record<string, unknown>; updated_at: string }>('/goal-plan/saved-plan'),
+};
+
+export const challengeApi = {
+  startSevenDay: (data?: {
+    ai_weeks_snapshot?: number;
+    ai_current_bf?: number;
+    ai_target_bf?: number;
+  }) => api.post<{ challenge: Record<string, unknown> }>('/challenge/seven-day/start', data ?? {}),
+
+  getSevenDay: () =>
+    api.get<{
+      challenge: Record<string, unknown> | null;
+      checkins: Array<{
+        calendar_date: string;
+        weight_kg?: number | null;
+        body_fat_pct?: number | null;
+        checked_at: string;
+      }>;
+      day_index: number;
+      identity_message: string | null;
+      week_one_compare: Record<string, unknown> | null;
+    }>('/challenge/seven-day'),
+
+  checkinSevenDay: (data?: { weight_kg?: number; body_fat_pct?: number }) =>
+    api.post<{ ok: boolean; duplicate?: boolean; message?: string }>(
+      '/challenge/seven-day/checkin',
+      data ?? {},
+    ),
 };

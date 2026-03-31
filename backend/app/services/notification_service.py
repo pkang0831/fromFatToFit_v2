@@ -1,10 +1,36 @@
 import logging
 import json
-from typing import Dict, Any, List, Optional
-from datetime import datetime
+import asyncio
+import smtplib
+from typing import Dict, Any, List, Optional, Mapping
+from datetime import datetime, timezone, timedelta
+from email.message import EmailMessage
+from email.utils import make_msgid, parseaddr
+from urllib.parse import quote
+from uuid import uuid4
 from ..database import get_supabase
+from ..config import settings
+from .retention_event_service import log_retention_event
 
 logger = logging.getLogger(__name__)
+
+WEEKLY_PROOF_REMINDER_TYPE = "weekly_proof"
+WEEKLY_PROOF_REMINDER_CHANNEL = "email"
+WEEKLY_PROOF_ELIGIBLE_STATES = {"progress_proof", "weekly_scan"}
+WEEKLY_PROOF_NON_DELIVERABLE_STATUSES = {"bounced", "suppressed", "complained", "unsubscribed"}
+WEEKLY_PROOF_COOLDOWN_STATUSES = {"queued", "sending", "sent", "delivered", "opened", "clicked"}
+WEEKLY_PROOF_PROVIDER_EVENTS = {
+    "email.sent",
+    "email.delivered",
+    "email.delivery_delayed",
+    "email.bounced",
+    "email.failed",
+    "email.suppressed",
+    "email.opened",
+    "email.clicked",
+    "email.complained",
+    "contact.updated",
+}
 
 DEFAULT_PREFERENCES = {
     "email_weekly_summary": True,
@@ -18,26 +44,124 @@ DEFAULT_PREFERENCES = {
     "workout_reminder_days": ["monday", "wednesday", "friday"],
 }
 
+LEGACY_DEFAULT_PREFERENCES = {
+    "email_enabled": True,
+    "push_enabled": True,
+    "weekly_report": True,
+}
+
+
+def _strip_metadata(row: Dict[str, Any]) -> Dict[str, Any]:
+    cleaned = dict(row)
+    cleaned.pop("id", None)
+    cleaned.pop("created_at", None)
+    cleaned.pop("updated_at", None)
+    return cleaned
+
+
+def _normalize_preferences(row: Dict[str, Any]) -> Dict[str, Any]:
+    stripped = _strip_metadata(row)
+    normalized = dict(DEFAULT_PREFERENCES)
+
+    if any(key in stripped for key in DEFAULT_PREFERENCES):
+        for key, default in DEFAULT_PREFERENCES.items():
+            value = stripped.get(key, default)
+            normalized[key] = default if value is None else value
+        return normalized
+
+    email_enabled = bool(stripped.get("email_enabled", True))
+    push_enabled = bool(stripped.get("push_enabled", True))
+    weekly_report = bool(stripped.get("weekly_report", True))
+
+    normalized.update({
+        "email_weekly_summary": weekly_report,
+        "email_inactivity_reminder": email_enabled,
+        "email_credit_low": email_enabled,
+        "push_meal_reminder": push_enabled,
+        "push_workout_reminder": push_enabled,
+        "push_weekly_body_scan": push_enabled,
+        "push_daily_summary": False,
+    })
+    return normalized
+
+
+def _build_latest_preferences_record(user_id: str) -> Dict[str, Any]:
+    now = _utcnow().isoformat()
+    return {
+        "user_id": user_id,
+        **DEFAULT_PREFERENCES,
+        "created_at": now,
+        "updated_at": now,
+    }
+
+
+def _build_legacy_preferences_record(user_id: str) -> Dict[str, Any]:
+    now = _utcnow().isoformat()
+    return {
+        "user_id": user_id,
+        **LEGACY_DEFAULT_PREFERENCES,
+        "created_at": now,
+        "updated_at": now,
+    }
+
+
+def _to_legacy_updates(updates: Dict[str, Any]) -> Dict[str, Any]:
+    legacy_updates: Dict[str, Any] = {}
+
+    email_fields = {
+        "email_weekly_summary",
+        "email_inactivity_reminder",
+        "email_credit_low",
+    }
+    if any(field in updates for field in email_fields):
+        legacy_updates["email_enabled"] = any(bool(updates.get(field)) for field in email_fields if field in updates)
+        if "email_weekly_summary" in updates:
+            legacy_updates["weekly_report"] = bool(updates["email_weekly_summary"])
+
+    push_fields = {
+        "push_meal_reminder",
+        "push_workout_reminder",
+        "push_daily_summary",
+        "push_weekly_body_scan",
+    }
+    if any(field in updates for field in push_fields):
+        legacy_updates["push_enabled"] = any(bool(updates.get(field)) for field in push_fields if field in updates)
+
+    return legacy_updates
+
 
 async def get_notification_preferences(user_id: str) -> Dict[str, Any]:
     supabase = get_supabase()
-    result = supabase.table("notification_preferences").select("*").eq("user_id", user_id).execute()
+    try:
+        result = supabase.table("notification_preferences").select("*").eq("user_id", user_id).execute()
+    except Exception as select_error:
+        logger.error("notification_preferences unavailable; returning defaults: %s", select_error)
+        return dict(DEFAULT_PREFERENCES)
 
     if result.data:
-        prefs = result.data[0]
-        prefs.pop("id", None)
-        prefs.pop("created_at", None)
-        prefs.pop("updated_at", None)
-        return prefs
+        return _normalize_preferences(result.data[0])
 
-    record = {
-        "user_id": user_id,
-        **DEFAULT_PREFERENCES,
-        "created_at": datetime.utcnow().isoformat(),
-        "updated_at": datetime.utcnow().isoformat(),
-    }
-    supabase.table("notification_preferences").insert(record).execute()
-    return record
+    latest_record = _build_latest_preferences_record(user_id)
+    try:
+        insert_result = supabase.table("notification_preferences").insert(latest_record).execute()
+        if insert_result.data:
+            return _normalize_preferences(insert_result.data[0])
+        return _normalize_preferences(latest_record)
+    except Exception as latest_insert_error:
+        logger.warning(
+            "notification_preferences insert failed with latest schema; retrying with legacy columns: %s",
+            latest_insert_error,
+        )
+
+    legacy_record = _build_legacy_preferences_record(user_id)
+    try:
+        insert_result = supabase.table("notification_preferences").insert(legacy_record).execute()
+        if insert_result.data:
+            return _normalize_preferences(insert_result.data[0])
+        return _normalize_preferences(legacy_record)
+    except Exception as legacy_insert_error:
+        logger.error("notification_preferences legacy insert unavailable; returning defaults: %s", legacy_insert_error)
+        return dict(DEFAULT_PREFERENCES)
 
 
 async def update_notification_preferences(user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
@@ -46,9 +170,30 @@ async def update_notification_preferences(user_id: str, updates: Dict[str, Any])
 
     allowed = set(DEFAULT_PREFERENCES.keys())
     filtered = {k: v for k, v in updates.items() if k in allowed}
-    filtered["updated_at"] = datetime.utcnow().isoformat()
+    filtered["updated_at"] = _utcnow().isoformat()
 
-    supabase.table("notification_preferences").update(filtered).eq("user_id", user_id).execute()
+    try:
+        supabase.table("notification_preferences").update(filtered).eq("user_id", user_id).execute()
+    except Exception as latest_update_error:
+        logger.warning(
+            "notification_preferences update failed with latest schema; retrying with legacy columns: %s",
+            latest_update_error,
+        )
+        legacy_updates = _to_legacy_updates(filtered)
+        if not legacy_updates:
+            return await get_notification_preferences(user_id)
+        legacy_updates["updated_at"] = filtered["updated_at"]
+        try:
+            supabase.table("notification_preferences").update(legacy_updates).eq("user_id", user_id).execute()
+        except Exception as legacy_update_error:
+            logger.error(
+                "notification_preferences update unavailable; returning in-memory fallback: %s",
+                legacy_update_error,
+            )
+            current = await get_notification_preferences(user_id)
+            current.update({k: v for k, v in filtered.items() if k in DEFAULT_PREFERENCES})
+            return current
+
     return await get_notification_preferences(user_id)
 
 
@@ -61,7 +206,7 @@ async def save_push_subscription(user_id: str, subscription: Dict[str, Any]) -> 
     if existing.data:
         supabase.table("push_subscriptions").update({
             "subscription_data": json.dumps(subscription),
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": _utcnow().isoformat(),
         }).eq("id", existing.data[0]["id"]).execute()
     else:
         supabase.table("push_subscriptions").insert({
@@ -69,8 +214,8 @@ async def save_push_subscription(user_id: str, subscription: Dict[str, Any]) -> 
             "endpoint": endpoint,
             "subscription_data": json.dumps(subscription),
             "active": True,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
+            "created_at": _utcnow().isoformat(),
+            "updated_at": _utcnow().isoformat(),
         }).execute()
 
     logger.info(f"Saved push subscription for user {user_id}")
@@ -81,7 +226,7 @@ async def remove_push_subscription(user_id: str, endpoint: str) -> Dict[str, Any
     supabase = get_supabase()
     supabase.table("push_subscriptions").update({
         "active": False,
-        "updated_at": datetime.utcnow().isoformat(),
+        "updated_at": _utcnow().isoformat(),
     }).eq("user_id", user_id).eq("endpoint", endpoint).execute()
 
     return {"status": "unsubscribed"}
@@ -146,3 +291,805 @@ async def send_push_notification(user_id: str, title: str, body: str, data: Opti
         except Exception as e:
             logger.error(f"Failed to send push to {user_id}: {e}")
     return sent
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _parse_iso_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def _is_local_url(url: str | None) -> bool:
+    if not url:
+        return True
+    lowered = url.lower()
+    return "localhost" in lowered or "127.0.0.1" in lowered
+
+
+def get_weekly_proof_reminder_status() -> Dict[str, Any]:
+    if not settings.enable_weekly_proof_reminders:
+        return {
+            "active": False,
+            "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+            "reason": "disabled_by_flag",
+            "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
+        }
+
+    if settings.weekly_proof_reminder_channel != WEEKLY_PROOF_REMINDER_CHANNEL:
+        return {
+            "active": False,
+            "channel": settings.weekly_proof_reminder_channel,
+            "reason": "unsupported_channel",
+            "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
+        }
+
+    if not settings.weekly_proof_reminder_provider_ready:
+        return {
+            "active": False,
+            "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+            "reason": "provider_not_ready",
+            "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
+        }
+
+    if (
+        not settings.smtp_host
+        or not settings.smtp_username
+        or not settings.smtp_password
+        or not settings.smtp_from_email
+    ):
+        return {
+            "active": False,
+            "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+            "reason": "email_not_configured",
+            "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
+        }
+
+    if not settings.resend_webhook_secret:
+        return {
+            "active": False,
+            "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+            "reason": "webhook_not_configured",
+            "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
+        }
+
+    if _is_local_url(settings.public_app_url) or _is_local_url(settings.public_api_url):
+        return {
+            "active": False,
+            "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+            "reason": "public_urls_not_configured",
+            "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
+        }
+
+    return {
+        "active": True,
+        "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+        "reason": None,
+        "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
+    }
+
+
+def build_weekly_proof_reminder_path(entry_state: str) -> str:
+    if entry_state == "progress_proof":
+        return "/progress?tab=photos&focus=upload&from=weekly_reminder"
+    if entry_state == "weekly_scan":
+        return "/body-scan?tab=journey&from=weekly_reminder#transformation"
+    raise ValueError(f"Unsupported reminder entry_state: {entry_state}")
+
+
+def build_weekly_proof_tracking_url(reminder_event_id: str, next_path: str) -> str:
+    encoded_next = quote(_sanitize_frontend_path(next_path), safe="")
+    return (
+        f"{settings.public_api_url.rstrip('/')}"
+        f"/notifications/reminders/open/{reminder_event_id}?next={encoded_next}"
+    )
+
+
+def build_weekly_proof_unsubscribe_url(reminder_event_id: str) -> str:
+    return (
+        f"{settings.public_api_url.rstrip('/')}"
+        f"/notifications/reminders/unsubscribe/{reminder_event_id}"
+    )
+
+
+def _sanitize_frontend_path(next_path: str | None) -> str:
+    if not next_path or not next_path.startswith("/"):
+        return "/home"
+    if next_path.startswith("//") or "://" in next_path:
+        return "/home"
+    return next_path
+
+
+def _build_weekly_proof_subject(entry_state: str) -> str:
+    if entry_state == "weekly_scan":
+        return "Your weekly proof check-in is ready"
+    return "Add this week’s progress proof before the next scan"
+
+
+def _build_weekly_proof_copy(entry_state: str) -> tuple[str, str]:
+    if entry_state == "weekly_scan":
+        return (
+            "Your weekly check-in window is open.",
+            "Open your journey, compare the latest proof, and run the next check-in while the change is still fresh.",
+        )
+    return (
+        "You already have scan data. Now lock it with proof.",
+        "Upload one progress photo so this week is grounded in something you can compare later, not just a number.",
+    )
+
+
+def _build_weekly_proof_candidate(
+    *,
+    profile: Dict[str, Any],
+    prefs: Dict[str, Any],
+    summary: Any,
+    last_event: Dict[str, Any] | None,
+    now: datetime,
+) -> Dict[str, Any] | None:
+    if not profile.get("user_id") or not profile.get("email"):
+        return None
+
+    if profile.get("deleted_at") or profile.get("blocked_at") or profile.get("disabled_at"):
+        return None
+
+    if not profile.get("onboarding_completed", True):
+        return None
+
+    if not prefs.get("email_weekly_summary", True):
+        return None
+
+    entry_state = getattr(summary, "entry_state", None)
+    if entry_state not in WEEKLY_PROOF_ELIGIBLE_STATES:
+        return None
+
+    scan_summary = getattr(summary, "scan_summary", None)
+    if not scan_summary or getattr(scan_summary, "scan_count", 0) <= 0:
+        return None
+
+    last_status = ((last_event or {}).get("status") or "").lower()
+    last_touch = (
+        _parse_iso_datetime((last_event or {}).get("sent_at"))
+        or _parse_iso_datetime((last_event or {}).get("created_at"))
+    )
+    if last_status in WEEKLY_PROOF_NON_DELIVERABLE_STATUSES:
+        return None
+    if (
+        last_status in WEEKLY_PROOF_COOLDOWN_STATUSES
+        and last_touch
+        and now - last_touch < timedelta(hours=settings.weekly_proof_reminder_cooldown_hours)
+    ):
+        return None
+
+    next_path = build_weekly_proof_reminder_path(entry_state)
+    headline, body = _build_weekly_proof_copy(entry_state)
+    return {
+        "user_id": profile["user_id"],
+        "email": profile["email"],
+        "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+        "entry_state": entry_state,
+        "next_path": next_path,
+        "subject": _build_weekly_proof_subject(entry_state),
+        "headline": headline,
+        "body": body,
+    }
+
+
+def _send_email_message(message: EmailMessage) -> None:
+    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=20) as smtp:
+        if settings.smtp_use_tls:
+            smtp.starttls()
+        if settings.smtp_username:
+            smtp.login(settings.smtp_username, settings.smtp_password)
+        smtp.send_message(message)
+
+
+async def _send_weekly_proof_email(candidate: Dict[str, Any], reminder_event_id: str) -> str:
+    tracking_url = build_weekly_proof_tracking_url(reminder_event_id, candidate["next_path"])
+    unsubscribe_url = build_weekly_proof_unsubscribe_url(reminder_event_id)
+    message = EmailMessage()
+    message["To"] = candidate["email"]
+    message["From"] = settings.smtp_from_email
+    message["Subject"] = candidate["subject"]
+    message["Message-ID"] = make_msgid("denevira")
+    message["List-Unsubscribe"] = f"<{unsubscribe_url}>"
+    message["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+    message["X-Denevira-Reminder-Id"] = reminder_event_id
+    message["Auto-Submitted"] = "auto-generated"
+
+    text_body = (
+        f"{candidate['headline']}\n\n"
+        f"{candidate['body']}\n\n"
+        f"Open Denevira: {tracking_url}\n"
+        f"Unsubscribe from weekly proof reminders: {unsubscribe_url}\n"
+    )
+    html_body = (
+        f"<p>{candidate['headline']}</p>"
+        f"<p>{candidate['body']}</p>"
+        f"<p><a href=\"{tracking_url}\">Open Denevira</a></p>"
+        f"<p style=\"font-size:12px;color:#666;\">"
+        f"<a href=\"{unsubscribe_url}\">Unsubscribe from weekly proof reminders</a>"
+        f"</p>"
+    )
+    message.set_content(text_body)
+    message.add_alternative(html_body, subtype="html")
+
+    await asyncio.to_thread(_send_email_message, message)
+    return str(message["Message-ID"])
+
+
+def _list_candidate_profiles() -> List[Dict[str, Any]]:
+    supabase = get_supabase()
+    result = (
+        supabase.table("user_profiles")
+        .select("user_id, email, onboarding_completed")
+        .execute()
+    )
+    return result.data or []
+
+
+def _get_latest_weekly_reminder_event(user_id: str) -> Dict[str, Any] | None:
+    supabase = get_supabase()
+    result = (
+        supabase.table("reminder_events")
+        .select("id, sent_at, created_at, status, opened_at, recipient_email, provider_email_id")
+        .eq("user_id", user_id)
+        .eq("channel", WEEKLY_PROOF_REMINDER_CHANNEL)
+        .eq("reminder_type", WEEKLY_PROOF_REMINDER_TYPE)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def _build_job_key(now: datetime) -> str:
+    interval_minutes = max(5, settings.weekly_proof_reminder_job_interval_minutes)
+    bucket = int(now.timestamp() // (interval_minutes * 60))
+    return f"{WEEKLY_PROOF_REMINDER_TYPE}:{bucket}"
+
+
+def _is_unique_violation(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return "duplicate key" in message or "23505" in message
+
+
+def _claim_weekly_proof_job_run(job_key: str, now: datetime) -> Dict[str, Any] | None:
+    supabase = get_supabase()
+    payload = {
+        "job_key": job_key,
+        "job_name": WEEKLY_PROOF_REMINDER_TYPE,
+        "status": "running",
+        "started_at": now.isoformat(),
+        "completed_at": None,
+        "lease_owner": str(uuid4()),
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat(),
+    }
+    try:
+        result = supabase.table("reminder_job_runs").insert(payload).execute()
+    except Exception as exc:
+        if _is_unique_violation(exc):
+            return None
+        raise
+    return result.data[0] if result.data else payload
+
+
+def _finish_weekly_proof_job_run(job_key: str, updates: Dict[str, Any]) -> None:
+    supabase = get_supabase()
+    payload = {**updates, "updated_at": _utcnow().isoformat()}
+    supabase.table("reminder_job_runs").update(payload).eq("job_key", job_key).execute()
+
+
+def _create_reminder_event(candidate: Dict[str, Any], job_key: str) -> Dict[str, Any]:
+    supabase = get_supabase()
+    now = _utcnow().isoformat()
+    payload = {
+        "id": str(uuid4()),
+        "user_id": candidate["user_id"],
+        "recipient_email": candidate["email"],
+        "channel": candidate["channel"],
+        "reminder_type": WEEKLY_PROOF_REMINDER_TYPE,
+        "entry_state": candidate["entry_state"],
+        "deep_link": candidate["next_path"],
+        "job_key": job_key,
+        "status": "queued",
+        "provider_message_id": None,
+        "sent_at": None,
+        "opened_at": None,
+        "created_at": now,
+        "updated_at": now,
+    }
+    result = supabase.table("reminder_events").insert(payload).execute()
+    return result.data[0] if result.data else payload
+
+
+def _update_reminder_event(reminder_event_id: str, updates: Dict[str, Any]) -> None:
+    supabase = get_supabase()
+    payload = {
+        **updates,
+        "updated_at": _utcnow().isoformat(),
+    }
+    supabase.table("reminder_events").update(payload).eq("id", reminder_event_id).execute()
+
+
+def _get_reminder_event(reminder_event_id: str) -> Dict[str, Any] | None:
+    supabase = get_supabase()
+    result = (
+        supabase.table("reminder_events")
+        .select("*")
+        .eq("id", reminder_event_id)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def _get_latest_weekly_reminder_event_by_email(recipient_email: str) -> Dict[str, Any] | None:
+    supabase = get_supabase()
+    result = (
+        supabase.table("reminder_events")
+        .select("*")
+        .eq("channel", WEEKLY_PROOF_REMINDER_CHANNEL)
+        .eq("reminder_type", WEEKLY_PROOF_REMINDER_TYPE)
+        .eq("recipient_email", recipient_email)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def _get_weekly_reminder_event_by_provider_email_id(provider_email_id: str) -> Dict[str, Any] | None:
+    supabase = get_supabase()
+    result = (
+        supabase.table("reminder_events")
+        .select("*")
+        .eq("channel", WEEKLY_PROOF_REMINDER_CHANNEL)
+        .eq("reminder_type", WEEKLY_PROOF_REMINDER_TYPE)
+        .eq("provider_email_id", provider_email_id)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def _record_reminder_webhook_event(
+    *,
+    svix_id: str,
+    event_type: str,
+    payload: Dict[str, Any],
+    recipient_email: str | None,
+    provider_email_id: str | None,
+) -> Dict[str, Any] | None:
+    supabase = get_supabase()
+    record = {
+        "svix_id": svix_id,
+        "event_type": event_type,
+        "recipient_email": recipient_email,
+        "provider_email_id": provider_email_id,
+        "processing_status": "processing",
+        "payload": payload,
+        "last_error": None,
+        "created_at": _utcnow().isoformat(),
+        "processed_at": None,
+    }
+    try:
+        result = supabase.table("reminder_webhook_events").insert(record).execute()
+    except Exception as exc:
+        if _is_unique_violation(exc):
+            return None
+        raise
+    return result.data[0] if result.data else record
+
+
+def _update_reminder_webhook_event(svix_id: str, updates: Dict[str, Any]) -> None:
+    supabase = get_supabase()
+    supabase.table("reminder_webhook_events").update(updates).eq("svix_id", svix_id).execute()
+
+
+def _normalize_email_address(value: Any) -> str | None:
+    if isinstance(value, list):
+        value = value[0] if value else None
+    if not value:
+        return None
+    if isinstance(value, dict):
+        value = value.get("email") or value.get("address")
+    _, parsed = parseaddr(str(value))
+    normalized = parsed.strip().lower()
+    return normalized or None
+
+
+def _extract_provider_email_id(payload: Dict[str, Any]) -> str | None:
+    data = payload.get("data") or {}
+    return data.get("email_id") or data.get("id") or payload.get("email_id")
+
+
+def _extract_recipient_email(payload: Dict[str, Any]) -> str | None:
+    data = payload.get("data") or {}
+    return (
+        _normalize_email_address(data.get("to"))
+        or _normalize_email_address(data.get("email"))
+        or _normalize_email_address(payload.get("to"))
+    )
+
+
+def _extract_webhook_timestamp(payload: Dict[str, Any]) -> str:
+    data = payload.get("data") or {}
+    for key in ("created_at", "updated_at", "timestamp"):
+        if payload.get(key):
+            return str(payload[key])
+        if data.get(key):
+            return str(data[key])
+    return _utcnow().isoformat()
+
+
+def _resolve_reminder_event_for_webhook(
+    *,
+    recipient_email: str | None,
+    provider_email_id: str | None,
+) -> Dict[str, Any] | None:
+    if provider_email_id:
+        reminder_event = _get_weekly_reminder_event_by_provider_email_id(provider_email_id)
+        if reminder_event:
+            return reminder_event
+    if recipient_email:
+        return _get_latest_weekly_reminder_event_by_email(recipient_email)
+    return None
+
+
+def _find_user_id_by_email(email: str | None) -> str | None:
+    if not email:
+        return None
+    supabase = get_supabase()
+    result = (
+        supabase.table("user_profiles")
+        .select("user_id")
+        .eq("email", email)
+        .limit(1)
+        .execute()
+    )
+    if not result.data:
+        return None
+    return result.data[0].get("user_id")
+
+
+async def _disable_weekly_proof_reminders_for_user(user_id: str) -> None:
+    await update_notification_preferences(
+        user_id,
+        {
+            "email_weekly_summary": False,
+            "email_inactivity_reminder": False,
+            "email_credit_low": False,
+        },
+    )
+
+
+def _build_provider_transition_updates(
+    *,
+    current_event: Dict[str, Any],
+    event_type: str,
+    payload: Dict[str, Any],
+    recipient_email: str | None,
+    provider_email_id: str | None,
+) -> Dict[str, Any]:
+    timestamp = _extract_webhook_timestamp(payload)
+    current_status = (current_event.get("status") or "").lower()
+    updates: Dict[str, Any] = {
+        "last_provider_event_type": event_type,
+    }
+    if recipient_email:
+        updates["recipient_email"] = recipient_email
+    if provider_email_id:
+        updates["provider_email_id"] = provider_email_id
+
+    if event_type == "email.sent":
+        updates["status"] = "sent"
+        updates["sent_at"] = current_event.get("sent_at") or timestamp
+    elif event_type == "email.delivered":
+        updates["status"] = "delivered" if current_status not in {"opened", "clicked"} else current_status
+        updates["delivered_at"] = timestamp
+    elif event_type == "email.delivery_delayed":
+        updates["status"] = current_status or "sent"
+        updates["last_error"] = "delivery_delayed"
+    elif event_type == "email.bounced":
+        updates["status"] = "bounced"
+        updates["bounced_at"] = timestamp
+        updates["last_error"] = (payload.get("data") or {}).get("message") or "bounced"
+    elif event_type == "email.failed":
+        updates["status"] = "failed"
+        updates["failed_at"] = timestamp
+        updates["last_error"] = (payload.get("data") or {}).get("message") or "failed"
+    elif event_type == "email.suppressed":
+        updates["status"] = "suppressed"
+        updates["suppressed_at"] = timestamp
+        updates["last_error"] = (payload.get("data") or {}).get("message") or "suppressed"
+    elif event_type == "email.opened":
+        updates["status"] = "opened" if current_status != "clicked" else current_status
+        updates["opened_at"] = current_event.get("opened_at") or timestamp
+    elif event_type == "email.clicked":
+        updates["status"] = "clicked"
+        updates["clicked_at"] = timestamp
+        updates["opened_at"] = current_event.get("opened_at") or timestamp
+    elif event_type == "email.complained":
+        updates["status"] = "complained"
+        updates["complained_at"] = timestamp
+        updates["last_error"] = "complained"
+    elif event_type == "contact.updated" and (payload.get("data") or {}).get("unsubscribed"):
+        updates["status"] = "unsubscribed"
+        updates["unsubscribed_at"] = timestamp
+        updates["last_error"] = "provider_unsubscribed"
+
+    return updates
+
+
+def verify_resend_webhook(payload: str, headers: Mapping[str, str]) -> Dict[str, Any]:
+    from svix import Webhook
+
+    webhook = Webhook(settings.resend_webhook_secret)
+    verified = webhook.verify(
+        payload,
+        {
+            "svix-id": headers.get("svix-id", ""),
+            "svix-timestamp": headers.get("svix-timestamp", ""),
+            "svix-signature": headers.get("svix-signature", ""),
+        },
+    )
+    if isinstance(verified, dict):
+        return verified
+    if isinstance(verified, str):
+        return json.loads(verified)
+    return json.loads(verified.decode("utf-8"))
+
+
+async def process_resend_webhook(payload: str, headers: Mapping[str, str]) -> Dict[str, Any]:
+    try:
+        verified = verify_resend_webhook(payload, headers)
+    except Exception as exc:
+        raise ValueError("invalid_webhook_signature") from exc
+    event_type = verified.get("type")
+    if event_type not in WEEKLY_PROOF_PROVIDER_EVENTS:
+        return {"status": "ignored", "reason": "unsupported_event", "event_type": event_type}
+
+    svix_id = headers.get("svix-id") or str(uuid4())
+    recipient_email = _extract_recipient_email(verified)
+    provider_email_id = _extract_provider_email_id(verified)
+    webhook_event = _record_reminder_webhook_event(
+        svix_id=svix_id,
+        event_type=event_type,
+        payload=verified,
+        recipient_email=recipient_email,
+        provider_email_id=provider_email_id,
+    )
+    if webhook_event is None:
+        return {"status": "duplicate", "event_type": event_type}
+
+    reminder_event = _resolve_reminder_event_for_webhook(
+        recipient_email=recipient_email,
+        provider_email_id=provider_email_id,
+    )
+    user_id = reminder_event.get("user_id") if reminder_event else _find_user_id_by_email(recipient_email)
+
+    try:
+        if reminder_event:
+            updates = _build_provider_transition_updates(
+                current_event=reminder_event,
+                event_type=event_type,
+                payload=verified,
+                recipient_email=recipient_email,
+                provider_email_id=provider_email_id,
+            )
+            if updates:
+                _update_reminder_event(reminder_event["id"], updates)
+
+        if user_id and (
+            event_type == "email.complained"
+            or event_type == "email.suppressed"
+            or (event_type == "contact.updated" and (verified.get("data") or {}).get("unsubscribed"))
+        ):
+            await _disable_weekly_proof_reminders_for_user(user_id)
+
+        _update_reminder_webhook_event(
+            svix_id,
+            {
+                "processing_status": "processed",
+                "processed_at": _utcnow().isoformat(),
+                "reminder_event_id": reminder_event.get("id") if reminder_event else None,
+            },
+        )
+        return {
+            "status": "processed",
+            "event_type": event_type,
+            "reminder_event_id": reminder_event.get("id") if reminder_event else None,
+        }
+    except Exception as exc:
+        _update_reminder_webhook_event(
+            svix_id,
+            {
+                "processing_status": "failed",
+                "last_error": str(exc),
+                "processed_at": _utcnow().isoformat(),
+                "reminder_event_id": reminder_event.get("id") if reminder_event else None,
+            },
+        )
+        raise
+
+
+async def unsubscribe_weekly_proof_reminder(reminder_event_id: str) -> Dict[str, Any]:
+    event = _get_reminder_event(reminder_event_id)
+    if not event:
+        return {"status": "not_found"}
+
+    updates = {
+        "status": "unsubscribed",
+        "unsubscribed_at": _utcnow().isoformat(),
+        "last_error": "user_unsubscribed",
+    }
+    if not event.get("opened_at"):
+        updates["opened_at"] = _utcnow().isoformat()
+    _update_reminder_event(reminder_event_id, updates)
+    await _disable_weekly_proof_reminders_for_user(event["user_id"])
+    return {"status": "unsubscribed", "user_id": event["user_id"]}
+
+
+async def _get_home_summary_for_user(user_id: str):
+    from ..routers.home import get_home_summary
+
+    return await get_home_summary({"id": user_id})
+
+
+async def evaluate_weekly_proof_reminder_candidates(now: datetime | None = None) -> List[Dict[str, Any]]:
+    reminder_status = get_weekly_proof_reminder_status()
+    if not reminder_status["active"]:
+        return []
+
+    current_time = now or _utcnow()
+    candidates: List[Dict[str, Any]] = []
+    for profile in _list_candidate_profiles():
+        try:
+            prefs = await get_notification_preferences(profile["user_id"])
+            summary = await _get_home_summary_for_user(profile["user_id"])
+            last_event = _get_latest_weekly_reminder_event(profile["user_id"])
+            candidate = _build_weekly_proof_candidate(
+                profile=profile,
+                prefs=prefs,
+                summary=summary,
+                last_event=last_event,
+                now=current_time,
+            )
+            if candidate:
+                candidates.append(candidate)
+        except Exception as exc:
+            logger.error("Failed to evaluate weekly proof reminder candidate %s: %s", profile.get("user_id"), exc)
+    return candidates
+
+
+async def run_weekly_proof_reminder_job(now: datetime | None = None) -> Dict[str, Any]:
+    reminder_status = get_weekly_proof_reminder_status()
+    if not reminder_status["active"]:
+        logger.info("Weekly proof reminder job inactive: %s", reminder_status["reason"])
+        return {"active": False, "reason": reminder_status["reason"], "sent": 0, "failed": 0}
+
+    current_time = now or _utcnow()
+    job_key = _build_job_key(current_time)
+    job_run = _claim_weekly_proof_job_run(job_key, current_time)
+    if job_run is None:
+        logger.info("Weekly proof reminder job skipped; already claimed for %s", job_key)
+        return {
+            "active": True,
+            "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+            "sent": 0,
+            "failed": 0,
+            "evaluated": 0,
+            "skipped": True,
+            "reason": "job_already_claimed",
+        }
+
+    sent = 0
+    failed = 0
+    candidates: List[Dict[str, Any]] = []
+    try:
+        candidates = await evaluate_weekly_proof_reminder_candidates(now=current_time)
+        for candidate in candidates:
+            reminder_event = _create_reminder_event(candidate, job_key)
+            try:
+                _update_reminder_event(reminder_event["id"], {"status": "sending"})
+                provider_message_id = await _send_weekly_proof_email(candidate, reminder_event["id"])
+                _update_reminder_event(
+                    reminder_event["id"],
+                    {
+                        "status": "sent",
+                        "provider_message_id": provider_message_id,
+                        "sent_at": current_time.isoformat(),
+                        "recipient_email": candidate["email"],
+                        "last_provider_event_type": "email.sent",
+                    },
+                )
+                await log_retention_event(
+                    candidate["user_id"],
+                    "notification_sent",
+                    "weekly_proof_reminder_email",
+                    {
+                        "channel": candidate["channel"],
+                        "entry_state": candidate["entry_state"],
+                        "reminder_event_id": reminder_event["id"],
+                        "source": "weekly_reminder",
+                    },
+                )
+                sent += 1
+            except Exception as exc:
+                failed += 1
+                _update_reminder_event(
+                    reminder_event["id"],
+                    {
+                        "status": "failed",
+                        "failed_at": _utcnow().isoformat(),
+                        "last_error": str(exc),
+                    },
+                )
+                logger.error("Failed to send weekly proof reminder to %s: %s", candidate["user_id"], exc)
+        _finish_weekly_proof_job_run(
+            job_key,
+            {
+                "status": "completed" if failed == 0 else "completed_with_failures",
+                "completed_at": _utcnow().isoformat(),
+            },
+        )
+        return {
+            "active": True,
+            "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
+            "sent": sent,
+            "failed": failed,
+            "evaluated": len(candidates),
+        }
+    except Exception:
+        _finish_weekly_proof_job_run(
+            job_key,
+            {
+                "status": "failed",
+                "completed_at": _utcnow().isoformat(),
+            },
+        )
+        raise
+
+
+async def run_weekly_proof_reminder_scheduler() -> None:
+    interval_seconds = max(300, settings.weekly_proof_reminder_job_interval_minutes * 60)
+    while True:
+        try:
+            await run_weekly_proof_reminder_job()
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            logger.error("Weekly proof reminder scheduler error: %s", exc, exc_info=True)
+        await asyncio.sleep(interval_seconds)
+
+
+async def mark_weekly_proof_reminder_opened(reminder_event_id: str, next_path: str | None) -> str:
+    safe_path = _sanitize_frontend_path(next_path)
+    event = _get_reminder_event(reminder_event_id)
+    if event:
+        opened_at = _utcnow().isoformat()
+        _update_reminder_event(
+            reminder_event_id,
+            {
+                "status": "clicked",
+                "opened_at": event.get("opened_at") or opened_at,
+                "clicked_at": event.get("clicked_at") or opened_at,
+            },
+        )
+        await log_retention_event(
+            event["user_id"],
+            "notification_opened",
+            "weekly_proof_reminder_email",
+            {
+                "channel": event.get("channel", WEEKLY_PROOF_REMINDER_CHANNEL),
+                "entry_state": event.get("entry_state"),
+                "reminder_event_id": reminder_event_id,
+                "source": "weekly_reminder",
+            },
+        )
+    return f"{settings.public_app_url.rstrip('/')}{safe_path}"

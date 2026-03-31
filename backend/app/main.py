@@ -6,12 +6,18 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request as StarletteRequest
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from contextlib import asynccontextmanager
 import logging
+import asyncio
 
 from .config import settings
 from .rate_limit import limiter
-from .routers import auth, food, workout, body, payments, dashboard, food_database, food_decision, weight, notifications, chat, beauty, fashion, guest
+from .routers import auth, food, workout, body, payments, dashboard, food_database, food_decision, weight, notifications, chat, beauty, fashion, guest, goal_planner, seven_day_challenge, streaks, progress_photos, fasting, home, retention_analytics
+from .services.notification_service import (
+    get_weekly_proof_reminder_status,
+    run_weekly_proof_reminder_scheduler,
+)
 
 logging.basicConfig(
     level=logging.INFO if not settings.is_production else logging.WARNING,
@@ -24,7 +30,23 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("Starting Health & Wellness API")
     logger.info(f"Environment: {settings.environment}")
+    logger.warning(
+        "First /guest/validate-photo call may take 1–3+ minutes while Fashn + pose models load (CPU)."
+    )
+    reminder_status = get_weekly_proof_reminder_status()
+    reminder_task: asyncio.Task | None = None
+    if reminder_status["active"]:
+        reminder_task = asyncio.create_task(run_weekly_proof_reminder_scheduler())
+        logger.info("Weekly proof reminder scheduler started via %s", reminder_status["channel"])
+    else:
+        logger.info("Weekly proof reminder scheduler inactive: %s", reminder_status["reason"])
     yield
+    if reminder_task:
+        reminder_task.cancel()
+        try:
+            await reminder_task
+        except asyncio.CancelledError:
+            pass
     logger.info("Shutting down Health & Wellness API")
 
 
@@ -86,6 +108,8 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(RequestSizeLimitMiddleware)
+# Required for @limiter.limit to behave correctly with FastAPI (incl. CORS preflight).
+app.add_middleware(SlowAPIMiddleware)
 
 
 @app.exception_handler(RequestValidationError)
@@ -128,6 +152,13 @@ app.include_router(chat.router, prefix="/api/chat", tags=["AI Coach Chat"])
 app.include_router(beauty.router, prefix="/api/beauty", tags=["Beauty Analysis"])
 app.include_router(fashion.router, prefix="/api/fashion", tags=["Fashion Styling"])
 app.include_router(guest.router, prefix="/api/guest", tags=["Guest (No Auth)"])
+app.include_router(goal_planner.router, prefix="/api/goal-plan", tags=["Goal Planner"])
+app.include_router(seven_day_challenge.router, prefix="/api/challenge", tags=["7-Day Challenge"])
+app.include_router(home.router, prefix="/api/home", tags=["Home"])
+app.include_router(retention_analytics.router, prefix="/api/analytics", tags=["Retention Analytics"])
+app.include_router(streaks.router, tags=["Streaks"])
+app.include_router(progress_photos.router, tags=["Progress Photos"])
+app.include_router(fasting.router, tags=["Fasting"])
 
 
 @app.get("/")

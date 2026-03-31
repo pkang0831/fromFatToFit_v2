@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { authApi } from '@/lib/api/services';
 import { supabase, type OAuthProvider } from '@/lib/supabase';
 import { setAuthCookie, clearAuthCookie } from '@/lib/utils/cookie';
-import type { User, UserLogin, UserRegister } from '@/types/api';
+import type { User, UserLogin, UserRegister, AccountDeletionResponse } from '@/types/api';
 import { AxiosError } from 'axios';
 
 interface AuthContextType {
@@ -12,10 +12,11 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
-  login: (data: UserLogin) => Promise<void>;
-  loginWithOAuth: (provider: OAuthProvider) => Promise<void>;
+  login: (data: UserLogin) => Promise<User>;
+  loginWithOAuth: (provider: OAuthProvider, nextPath?: string) => Promise<void>;
   register: (data: UserRegister) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<AccountDeletionResponse>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -44,14 +45,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       try {
         if (typeof window === 'undefined') return;
-        const path = window.location.pathname;
-        const isAuthPage = path === '/login' || path === '/register' ||
-          path.startsWith('/auth/callback') || path.startsWith('/onboarding');
+        const path = window.location.pathname.replace(/\/$/, '') || '/';
+        const isAuthPage =
+          path === '/login' ||
+          path === '/register' ||
+          window.location.pathname.startsWith('/auth/callback');
 
         if (isAuthPage) { setLoading(false); return; }
 
         const token = localStorage.getItem('access_token');
         if (!token) { clearAllTokens(); setLoading(false); return; }
+
+        // Proactively refresh the Supabase session so the API call uses a valid JWT
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          const { data: refreshData } = await supabase.auth.refreshSession();
+          if (refreshData.session) {
+            localStorage.setItem('access_token', refreshData.session.access_token);
+            localStorage.setItem('refresh_token', refreshData.session.refresh_token);
+            setAuthCookie('access_token', refreshData.session.access_token);
+            setAuthCookie('refresh_token', refreshData.session.refresh_token);
+          }
+        }
 
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Auth check timeout')), 5000)
@@ -60,9 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const response = await Promise.race([authApi.getProfile(), timeoutPromise]) as Awaited<ReturnType<typeof authApi.getProfile>>;
         setUser(response.data);
 
-        if (!document.cookie.includes('access_token=')) {
+        const liveToken = localStorage.getItem('access_token');
+        if (liveToken && !document.cookie.includes('access_token=')) {
           const refreshToken = localStorage.getItem('refresh_token');
-          setAuthCookie('access_token', token);
+          setAuthCookie('access_token', liveToken);
           if (refreshToken) setAuthCookie('refresh_token', refreshToken);
         }
       } catch (_: unknown) {
@@ -84,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('session-expired', handleSessionExpired);
   }, []);
 
-  const login = async (data: UserLogin) => {
+  const login = async (data: UserLogin): Promise<User> => {
     try {
       setError(null);
       setLoading(true);
@@ -95,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthCookie('access_token', access_token);
       setAuthCookie('refresh_token', refresh_token);
       setUser(userData);
+      return userData;
     } catch (err) {
       const error = err as AxiosError<{ detail: string }>;
       const message = error.response?.data?.detail || 'Login failed';
@@ -105,10 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithOAuth = async (provider: OAuthProvider) => {
+  const loginWithOAuth = async (provider: OAuthProvider, nextPath?: string) => {
     try {
       setError(null);
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      const redirectToUrl = new URL('/auth/callback', window.location.origin);
+      const currentNext = nextPath ?? new URLSearchParams(window.location.search).get('next') ?? undefined;
+      if (currentNext && currentNext.startsWith('/')) {
+        redirectToUrl.searchParams.set('next', currentNext);
+      }
+      const redirectTo = redirectToUrl.toString();
       const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
       if (error) throw error;
     } catch (err: unknown) {
@@ -140,11 +162,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    try { await authApi.logout(); } catch (_) { /* noop */ }
+    try {
+      await Promise.allSettled([authApi.logout(), supabase.auth.signOut()]);
+    } catch (_) {
+      /* noop */
+    }
     finally {
       clearAllTokens();
       setUser(null);
       redirectToLogin();
+    }
+  };
+
+  const deleteAccount = async (): Promise<AccountDeletionResponse> => {
+    try {
+      setError(null);
+      const response = await authApi.deleteAccount();
+      await supabase.auth.signOut();
+      clearAllTokens();
+      setUser(null);
+      redirectToLogin();
+      return response.data;
+    } catch (err) {
+      const error = err as AxiosError<{ detail: string }>;
+      const message = error.response?.data?.detail || 'Account deletion failed';
+      setError(message);
+      throw new Error(message);
     }
   };
 
@@ -170,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value: AuthContextType = {
     user, loading, error, isAuthenticated: !!user,
-    login, loginWithOAuth, register, logout, updateProfile, refreshUser,
+    login, loginWithOAuth, register, logout, deleteAccount, updateProfile, refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

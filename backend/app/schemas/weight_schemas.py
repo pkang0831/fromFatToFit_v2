@@ -1,7 +1,7 @@
 """
 Weight Tracking Schemas
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import date, datetime
 from decimal import Decimal
@@ -24,6 +24,8 @@ class WeightLogUpdate(BaseModel):
 
 class WeightLogResponse(BaseModel):
     """Schema for weight log response"""
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     user_id: str
     date: date
@@ -31,9 +33,6 @@ class WeightLogResponse(BaseModel):
     body_fat_percentage: Optional[float]
     notes: Optional[str]
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class GoalUpdate(BaseModel):

@@ -6,8 +6,16 @@ import { Camera, ArrowRight, Lock, Shield, Sparkles, BarChart3, TrendingUp } fro
 import { motion, AnimatePresence } from 'framer-motion';
 import { guestApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
+import { formatApiError } from '@/lib/utils/apiError';
+import { BodyCaptureGuide } from '@/components/features/BodyCaptureGuide';
+import { BodyScanPoseGuide } from '@/components/features/BodyScanPoseGuide';
+import { IDEAL_BODY_SCAN_POSE_IMAGE } from '@/lib/constants/bodyScanGuide';
 
 type Step = 'upload' | 'details' | 'analyzing' | 'result';
+
+type PhotoFraming = 'upper_body' | 'full_body';
+
+/** Guest validate + body-scan must use the same framing. Uploads use full_body (bbox + mask density checks). */
 
 interface ScanResult {
   body_fat_percentage: number;
@@ -34,18 +42,47 @@ export default function TryPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
+  const [validating, setValidating] = useState(false);
+  /** Set when a file passes validate-photo; must match guest body-scan `framing`. */
+  const [photoFraming, setPhotoFraming] = useState<PhotoFraming | null>(null);
+
+  const processTryFile = async (f: File, framing: PhotoFraming): Promise<boolean> => {
+    if (!f.type.startsWith('image/')) return false;
+    setValidating(true);
+    setError(null);
+    try {
+      const base64 = await compressAndConvertToBase64(f);
+      const v = await guestApi.validatePhoto({ image_base64: base64, framing });
+      if (!v.data.ok) {
+        setError(v.data.messages.join(' '));
+        return false;
+      }
+      setPhotoFraming(framing);
+      setFile(f);
+      const reader = new FileReader();
+      await new Promise<void>((resolve, reject) => {
+        reader.onloadend = () => {
+          setPreviewUrl(reader.result as string);
+          setStep('details');
+          resolve();
+        };
+        reader.onerror = () => reject(new Error('Failed to read image'));
+        reader.readAsDataURL(f);
+      });
+      return true;
+    } catch (err) {
+      setError(formatApiError(err));
+      return false;
+    } finally {
+      setValidating(false);
+    }
+  };
 
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (!f || !f.type.startsWith('image/')) return;
-    setFile(f);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-      setStep('details');
-      setError(null);
-    };
-    reader.readAsDataURL(f);
+    if (f) void processTryFile(f, 'full_body');
+    e.target.value = '';
   };
 
   const handleAnalyze = async () => {
@@ -55,17 +92,25 @@ export default function TryPage() {
 
     try {
       const base64 = await compressAndConvertToBase64(file);
+      const framing = photoFraming ?? 'upper_body';
+      const v = await guestApi.validatePhoto({ image_base64: base64, framing });
+      if (!v.data.ok) {
+        setError(v.data.messages.join(' '));
+        setStep('details');
+        return;
+      }
       const res = await guestApi.bodyScan({
         image_base64: base64,
         gender,
         age: parseInt(age),
+        ownership_confirmed: confirmed,
+        adult_confirmed: confirmed,
+        framing,
       });
       setResult(res.data);
       setStep('result');
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { detail?: string } } })
-        ?.response?.data?.detail || 'Analysis failed. Please try again.';
-      setError(message);
+      setError(formatApiError(err));
       setStep('details');
     }
   };
@@ -109,6 +154,11 @@ export default function TryPage() {
               transition={{ duration: 0.3 }}
             >
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+
+              <div className="mb-6">
+                <BodyScanPoseGuide variant="dark" />
+              </div>
+
               <div
                 onClick={() => fileInputRef.current?.click()}
                 className="border-2 border-dashed border-white/[0.12] rounded-2xl p-16 text-center cursor-pointer hover:border-primary/50 transition-all group"
@@ -117,12 +167,37 @@ export default function TryPage() {
                   <Camera className="w-10 h-10 text-white/30 group-hover:text-primary/70 transition-colors" />
                 </div>
                 <p className="text-lg font-medium text-white/80 mb-2">Upload a full-body photo</p>
-                <p className="text-sm text-white/30">JPG or PNG — front-facing, good lighting works best</p>
+                <p className="text-sm text-white/30">
+                  JPG or PNG — front-facing, good lighting. Mirror selfies work best.
+                </p>
               </div>
+
+              {validating && (
+                <p className="text-center text-sm text-white/50 mt-4 max-w-md mx-auto leading-relaxed">
+                  Checking segmentation and pose… The first check can take 1–3 minutes while the server loads
+                  models (watch the backend terminal for{' '}
+                  <span className="text-white/70">[guest] validate-photo</span>). Your body should fill most
+                  of the frame.
+                </p>
+              )}
+              {error && step === 'upload' && (
+                <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+                  <p className="text-sm text-red-400">{error}</p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowGuide(true)}
+                disabled={validating}
+                className="w-full mt-4 py-3 rounded-xl border border-white/[0.12] text-white/80 hover:bg-white/[0.04] transition-colors disabled:opacity-40"
+              >
+                Use camera with guide
+              </button>
 
               <div className="flex items-center justify-center gap-2 mt-6 text-white/20 text-xs">
                 <Shield className="w-3.5 h-3.5" />
-                <span>Your photo is analyzed once and never stored</span>
+                <span>Guest photos are not saved to a Denevira account. They are sent to AI services for analysis.</span>
               </div>
             </motion.div>
           )}
@@ -163,7 +238,7 @@ export default function TryPage() {
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
                       placeholder="30"
-                      min={10}
+                      min={18}
                       max={100}
                       className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.1] rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-primary/50 transition-colors"
                     />
@@ -178,7 +253,7 @@ export default function TryPage() {
                     className="mt-0.5 h-4 w-4 rounded border-white/30 text-primary focus:ring-primary cursor-pointer"
                   />
                   <span className="text-xs text-white/40 leading-relaxed">
-                    I confirm this is a photo of myself. I understand results are AI visual estimates, not medical measurements.
+                    I confirm this is a photo of myself, that I am 18 or older, and that results are AI visual estimates, not medical measurements.
                   </span>
                 </label>
 
@@ -198,7 +273,13 @@ export default function TryPage() {
                 </button>
 
                 <button
-                  onClick={() => { setStep('upload'); setPreviewUrl(null); setFile(null); }}
+                  type="button"
+                  onClick={() => {
+                    setStep('upload');
+                    setPreviewUrl(null);
+                    setFile(null);
+                    setPhotoFraming(null);
+                  }}
                   className="w-full py-2 text-sm text-white/30 hover:text-white/50 transition-colors"
                 >
                   Choose a different photo
@@ -273,8 +354,8 @@ export default function TryPage() {
                     Your Transformation Preview
                   </h3>
                   <p className="text-white/40 max-w-md mx-auto mb-8 leading-relaxed">
-                    Create a free account to see an AI preview of your goal body,
-                    save your results, and track your progress weekly.
+                    Create a free account to save your scan, start your weekly tracking loop,
+                    and unlock AI goal previews when you upgrade.
                   </p>
 
                   <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-8">
@@ -291,7 +372,10 @@ export default function TryPage() {
                   </div>
 
                   <Link
-                    href="/register"
+                    href={{
+                      pathname: '/register',
+                      query: { next: '/body-scan?tab=journey' },
+                    }}
                     className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-primary text-white font-semibold rounded-xl text-lg transition-all hover:shadow-glow-cyan hover:-translate-y-0.5 btn-glow"
                   >
                     Create Free Account
@@ -299,7 +383,7 @@ export default function TryPage() {
                   </Link>
 
                   <p className="text-xs text-white/20 mt-4">
-                    Free plan includes 1 transformation preview + 1 body scan per month
+                    Free plan includes 1 body scan per month. AI goal previews require Pro or a paid credit pack.
                   </p>
                 </div>
               </div>
@@ -311,10 +395,12 @@ export default function TryPage() {
                     setStep('upload');
                     setPreviewUrl(null);
                     setFile(null);
+                    setPhotoFraming(null);
                     setResult(null);
                     setGender('');
                     setAge('');
                     setConfirmed(false);
+                    setError(null);
                   }}
                   className="text-sm text-white/30 hover:text-white/50 transition-colors"
                 >
@@ -325,6 +411,14 @@ export default function TryPage() {
           )}
         </AnimatePresence>
       </div>
+
+      <BodyCaptureGuide
+        open={showGuide}
+        onClose={() => setShowGuide(false)}
+        onCapture={(f) => processTryFile(f, 'full_body')}
+        guideImageSrc={IDEAL_BODY_SCAN_POSE_IMAGE}
+        validationMessage={showGuide ? error : null}
+      />
     </main>
   );
 }

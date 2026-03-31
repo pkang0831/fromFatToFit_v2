@@ -10,7 +10,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { beautyApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
-import { detectFace, type FaceDetectionResult } from '@/lib/utils/faceDetection';
+import type { FaceDetectionResult } from '@/lib/utils/faceDetection';
 import { FaceOverlay } from '@/components/features/FaceOverlay';
 import { FeatureRatings } from '@/components/features/FeatureRatings';
 import { ShapeProbabilities } from '@/components/features/ShapeProbabilities';
@@ -145,6 +145,7 @@ export default function BeautyScanPage() {
   const runFaceDetection = useCallback(async () => {
     if (!imgRef.current) return;
     try {
+      const { detectFace } = await import('@/lib/utils/faceDetection');
       const result = await detectFace(imgRef.current);
       setFaceResult(result);
     } catch (err) {
@@ -159,6 +160,7 @@ export default function BeautyScanPage() {
       img.src = preview;
       img.onload = async () => {
         try {
+          const { detectFace } = await import('@/lib/utils/faceDetection');
           const result = await detectFace(img);
           setFaceResult(result);
         } catch (err) {
@@ -182,6 +184,7 @@ export default function BeautyScanPage() {
       faceImg.src = `data:image/jpeg;base64,${base64}`;
       faceImg.onload = async () => {
         try {
+          const { detectFace } = await import('@/lib/utils/faceDetection');
           const fd = await detectFace(faceImg);
           setFaceResult(fd);
         } catch {}

@@ -1,9 +1,12 @@
 import logging
 from typing import Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from ..database import get_supabase
 
 logger = logging.getLogger(__name__)
+
+FREE_MONTHLY_CREDITS = 10
+PRO_MONTHLY_CREDITS = 100
 
 # Feature usage limits for free tier
 USAGE_LIMITS = {
@@ -18,6 +21,146 @@ USAGE_LIMITS = {
 class UsageLimitExceeded(Exception):
     """Raised when user exceeds their usage limit"""
     pass
+
+
+def _next_reset_date_iso() -> str:
+    now = datetime.now(timezone.utc)
+    next_month = (now.replace(day=1, hour=0, minute=0, second=0, microsecond=0) + timedelta(days=32)).replace(day=1)
+    return next_month.isoformat()
+
+
+def _build_credit_costs(is_premium: bool = False) -> Dict[str, int]:
+    return {
+        "food_scan": 1,
+        "body_fat_scan": 0 if is_premium else 10,
+        "percentile_scan": 0 if is_premium else 10,
+        "transformation": 30,
+        "journey": 100,
+        "enhancement": 50,
+        "region_transform": 15,
+        "beauty_scan": 10,
+        "beauty_styling": 30,
+        "fashion_recommend": 5,
+        "fashion_images": 15,
+    }
+
+
+def _normalize_credit_row(row: Dict[str, Any] | None, is_premium: bool = False) -> Dict[str, Any]:
+    default_monthly = PRO_MONTHLY_CREDITS if is_premium else FREE_MONTHLY_CREDITS
+
+    if not row:
+        return {
+            "monthly_credits": default_monthly,
+            "bonus_credits": 0,
+            "total_credits": default_monthly,
+            "reset_date": None,
+            "credit_costs": _build_credit_costs(is_premium),
+        }
+
+    if "monthly_credits" in row or "bonus_credits" in row:
+        monthly = int(row.get("monthly_credits", default_monthly if is_premium else FREE_MONTHLY_CREDITS))
+        bonus = int(row.get("bonus_credits", 0))
+        total = int(row.get("total_credits", monthly + bonus))
+        return {
+            "monthly_credits": monthly,
+            "bonus_credits": bonus,
+            "total_credits": total,
+            "reset_date": row.get("reset_date"),
+            "credit_costs": _build_credit_costs(is_premium),
+        }
+
+    balance = int(row.get("balance", default_monthly))
+    return {
+        "monthly_credits": balance,
+        "bonus_credits": 0,
+        "total_credits": balance,
+        "reset_date": row.get("reset_date"),
+        "credit_costs": _build_credit_costs(is_premium),
+    }
+
+
+async def ensure_credit_record(user_id: str, is_premium: bool = False) -> Dict[str, Any]:
+    supabase = get_supabase()
+    result = supabase.table("user_credits").select("*").eq("user_id", user_id).execute()
+    existing = result.data[0] if result.data else None
+    if existing:
+        return existing
+
+    default_monthly = PRO_MONTHLY_CREDITS if is_premium else FREE_MONTHLY_CREDITS
+    now = datetime.now(timezone.utc).isoformat()
+
+    try:
+        insert_result = supabase.table("user_credits").insert({
+            "user_id": user_id,
+            "monthly_credits": default_monthly,
+            "bonus_credits": 0,
+            "reset_date": _next_reset_date_iso(),
+            "created_at": now,
+            "updated_at": now,
+        }).execute()
+        if insert_result.data:
+            return insert_result.data[0]
+    except Exception:
+        # Support legacy schemas that still use a single balance column.
+        insert_result = supabase.table("user_credits").insert({
+            "user_id": user_id,
+            "balance": default_monthly,
+            "created_at": now,
+            "updated_at": now,
+        }).execute()
+        if insert_result.data:
+            return insert_result.data[0]
+
+    return {
+        "user_id": user_id,
+        "monthly_credits": default_monthly,
+        "bonus_credits": 0,
+        "reset_date": _next_reset_date_iso(),
+    }
+
+
+async def add_credits(user_id: str, amount: int, credit_type: str = "bonus") -> Dict[str, Any]:
+    if amount <= 0:
+        return _normalize_credit_row(await ensure_credit_record(user_id))
+
+    supabase = get_supabase()
+    row = await ensure_credit_record(user_id)
+    now = datetime.now(timezone.utc).isoformat()
+
+    if "monthly_credits" in row or "bonus_credits" in row:
+        monthly = int(row.get("monthly_credits", FREE_MONTHLY_CREDITS))
+        bonus = int(row.get("bonus_credits", 0))
+
+        if credit_type == "monthly":
+            monthly += amount
+        else:
+            bonus += amount
+
+        supabase.table("user_credits").update({
+            "monthly_credits": monthly,
+            "bonus_credits": bonus,
+            "updated_at": now,
+        }).eq("user_id", user_id).execute()
+
+        return {
+            "monthly_credits": monthly,
+            "bonus_credits": bonus,
+            "total_credits": monthly + bonus,
+            "reset_date": row.get("reset_date"),
+        }
+
+    balance = int(row.get("balance", FREE_MONTHLY_CREDITS)) + amount
+    supabase.table("user_credits").update({
+        "balance": balance,
+        "updated_at": now,
+    }).eq("user_id", user_id).execute()
+
+    return {
+        "monthly_credits": balance,
+        "bonus_credits": 0,
+        "total_credits": balance,
+        "reset_date": row.get("reset_date"),
+    }
 
 
 async def check_usage_limit(user_id: str, feature_type: str, is_premium: bool = False) -> Dict[str, Any]:
@@ -175,46 +318,7 @@ async def get_credit_balance(user_id: str, is_premium: bool = False) -> Dict[str
         supabase = get_supabase()
         result = supabase.table("user_credits").select("*").eq("user_id", user_id).execute()
         row = result.data[0] if result.data else None
-
-        if row:
-            monthly = int(row.get("monthly_credits", 0))
-            bonus = int(row.get("bonus_credits", 0))
-            total = int(row.get("total_credits", monthly + bonus))
-            reset_date = row.get("reset_date")
-        else:
-            monthly = 10
-            bonus = 0
-            total = 10
-            reset_date = None
-
-        pro_free_features = {"body_fat_scan", "percentile_scan"}
-        credit_costs = {
-            "food_scan": 1,
-            "body_fat_scan": 0 if is_premium else 10,
-            "percentile_scan": 0 if is_premium else 10,
-            "transformation": 30,
-            "journey": 100,
-            "enhancement": 50,
-            "region_transform": 15,
-            "beauty_scan": 10,
-            "beauty_styling": 30,
-            "fashion_recommend": 5,
-            "fashion_images": 15,
-        }
-
-        return {
-            "monthly_credits": monthly,
-            "bonus_credits": bonus,
-            "total_credits": total,
-            "reset_date": reset_date,
-            "credit_costs": credit_costs,
-        }
+        return _normalize_credit_row(row, is_premium)
     except Exception as e:
         logger.error(f"Error getting credit balance: {e}")
-        return {
-            "monthly_credits": 10,
-            "bonus_credits": 0,
-            "total_credits": 10,
-            "reset_date": None,
-            "credit_costs": {"food_scan": 1, "body_fat_scan": 10, "percentile_scan": 10, "transformation": 30, "enhancement": 50, "region_transform": 15},
-        }
+        return _normalize_credit_row(None, is_premium)

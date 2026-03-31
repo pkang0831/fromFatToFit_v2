@@ -1,16 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { authApi } from '@/lib/api/services';
+import { trackEvent } from '@/lib/analytics';
 
 type Step = 'welcome' | 'consent' | 'profile' | 'goals' | 'tour' | 'done';
 
 export default function OnboardingPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
 
   const consentAlreadyGiven = !!(user as any)?.consent_terms_at;
   const profileAlreadyFilled = !!(user?.gender && user?.age && user?.height_cm);
@@ -43,9 +46,16 @@ export default function OnboardingPage() {
   });
 
   const [goals, setGoals] = useState({
-    target_weight: '',
+    target_weight: user?.target_weight_kg?.toString() || '',
     calorie_goal: '',
   });
+
+  useEffect(() => {
+    trackEvent('onboarding_started', {
+      has_profile_seed: profileAlreadyFilled,
+      consent_already_given: consentAlreadyGiven,
+    });
+  }, [consentAlreadyGiven, profileAlreadyFilled]);
 
   const stepIndex = STEPS.indexOf(step);
   const progress = ((stepIndex + 1) / STEPS.length) * 100;
@@ -70,6 +80,7 @@ export default function OnboardingPage() {
         age: profile.age ? Number(profile.age) : undefined,
         height_cm: profile.height_cm ? Number(profile.height_cm) : undefined,
         weight_kg: profile.weight_kg ? Number(profile.weight_kg) : undefined,
+        target_weight_kg: goals.target_weight ? Number(goals.target_weight) : undefined,
         ethnicity: profile.ethnicity || undefined,
         activity_level: profile.activity_level || undefined,
         calorie_goal: goals.calorie_goal ? Number(goals.calorie_goal) : undefined,
@@ -77,8 +88,16 @@ export default function OnboardingPage() {
       };
 
       await authApi.updateProfile(update);
+      trackEvent('onboarding_completed', {
+        has_target_weight: !!goals.target_weight,
+        has_calorie_goal: !!goals.calorie_goal,
+      });
       next();
     } catch (err: any) {
+      if (err.response?.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
       const msg = err.response?.data?.detail ?? err.message;
       setError(msg === 'Network Error' || err.code === 'ERR_NETWORK' || !err.response
         ? 'Could not reach the server. Check your connection and try again.'
@@ -89,7 +108,9 @@ export default function OnboardingPage() {
   };
 
   const finishOnboarding = () => {
-    window.location.href = '/home';
+    const requestedNext = searchParams.get('next');
+    const nextPath = requestedNext && requestedNext.startsWith('/') ? requestedNext : '/home';
+    window.location.href = nextPath;
   };
 
   const slideVariants = {
@@ -215,6 +236,10 @@ export default function OnboardingPage() {
                         });
                         next();
                       } catch (err: any) {
+                        if (err.response?.status === 401) {
+                          window.location.href = '/login';
+                          return;
+                        }
                         const msg = err.response?.data?.detail ?? err.message;
                         if (msg === 'Network Error' || err.code === 'ERR_NETWORK' || !err.response) {
                           setError('Could not reach the server. Check your connection and that the app is configured correctly, then try again.');
@@ -290,7 +315,7 @@ export default function OnboardingPage() {
                         <option value="light">Lightly Active</option>
                         <option value="moderate">Moderately Active</option>
                         <option value="active">Very Active</option>
-                        <option value="athlete">Athlete</option>
+                        <option value="very_active">Athlete / 2x training days</option>
                       </select>
                     </div>
                   </div>

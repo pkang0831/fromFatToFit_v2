@@ -20,14 +20,48 @@ class VerifyPurchaseRequest(BaseModel):
 
 
 class SubscriptionResponse(BaseModel):
-    subscription_id: str
-    user_id: str
+    subscription_id: Optional[str] = None
+    user_id: Optional[str] = None
     subscription_type: str
     status: str
-    start_date: datetime
+    start_date: Optional[datetime] = None
     end_date: Optional[datetime]
-    payment_provider: str
-    auto_renew: bool
+    payment_provider: Optional[str] = None
+    auto_renew: bool = False
+    premium_status: bool
+    deletion_blocked: bool = False
+    deletion_block_reason: Optional[str] = None
+    billing_portal_available: bool = False
+
+
+class SubscriptionDiagnosticsResponse(BaseModel):
+    subscription_id: Optional[str] = None
+    user_id: Optional[str] = None
+    subscription_type: str
+    status: str
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    payment_provider: Optional[str] = None
+    auto_renew: bool = False
+    premium_status: bool
+    deletion_blocked: bool = False
+    deletion_block_reason: Optional[str] = None
+    billing_portal_available: bool = False
+    stripe_customer_id: Optional[str] = None
+    profile_premium_status: bool = False
+    entitlement_source: str
+    cancel_at_period_end: bool = False
+    last_stripe_event_id: Optional[str] = None
+    last_stripe_event_type: Optional[str] = None
+    last_webhook_processed_at: Optional[datetime] = None
+
+
+class BillingPortalSessionRequest(BaseModel):
+    return_url: str
+
+
+class BillingPortalSessionResponse(BaseModel):
+    url: str
 
 
 class UsageLimitResponse(BaseModel):

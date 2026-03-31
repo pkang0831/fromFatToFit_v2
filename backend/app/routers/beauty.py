@@ -6,7 +6,7 @@ from typing import Optional, List, Dict, Any
 from ..dependencies import get_current_user
 from ..services import beauty_service
 from ..services.usage_limiter import get_credit_balance
-from ..services.payment_service import deduct_credits
+from ..services.payment_service import deduct_credits, check_premium_status
 from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
@@ -38,12 +38,13 @@ async def analyze_beauty(
 ):
     """Analyze face for beauty consultation + optionally generate styled images."""
     user_id = user["id"]
+    is_premium = await check_premium_status(user_id)
 
     total_cost = BEAUTY_SCAN_COST
     if body.generate_images:
         total_cost += BEAUTY_STYLING_COST
 
-    balance = await get_credit_balance(user_id)
+    balance = await get_credit_balance(user_id, is_premium)
     if balance["total_credits"] < total_cost:
         raise HTTPException(
             status_code=402,

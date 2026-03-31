@@ -97,6 +97,18 @@ test.describe('API Tests @api', () => {
   });
 
   test.describe('Public Endpoints', () => {
+    test('POST /api/guest/body-scan with age < 18 returns 422', async ({ request }) => {
+      const res = await request.post('/api/guest/body-scan', {
+        data: {
+          image_base64: 'ZmFrZQ==',
+          gender: 'male',
+          age: 17,
+          framing: 'full_body',
+        },
+      });
+      expect(res.status()).toBe(422);
+    });
+
     test('GET /api/food-database/search returns valid response', async ({ request }) => {
       const res = await request.get('/api/food-database/search?q=chicken&limit=5');
       expect(res.status()).toBe(200);

@@ -201,12 +201,12 @@ class TestPromptRendering:
     def test_cut_prompts_contain_no_muscle_growth(self):
         plan = build_plan(current_bf=25, target_bf=12, gender="male")
         for s in plan.stages[1:]:
-            assert "Do not add any muscle mass" in s.prompt
+            assert "No added muscle" in s.prompt
 
     def test_mass_gain_prompts_contain_no_added_definition(self):
         plan = build_plan(current_bf=15, target_bf=25, gender="male")
         for s in plan.stages[1:]:
-            assert "Do not make the person look more muscular" in s.prompt
+            assert "No added muscle or definition" in s.prompt
 
     def test_all_prompts_contain_identity_anchor(self):
         plan = build_plan(current_bf=25, target_bf=12, gender="male")

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { paymentApi } from '@/lib/api/services';
-import type { UsageLimitsResponse, UsageLimit } from '@/types/api';
+import type { UsageLimitsResponse } from '@/types/api';
 import { useAuth } from './AuthContext';
 import { AxiosError } from 'axios';
 

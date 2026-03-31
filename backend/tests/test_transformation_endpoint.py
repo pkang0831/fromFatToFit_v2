@@ -1,18 +1,14 @@
 """Integration-level tests for POST /body/transformation.
 
-All external dependencies (AI estimation, Replicate, Supabase, credits)
-are mocked.  These tests verify the router's orchestration logic:
-response shape, billing safety, and error handling.
-
-The slowapi rate limiter is bypassed by patching the limiter to skip
-validation of the request object.
+Mocks: body fat estimate, photo-quality gate, RealVis journey generation, credits, Supabase.
+Aligned with the current multi-stage ``generate_realvis_journey`` flow.
 """
 
 import asyncio
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.schemas.body_schemas import BodyScanRequest, MuscleGainsInput
+from app.schemas.body_schemas import BodyScanRequest
 
 
 def _run(coro):
@@ -35,16 +31,10 @@ def _make_request(**overrides):
     return BodyScanRequest(**defaults)
 
 
-def _fake_stage_images(stage_numbers):
-    return [
-        {"stage_number": n, "image_data_uri": f"data:image/jpeg;base64,stage{n}"}
-        for n in stage_numbers
-    ]
-
-
 _PATCHES = {
     "bf": "app.routers.body.estimate_body_fat_with_fallback",
-    "journey": "app.routers.body.replicate_service.generate_journey_images",
+    "quality": "app.routers.body._require_safe_body_photo",
+    "gen": "app.services.realvis_service.generate_realvis_journey",
     "credits": "app.routers.body.deduct_credits",
     "premium": "app.routers.body.check_premium_status",
     "balance": "app.routers.body.get_credit_balance",
@@ -69,7 +59,15 @@ def _standard_mocks():
 
     return {
         "bf": AsyncMock(return_value={"body_fat_percentage": 22.0, "confidence": "medium"}),
-        "journey": AsyncMock(return_value=_fake_stage_images([1, 2, 3, 4])),
+        "quality": AsyncMock(return_value=True),
+        "gen": AsyncMock(
+            return_value=[
+                {"stage_number": 1, "image_data_uri": "data:image/jpeg;base64,stage1", "latency_ms": 100},
+                {"stage_number": 2, "image_data_uri": "data:image/jpeg;base64,stage2", "latency_ms": 110},
+                {"stage_number": 3, "image_data_uri": "data:image/jpeg;base64,stage3", "latency_ms": 115},
+                {"stage_number": 4, "image_data_uri": "data:image/jpeg;base64,finalstage", "latency_ms": 120},
+            ]
+        ),
         "credits": AsyncMock(return_value={"success": True, "total": 70}),
         "premium": AsyncMock(return_value=False),
         "balance": AsyncMock(return_value={"total_credits": 100}),
@@ -78,12 +76,6 @@ def _standard_mocks():
 
 
 def _call(scan_request=None, mock_overrides=None):
-    """Call the handler function directly, bypassing rate-limiter decorator.
-
-    We import the module, grab the actual wrapped function, and call it
-    with mocked dependencies. The ``__wrapped__`` attribute is set by
-    slowapi on decorated async functions.
-    """
     from app.routers.body import generate_transformation_journey
 
     fn = getattr(generate_transformation_journey, "__wrapped__", generate_transformation_journey)
@@ -97,17 +89,20 @@ def _call(scan_request=None, mock_overrides=None):
 
     with (
         patch(_PATCHES["bf"], mocks["bf"]),
-        patch(_PATCHES["journey"], mocks["journey"]),
+        patch(_PATCHES["quality"], mocks["quality"]),
+        patch(_PATCHES["gen"], mocks["gen"]),
         patch(_PATCHES["credits"], mocks["credits"]),
         patch(_PATCHES["premium"], mocks["premium"]),
         patch(_PATCHES["balance"], mocks["balance"]),
         patch(_PATCHES["supabase"], mocks["supabase"]),
     ):
-        result = _run(fn(
-            request=req,
-            scan_request=scan_request or _make_request(),
-            current_user=user,
-        ))
+        result = _run(
+            fn(
+                request=req,
+                scan_request=scan_request or _make_request(),
+                current_user=user,
+            )
+        )
 
     return result, mocks
 
@@ -128,54 +123,49 @@ class TestHappyPath:
         _, mocks = _call()
         mocks["credits"].assert_called_once()
 
-    def test_stages_include_images(self):
+    def test_generated_stages_have_images(self):
         result, _ = _call()
-        images = [s.image_url for s in result.stages if s.image_url]
-        assert len(images) == 4
+        urls = [s.image_url for s in result.stages if s.image_url]
+        assert len(urls) == 4
+        assert "finalstage" in urls[-1]
 
     def test_scan_id_present(self):
         result, _ = _call()
         assert result.scan_id == "scan-123"
 
+    def test_realvis_called_once(self):
+        _, mocks = _call()
+        mocks["gen"].assert_called_once()
 
-# ── Billing safety ──────────────────────────────────────────────────────────
+
+# ── Billing / errors ─────────────────────────────────────────────────────────
 
 
 class TestBillingSafety:
-    def test_total_failure_no_credits_charged(self):
+    def test_realvis_failure_no_credits(self):
         from fastapi import HTTPException
 
-        with pytest.raises(HTTPException) as exc_info:
-            _call(mock_overrides={"journey": AsyncMock(return_value=[])})
+        mocks = _standard_mocks()
+        mocks["gen"] = AsyncMock(side_effect=RuntimeError("realvis down"))
+
+        with (
+            patch(_PATCHES["bf"], mocks["bf"]),
+            patch(_PATCHES["quality"], mocks["quality"]),
+            patch(_PATCHES["gen"], mocks["gen"]),
+            patch(_PATCHES["credits"], mocks["credits"]),
+            patch(_PATCHES["premium"], mocks["premium"]),
+            patch(_PATCHES["balance"], mocks["balance"]),
+            patch(_PATCHES["supabase"], mocks["supabase"]),
+        ):
+            from app.routers.body import generate_transformation_journey
+
+            fn = getattr(generate_transformation_journey, "__wrapped__", generate_transformation_journey)
+            user = {"id": "user-abc"}
+            req = MagicMock()
+            with pytest.raises(HTTPException) as exc_info:
+                _run(fn(request=req, scan_request=_make_request(), current_user=user))
         assert exc_info.value.status_code == 500
-        assert "No credits were charged" in exc_info.value.detail
-
-    def test_one_stage_below_threshold(self):
-        from fastapi import HTTPException
-
-        with pytest.raises(HTTPException) as exc_info:
-            _call(mock_overrides={"journey": AsyncMock(return_value=_fake_stage_images([2]))})
-        assert exc_info.value.status_code == 500
-        assert "No credits were charged" in exc_info.value.detail
-
-    def test_two_stages_below_threshold(self):
-        from fastapi import HTTPException
-
-        with pytest.raises(HTTPException) as exc_info:
-            _call(mock_overrides={"journey": AsyncMock(return_value=_fake_stage_images([1, 3]))})
-        assert exc_info.value.status_code == 500
-
-    def test_three_stages_charges_with_warning(self):
-        result, mocks = _call(mock_overrides={
-            "journey": AsyncMock(return_value=_fake_stage_images([1, 2, 3])),
-        })
-        mocks["credits"].assert_called_once()
-        assert any("failed to generate" in w for w in result.warnings)
-
-    def test_four_stages_no_warning(self):
-        result, mocks = _call()
-        mocks["credits"].assert_called_once()
-        assert not any("failed to generate" in w for w in result.warnings)
+        mocks["credits"].assert_not_called()
 
     def test_insufficient_credits_returns_402(self):
         from fastapi import HTTPException

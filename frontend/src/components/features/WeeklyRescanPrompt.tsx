@@ -217,6 +217,18 @@ export function WeeklyRescanPrompt({ variant = 'full' }: WeeklyRescanPromptProps
           )}
         </div>
       </div>
+
+      {state !== 'too_early' && (
+        <div className="mt-5 flex justify-end">
+          <Link
+            href={state === 'first_scan' ? '/body-scan?tab=scan' : '/body-scan?tab=scan'}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+          >
+            {state === 'first_scan' ? 'Start scan' : 'Scan now'}
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

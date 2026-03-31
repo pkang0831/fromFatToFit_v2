@@ -8,6 +8,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _text_matches_allergen(text: str, allergen: str) -> bool:
+    """Substring match with a plural→singular fallback (e.g. peanuts vs peanut butter)."""
+    n = text.lower()
+    a = allergen.lower().strip()
+    if not a:
+        return False
+    if a in n:
+        return True
+    if len(a) >= 5 and a.endswith("s") and a[:-1] in n:
+        return True
+    return False
+
+
 class FoodDecisionService:
     """Service to make food eating decisions based on user's daily stats and preferences"""
     
@@ -71,9 +84,9 @@ class FoodDecisionService:
             
             # Allergy check
             for item in food_items:
-                item_name_lower = item.get('name', '').lower()
+                item_name = item.get('name', '')
                 for allergen in preferences.get('allergies', []):
-                    if allergen.lower() in item_name_lower:
+                    if _text_matches_allergen(item_name, allergen):
                         decision = "red"
                         reasons.append({
                             'type': 'allergy',
@@ -291,8 +304,10 @@ class FoodDecisionService:
                     continue
                 
                 # Skip if contains allergens
-                food_name_lower = food['name'].lower()
-                if any(allergen.lower() in food_name_lower for allergen in preferences.get('allergies', [])):
+                if any(
+                    _text_matches_allergen(food['name'], allergen)
+                    for allergen in preferences.get('allergies', [])
+                ):
                     continue
                 
                 # Check if calories are in a better range

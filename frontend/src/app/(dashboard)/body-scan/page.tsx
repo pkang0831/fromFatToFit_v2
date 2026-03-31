@@ -1,18 +1,23 @@
 'use client';
 
-import { useState, useRef, useCallback, ChangeEvent, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Scan, Crown, Sparkles, Coins, ArrowRight, Dumbbell } from 'lucide-react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Scan, Crown, Sparkles, Coins, ArrowRight, Dumbbell, Camera } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input, Select } from '@/components/ui';
 import { ShareableResultCard } from '@/components/features/ShareableResultCard';
 import { WeeklyRescanPrompt } from '@/components/features/WeeklyRescanPrompt';
 import { JourneyResult } from '@/components/features/JourneyResult';
+import { BodyCaptureGuide } from '@/components/features/BodyCaptureGuide';
+import { BodyScanPoseGuide } from '@/components/features/BodyScanPoseGuide';
+import { IDEAL_BODY_SCAN_POSE_IMAGE } from '@/lib/constants/bodyScanGuide';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { bodyApi, paymentApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
+import { formatApiError } from '@/lib/utils/apiError';
+import { trackEvent, trackRetentionEvent } from '@/lib/analytics';
 import { AxiosError } from 'axios';
 import dynamic from 'next/dynamic';
 import type { BodyScanRequest, BodyFatEstimateResponse, PercentileResponse, TransformationJourneyResponse, GapToGoalResponse } from '@/types/api';
@@ -26,6 +31,7 @@ type ActiveTab = 'scan' | 'journey';
 
 export default function BodyScanPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { t } = useLanguage();
   const { isPremium, refreshLimits } = useSubscription();
@@ -59,6 +65,15 @@ export default function BodyScanPage() {
   const [photoConfirmed, setPhotoConfirmed] = useState(false);
   const [gapData, setGapData] = useState<GapToGoalResponse | null>(null);
 
+  const [showScanGuide, setShowScanGuide] = useState(false);
+  const [showJourneyGuide, setShowJourneyGuide] = useState(false);
+  const [validatingScan, setValidatingScan] = useState(false);
+  const [validatingJourney, setValidatingJourney] = useState(false);
+  const [scanQualityOk, setScanQualityOk] = useState<boolean | null>(null);
+  const [journeyQualityOk, setJourneyQualityOk] = useState<boolean | null>(null);
+  const historyTrackedRef = useRef<{ journey: boolean }>({ journey: false });
+  const reminderTrackedRef = useRef(false);
+
   const scanCost = isPremium ? 0 : 10;
   const journeyCost = 30;
 
@@ -79,6 +94,68 @@ export default function BodyScanPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const syncActiveTab = () => {
+      const hash = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
+      const requestedTab = searchParams.get('tab') || hash;
+      if (requestedTab === 'journey' || requestedTab === 'transformation') {
+        setActiveTab('journey');
+      } else if (requestedTab === 'scan') {
+        setActiveTab('scan');
+      }
+    };
+
+    syncActiveTab();
+
+    if (typeof window === 'undefined') return;
+    const handleHashChange = () => syncActiveTab();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (activeTab !== 'journey' || historyTrackedRef.current.journey) return;
+    historyTrackedRef.current.journey = true;
+    trackRetentionEvent('history_viewed', {
+      surface: 'body_scan_page',
+      target: 'journey',
+    });
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (reminderTrackedRef.current) return;
+    if (searchParams.get('from') !== 'weekly_reminder') return;
+    if (activeTab !== 'journey') return;
+
+    reminderTrackedRef.current = true;
+    trackRetentionEvent('reengagement_session', {
+      surface: 'body_scan_page',
+      source: 'weekly_reminder',
+      entry_state: 'weekly_scan',
+      target_tab: activeTab,
+    });
+  }, [searchParams, activeTab]);
+
+  useEffect(() => {
+    if (!journeyResult) return;
+    trackEvent('transformation_viewed', {
+      surface: 'body_scan',
+      mode: journeyResult.mode,
+      stage_count: journeyResult.stages.length,
+      target_bf: journeyResult.target_bf,
+    });
+  }, [journeyResult]);
+
+  const updateLocationForTab = (nextTab: ActiveTab) => {
+    setActiveTab(nextTab);
+    if (typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', nextTab);
+    url.hash = nextTab === 'journey' ? 'transformation' : '';
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+
   const fetchCredits = async () => {
     try {
       const res = await paymentApi.getCreditBalance();
@@ -96,30 +173,126 @@ export default function BodyScanPage() {
 
   useEffect(() => { fetchCredits(); fetchGapData(); }, []);
 
+  const processScanFile = async (file: File): Promise<boolean> => {
+    if (!file.type.startsWith('image/')) return false;
+    setScanResult({});
+    setError(null);
+    setScanQualityOk(null);
+    setPhotoConfirmed(false);
+    setValidatingScan(true);
+    trackEvent('photo_upload_started', {
+      surface: 'body_scan',
+      flow: 'authenticated',
+      file_size_bytes: file.size,
+    });
+
+    try {
+      const base64 = await compressAndConvertToBase64(file);
+      const res = await bodyApi.validatePhoto({ image_base64: base64, framing: 'upper_body' });
+      setScanQualityOk(res.data.ok);
+      if (!res.data.ok) {
+        setError(res.data.messages.join(' '));
+        trackEvent('photo_upload_failed', {
+          surface: 'body_scan',
+          flow: 'authenticated',
+          reason: res.data.failure_codes.join(',') || 'validation_failed',
+        });
+        return false;
+      }
+      setScanFile(file);
+      const reader = new FileReader();
+      await new Promise<void>((resolve, reject) => {
+        reader.onloadend = () => {
+          setScanImage(reader.result as string);
+          resolve();
+        };
+        reader.onerror = () => reject(new Error('Failed to read image'));
+        reader.readAsDataURL(file);
+      });
+      trackEvent('photo_upload_succeeded', {
+        surface: 'body_scan',
+        flow: 'authenticated',
+      });
+      return true;
+    } catch (err) {
+      setScanQualityOk(false);
+      setError(formatApiError(err));
+      trackEvent('photo_upload_failed', {
+        surface: 'body_scan',
+        flow: 'authenticated',
+        reason: err instanceof Error ? err.message : 'unknown_error',
+      });
+      return false;
+    } finally {
+      setValidatingScan(false);
+    }
+  };
+
   const handleScanFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    setScanFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setScanImage(reader.result as string);
-      setScanResult({});
-      setError(null);
-    };
-    reader.readAsDataURL(file);
+    if (file) void processScanFile(file);
+    e.target.value = '';
+  };
+
+  const processJourneyFile = async (file: File): Promise<boolean> => {
+    if (!file.type.startsWith('image/')) return false;
+    setJourneyResult(null);
+    setError(null);
+    setJourneyQualityOk(null);
+    setPhotoConfirmed(false);
+    setValidatingJourney(true);
+    trackEvent('photo_upload_started', {
+      surface: 'transformation_journey',
+      flow: 'authenticated',
+      file_size_bytes: file.size,
+    });
+
+    try {
+      const base64 = await compressAndConvertToBase64(file);
+      const res = await bodyApi.validatePhoto({ image_base64: base64, framing: 'upper_body' });
+      setJourneyQualityOk(res.data.ok);
+      if (!res.data.ok) {
+        setError(res.data.messages.join(' '));
+        trackEvent('photo_upload_failed', {
+          surface: 'transformation_journey',
+          flow: 'authenticated',
+          reason: res.data.failure_codes.join(',') || 'validation_failed',
+        });
+        return false;
+      }
+      setJourneyFile(file);
+      const reader = new FileReader();
+      await new Promise<void>((resolve, reject) => {
+        reader.onloadend = () => {
+          setJourneyImage(reader.result as string);
+          resolve();
+        };
+        reader.onerror = () => reject(new Error('Failed to read image'));
+        reader.readAsDataURL(file);
+      });
+      trackEvent('photo_upload_succeeded', {
+        surface: 'transformation_journey',
+        flow: 'authenticated',
+      });
+      return true;
+    } catch (err) {
+      setJourneyQualityOk(false);
+      setError(formatApiError(err));
+      trackEvent('photo_upload_failed', {
+        surface: 'transformation_journey',
+        flow: 'authenticated',
+        reason: err instanceof Error ? err.message : 'unknown_error',
+      });
+      return false;
+    } finally {
+      setValidatingJourney(false);
+    }
   };
 
   const handleJourneyFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    setJourneyFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setJourneyImage(reader.result as string);
-      setJourneyResult(null);
-      setError(null);
-    };
-    reader.readAsDataURL(file);
+    if (file) void processJourneyFile(file);
+    e.target.value = '';
   };
 
   // Combined body fat + percentile scan
@@ -137,6 +310,15 @@ export default function BodyScanPage() {
 
     try {
       const base64 = await compressAndConvertToBase64(scanFile);
+      const v = await bodyApi.validatePhoto({ image_base64: base64, framing: 'upper_body' });
+      if (!v.data.ok) {
+        setError(v.data.messages.join(' '));
+        setScanQualityOk(false);
+        setIsScanning(false);
+        return;
+      }
+      setScanQualityOk(true);
+
       const requestData: BodyScanRequest = {
         image_base64: base64,
         scan_type: 'percentile',
@@ -144,6 +326,7 @@ export default function BodyScanPage() {
         age: Number(formData.age),
         ethnicity: (formData.ethnicity as string) || 'Other',
         height_cm: formData.height_cm ? Number(formData.height_cm) : undefined,
+        ownership_confirmed: photoConfirmed,
       };
 
       const response = await bodyApi.calculatePercentile(requestData);
@@ -203,9 +386,22 @@ export default function BodyScanPage() {
 
     setIsGenerating(true);
     setError(null);
+    trackEvent('transformation_generation_started', {
+      surface: 'body_scan',
+      target_bf: Number(formData.target_bf),
+      credit_cost: journeyCost,
+    });
 
     try {
       const base64 = await compressAndConvertToBase64(journeyFile);
+      const v = await bodyApi.validatePhoto({ image_base64: base64, framing: 'upper_body' });
+      if (!v.data.ok) {
+        setError(v.data.messages.join(' '));
+        setJourneyQualityOk(false);
+        setIsGenerating(false);
+        return;
+      }
+      setJourneyQualityOk(true);
 
       const requestData: BodyScanRequest = {
         image_base64: base64,
@@ -217,21 +413,39 @@ export default function BodyScanPage() {
         height_cm: formData.height_cm ? Number(formData.height_cm) : undefined,
         activity_level: (formData.activity_level as string) || undefined,
         muscle_gains: muscleGains,
+        ownership_confirmed: photoConfirmed,
       };
 
       const response = await bodyApi.generateTransformation(requestData);
       setJourneyResult(response.data);
+      trackEvent('transformation_generated', {
+        surface: 'body_scan',
+        mode: response.data.mode,
+        stage_count: response.data.stages.length,
+        target_bf: response.data.target_bf,
+      });
 
       fetchGapData();
       await refreshLimits();
       await fetchCredits();
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
-        setError(err.response?.data?.detail || (err.response?.status === 402
-          ? 'Not enough credits for journey generation.'
-          : 'Journey generation failed'));
+        if (err.response?.status === 402) {
+          setError('Not enough credits for journey generation.');
+        } else {
+          setError(formatApiError(err));
+        }
+        trackEvent('transformation_failed', {
+          surface: 'body_scan',
+          status: err.response?.status ?? 0,
+          reason: formatApiError(err),
+        });
       } else {
         setError(err instanceof Error ? err.message : 'Journey generation failed');
+        trackEvent('transformation_failed', {
+          surface: 'body_scan',
+          reason: err instanceof Error ? err.message : 'unknown_error',
+        });
       }
     } finally {
       setIsGenerating(false);
@@ -248,7 +462,7 @@ export default function BodyScanPage() {
       {/* Tab Navigation */}
       <div className="flex gap-2">
         <button
-          onClick={() => setActiveTab('scan')}
+          onClick={() => updateLocationForTab('scan')}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
             activeTab === 'scan'
               ? 'bg-gradient-primary text-white shadow-glow-cyan'
@@ -262,7 +476,7 @@ export default function BodyScanPage() {
           )}
         </button>
         <button
-          onClick={() => setActiveTab('journey')}
+          onClick={() => updateLocationForTab('journey')}
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
             activeTab === 'journey'
               ? 'bg-gradient-primary text-white shadow-glow-cyan'
@@ -305,6 +519,7 @@ export default function BodyScanPage() {
             <CardContent className="p-6">
               {!scanImage ? (
                 <div>
+                  <BodyScanPoseGuide variant="light" className="mb-4" />
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScanFileSelect} className="hidden" />
                   <div
                     onClick={() => fileInputRef.current?.click()}
@@ -314,11 +529,22 @@ export default function BodyScanPage() {
                     <p className="text-lg font-medium text-text mb-2">Upload a full-body photo</p>
                     <p className="text-sm text-text-secondary">Get your body fat estimate and see where you rank</p>
                   </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full mt-4"
+                    onClick={() => setShowScanGuide(true)}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Use camera with guide
+                  </Button>
                 </div>
               ) : !scanResult.percentile ? (
                 <div className="space-y-6">
                   <Image src={scanImage} alt="Selected" width={800} height={600} className="w-full max-h-80 object-contain rounded-lg" unoptimized />
-
+                  {validatingScan && (
+                    <p className="text-sm text-text-secondary">Checking framing and pose…</p>
+                  )}
                   <form
                     key={JSON.stringify(formDefaults)}
                     onSubmit={(e) => {
@@ -350,12 +576,19 @@ export default function BodyScanPage() {
                       <div className="flex items-start gap-3">
                         <input type="checkbox" id="scanConfirm" checked={photoConfirmed} onChange={(e) => setPhotoConfirmed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
                         <label htmlFor="scanConfirm" className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer">
-                          I confirm this is a photo of myself. Results are AI approximations, not medical assessments.
+                          I confirm this is my photo or I have permission to upload it. Results are AI approximations, not medical assessments.
                         </label>
                       </div>
                     </div>
 
-                    <Button type="submit" variant="primary" size="lg" isLoading={isScanning} disabled={!canScan || !photoConfirmed} className="w-full">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      isLoading={isScanning}
+                      disabled={!canScan || !photoConfirmed || scanQualityOk !== true || validatingScan}
+                      className="w-full"
+                    >
                       <Scan className="h-5 w-5 mr-2" />
                       {scanCost === 0 ? 'Scan (Pro: Free)' : `Scan (${scanCost} credits)`}
                     </Button>
@@ -462,9 +695,40 @@ export default function BodyScanPage() {
                     </div>
                   )}
 
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-5 text-left">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Next step</p>
+                        <h3 className="text-lg font-semibold text-emerald-950">Lock this scan with a proof photo</h3>
+                        <p className="text-sm text-emerald-800/80">
+                          Your scan is the estimate. The proof photo is what you will compare against next week.
+                        </p>
+                      </div>
+                      <Button
+                        data-testid="scan-to-proof-cta"
+                        variant="primary"
+                        onClick={() => router.push('/progress?tab=photos&focus=upload&from=scan_result')}
+                      >
+                        Upload progress proof
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </div>
+                  </div>
+
                   {/* New Scan button */}
                   <div className="text-center">
-                    <Button variant="secondary" size="sm" onClick={() => { setScanImage(null); setScanFile(null); setScanResult({}); setPhotoConfirmed(false); }}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setScanImage(null);
+                        setScanFile(null);
+                        setScanResult({});
+                        setPhotoConfirmed(false);
+                        setScanQualityOk(null);
+                        setError(null);
+                      }}
+                    >
                       New Scan
                     </Button>
                   </div>
@@ -489,6 +753,7 @@ export default function BodyScanPage() {
             <CardContent className="p-6">
               {!journeyImage ? (
                 <div>
+                  <BodyScanPoseGuide variant="light" className="mb-4" />
                   <input ref={journeyFileInputRef} type="file" accept="image/*" onChange={handleJourneyFileSelect} className="hidden" />
                   <div
                     onClick={() => journeyFileInputRef.current?.click()}
@@ -498,10 +763,22 @@ export default function BodyScanPage() {
                     <p className="text-lg font-medium text-text mb-2">Upload your current body photo</p>
                     <p className="text-sm text-text-secondary">We&apos;ll generate your transformation journey</p>
                   </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full mt-4"
+                    onClick={() => setShowJourneyGuide(true)}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Use camera with guide
+                  </Button>
                 </div>
               ) : !journeyResult ? (
                 <div className="space-y-6">
                   <Image src={journeyImage} alt="Current" width={800} height={600} className="w-full max-h-64 object-contain rounded-lg" unoptimized />
+                  {validatingJourney && (
+                    <p className="text-sm text-text-secondary">Checking framing and pose…</p>
+                  )}
 
                   <form
                     key={JSON.stringify(formDefaults)}
@@ -577,12 +854,19 @@ export default function BodyScanPage() {
                       <div className="flex items-start gap-3">
                         <input type="checkbox" id="journeyConfirm" checked={photoConfirmed} onChange={(e) => setPhotoConfirmed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
                         <label htmlFor="journeyConfirm" className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer">
-                          I confirm this is a photo of myself. AI previews are visualizations, not predictions or guarantees.
+                          I confirm this is my photo or I have permission to upload it. AI previews are visualizations, not predictions or guarantees.
                         </label>
                       </div>
                     </div>
 
-                    <Button type="submit" variant="primary" size="lg" isLoading={isGenerating} disabled={!canJourney || !photoConfirmed} className="w-full">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      isLoading={isGenerating}
+                      disabled={!canJourney || !photoConfirmed || journeyQualityOk !== true || validatingJourney}
+                      className="w-full"
+                    >
                       <Sparkles className="h-5 w-5 mr-2" />
                       Generate My Journey ({journeyCost} credits)
                     </Button>
@@ -604,13 +888,42 @@ export default function BodyScanPage() {
                 <JourneyResult
                   result={journeyResult}
                   originalImage={journeyImage}
-                  onReset={() => { setJourneyImage(null); setJourneyFile(null); setJourneyResult(null); setPhotoConfirmed(false); }}
+                  journeyPrefill={{
+                    weightKg: formDefaults.weight_kg,
+                    age: formDefaults.age,
+                    heightCm: formDefaults.height_cm,
+                    activityLevel: formDefaults.activity_level || 'moderate',
+                    gender: formDefaults.gender === 'male' || formDefaults.gender === 'female' ? formDefaults.gender : undefined,
+                  }}
+                  onReset={() => {
+                    setJourneyImage(null);
+                    setJourneyFile(null);
+                    setJourneyResult(null);
+                    setPhotoConfirmed(false);
+                    setJourneyQualityOk(null);
+                    setError(null);
+                  }}
                 />
               )}
             </CardContent>
           </Card>
         </div>
       )}
+
+      <BodyCaptureGuide
+        open={showScanGuide}
+        onClose={() => setShowScanGuide(false)}
+        onCapture={processScanFile}
+        guideImageSrc={IDEAL_BODY_SCAN_POSE_IMAGE}
+        validationMessage={showScanGuide ? error : null}
+      />
+      <BodyCaptureGuide
+        open={showJourneyGuide}
+        onClose={() => setShowJourneyGuide(false)}
+        onCapture={processJourneyFile}
+        guideImageSrc={IDEAL_BODY_SCAN_POSE_IMAGE}
+        validationMessage={showJourneyGuide ? error : null}
+      />
     </div>
   );
 }

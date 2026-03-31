@@ -81,6 +81,37 @@ yarn-error.log*
 !frontend/public/**/*.jpeg
 !backend/app/data/body_fat/**
 
+# ===== Large media / samples =====
+*.m4a
+*.mp4
+*.png
+!frontend/public/**/*.png
+sample_image.*
+sample_final_image.*
+
+# ===== Experiment / scratch directories =====
+tmp/
+eval_runs/
+test_outputs/
+test_cases/
+cog-realvis-sdxl/
+sd15_inpainting_local/
+openai_transcripts_markdown/
+
+# ===== Colab notebooks (large base64 outputs) =====
+colab_notebook/
+
 # ===== Archives (not for production) =====
 _archived/
 archive_qa/
+
+# ===== Playwright reports (generated) =====
+playwright-report/
+test-results/
+
+# ===== Venvs with non-standard names =====
+.venv_mp/
+
+# Offline body-validation models (HF + MediaPipe; large — keep script only)
+backend/models/body_validation/*
+!backend/models/body_validation/import_from_downloads.sh

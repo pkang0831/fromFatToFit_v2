@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Timer, Play, Square, History, ChevronRight, Flame, Clock, Trophy } from 'lucide-react';
+import { Timer, Play, Square, History, Flame, Clock, Trophy } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { fastingApi } from '@/lib/api/services';
 
 interface FastingProtocol {
   id: string;
@@ -14,13 +16,25 @@ interface FastingProtocol {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
 }
 
-interface FastingSession {
+interface ActiveSession {
   id: string;
   protocol: string;
-  startedAt: string;
-  targetHours: number;
-  endedAt?: string;
-  notes?: string;
+  started_at: string;
+  target_hours: number;
+  elapsed_hours: number;
+  remaining_hours: number;
+  progress_percent: number;
+  completed: boolean;
+}
+
+interface HistorySession {
+  id: string;
+  protocol: string;
+  started_at: string;
+  ended_at?: string;
+  target_hours: number;
+  actual_hours?: number;
+  completed?: boolean;
 }
 
 const PROTOCOLS: FastingProtocol[] = [
@@ -28,25 +42,9 @@ const PROTOCOLS: FastingProtocol[] = [
   { id: '18:6', name: '18:6', fastHours: 18, eatHours: 6, description: 'Extended fast. Eat within a 6-hour window.', difficulty: 'intermediate' },
   { id: '20:4', name: '20:4 (Warrior)', fastHours: 20, eatHours: 4, description: 'Warrior Diet. One large meal + snacks.', difficulty: 'advanced' },
   { id: '14:10', name: '14:10', fastHours: 14, eatHours: 10, description: 'Gentle start. Great for beginners.', difficulty: 'beginner' },
-  { id: 'OMAD', name: 'OMAD (23:1)', fastHours: 23, eatHours: 1, description: 'One Meal A Day. Maximum autophagy benefits.', difficulty: 'advanced' },
+  { id: 'omad', name: 'OMAD (23:1)', fastHours: 23, eatHours: 1, description: 'One Meal A Day. Maximum autophagy benefits.', difficulty: 'advanced' },
   { id: 'custom', name: 'Custom', fastHours: 0, eatHours: 0, description: 'Set your own fasting duration.', difficulty: 'beginner' },
 ];
-
-const STORAGE_KEY = 'fasting_data';
-
-function loadData(): { current: FastingSession | null; history: FastingSession[] } {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { current: null, history: [] };
-    return JSON.parse(raw);
-  } catch {
-    return { current: null, history: [] };
-  }
-}
-
-function saveData(current: FastingSession | null, history: FastingSession[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ current, history }));
-}
 
 function formatDuration(ms: number): { hours: number; minutes: number; seconds: number } {
   const totalSec = Math.max(0, Math.floor(ms / 1000));
@@ -84,91 +82,108 @@ function ProgressRing({ progress, size = 200 }: { progress: number; size?: numbe
 
 const PROTOCOL_KEY_MAP: Record<string, string> = {
   '16:8': '16_8', '18:6': '18_6', '20:4': '20_4',
-  '14:10': '14_10', 'OMAD': 'OMAD', 'custom': 'Custom',
+  '14:10': '14_10', 'omad': 'OMAD', 'custom': 'Custom',
 };
 
 export default function FastingPage() {
   const { t } = useLanguage();
-  const [currentFast, setCurrentFast] = useState<FastingSession | null>(null);
-  const [fastHistory, setFastHistory] = useState<FastingSession[]>([]);
+  const [activeFast, setActiveFast] = useState<ActiveSession | null>(null);
+  const [fastHistory, setFastHistory] = useState<HistorySession[]>([]);
   const [elapsed, setElapsed] = useState(0);
   const [showProtocols, setShowProtocols] = useState(false);
   const [customHours, setCustomHours] = useState(16);
-  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    const { current, history } = loadData();
-    setCurrentFast(current);
-    setFastHistory(history);
-    setMounted(true);
+  const loadData = useCallback(async () => {
+    try {
+      const [curRes, histRes] = await Promise.all([
+        fastingApi.getCurrent(),
+        fastingApi.getHistory(30),
+      ]);
+      if (curRes.data.active && curRes.data.session) {
+        setActiveFast(curRes.data.session as ActiveSession);
+      } else {
+        setActiveFast(null);
+      }
+      setFastHistory((histRes.data.sessions || []) as HistorySession[]);
+    } catch {
+      toast.error('Failed to load fasting data');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    if (!currentFast) return;
+    void loadData();
+  }, [loadData]);
+
+  useEffect(() => {
+    if (!activeFast) return;
     const tick = () => {
       const now = Date.now();
-      const start = new Date(currentFast.startedAt).getTime();
+      const start = new Date(activeFast.started_at).getTime();
       setElapsed(now - start);
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [currentFast]);
+  }, [activeFast]);
 
-  const startFast = useCallback((protocol: FastingProtocol) => {
+  const startFast = useCallback(async (protocol: FastingProtocol) => {
     const hours = protocol.id === 'custom' ? customHours : protocol.fastHours;
-    const session: FastingSession = {
-      id: Date.now().toString(),
-      protocol: protocol.name,
-      startedAt: new Date().toISOString(),
-      targetHours: hours,
-    };
-    setCurrentFast(session);
-    setShowProtocols(false);
-    saveData(session, fastHistory);
-  }, [customHours, fastHistory]);
+    setActionLoading(true);
+    try {
+      await fastingApi.startFast(protocol.id, hours);
+      setShowProtocols(false);
+      toast.success(`Started ${protocol.name} fast`);
+      await loadData();
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { detail?: string } } };
+      toast.error(err?.response?.data?.detail || 'Failed to start fast');
+    } finally {
+      setActionLoading(false);
+    }
+  }, [customHours, loadData]);
 
-  const endFast = useCallback(() => {
-    if (!currentFast) return;
-    const ended: FastingSession = { ...currentFast, endedAt: new Date().toISOString() };
-    const newHistory = [ended, ...fastHistory].slice(0, 50);
-    setFastHistory(newHistory);
-    setCurrentFast(null);
-    setElapsed(0);
-    saveData(null, newHistory);
-  }, [currentFast, fastHistory]);
+  const endFast = useCallback(async () => {
+    setActionLoading(true);
+    try {
+      const res = await fastingApi.endFast();
+      toast.success(res.data.message || 'Fast ended');
+      await loadData();
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { detail?: string } } };
+      toast.error(err?.response?.data?.detail || 'Failed to end fast');
+    } finally {
+      setActionLoading(false);
+    }
+  }, [loadData]);
 
-  const progress = currentFast
-    ? Math.min(elapsed / (currentFast.targetHours * 3600000), 1)
-    : 0;
-
+  const targetMs = activeFast ? activeFast.target_hours * 3600000 : 1;
+  const progress = activeFast ? Math.min(elapsed / targetMs, 1) : 0;
   const { hours: elH, minutes: elM, seconds: elS } = formatDuration(elapsed);
-
-  const remaining = currentFast
-    ? Math.max(0, currentFast.targetHours * 3600000 - elapsed)
-    : 0;
+  const remaining = activeFast ? Math.max(0, targetMs - elapsed) : 0;
   const { hours: remH, minutes: remM, seconds: remS } = formatDuration(remaining);
 
   const stats = useMemo(() => {
-    const completed = fastHistory.filter(f => f.endedAt);
-    const totalFasts = completed.length;
-    if (totalFasts === 0) return { totalFasts: 0, avgHours: 0, longestHours: 0, streak: 0 };
+    const completed = fastHistory.filter(f => f.completed);
+    const totalFasts = fastHistory.length;
+    if (totalFasts === 0) return { totalFasts: 0, avgHours: 0, longestHours: 0, completedCount: 0 };
 
-    const durations = completed.map(f => {
-      const start = new Date(f.startedAt).getTime();
-      const end = new Date(f.endedAt!).getTime();
-      return (end - start) / 3600000;
-    });
+    const durations = fastHistory
+      .filter(f => f.actual_hours != null)
+      .map(f => f.actual_hours!);
 
     return {
       totalFasts,
-      avgHours: Math.round((durations.reduce((a, b) => a + b, 0) / totalFasts) * 10) / 10,
-      longestHours: Math.round(Math.max(...durations) * 10) / 10,
-      streak: totalFasts,
+      avgHours: durations.length ? Math.round((durations.reduce((a, b) => a + b, 0) / durations.length) * 10) / 10 : 0,
+      longestHours: durations.length ? Math.round(Math.max(...durations) * 10) / 10 : 0,
+      completedCount: completed.length,
     };
   }, [fastHistory]);
 
-  if (!mounted) return null;
+  if (loading) return <div className="max-w-4xl mx-auto py-16 text-center text-text-secondary text-sm">Loading…</div>;
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -177,8 +192,7 @@ export default function FastingPage() {
         <p className="text-text-secondary mt-1">{t('fasting.subtitle')}</p>
       </div>
 
-      {/* Active Fast */}
-      {currentFast ? (
+      {activeFast ? (
         <Card variant="elevated" className="overflow-hidden">
           <div className="bg-gradient-to-br from-primary/10 to-secondary/10 p-8">
             <div className="flex flex-col items-center">
@@ -199,7 +213,7 @@ export default function FastingPage() {
 
               <div className="mt-6 text-center">
                 <Badge variant={progress >= 1 ? 'success' : 'warning'} className="text-sm px-4 py-1.5 mb-3">
-                  {currentFast.protocol} &middot; {currentFast.targetHours}h {t('fasting.target')}
+                  {activeFast.protocol} &middot; {activeFast.target_hours}h {t('fasting.target')}
                 </Badge>
 
                 {progress < 1 && (
@@ -218,7 +232,7 @@ export default function FastingPage() {
                 <div className="text-center">
                   <p className="text-xs text-text-secondary">{t('fasting.started')}</p>
                   <p className="text-sm font-semibold text-text">
-                    {new Date(currentFast.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(activeFast.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
                 <div className="text-center">
@@ -230,7 +244,7 @@ export default function FastingPage() {
                 <div className="text-center">
                   <p className="text-xs text-text-secondary">{t('fasting.goalLabel')}</p>
                   <p className="text-sm font-semibold text-text">
-                    {new Date(new Date(currentFast.startedAt).getTime() + currentFast.targetHours * 3600000)
+                    {new Date(new Date(activeFast.started_at).getTime() + activeFast.target_hours * 3600000)
                       .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
@@ -240,6 +254,8 @@ export default function FastingPage() {
                 variant="danger"
                 className="mt-8"
                 onClick={endFast}
+                disabled={actionLoading}
+                isLoading={actionLoading}
               >
                 <Square className="h-4 w-4 mr-2" />
                 {t('fasting.endFast')}
@@ -248,7 +264,6 @@ export default function FastingPage() {
           </div>
         </Card>
       ) : (
-        /* Start Fast */
         <Card variant="elevated">
           <CardContent className="p-8 text-center">
             {!showProtocols ? (
@@ -273,7 +288,8 @@ export default function FastingPage() {
                     <button
                       key={p.id}
                       onClick={() => p.id !== 'custom' ? startFast(p) : undefined}
-                      className="p-4 rounded-xl border-2 border-border hover:border-primary transition-all text-left hover:shadow-md group"
+                      disabled={actionLoading}
+                      className="p-4 rounded-xl border-2 border-border hover:border-primary transition-all text-left hover:shadow-md group disabled:opacity-50"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-bold text-text group-hover:text-primary transition-colors">
@@ -298,7 +314,7 @@ export default function FastingPage() {
                             className="w-20 px-2 py-1 rounded border border-border bg-surface text-text text-sm"
                           />
                           <span className="text-xs text-text-secondary">{t('fasting.hours')}</span>
-                          <Button size="sm" variant="primary" onClick={() => startFast(p)} className="ml-auto">
+                          <Button size="sm" variant="primary" onClick={() => startFast(p)} className="ml-auto" disabled={actionLoading}>
                             {t('fasting.go')}
                           </Button>
                         </div>
@@ -343,7 +359,7 @@ export default function FastingPage() {
         <Card>
           <CardContent className="p-4 text-center">
             <Timer className="h-5 w-5 text-green-500 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-text">{stats.streak}</p>
+            <p className="text-2xl font-bold text-text">{stats.completedCount}</p>
             <p className="text-xs text-text-secondary">{t('fasting.completedCount')}</p>
           </CardContent>
         </Card>
@@ -361,11 +377,13 @@ export default function FastingPage() {
           <CardContent>
             <div className="space-y-3">
               {fastHistory.slice(0, 10).map(session => {
-                const start = new Date(session.startedAt);
-                const end = session.endedAt ? new Date(session.endedAt) : null;
-                const durationMs = end ? end.getTime() - start.getTime() : 0;
-                const durationH = Math.round(durationMs / 3600000 * 10) / 10;
-                const hitGoal = durationH >= session.targetHours;
+                const start = new Date(session.started_at);
+                const durationH = session.actual_hours != null
+                  ? Math.round(session.actual_hours * 10) / 10
+                  : session.ended_at
+                    ? Math.round((new Date(session.ended_at).getTime() - start.getTime()) / 3600000 * 10) / 10
+                    : 0;
+                const hitGoal = session.completed || durationH >= session.target_hours;
 
                 return (
                   <div
@@ -383,7 +401,7 @@ export default function FastingPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-text">{durationH}h</p>
-                      <p className="text-xs text-text-secondary">/ {session.targetHours}h {t('fasting.ofGoal')}</p>
+                      <p className="text-xs text-text-secondary">/ {session.target_hours}h {t('fasting.ofGoal')}</p>
                     </div>
                   </div>
                 );

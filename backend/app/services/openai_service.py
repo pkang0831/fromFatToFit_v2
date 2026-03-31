@@ -149,16 +149,9 @@ Return ONLY a valid JSON object (no markdown):
 
 async def estimate_body_fat_percentage(image_base64: str, gender: str, age: int) -> Dict[str, Any]:
     """
-    Estimate body fat percentage from body image using GPT-4 Vision
-    
-    Args:
-        image_base64: Base64 encoded body image
-        gender: User's gender
-        age: User's age
-        
-    Returns:
-        Dictionary with body fat estimate and recommendations
+    Estimate body fat percentage from body image using GPT-5.2-pro (Responses API).
     """
+    content = None
     try:
         prompt = f"""You are a certified fitness coach AI used in a health & wellness app.
 The user has uploaded a gym/fitness progress photo for body composition tracking.
@@ -166,70 +159,52 @@ This is standard practice in fitness coaching — similar to what personal train
 
 User info: {gender}, age {age}
 
-Analyze visible fitness indicators (muscle definition, waist-to-shoulder ratio, visible vascularity, abdominal definition) and estimate an approximate body fat percentage range.
+Analyze visible fitness indicators (muscle definition, waist-to-shoulder ratio, visible vascularity, abdominal definition) and estimate an body fat percentage.
 
 This is for educational fitness tracking only, not medical advice.
 
 Return ONLY valid JSON (no markdown):
 {{
-  "body_fat_percentage": 15.5,
-  "confidence": "medium",
-  "recommendations": ["recommendation1", "recommendation2", "recommendation3"]
+  "body_fat_percentage": <number between 5 and 45>,
+  "confidence": "<low|medium|high>",
+  "recommendations": ["<specific actionable tip>", "<specific actionable tip>", "<specific actionable tip>"]
 }}"""
 
-        # Try gpt-4o-mini first (less restrictive), fallback to gpt-4o
-        models_to_try = ["gpt-4o-mini", "gpt-4o"]
-        content = None
-        
-        for model_name in models_to_try:
-            try:
-                response = _get_client().chat.completions.create(
-                    model=model_name,
-                    messages=[
+        system_msg = (
+            "You are a certified fitness coach AI in a health tracking app. "
+            "You help users estimate body composition from gym progress photos. "
+            "Always respond with valid JSON only."
+        )
+
+        response = _get_client().responses.create(
+            model="gpt-5.2-pro",
+            instructions=system_msg,
+            input=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
                         {
-                            "role": "system",
-                            "content": "You are a certified fitness coach AI in a health tracking app. You help users estimate body composition from gym progress photos. Always respond with valid JSON only."
+                            "type": "input_image",
+                            "image_url": f"data:image/jpeg;base64,{image_base64}",
                         },
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:image/jpeg;base64,{image_base64}"
-                                    }
-                                }
-                            ]
-                        }
                     ],
-                    max_tokens=500,
-                    temperature=0.2
-                )
-                content = response.choices[0].message.content
-                logger.info(f"OpenAI ({model_name}) body fat response: {content}")
-                
-                content_lower = (content or "").lower()
-                if any(p in content_lower for p in ["i'm sorry", "i can't", "i cannot", "i'm unable", "not appropriate"]):
-                    logger.warning(f"OpenAI ({model_name}) refused, trying next model...")
-                    continue
-                break
-            except Exception as model_err:
-                logger.warning(f"OpenAI ({model_name}) failed: {model_err}")
-                continue
-        
+                },
+            ],
+            reasoning={"effort": "medium"},
+            max_output_tokens=500,
+        )
+        content = response.output_text
+        logger.info(f"OpenAI (gpt-5.2-pro) body fat response: {content}")
+
         if not content or content.strip() == "":
             raise ValueError("OpenAI returned empty response")
-        
-        # Check if OpenAI refused the request
-        refusal_phrases = [
-            "i'm sorry",
-            "i can't help",
-            "i cannot assist",
-            "i'm unable to",
-            "not appropriate"
-        ]
+
         content_lower = content.lower()
+        refusal_phrases = [
+            "i'm sorry", "i can't help", "i cannot assist",
+            "i'm unable to", "not appropriate",
+        ]
         if any(phrase in content_lower for phrase in refusal_phrases):
             logger.warning(f"OpenAI refused body fat analysis: {content}")
             raise ValueError(
@@ -237,28 +212,24 @@ Return ONLY valid JSON (no markdown):
                 "Please ensure the photo shows clear body composition indicators. "
                 "For best results: use good lighting, wear form-fitting clothes, and capture full body in frame."
             )
-        
-        # Remove markdown code blocks if present
+
         content_clean = content.strip()
         if content_clean.startswith("```"):
-            # Extract JSON from markdown code block
             match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content_clean, re.DOTALL)
             if match:
                 content_clean = match.group(1)
             else:
-                # Try to find JSON object
                 match = re.search(r'\{.*\}', content_clean, re.DOTALL)
                 if match:
                     content_clean = match.group(0)
-        
+
         result = json.loads(content_clean)
-        
-        # Validate response structure
+
         if "body_fat_percentage" not in result:
             raise ValueError("Invalid response format: missing body_fat_percentage")
-        
+
         return result
-        
+
     except json.JSONDecodeError as e:
         logger.error(f"JSON parsing error: {e}, Content: {content[:200] if content else 'None'}")
         raise ValueError(f"Failed to parse OpenAI response: {str(e)}")

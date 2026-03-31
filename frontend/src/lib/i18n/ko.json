@@ -36,6 +36,8 @@
     "chat": "AI 코치",
     "beautyScan": "뷰티 스캔",
     "fashion": "패션",
+    "goalPlanner": "목표 플래너",
+    "challengeSevenDay": "7일 루프",
     "profile": "프로필",
     "upgrade": "업그레이드",
     "signOut": "로그아웃"
@@ -167,6 +169,7 @@
     "createOne": "만들기",
     "signInLink": "로그인",
     "orContinueWith": "또는 다음으로 계속",
+    "signInWithEmailPassword": "이메일·비밀번호로 로그인",
     "passwordMin": "최소 8자 이상",
     "passwordMismatch": "비밀번호가 일치하지 않습니다",
     "select": "선택...",

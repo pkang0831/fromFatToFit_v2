@@ -75,6 +75,11 @@ test.describe('Smoke Tests @smoke', () => {
       await page.goto('/register');
       await expect(page.locator('h1')).toContainText(/Devenira/);
       await expect(page.getByRole('button', { name: /google/i })).toBeVisible();
+
+      const emailRegisterForm = page.getByTestId('email-register-form');
+      if (await emailRegisterForm.count()) {
+        await expect(emailRegisterForm).toBeVisible();
+      }
     });
 
     test('has link back to login', async ({ page }) => {

@@ -89,13 +89,25 @@ export default function BodyMaskEditor({
     const img = new Image();
     img.onload = () => {
       origImageRef.current = img;
-      const w = img.naturalWidth, h = img.naturalHeight;
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
       setOrigSize({ w, h });
 
-      if (initialLabelMap && initialLabelMap.width === w && initialLabelMap.height === h) {
-        labelMapRef.current = initialLabelMap.clone();
+      if (initialLabelMap) {
+        if (initialLabelMap.width === w && initialLabelMap.height === h) {
+          labelMapRef.current = initialLabelMap.clone();
+          console.log('[BodyMaskEditor] Using initialLabelMap (exact size)', { w, h, hasLabels: initialLabelMap.hasLabels() });
+        } else {
+          labelMapRef.current = initialLabelMap.scaleTo(w, h);
+          console.log('[BodyMaskEditor] Scaled initialLabelMap to image size', {
+            from: { w: initialLabelMap.width, h: initialLabelMap.height },
+            to: { w, h },
+            hasLabels: labelMapRef.current.hasLabels(),
+          });
+        }
       } else {
         labelMapRef.current = new LabelMap(w, h);
+        console.log('[BodyMaskEditor] No initialLabelMap, empty label map', { w, h });
       }
       undoMgrRef.current.clear();
       setCanUndo(false);

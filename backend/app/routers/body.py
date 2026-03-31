@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from starlette.requests import Request
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 from ..schemas.body_schemas import (
     BodyScanRequest, BodyFatEstimateResponse, PercentileResponse,
@@ -11,18 +11,22 @@ from ..schemas.body_schemas import (
     GapToGoalResponse, ScanHistoryPoint, SaveGoalRequest,
     TransformationJourneyResponse, TransformationStageResponse,
     StageDescriptorResponse, NutritionPlanResponse, WorkoutPlanResponse,
-    AutoSegmentRequest, AutoSegmentResponse, SegClassInfo,
+    AutoSegmentRequest, AutoSegmentResponse, SegClassInfo, CandidateSegmentInfo,
+    CutEditPrepRequest, CutEditPrepResponse,
+    CutWarpPreviewRequest, CutWarpPreviewResponse,
+    BodyPhotoQualityRequest, BodyPhotoQualityResponse,
 )
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services import openai_service, grok_service, claude_service, gemini_body_service
 from ..services import replicate_service
 from ..services.sam_service import segment_body_part
-from ..services.sam2_auto_segmenter import SAM2AutoSegmenter
+from ..services.body_photo_quality import analyze_body_photo_quality
 from ..services.body_analysis import calculate_percentile, generate_recommendations
 from ..services.transformation_planner import build_plan
 from ..services.transformation_prompts import render_stage_prompt
 from ..services.transformation_types import MuscleGainSpec
+from ..services.body_image_moderation import enforce_body_image_moderation
 from ..services.journey_telemetry import (
     JourneyRequestRecord, start_timer, elapsed_ms, record_journey, get_counters,
 )
@@ -33,6 +37,127 @@ from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _select_user_profile(supabase, user_id: str, columns: str):
+    return supabase.table("user_profiles").select(columns).eq("user_id", user_id).execute()
+
+
+def _update_user_profile(supabase, user_id: str, data: dict):
+    return supabase.table("user_profiles").update(data).eq("user_id", user_id).execute()
+
+
+async def _require_body_photo_quality(
+    image_base64: str,
+    framing: str = "upper_body",
+) -> None:
+    """Raise 422 if the image fails framing / frontal pose checks."""
+    result = await analyze_body_photo_quality(image_base64, framing=framing)
+    if result.ok:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        detail={
+            "error": "body_photo_quality",
+            "messages": result.messages,
+            "failure_codes": result.failure_codes,
+            "body_area_ratio": round(result.body_area_ratio, 4),
+            "bbox_area_ratio": round(result.bbox_area_ratio, 4),
+            "mask_fill_ratio": round(result.mask_fill_ratio, 4),
+            "is_front_facing": result.is_front_facing,
+            "pose_detected": result.pose_detected,
+            "is_shirtless": result.is_shirtless,
+            "brightness": round(result.brightness, 1),
+            "framing": result.framing,
+            "min_body_area_ratio": round(result.min_body_area_ratio, 4),
+            "min_mask_fill_ratio": round(result.min_mask_fill_ratio, 4),
+        },
+    )
+
+
+async def _require_safe_body_photo(
+    image_base64: str,
+    *,
+    route_name: str,
+    framing: str = "upper_body",
+    source: str = "authenticated",
+    user_id: str | None = None,
+    ownership_confirmed: bool = False,
+    adult_confirmed: bool = False,
+    stated_age: int | None = None,
+):
+    quality_result = await analyze_body_photo_quality(image_base64, framing=framing)
+    if not quality_result.ok:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail={
+                "error": "body_photo_quality",
+                "messages": quality_result.messages,
+                "failure_codes": quality_result.failure_codes,
+                "body_area_ratio": round(quality_result.body_area_ratio, 4),
+                "bbox_area_ratio": round(quality_result.bbox_area_ratio, 4),
+                "mask_fill_ratio": round(quality_result.mask_fill_ratio, 4),
+                "is_front_facing": quality_result.is_front_facing,
+                "pose_detected": quality_result.pose_detected,
+                "is_shirtless": quality_result.is_shirtless,
+                "brightness": round(quality_result.brightness, 1),
+                "framing": quality_result.framing,
+                "min_body_area_ratio": round(quality_result.min_body_area_ratio, 4),
+                "min_mask_fill_ratio": round(quality_result.min_mask_fill_ratio, 4),
+            },
+        )
+
+    await enforce_body_image_moderation(
+        route_name=route_name,
+        source=source,
+        quality_result=quality_result,
+        user_id=user_id,
+        ownership_confirmed=ownership_confirmed,
+        adult_confirmed=adult_confirmed,
+        stated_age=stated_age,
+    )
+    return quality_result
+
+
+@router.post("/validate-photo", response_model=BodyPhotoQualityResponse)
+@limiter.limit("20/minute")
+async def validate_body_photo(
+    request: Request,
+    body: BodyPhotoQualityRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Check framing (segmentation area) and frontal pose; no credits charged."""
+    try:
+        result = await analyze_body_photo_quality(
+            body.image_base64,
+            framing=body.framing,
+        )
+        d = result.to_dict()
+        return BodyPhotoQualityResponse(
+            ok=d["ok"],
+            body_area_ratio=d["body_area_ratio"],
+            bbox_area_ratio=d["bbox_area_ratio"],
+            mask_fill_ratio=d["mask_fill_ratio"],
+            is_front_facing=d["is_front_facing"],
+            pose_detected=d["pose_detected"],
+            is_shirtless=d["is_shirtless"],
+            brightness=d["brightness"],
+            failure_codes=d["failure_codes"],
+            messages=d["messages"],
+            width=d["width"],
+            height=d["height"],
+            framing=d["framing"],
+            min_body_area_ratio=d["min_body_area_ratio"],
+            min_mask_fill_ratio=d["min_mask_fill_ratio"],
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"validate-photo error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Photo validation failed. Please try again.",
+        )
 
 
 async def estimate_body_fat_with_fallback(image_base64: str, gender: str, age: int):
@@ -119,7 +244,15 @@ async def estimate_bodyfat(
     try:
         if not scan_request.gender or not scan_request.age:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Gender and age required")
-        
+
+        await _require_safe_body_photo(
+            scan_request.image_base64,
+            route_name="estimate_bodyfat",
+            user_id=current_user["id"],
+            ownership_confirmed=scan_request.ownership_confirmed,
+            stated_age=scan_request.age,
+        )
+
         # Check if user is premium
         is_premium = await check_premium_status(current_user["id"])
         
@@ -156,7 +289,7 @@ async def estimate_bodyfat(
                 "recommendations": recommendations
             },
             "ai_analysis": analysis_result,
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat()
         }
         result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = result.data[0]["id"] if result.data else None
@@ -200,7 +333,15 @@ async def calculate_body_percentile(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Gender, age, and ethnicity required"
             )
-        
+
+        await _require_safe_body_photo(
+            scan_request.image_base64,
+            route_name="percentile",
+            user_id=current_user["id"],
+            ownership_confirmed=scan_request.ownership_confirmed,
+            stated_age=scan_request.age,
+        )
+
         # Check if user is premium
         is_premium = await check_premium_status(current_user["id"])
         
@@ -242,7 +383,7 @@ async def calculate_body_percentile(
                 "rank_text": percentile_data["rank_text"]
             },
             "ai_analysis": bf_analysis,
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat()
         }
         result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = result.data[0]["id"] if result.data else None
@@ -298,6 +439,14 @@ async def generate_transformation_journey(
                 detail="Target body fat percentage is required",
             )
 
+        await _require_safe_body_photo(
+            scan_request.image_base64,
+            route_name="transformation",
+            user_id=current_user["id"],
+            ownership_confirmed=scan_request.ownership_confirmed,
+            stated_age=scan_request.age,
+        )
+
         is_premium = await check_premium_status(current_user["id"])
         JOURNEY_COST = 30
 
@@ -347,36 +496,32 @@ async def generate_transformation_journey(
             activity_level=scan_request.activity_level,
         )
 
-        # 4. Build prompt for the final "after" image using the last stage
-        final_stage = plan.stages[-1]
-        final_prompt = render_stage_prompt(
-            stage=final_stage,
-            mode=plan.mode,
-            gender=scan_request.gender,
-            current_bf=estimated_bf,
-            muscle_gains=mg,
-        )
+        # 4. Generate all 4 stage images via RealVisXL pipeline
+        from ..services.realvis_service import generate_realvis_journey
 
-        if not final_prompt:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="No transformation to generate — goal may be too close to current state.",
-            )
-
-        # 5. Generate single "after" image via Replicate
-        rec.stages_requested = 1
+        rec.stages_requested = 4
         rec.mode = plan.mode.value
         rec.stage_count = len(plan.stages)
 
-        after_result = await replicate_service.generate_transformation_image(
-            scan_request.image_base64, final_prompt,
+        stage_results = await generate_realvis_journey(
+            image_base64=scan_request.image_base64,
+            gender=scan_request.gender,
+            mode=plan.mode,
+            user_id=current_user.get("id", ""),
+            stage_numbers=[1, 2, 3, 4],
         )
 
-        rec.stages_succeeded = 1
-        rec.stages_failed = 0
-        rec.stage_latencies_ms = {4: after_result.get("latency_ms", 0)}
+        stage_image_map: dict[int, str] = {}
+        stage_latency_map: dict[int, float] = {}
+        for sr in stage_results:
+            stage_image_map[sr["stage_number"]] = sr["image_data_uri"]
+            stage_latency_map[sr["stage_number"]] = sr["latency_ms"]
 
-        after_image_uri = after_result["image_data_uri"]
+        rec.stages_succeeded = len(stage_results)
+        rec.stages_failed = 4 - len(stage_results)
+        rec.stage_latencies_ms = stage_latency_map
+
+        after_image_uri = stage_image_map.get(4, "")
 
         # 6. Deduct credits (only after enough stages succeeded)
         await deduct_credits(current_user["id"], JOURNEY_COST, "transformation_journey")
@@ -395,29 +540,24 @@ async def generate_transformation_journey(
                 "warnings": plan.warnings,
             },
             "ai_analysis": bf_analysis,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         db_result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = db_result.data[0]["id"] if db_result.data else None
 
         # 8. Auto-save final goal image
         try:
-            supabase.table("user_profiles").update({
+            _update_user_profile(supabase, current_user["id"], {
                 "goal_image_url": after_image_uri,
                 "target_body_fat_percentage": plan.target_bf,
-            }).eq("id", current_user["id"]).execute()
+            })
         except Exception:
             pass
 
-        # 9. Build response — only original (stage 0) and final (stage 4) have images
+        # 9. Build response — all stages 1-4 now have images via RealVisXL
         stages_out: list[TransformationStageResponse] = []
         for s in plan.stages:
-            if s.stage_number == 0:
-                stage_image = None
-            elif s.stage_number == plan.stages[-1].stage_number:
-                stage_image = after_image_uri
-            else:
-                stage_image = None
+            stage_image = stage_image_map.get(s.stage_number)
 
             stages_out.append(TransformationStageResponse(
                 stage_number=s.stage_number,
@@ -523,6 +663,14 @@ async def generate_body_enhancement(
                 detail="Gender required"
             )
 
+        await _require_safe_body_photo(
+            scan_request.image_base64,
+            route_name="enhancement",
+            user_id=current_user["id"],
+            ownership_confirmed=scan_request.ownership_confirmed,
+            stated_age=scan_request.age or current_user.get("age"),
+        )
+
         is_premium = await check_premium_status(current_user["id"])
         ENHANCEMENT_COST = 50
 
@@ -554,7 +702,7 @@ async def generate_body_enhancement(
                 "enhanced_image_url": enhanced_image_url[:100] + "..."
             },
             "ai_analysis": {"enhancement_level": enhancement_level},
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat()
         }
         result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = result.data[0]["id"] if result.data else None
@@ -626,16 +774,20 @@ async def get_gap_to_goal(
 
         # Get user profile for target BF and goal image
         try:
-            profile_result = supabase.table("user_profiles").select(
-                "target_body_fat_percentage, goal_image_url"
-            ).eq("id", current_user["id"]).execute()
+            profile_result = _select_user_profile(
+                supabase,
+                current_user["id"],
+                "target_body_fat_percentage, goal_image_url",
+            )
             profile = profile_result.data[0] if profile_result.data else {}
         except Exception:
             # goal_image_url column may not exist yet
             try:
-                profile_result = supabase.table("user_profiles").select(
-                    "target_body_fat_percentage"
-                ).eq("id", current_user["id"]).execute()
+                profile_result = _select_user_profile(
+                    supabase,
+                    current_user["id"],
+                    "target_body_fat_percentage",
+                )
                 profile = profile_result.data[0] if profile_result.data else {}
             except Exception:
                 profile = {}
@@ -698,10 +850,10 @@ async def save_goal(
     """Save transformation goal image and target body fat to user profile"""
     try:
         supabase = get_supabase()
-        supabase.table("user_profiles").update({
+        _update_user_profile(supabase, current_user["id"], {
             "goal_image_url": goal_request.goal_image_url,
             "target_body_fat_percentage": goal_request.target_bf,
-        }).eq("id", current_user["id"]).execute()
+        })
 
         return {"status": "ok"}
 
@@ -730,14 +882,22 @@ async def auto_segment_body(
     left/right = person's anatomical left/right.
     """
     try:
-        segmenter = SAM2AutoSegmenter()
+        from ..services.fashn_human_parser import FashnHumanParserSegmenter
+
+        segmenter = FashnHumanParserSegmenter()
         result = await segmenter.segment(seg_request.image_base64)
 
         return AutoSegmentResponse(
             width=result.width,
             height=result.height,
             label_map_base64=result.label_map_b64,
+            foreground_mask_base64=result.foreground_mask_b64,
+            editable_region_base64=result.editable_region_b64,
             classes=[SegClassInfo(**c) for c in result.classes],
+            candidate_segments=[
+                CandidateSegmentInfo(**seg)
+                for seg in result.candidate_segments
+            ],
             debug_info=result.debug_info,
         )
 
@@ -746,6 +906,91 @@ async def auto_segment_body(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Auto-segmentation failed. Please try again.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# CUT edit preparation (post-segmentation mask/weight pipeline)
+# ---------------------------------------------------------------------------
+
+@router.post("/prepare-cut-edit", response_model=CutEditPrepResponse)
+@limiter.limit("5/minute")
+async def prepare_cut_edit_endpoint(
+    request: Request,
+    prep_request: CutEditPrepRequest,
+):
+    """Build protect/edit/weight/feather masks for CUT body-fat simulation.
+
+    This is a deterministic pipeline that produces masks and maps for
+    a downstream geometry warp + diffusion refinement stage.
+    No image editing is performed here.
+    """
+    try:
+        from ..services.edit_prep import prepare_cut_edit
+
+        result = await prepare_cut_edit(
+            image_base64=prep_request.image_base64,
+            intensity=prep_request.intensity,
+            user_protect_mask_b64=prep_request.user_protect_mask_base64,
+        )
+
+        return CutEditPrepResponse(
+            width=result.width,
+            height=result.height,
+            protect_mask_base64=result.protect_mask_b64,
+            edit_mask_base64=result.edit_mask_b64,
+            weight_map_base64=result.weight_map_b64,
+            feather_mask_base64=result.feather_mask_b64,
+            combined_map_base64=result.combined_map_b64,
+            debug_info=result.debug_info,
+        )
+
+    except Exception as e:
+        logger.error(f"CUT edit prep error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Edit preparation failed. Please try again.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# CUT warp preview (deterministic geometry warp)
+# ---------------------------------------------------------------------------
+
+@router.post("/cut-warp-preview", response_model=CutWarpPreviewResponse)
+@limiter.limit("5/minute")
+async def cut_warp_preview_endpoint(
+    request: Request,
+    warp_request: CutWarpPreviewRequest,
+):
+    """Generate a deterministic geometry-warp preview for CUT body-fat simulation.
+
+    Uses lateral flank contraction + lower-abdomen flattening.
+    No diffusion — pure geometric deformation.
+    Presets: mild, medium, strong.
+    """
+    try:
+        from ..services.cut_warp import cut_warp_preview
+
+        result = await cut_warp_preview(
+            image_base64=warp_request.image_base64,
+            preset=warp_request.preset,
+            intensity=warp_request.intensity,
+        )
+
+        return CutWarpPreviewResponse(
+            width=result.width,
+            height=result.height,
+            warped_image_base64=result.warped_image_b64,
+            displacement_viz_base64=result.displacement_viz_b64,
+            debug_info=result.debug_info,
+        )
+
+    except Exception as e:
+        logger.error(f"CUT warp preview error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Warp preview failed. Please try again.",
         )
 
 
@@ -792,6 +1037,14 @@ async def transform_body_region(
     Credits are deducted for this operation.
     """
     try:
+        await _require_safe_body_photo(
+            transform_request.image_base64,
+            route_name="transform_region",
+            user_id=current_user["id"],
+            ownership_confirmed=transform_request.ownership_confirmed,
+            stated_age=current_user.get("age"),
+        )
+
         is_premium = await check_premium_status(current_user["id"])
         REGION_TRANSFORM_COST = 15
 
@@ -825,7 +1078,7 @@ async def transform_body_region(
                 "goal": result["goal"],
                 "intensity": transform_request.intensity,
             },
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         supabase.table("body_scans").insert(scan_data).execute()
 

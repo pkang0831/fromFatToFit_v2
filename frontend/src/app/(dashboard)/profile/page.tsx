@@ -4,30 +4,58 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { User as UserIcon, Crown, LogOut, Settings, Bell, Coins, Camera, Scan, BarChart3, Sparkles, Dumbbell, Play } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Badge } from '@/components/ui';
+import { User as UserIcon, Crown, LogOut, Settings, Bell, Coins, Camera, Scan, BarChart3, Sparkles, Dumbbell, Play, AlertTriangle, Trash2 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Badge, Modal } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { TOUR_START_EVENT, resetAllTours } from '@/components/tour/FeatureTour';
 import { paymentApi } from '@/lib/api/services';
 import { formatDateLong } from '@/lib/utils/date';
 import { useLanguage } from '@/contexts/LanguageContext';
+import type { SubscriptionResponse } from '@/types/api';
+import {
+  ACCOUNT_DELETION_BLOCKING_REQUIREMENT,
+  ACCOUNT_DELETION_CONFIRM_PHRASE,
+  ACCOUNT_DELETION_DELETED_IMMEDIATELY,
+  ACCOUNT_DELETION_RETAINED_OUTSIDE_APP,
+} from '@/lib/constants/accountDeletion';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { user, logout, updateProfile } = useAuth();
+  const { user, logout, deleteAccount, updateProfile } = useAuth();
   const { isPremium } = useSubscription();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionResponse | null>(null);
+  const [subscriptionStatusLoaded, setSubscriptionStatusLoaded] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isOpeningBillingPortal, setIsOpeningBillingPortal] = useState(false);
 
   useEffect(() => {
     paymentApi.getCreditBalance()
       .then(res => setCreditBalance(res.data.total_credits))
       .catch(() => setCreditBalance(null));
+
+    paymentApi.getSubscriptionStatus()
+      .then(res => setSubscriptionStatus(res.data))
+      .catch(() => setSubscriptionStatus(null))
+      .finally(() => setSubscriptionStatusLoaded(true));
   }, []);
+
+  const hasActiveBilling = subscriptionStatus?.deletion_blocked ?? false;
+  const billingStatusUnknown = !subscriptionStatusLoaded || subscriptionStatus === null;
+
+  const deletionBlockMessage = billingStatusUnknown
+    ? 'We could not verify your billing status yet. Retry once billing status loads, or open billing management first.'
+    : subscriptionStatus?.deletion_block_reason === 'billing_state_mismatch_requires_reconciliation'
+    ? 'We cannot verify that your billing is fully canceled yet. Open billing management first, then try deleting your account again.'
+    : ACCOUNT_DELETION_BLOCKING_REQUIREMENT;
 
   const handleLogout = async () => {
     if (confirm(t('profile.confirmLogout'))) {
@@ -62,6 +90,48 @@ export default function ProfilePage() {
       toast.error(t('profile.failedToUpdate'));
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteError(null);
+
+    if (billingStatusUnknown) {
+      setDeleteError(deletionBlockMessage);
+      return;
+    }
+
+    if (hasActiveBilling) {
+      setDeleteError(deletionBlockMessage);
+      return;
+    }
+
+    if (deleteConfirmText.trim().toUpperCase() !== ACCOUNT_DELETION_CONFIRM_PHRASE) {
+      setDeleteError(`Type ${ACCOUNT_DELETION_CONFIRM_PHRASE} to confirm account deletion.`);
+      return;
+    }
+
+    try {
+      setIsDeletingAccount(true);
+      await deleteAccount();
+    } catch (err: any) {
+      const message = err?.message || 'Failed to delete account';
+      setDeleteError(message);
+      toast.error(message);
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    try {
+      setIsOpeningBillingPortal(true);
+      const response = await paymentApi.createBillingPortalSession(window.location.href);
+      window.location.href = response.data.url;
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to open billing management');
+    } finally {
+      setIsOpeningBillingPortal(false);
     }
   };
 
@@ -287,8 +357,8 @@ export default function ProfilePage() {
                 <option value="sedentary">{t('auth.activityLevel_sedentary')}</option>
                 <option value="light">{t('auth.activityLevel_light')}</option>
                 <option value="moderate">{t('auth.activityLevel_moderate')}</option>
-                <option value="heavy">{t('auth.activityLevel_heavy')}</option>
-                <option value="athlete">{t('auth.activityLevel_athlete')}</option>
+                <option value="active">{t('auth.activityLevel_heavy')}</option>
+                <option value="very_active">{t('auth.activityLevel_athlete')}</option>
               </Select>
 
               <Input
@@ -369,6 +439,131 @@ export default function ProfilePage() {
           )}
         </CardContent>
       </Card>
+
+      <Card className="border-red-200 dark:border-red-900/40">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-300">
+            <AlertTriangle className="h-5 w-5" />
+            Delete Account
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            This permanently deletes your Denevira account and app data. It also removes stored progress photo files from Denevira storage.
+          </p>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Deleted immediately</p>
+            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              {ACCOUNT_DELETION_DELETED_IMMEDIATELY.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Not deleted from third parties</p>
+            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              {ACCOUNT_DELETION_RETAINED_OUTSIDE_APP.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          {hasActiveBilling && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300">
+              <div className="space-y-3">
+                <p>{deletionBlockMessage}</p>
+                {subscriptionStatus?.billing_portal_available && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleManageBilling}
+                    disabled={isOpeningBillingPortal}
+                    className="border-amber-300 bg-white/80 text-amber-900 hover:bg-white"
+                  >
+                    {isOpeningBillingPortal ? 'Opening billing...' : 'Manage billing'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          <Button
+            variant="danger"
+            onClick={() => {
+              setDeleteError(null);
+              setDeleteConfirmText('');
+              setShowDeleteModal(true);
+            }}
+            className="w-full md:w-auto"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Account
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          if (isDeletingAccount) return;
+          setShowDeleteModal(false);
+          setDeleteError(null);
+          setDeleteConfirmText('');
+        }}
+        title="Delete Account"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            This deletes your Denevira account immediately. If you still have active billing, cancel it first because this flow does not cancel Stripe or app-store subscriptions.
+          </p>
+
+          {hasActiveBilling && subscriptionStatus?.billing_portal_available && (
+            <Button
+              variant="outline"
+              onClick={handleManageBilling}
+              disabled={isOpeningBillingPortal}
+              className="w-full"
+            >
+              {isOpeningBillingPortal ? 'Opening billing...' : 'Manage billing first'}
+            </Button>
+          )}
+
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+            <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">Type {ACCOUNT_DELETION_CONFIRM_PHRASE} to confirm</p>
+            <Input
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={ACCOUNT_DELETION_CONFIRM_PHRASE}
+            />
+          </div>
+
+          {deleteError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+              {deleteError}
+            </div>
+          )}
+
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteError(null);
+                setDeleteConfirmText('');
+              }}
+              disabled={isDeletingAccount}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={handleDeleteAccount} disabled={isDeletingAccount}>
+              {isDeletingAccount ? 'Deleting...' : 'Delete account'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

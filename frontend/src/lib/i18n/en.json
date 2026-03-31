@@ -36,6 +36,8 @@
     "chat": "AI Coach",
     "beautyScan": "Beauty Scan",
     "fashion": "Fashion",
+    "goalPlanner": "Goal Planner",
+    "challengeSevenDay": "7-day loop",
     "profile": "Profile",
     "upgrade": "Upgrade",
     "signOut": "Sign Out"
@@ -91,9 +93,9 @@
     "trust1Title": "Encrypted & Secure",
     "trust1Desc": "All photos are encrypted in transit and at rest. We use industry-standard TLS encryption and secure cloud storage.",
     "trust2Title": "Never Sold, Never Shared",
-    "trust2Desc": "Your photos are sent to AI services (OpenAI, Replicate) solely for analysis. They are never stored by third parties, never used for training, and never shared.",
+    "trust2Desc": "Your photos may be sent to AI services such as OpenAI or Replicate only to run the feature you request. We do not sell them or use them for advertising, but provider retention is governed by those services.",
     "trust3Title": "Delete Anytime",
-    "trust3Desc": "You can delete all your photos and data at any time. When you delete, it's gone — no hidden copies, no backups retained.",
+    "trust3Desc": "You can delete your Denevira account from Profile. That removes your app data and stored progress photo files, but it does not automatically delete records kept by billing providers or AI services.",
     "trust4Title": "Not Medical Advice",
     "trust4Desc": "Body fat estimates are visual AI approximations — not equivalent to DEXA or clinical measurements. Transformation previews are motivational visualizations, not predictions. Always consult a healthcare professional.",
     "pricingTitle": "Start Free. Upgrade When You're Hooked.",
@@ -168,6 +170,7 @@
     "createOne": "Create one",
     "signInLink": "Sign in",
     "orContinueWith": "or continue with",
+    "signInWithEmailPassword": "Sign in with email & password",
     "passwordMin": "Minimum 8 characters",
     "passwordMismatch": "Passwords do not match",
     "select": "Select...",
@@ -799,7 +802,7 @@
   "faq": {
     "photosPrivacy": {
       "q": "What happens to my photos after I upload them?",
-      "a": "Your photos are encrypted and sent securely to AI services for analysis. They are never stored by third parties, never used for AI training, and never shared with anyone. You can delete all your photos and data at any time from your profile settings."
+      "a": "Photos you submit in the app are encrypted in transit and may be stored in Denevira or sent to third-party AI services only to run the features you use. You can delete your Denevira account and stored progress photos from Profile, but billing providers and AI services may keep separate records under their own policies."
     },
     "transformation": {
       "q": "How realistic is the transformation preview?",

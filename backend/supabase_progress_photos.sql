@@ -1,15 +1,20 @@
 CREATE TABLE IF NOT EXISTS progress_photos (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    image_base64 TEXT NOT NULL,
+    image_base64 TEXT,
+    storage_bucket TEXT,
+    storage_key TEXT,
     notes TEXT DEFAULT '',
     weight_kg FLOAT,
     body_fat_pct FLOAT,
     taken_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    created_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now(),
+    CONSTRAINT progress_photos_image_or_storage_chk
+        CHECK (image_base64 IS NOT NULL OR storage_key IS NOT NULL)
 );
 
 CREATE INDEX idx_progress_photos_user ON progress_photos(user_id, taken_at DESC);
+CREATE INDEX idx_progress_photos_storage_key ON progress_photos(storage_key);
 
 ALTER TABLE progress_photos ENABLE ROW LEVEL SECURITY;
 

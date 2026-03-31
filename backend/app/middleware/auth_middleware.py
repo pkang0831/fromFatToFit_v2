@@ -1,23 +1,20 @@
 from fastapi import Depends, HTTPException, status, Header
 from typing import Optional
 import logging
-from ..database import get_supabase
+from supabase import create_client, ClientOptions
+from ..config import settings
 
 logger = logging.getLogger(__name__)
+
+def _make_auth_client():
+    """Ephemeral client used only for auth.get_user() verification,
+    so the singleton PostgREST auth state is never polluted."""
+    return create_client(settings.supabase_url, settings.supabase_service_key)
 
 
 async def get_current_user(authorization: Optional[str] = Header(None)):
     """
-    Dependency to get current authenticated user from JWT token
-    
-    Args:
-        authorization: Authorization header with Bearer token
-        
-    Returns:
-        User data from Supabase
-        
-    Raises:
-        HTTPException: If token is invalid or missing
+    Dependency to get current authenticated user from JWT token.
     """
     if not authorization:
         raise HTTPException(
@@ -27,7 +24,6 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
         )
     
     try:
-        # Extract token from "Bearer <token>"
         parts = authorization.split(None, 1)
         if len(parts) != 2:
             raise HTTPException(
@@ -43,9 +39,10 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        # Verify token with Supabase
-        supabase = get_supabase()
-        user_response = supabase.auth.get_user(token)
+        # Verify token with an ephemeral client to avoid mutating
+        # the singleton's PostgREST auth headers.
+        auth_client = _make_auth_client()
+        user_response = auth_client.auth.get_user(token)
         
         if not user_response or not user_response.user:
             raise HTTPException(
@@ -55,13 +52,22 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
             )
         
         user = user_response.user
+
+        # Use a per-request client with the user's JWT for all PostgREST
+        # operations. This satisfies RLS policies (auth.uid() = user_id)
+        # for SELECT, INSERT, and UPDATE.
+        db = create_client(
+            settings.supabase_url,
+            settings.supabase_service_key,
+            options=ClientOptions(
+                headers={"Authorization": f"Bearer {token}"},
+            ),
+        )
         
-        # Get extended user profile
-        profile_result = supabase.table("user_profiles").select("*").eq("user_id", user.id).execute()
+        profile_result = db.table("user_profiles").select("*").eq("user_id", user.id).execute()
         
         if profile_result.data:
             profile = profile_result.data[0]
-            # Merge user data with profile (use user_id from profile, not profile's primary key id)
             has_required = all([
                 profile.get("gender"),
                 profile.get("age"),
@@ -76,6 +82,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "full_name": profile.get("full_name"),
                 "height_cm": profile.get("height_cm"),
                 "weight_kg": profile.get("weight_kg"),
+                "target_weight_kg": profile.get("target_weight_kg"),
                 "age": profile.get("age"),
                 "gender": profile.get("gender"),
                 "ethnicity": profile.get("ethnicity"),
@@ -84,7 +91,6 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "onboarding_completed": profile.get("onboarding_completed", has_required),
             }
         else:
-            # Auto-create profile for first-time users (including OAuth)
             from datetime import datetime
             meta = user.user_metadata or {}
             profile_data = {
@@ -95,7 +101,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "created_at": datetime.utcnow().isoformat()
             }
             profile_data = {k: v for k, v in profile_data.items() if v is not None}
-            supabase.table("user_profiles").insert(profile_data).execute()
+            db.table("user_profiles").insert(profile_data).execute()
             
             logger.info(f"Auto-created profile for user {user.id} (provider: {meta.get('iss', 'email')})")
             
@@ -107,6 +113,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "premium_status": False,
                 "height_cm": None,
                 "weight_kg": None,
+                "target_weight_kg": None,
                 "age": None,
                 "gender": None,
                 "ethnicity": None,

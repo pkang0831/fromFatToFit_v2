@@ -117,6 +117,12 @@ async function storeTokensAndRedirect(accessToken: string, refreshToken: string)
   setAuthCookie('access_token', accessToken);
   setAuthCookie('refresh_token', refreshToken);
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const requestedNext = searchParams.get('next');
+  const nextPath = requestedNext && requestedNext.startsWith('/') && !requestedNext.startsWith('/auth/callback')
+    ? requestedNext
+    : null;
+
   try {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
     const res = await fetch(`${API_URL}/auth/me`, {
@@ -125,7 +131,7 @@ async function storeTokensAndRedirect(accessToken: string, refreshToken: string)
     if (res.ok) {
       const user = await res.json();
       if (user.onboarding_completed) {
-        window.location.href = '/home';
+        window.location.href = nextPath || '/home';
         return;
       }
     }
@@ -133,5 +139,7 @@ async function storeTokensAndRedirect(accessToken: string, refreshToken: string)
     // Fall through to onboarding if check fails
   }
 
-  window.location.href = '/onboarding';
+  window.location.href = nextPath
+    ? `/onboarding?next=${encodeURIComponent(nextPath)}`
+    : '/onboarding';
 }

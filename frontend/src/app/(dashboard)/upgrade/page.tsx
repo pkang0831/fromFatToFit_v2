@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Crown, Check, Sparkles, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { paymentApi } from '@/lib/api/services';
+import { trackEvent } from '@/lib/analytics';
 
 type PricingPeriod = 'monthly' | 'yearly';
 
@@ -35,18 +37,57 @@ const creditPacks = [
 ];
 
 export default function UpgradePage() {
-  const { isPremium } = useSubscription();
+  const { isPremium, refreshLimits } = useSubscription();
   const { t } = useLanguage();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selectedPeriod, setSelectedPeriod] = useState<PricingPeriod>('yearly');
   const [isLoading, setIsLoading] = useState(false);
   const [packLoading, setPackLoading] = useState<number | null>(null);
   const [credits, setCredits] = useState<CreditBalance | null>(null);
+  const handledPurchaseRef = useRef(false);
+
+  const loadCredits = async () => {
+    try {
+      const res = await paymentApi.getCreditBalance();
+      setCredits(res.data);
+    } catch {
+      // noop
+    }
+  };
 
   useEffect(() => {
-    paymentApi.getCreditBalance()
-      .then(res => setCredits(res.data))
-      .catch(() => {});
-  }, []);
+    void loadCredits();
+    trackEvent('paywall_viewed', {
+      surface: 'upgrade_page',
+      is_premium: isPremium,
+    });
+  }, [isPremium]);
+
+  useEffect(() => {
+    if (handledPurchaseRef.current) return;
+
+    const subscriptionSuccess = searchParams.get('success') === 'true';
+    const creditPackSuccess = searchParams.get('credits') === 'purchased';
+
+    if (!subscriptionSuccess && !creditPackSuccess) return;
+
+    handledPurchaseRef.current = true;
+    const purchaseType = subscriptionSuccess ? 'subscription' : 'credit_pack';
+
+    trackEvent('purchase_completed', {
+      purchase_type: purchaseType,
+      surface: 'upgrade_page',
+    });
+
+    void refreshLimits().finally(() => {
+      void loadCredits();
+    });
+
+    toast.success(subscriptionSuccess ? 'Pro is now active.' : 'Credits added to your account.');
+    router.replace(pathname);
+  }, [pathname, refreshLimits, router, searchParams]);
 
   const pricing = {
     monthly: { price: 9.99, priceId: 'price_1T76GGCLiCRdyAkdUMiIPWdg', period: 'month' },
@@ -57,6 +98,12 @@ export default function UpgradePage() {
     setIsLoading(true);
     try {
       const plan = pricing[selectedPeriod];
+      trackEvent('checkout_started', {
+        purchase_type: 'subscription',
+        billing_period: selectedPeriod,
+        price: plan.price,
+        surface: 'upgrade_page',
+      });
       const response = await paymentApi.createCheckoutSession({
         price_id: plan.priceId,
         success_url: `${window.location.origin}/upgrade?success=true`,
@@ -73,6 +120,11 @@ export default function UpgradePage() {
   const handleBuyPack = async (size: number) => {
     setPackLoading(size);
     try {
+      trackEvent('checkout_started', {
+        purchase_type: 'credit_pack',
+        credit_pack_size: size,
+        surface: 'upgrade_page',
+      });
       const response = await paymentApi.buyCreditPack({
         pack_size: size,
         success_url: `${window.location.origin}/upgrade?credits=purchased`,

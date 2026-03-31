@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException, Request, status, Depends
+from fastapi import APIRouter, HTTPException, Request, status, Depends, Response
+from fastapi.responses import RedirectResponse, HTMLResponse
 import logging
 from typing import Dict, Any
 from ..middleware.auth_middleware import get_current_user
 from ..services.notification_service import (
     get_notification_preferences, update_notification_preferences,
     save_push_subscription, remove_push_subscription,
+    get_weekly_proof_reminder_status, mark_weekly_proof_reminder_opened,
+    process_resend_webhook, unsubscribe_weekly_proof_reminder,
 )
 from ..rate_limit import limiter
 
@@ -21,6 +24,12 @@ async def get_preferences(request: Request, current_user: dict = Depends(get_cur
     except Exception as e:
         logger.error(f"Error getting notification preferences: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get notification preferences")
+
+
+@router.get("/reminder-status")
+@limiter.limit("30/minute")
+async def get_reminder_status(request: Request, current_user: dict = Depends(get_current_user)):
+    return get_weekly_proof_reminder_status()
 
 
 @router.put("/preferences")
@@ -55,3 +64,57 @@ async def unsubscribe_push(request: Request, data: Dict[str, str], current_user:
     except Exception as e:
         logger.error(f"Error unsubscribing from push: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to unsubscribe from push notifications")
+
+
+@router.get("/reminders/open/{reminder_event_id}")
+@limiter.limit("60/minute")
+async def open_weekly_proof_reminder(request: Request, reminder_event_id: str, next: str = "/home"):
+    try:
+        redirect_url = await mark_weekly_proof_reminder_opened(reminder_event_id, next)
+        return RedirectResponse(url=redirect_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+    except Exception as e:
+        logger.error(f"Error opening reminder {reminder_event_id}: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to open reminder link")
+
+
+@router.get("/reminders/unsubscribe/{reminder_event_id}")
+@limiter.limit("60/minute")
+async def unsubscribe_weekly_proof_reminder_get(request: Request, reminder_event_id: str):
+    try:
+        result = await unsubscribe_weekly_proof_reminder(reminder_event_id)
+        if result["status"] == "not_found":
+            return HTMLResponse("<html><body><p>This reminder link is no longer valid.</p></body></html>", status_code=404)
+        return HTMLResponse(
+            "<html><body><p>Weekly proof reminder emails have been turned off for this account.</p></body></html>",
+            status_code=200,
+        )
+    except Exception as e:
+        logger.error(f"Error unsubscribing reminder {reminder_event_id}: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to unsubscribe from reminder emails")
+
+
+@router.post("/reminders/unsubscribe/{reminder_event_id}")
+@limiter.limit("60/minute")
+async def unsubscribe_weekly_proof_reminder_post(request: Request, reminder_event_id: str):
+    try:
+        result = await unsubscribe_weekly_proof_reminder(reminder_event_id)
+        if result["status"] == "not_found":
+            return Response(status_code=404)
+        return Response(status_code=202)
+    except Exception as e:
+        logger.error(f"Error handling one-click unsubscribe for reminder {reminder_event_id}: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to process reminder unsubscribe")
+
+
+@router.post("/webhooks/resend")
+async def resend_webhook(request: Request):
+    try:
+        payload = await request.body()
+        result = await process_resend_webhook(payload.decode("utf-8"), request.headers)
+        return result
+    except ValueError as e:
+        logger.error(f"Invalid Resend webhook: {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid webhook payload")
+    except Exception as e:
+        logger.error(f"Error processing Resend webhook: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to process webhook")

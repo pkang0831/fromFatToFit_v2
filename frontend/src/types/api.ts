@@ -5,10 +5,11 @@ export interface User {
   full_name?: string;
   height_cm?: number;
   weight_kg?: number;
+  target_weight_kg?: number;
   age?: number;
   gender?: 'male' | 'female';
   ethnicity?: string;
-  activity_level?: 'sedentary' | 'light' | 'moderate' | 'heavy' | 'athlete';
+  activity_level?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
   calorie_goal?: number;
   premium_status: boolean;
   onboarding_completed: boolean;
@@ -29,7 +30,7 @@ export interface UserRegister {
   age?: number;
   height_cm?: number;
   weight_kg?: number;
-  activity_level?: string;
+  activity_level?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
   consent_terms: boolean;
   consent_privacy: boolean;
   consent_sensitive_data: boolean;
@@ -47,6 +48,82 @@ export interface TokenResponse {
   token_type: string;
   expires_in: number;
   user: User;
+}
+
+export interface AccountDeletionResponse {
+  message: string;
+  deleted_immediately: string[];
+  retained_outside_app: string[];
+  blocking_requirements: string[];
+}
+
+export interface ReminderStatusResponse {
+  active: boolean;
+  channel: string;
+  reason?: string | null;
+  cooldown_hours?: number;
+}
+
+export type HomeEntryState =
+  | 'plan_setup'
+  | 'challenge_checkin'
+  | 'first_scan'
+  | 'weekly_scan'
+  | 'progress_proof'
+  | 'review_progress';
+
+export interface HomeTransformationSummary {
+  id: string;
+  date: string;
+  result_summary: string;
+  image_url?: string | null;
+}
+
+export interface HomeGoalSummary {
+  has_saved_plan: boolean;
+  plan_updated_at?: string | null;
+  current_bf?: number | null;
+  target_bf?: number | null;
+  goal_image_url?: string | null;
+  gap?: number | null;
+  selected_tier_calories?: number | null;
+}
+
+export interface HomeScanSummary {
+  scan_count: number;
+  last_scan_date?: string | null;
+  prompt_state: 'first_scan' | 'too_early' | 'ready' | 'overdue';
+  latest_transformation?: HomeTransformationSummary | null;
+  next_check_in_label: string;
+}
+
+export interface HomeChallengeSummary {
+  is_active: boolean;
+  checked_in_today: boolean;
+  day_index?: number | null;
+}
+
+export interface HomeProgressSummary {
+  photo_count: number;
+  latest_photo_date?: string | null;
+  compare_ready: boolean;
+}
+
+export interface HomePrimaryCta {
+  state: HomeEntryState;
+  href: string;
+  label: string;
+  title: string;
+  description: string;
+}
+
+export interface HomeSummaryResponse {
+  entry_state: HomeEntryState;
+  goal_summary: HomeGoalSummary;
+  scan_summary: HomeScanSummary;
+  challenge_summary: HomeChallengeSummary;
+  progress_summary: HomeProgressSummary;
+  primary_cta: HomePrimaryCta;
 }
 
 // Food types
@@ -182,6 +259,37 @@ export interface WorkoutTrendResponse {
 }
 
 // Body analysis types
+export interface BodyPhotoQualityRequest {
+  image_base64: string;
+  /** @default 'upper_body' */
+  framing?: 'upper_body' | 'full_body';
+}
+
+export interface BodyPhotoQualityResponse {
+  ok: boolean;
+  /** Foreground pixels / image area (diagnostic). */
+  body_area_ratio: number;
+  /** Tight axis-aligned bbox around mask / image area — primary “subject size in frame”. */
+  bbox_area_ratio: number;
+  /** Mask pixels / bbox area — silhouette density inside the box. */
+  mask_fill_ratio: number;
+  is_front_facing: boolean;
+  pose_detected: boolean;
+  /** Upper body has enough exposed skin (not wearing a shirt). */
+  is_shirtless: boolean;
+  /** Mean brightness of body region (HSV V-channel, 0–255). */
+  brightness: number;
+  failure_codes: string[];
+  messages: string[];
+  width: number;
+  height: number;
+  framing: string;
+  /** Minimum bbox_area_ratio required for this framing. */
+  min_body_area_ratio: number;
+  /** Minimum mask_fill_ratio (unless body_area_ratio meets fallback). */
+  min_mask_fill_ratio: number;
+}
+
 export interface BodyScanRequest {
   image_base64: string;
   scan_type: 'bodyfat' | 'percentile' | 'transformation' | 'enhancement';
@@ -195,6 +303,7 @@ export interface BodyScanRequest {
   muscle_gains?: MuscleGainsInput;
   weight_kg?: number;
   activity_level?: string;
+  ownership_confirmed?: boolean;
 }
 
 export interface BodyFatEstimateResponse {
@@ -215,26 +324,6 @@ export interface PercentileResponse {
   distribution_data: Record<string, number>;
   scan_id: string;
   usage_remaining: number;
-}
-
-export interface ProgressFrame {
-  date: string;
-  week: number;
-  bf_pct: number;
-  image_b64: string;
-}
-
-export interface TransformationResponse {
-  original_image_url: string;
-  transformed_image_url: string;
-  current_bf?: number;
-  target_bf?: number;
-  direction?: 'cutting' | 'bulking';
-  muscle_gain_estimate?: string;
-  estimated_timeline_weeks: number;
-  recommendations: string[];
-  progress_frames?: ProgressFrame[];
-  scan_id: string;
 }
 
 // ── Transformation Journey types ───────────────────────────────────────────
@@ -359,12 +448,19 @@ export interface SubscriptionResponse {
   subscription_id?: string;
   user_id?: string;
   subscription_type: 'free' | 'premium';
-  status: 'none' | 'active' | 'cancelled' | 'expired';
+  status: 'none' | 'active' | 'trialing' | 'past_due' | 'unpaid' | 'incomplete' | 'canceled' | 'expired' | 'mismatch';
   start_date?: string;
   end_date?: string;
-  payment_provider?: 'stripe' | 'revenuecat';
+  payment_provider?: 'stripe' | 'revenuecat' | 'revenuecat_ios' | 'revenuecat_android';
   auto_renew?: boolean;
   premium_status: boolean;
+  deletion_blocked?: boolean;
+  deletion_block_reason?: string | null;
+  billing_portal_available?: boolean;
+}
+
+export interface BillingPortalSessionResponse {
+  url: string;
 }
 
 export interface UsageLimit {
@@ -502,6 +598,7 @@ export interface RegionTransformRequest {
   goal: string;
   gender?: string;
   intensity?: string;
+  ownership_confirmed?: boolean;
 }
 
 export interface RegionTransformResponse {

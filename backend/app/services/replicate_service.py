@@ -183,6 +183,93 @@ async def generate_transformation_image(
     }
 
 
+REALVIS_MODEL = "pkang0831/realvis-v5-lightning"
+
+
+async def run_realvis_img2img(
+    image: "Image.Image",
+    prompt: str,
+    negative_prompt: str = "",
+    strength: float = 0.3,
+    num_inference_steps: int = 10,
+    guidance_scale: float = 2.2,
+    seed: int = 42,
+) -> "Image.Image":
+    """Run RealVisXL V5.0 Lightning img2img on Replicate.
+
+    Uses our custom Cog model with the exact same pipeline as the Colab notebook.
+    """
+    import time as _time
+
+    api_key = get_replicate_api_key()
+
+    buf = io.BytesIO()
+    image.save(buf, format="JPEG", quality=92)
+    img_b64 = base64.b64encode(buf.getvalue()).decode()
+    data_uri = f"data:image/jpeg;base64,{img_b64}"
+
+    create_url = "https://api.replicate.com/v1/predictions"
+
+    t0 = _time.monotonic()
+    logger.info(
+        f"RealVis img2img: strength={strength:.2f} steps={num_inference_steps} "
+        f"cfg={guidance_scale} seed={seed}"
+    )
+
+    model_url = f"{REPLICATE_MODELS_API}/{REALVIS_MODEL}"
+    model_info = curl_json("GET", model_url, api_key)
+    version_id = (model_info.get("latest_version") or {}).get("id")
+    if not version_id:
+        raise RuntimeError(f"No version found for model {REALVIS_MODEL}")
+
+    payload = {
+        "version": version_id,
+        "input": {
+            "image": data_uri,
+            "prompt": prompt,
+            "negative_prompt": negative_prompt,
+            "strength": float(strength),
+            "num_inference_steps": int(num_inference_steps),
+            "guidance_scale": float(guidance_scale),
+            "seed": int(seed),
+            "output_format": "jpg",
+            "output_quality": 92,
+        },
+    }
+
+    for attempt in range(5):
+        prediction = curl_json("POST", create_url, api_key, payload)
+        if prediction.get("status") == 429:
+            wait = prediction.get("retry_after", 10)
+            logger.info(f"Rate limited, waiting {wait}s (attempt {attempt + 1}/5)")
+            await asyncio.sleep(wait + 1)
+            continue
+        break
+
+    poll_url = prediction.get("urls", {}).get("get")
+    if not poll_url:
+        raise RuntimeError(f"No poll URL from RealVis prediction: {prediction}")
+
+    result = await poll_prediction(poll_url, api_key, max_polls=180, interval=3.0)
+
+    output = result.get("output")
+    output_url = (
+        output if isinstance(output, str)
+        else output[0] if isinstance(output, list)
+        else None
+    )
+    if not output_url:
+        raise RuntimeError(f"No output from RealVis: {output}")
+
+    out_b64 = download_to_base64(output_url)
+    latency = round((_time.monotonic() - t0) * 1000, 1)
+    logger.info(f"RealVis img2img completed in {latency}ms")
+
+    raw = base64.b64decode(out_b64)
+    out_img = Image.open(io.BytesIO(raw)).convert("RGB")
+    return out_img.resize(image.size, Image.LANCZOS)
+
+
 async def controlnet_transform_region(
     image_base64: str,
     mask_base64: str,

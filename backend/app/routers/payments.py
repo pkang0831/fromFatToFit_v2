@@ -6,12 +6,16 @@ from ..schemas.payment_schemas import (
     CreateCheckoutSessionRequest, CheckoutSessionResponse,
     VerifyPurchaseRequest, SubscriptionResponse, UsageLimitResponse,
     BuyCreditPackRequest, CreditBalanceResponse,
+    SubscriptionDiagnosticsResponse, BillingPortalSessionRequest,
+    BillingPortalSessionResponse,
 )
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services.payment_service import (
     create_checkout_session, create_credit_pack_checkout,
     handle_stripe_webhook, verify_revenuecat_purchase, check_premium_status,
+    get_subscription_diagnostics, create_billing_portal_session,
+    _upsert_external_subscription,
 )
 from ..services.usage_limiter import get_all_usage_limits, get_credit_balance
 from ..rate_limit import limiter
@@ -77,23 +81,31 @@ async def verify_purchase(
 ):
     """Verify in-app purchase via RevenueCat"""
     try:
-        is_valid = await verify_revenuecat_purchase(
+        verification = await verify_revenuecat_purchase(
             request.receipt_token,
             request.platform
         )
-        
-        if is_valid:
-            # Update user's premium status
-            supabase = get_supabase()
-            from datetime import datetime
-            supabase.table("user_profiles").update({
-                "premium_status": True,
-                "updated_at": datetime.utcnow().isoformat()
-            }).eq("user_id", current_user["id"]).execute()
-            
-            return {"status": "verified", "premium_status": True}
-        else:
-            return {"status": "invalid", "premium_status": False}
+
+        provider = "revenuecat_ios" if request.platform == "ios" else "revenuecat_android"
+        subscription_id = f"revenuecat:{request.platform}:{current_user['id']}:{verification.get('entitlement_id', 'premium_access')}"
+        await _upsert_external_subscription(
+            user_id=current_user["id"],
+            provider=provider,
+            subscription_id=subscription_id,
+            status=verification.get("status", "invalid"),
+            start_date=verification.get("start_date"),
+            end_date=verification.get("end_date"),
+            auto_renew=bool(verification.get("auto_renew", False)),
+        )
+
+        diagnostics = await get_subscription_diagnostics(current_user["id"])
+        return {
+            "status": "verified" if verification.get("is_valid") else verification.get("status", "invalid"),
+            "premium_status": diagnostics.get("premium_status", False),
+            "deletion_blocked": diagnostics.get("deletion_blocked", False),
+            "deletion_block_reason": diagnostics.get("deletion_block_reason"),
+            "entitlement_source": diagnostics.get("entitlement_source", "none"),
+        }
         
     except Exception as e:
         logger.error(f"Error verifying purchase: {e}")
@@ -103,32 +115,87 @@ async def verify_purchase(
         )
 
 
-@router.get("/subscription")
+@router.get("/subscription", response_model=SubscriptionResponse)
 async def get_subscription_status(current_user: dict = Depends(get_current_user)):
     """Get user's current subscription status"""
     try:
-        supabase = get_supabase()
-        
-        # Get active subscriptions
-        result = supabase.table("user_subscriptions").select("*").eq("user_id", current_user["id"]).eq("status", "active").execute()
-        
-        is_premium = await check_premium_status(current_user["id"])
-        
-        if result.data:
-            subscription = result.data[0]
-            return SubscriptionResponse(**subscription)
-        else:
-            return {
-                "premium_status": is_premium,
-                "subscription_type": "free" if not is_premium else "premium",
-                "status": "none"
-            }
-        
+        diagnostics = await get_subscription_diagnostics(current_user["id"])
+        return SubscriptionResponse(**{
+            "subscription_id": diagnostics.get("subscription_id"),
+            "user_id": diagnostics.get("user_id"),
+            "subscription_type": diagnostics.get("subscription_type", "free"),
+            "status": diagnostics.get("status", "none"),
+            "start_date": diagnostics.get("start_date"),
+            "end_date": diagnostics.get("end_date"),
+            "payment_provider": diagnostics.get("payment_provider"),
+            "auto_renew": diagnostics.get("auto_renew", False),
+            "premium_status": diagnostics.get("premium_status", False),
+            "deletion_blocked": diagnostics.get("deletion_blocked", False),
+            "deletion_block_reason": diagnostics.get("deletion_block_reason"),
+            "billing_portal_available": diagnostics.get("billing_portal_available", False),
+        })
+
     except Exception as e:
         logger.error(f"Error getting subscription: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get subscription status"
+        )
+
+
+@router.get("/subscription-diagnostics", response_model=SubscriptionDiagnosticsResponse)
+async def get_subscription_debug(current_user: dict = Depends(get_current_user)):
+    """Expose subscription reconciliation diagnostics for support/debugging."""
+    try:
+        diagnostics = await get_subscription_diagnostics(current_user["id"])
+        return SubscriptionDiagnosticsResponse(**{
+            "subscription_id": diagnostics.get("subscription_id"),
+            "user_id": diagnostics.get("user_id"),
+            "subscription_type": diagnostics.get("subscription_type", "free"),
+            "status": diagnostics.get("status", "none"),
+            "start_date": diagnostics.get("start_date"),
+            "end_date": diagnostics.get("end_date"),
+            "payment_provider": diagnostics.get("payment_provider"),
+            "auto_renew": diagnostics.get("auto_renew", False),
+            "premium_status": diagnostics.get("premium_status", False),
+            "deletion_blocked": diagnostics.get("deletion_blocked", False),
+            "deletion_block_reason": diagnostics.get("deletion_block_reason"),
+            "billing_portal_available": diagnostics.get("billing_portal_available", False),
+            "stripe_customer_id": diagnostics.get("stripe_customer_id"),
+            "profile_premium_status": diagnostics.get("profile_premium_status", False),
+            "entitlement_source": diagnostics.get("entitlement_source", "none"),
+            "cancel_at_period_end": diagnostics.get("cancel_at_period_end", False),
+            "last_stripe_event_id": diagnostics.get("last_stripe_event_id"),
+            "last_stripe_event_type": diagnostics.get("last_stripe_event_type"),
+            "last_webhook_processed_at": diagnostics.get("last_webhook_processed_at"),
+        })
+    except Exception as e:
+        logger.error(f"Error getting subscription diagnostics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get subscription diagnostics"
+        )
+
+
+@router.post("/billing-portal", response_model=BillingPortalSessionResponse)
+async def create_billing_portal(
+    portal_request: BillingPortalSessionRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Create a Stripe billing portal session for self-serve cancellation."""
+    try:
+        portal = await create_billing_portal_session(
+            current_user["id"],
+            portal_request.return_url,
+        )
+        return BillingPortalSessionResponse(**portal)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error creating billing portal session: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create billing portal session"
         )
 
 

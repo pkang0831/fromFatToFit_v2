@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
+import { FeatureTour } from '@/components/tour/FeatureTour';
 
 export default function DashboardLayout({
   children,
@@ -51,6 +52,7 @@ export default function DashboardLayout({
         </div>
       </main>
       <MobileNav />
+      <FeatureTour />
     </div>
   );
 }

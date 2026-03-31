@@ -6,7 +6,7 @@ from typing import Optional, List, Dict, Any
 from ..dependencies import get_current_user
 from ..services import fashion_service
 from ..services.usage_limiter import get_credit_balance
-from ..services.payment_service import deduct_credits
+from ..services.payment_service import deduct_credits, check_premium_status
 from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
@@ -51,8 +51,9 @@ async def recommend_fashion(
 ):
     """Get seasonal outfit recommendations with AI-generated outfit images."""
     user_id = user["id"]
+    is_premium = await check_premium_status(user_id)
 
-    balance = await get_credit_balance(user_id)
+    balance = await get_credit_balance(user_id, is_premium)
     if balance["total_credits"] < FASHION_TOTAL_COST:
         raise HTTPException(
             status_code=402,

@@ -31,11 +31,30 @@ CREATE TABLE IF NOT EXISTS user_subscriptions (
     subscription_type TEXT NOT NULL,
     status TEXT NOT NULL,
     payment_provider TEXT CHECK (payment_provider IN ('stripe', 'revenuecat_ios', 'revenuecat_android')),
+    stripe_customer_id TEXT,
     start_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    current_period_start TIMESTAMP WITH TIME ZONE,
     end_date TIMESTAMP WITH TIME ZONE,
     auto_renew BOOLEAN DEFAULT TRUE,
+    cancel_at_period_end BOOLEAN DEFAULT FALSE,
+    canceled_at TIMESTAMP WITH TIME ZONE,
+    last_stripe_event_id TEXT,
+    last_stripe_event_type TEXT,
+    last_webhook_processed_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(subscription_id)
+);
+
+CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+    event_id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    stripe_customer_id TEXT,
+    stripe_subscription_id TEXT,
+    processing_status TEXT NOT NULL DEFAULT 'processing',
+    error_message TEXT,
+    processed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Usage Limits (for freemium features)

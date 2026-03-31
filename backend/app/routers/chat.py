@@ -10,6 +10,7 @@ from typing import Optional, List
 from ..middleware.auth_middleware import get_current_user
 from ..services.rag_chat_service import generate_answer, save_message, get_chat_history, clear_chat_history
 from ..database import get_supabase
+from ..services.payment_service import check_premium_status
 from ..rate_limit import limiter
 
 router = APIRouter()
@@ -54,7 +55,7 @@ async def _count_today_messages(user_id: str) -> int:
 async def get_chat_status(current_user: dict = Depends(get_current_user)):
     """Get current chat usage status (messages today, daily limit)."""
     user_id = current_user["id"]
-    is_premium = current_user.get("premium_status", False)
+    is_premium = await check_premium_status(user_id)
     limit = PRO_DAILY_LIMIT if is_premium else FREE_DAILY_LIMIT
     count = await _count_today_messages(user_id)
     return {
@@ -73,7 +74,7 @@ async def send_message(
 ):
     """Send a message to the AI diet coach and get a response. Free with daily limit."""
     user_id = current_user["id"]
-    is_premium = current_user.get("premium_status", False)
+    is_premium = await check_premium_status(user_id)
     daily_limit = PRO_DAILY_LIMIT if is_premium else FREE_DAILY_LIMIT
 
     today_count = await _count_today_messages(user_id)

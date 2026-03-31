@@ -75,6 +75,23 @@ export class LabelMap {
 
   clone(): LabelMap { return new LabelMap(this.width, this.height, this.data); }
 
+  /** Create a new label map at (targetW, targetH) by nearest-neighbor sampling from this. */
+  scaleTo(targetW: number, targetH: number): LabelMap {
+    const out = new LabelMap(targetW, targetH);
+    const xRatio = this.width / targetW;
+    const yRatio = this.height / targetH;
+    for (let dy = 0; dy < targetH; dy++) {
+      const sy = Math.min(Math.floor(dy * yRatio), this.height - 1);
+      const srcRow = sy * this.width;
+      const dstRow = dy * targetW;
+      for (let dx = 0; dx < targetW; dx++) {
+        const sx = Math.min(Math.floor(dx * xRatio), this.width - 1);
+        out.data[dstRow + dx] = this.data[srcRow + sx];
+      }
+    }
+    return out;
+  }
+
   hasLabels(): boolean {
     for (let i = 0; i < this.data.length; i++) {
       if (this.data[i] !== 0) return true;
