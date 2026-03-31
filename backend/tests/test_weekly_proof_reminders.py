@@ -1,4 +1,6 @@
 import asyncio
+import sys
+import types
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -342,3 +344,41 @@ def test_process_resend_webhook_ignores_duplicate_svix_id():
 
     assert result["status"] == "duplicate"
     resolve_event.assert_not_called()
+
+
+def test_process_resend_webhook_surfaces_verification_cause():
+    import pytest
+
+    from app.services.notification_service import process_resend_webhook
+
+    with patch(
+        "app.services.notification_service.verify_resend_webhook",
+        side_effect=RuntimeError("No matching signature found"),
+    ):
+        with pytest.raises(ValueError) as exc_info:
+            _run(process_resend_webhook("{}", {"svix-id": "msg_bad"}))
+
+    assert str(exc_info.value) == "invalid_webhook_signature:RuntimeError:No matching signature found"
+
+
+def test_verify_resend_webhook_accepts_webhook_header_names():
+    from app.services.notification_service import verify_resend_webhook
+
+    headers = {
+        "webhook-id": "msg_123",
+        "webhook-timestamp": "1711900000",
+        "webhook-signature": "v1,testsig",
+    }
+
+    verify = MagicMock(return_value={"type": "email.sent"})
+    fake_svix = types.SimpleNamespace(Webhook=MagicMock(return_value=types.SimpleNamespace(verify=verify)))
+
+    with patch.dict(sys.modules, {"svix": fake_svix}):
+        result = verify_resend_webhook("{}", headers)
+
+    assert result["type"] == "email.sent"
+    assert verify.call_args.args[1] == {
+        "svix-id": "msg_123",
+        "svix-timestamp": "1711900000",
+        "svix-signature": "v1,testsig",
+    }

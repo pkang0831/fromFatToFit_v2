@@ -830,21 +830,44 @@ def verify_resend_webhook(payload: str, headers: Mapping[str, str]) -> Dict[str,
     from svix import Webhook
 
     webhook = Webhook(settings.resend_webhook_secret)
+    header_id = (
+        headers.get("svix-id")
+        or headers.get("webhook-id")
+        or headers.get("id")
+        or ""
+    )
+    header_timestamp = (
+        headers.get("svix-timestamp")
+        or headers.get("webhook-timestamp")
+        or headers.get("timestamp")
+        or ""
+    )
+    header_signature = (
+        headers.get("svix-signature")
+        or headers.get("webhook-signature")
+        or headers.get("signature")
+        or ""
+    )
     svix_headers = {
-        "svix-id": headers.get("svix-id", ""),
-        "svix-timestamp": headers.get("svix-timestamp", ""),
-        "svix-signature": headers.get("svix-signature", ""),
+        "svix-id": header_id,
+        "svix-timestamp": header_timestamp,
+        "svix-signature": header_signature,
     }
     try:
         verified = webhook.verify(payload, svix_headers)
     except Exception as exc:
         logger.warning(
-            "Resend webhook verification failed: error=%s headers_present=%s payload_len=%s secret_len=%s",
+            "Resend webhook verification failed: error=%s headers_present=%s header_sources=%s payload_len=%s secret_len=%s",
             str(exc),
             {
                 "svix-id": bool(svix_headers["svix-id"]),
                 "svix-timestamp": bool(svix_headers["svix-timestamp"]),
                 "svix-signature": bool(svix_headers["svix-signature"]),
+            },
+            {
+                "id": "svix-id" if headers.get("svix-id") else "webhook-id" if headers.get("webhook-id") else "id" if headers.get("id") else "missing",
+                "timestamp": "svix-timestamp" if headers.get("svix-timestamp") else "webhook-timestamp" if headers.get("webhook-timestamp") else "timestamp" if headers.get("timestamp") else "missing",
+                "signature": "svix-signature" if headers.get("svix-signature") else "webhook-signature" if headers.get("webhook-signature") else "signature" if headers.get("signature") else "missing",
             },
             len(payload),
             len(settings.resend_webhook_secret or ""),
@@ -861,7 +884,7 @@ async def process_resend_webhook(payload: str, headers: Mapping[str, str]) -> Di
     try:
         verified = verify_resend_webhook(payload, headers)
     except Exception as exc:
-        raise ValueError("invalid_webhook_signature") from exc
+        raise ValueError(f"invalid_webhook_signature:{type(exc).__name__}:{exc}") from exc
     event_type = verified.get("type")
     if event_type not in WEEKLY_PROOF_PROVIDER_EVENTS:
         return {"status": "ignored", "reason": "unsupported_event", "event_type": event_type}
