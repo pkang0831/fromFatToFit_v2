@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +10,7 @@ import { trackEvent } from '@/lib/analytics';
 
 type Step = 'welcome' | 'consent' | 'profile' | 'goals' | 'tour' | 'done';
 
-export default function OnboardingPage() {
+function OnboardingPageContent() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const searchParams = useSearchParams();
@@ -439,5 +439,13 @@ export default function OnboardingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 dark:bg-gray-950" />}>
+      <OnboardingPageContent />
+    </Suspense>
   );
 }

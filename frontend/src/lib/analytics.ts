@@ -3,6 +3,7 @@
 import { analyticsApi } from '@/lib/api/services';
 
 type AnalyticsValue = string | number | boolean | null | undefined;
+type SanitizedAnalyticsValue = Exclude<AnalyticsValue, undefined>;
 
 type RetentionEventName =
   | 'reengagement_session'
@@ -33,10 +34,12 @@ export function trackEvent(
   gtag('event', eventName, params);
 }
 
-function sanitizeProperties(properties: Record<string, AnalyticsValue>) {
+function sanitizeProperties(
+  properties: Record<string, AnalyticsValue>
+): Record<string, SanitizedAnalyticsValue> {
   return Object.fromEntries(
     Object.entries(properties).filter(([, value]) => value !== undefined)
-  );
+  ) as Record<string, SanitizedAnalyticsValue>;
 }
 
 export function trackRetentionEvent(

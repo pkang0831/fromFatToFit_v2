@@ -64,7 +64,7 @@ export function TierComparison({ tiers, direction, tdee, bmr, selectedIndex, onS
                 <span className="text-xs font-semibold uppercase tracking-wider text-text-light">
                   {TIER_LABELS[i]}
                 </span>
-                <Badge variant={i < 2 ? 'success' : i === 2 ? 'warning' : 'danger'}>
+                <Badge variant={i < 2 ? 'success' : i === 2 ? 'warning' : 'error'}>
                   {Math.abs(tier.deficit_or_surplus)} cal {direction}
                 </Badge>
               </div>

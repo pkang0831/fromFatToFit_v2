@@ -16,12 +16,12 @@ interface Props {
   options: CardioOption[];
 }
 
-const INTENSITY_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
+const INTENSITY_BADGE: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
   low: 'success',
   'low-moderate': 'success',
   moderate: 'warning',
-  high: 'danger',
-  'very high': 'danger',
+  high: 'error',
+  'very high': 'error',
 };
 
 const ACTIVITY_LABELS: Record<string, string> = {
