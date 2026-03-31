@@ -371,8 +371,8 @@ def test_verify_resend_webhook_accepts_webhook_header_names():
     payload = '{"type":"email.sent"}'
     timestamp = datetime(2026, 3, 31, 20, 0, 0, tzinfo=timezone.utc)
     timestamp_str = str(floor(timestamp.timestamp()))
-    secret = "whsec_ZmFrZV9yZXNlbmRfc2VjcmV0X2tleQ=="
-    secret_bytes = base64.b64decode("ZmFrZV9yZXNlbmRfc2VjcmV0X2tleQ==")
+    secret = "ZmFrZV9yZXNlbmRfc2VjcmV0X2tleQ=="
+    secret_bytes = base64.b64decode(secret)
     msg_id = "msg_123"
     signature = base64.b64encode(
         hmac.new(
