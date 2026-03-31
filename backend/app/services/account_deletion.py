@@ -14,6 +14,7 @@ ACCOUNT_DATA_DELETED_IMMEDIATELY = [
     "Your Supabase authentication account",
     "Profile and onboarding data stored in user_profiles",
     "Stored progress photo files in the private progress-photos-private bucket and their progress_photos rows",
+    "Revocable public proof share artifacts tied to your user_id",
     "Body scan history, saved goal plans, challenge data, streak data, and usage/credit records tied to your user_id",
     "Food logs, workout logs, weight logs, fasting sessions, daily summaries, notification preferences, push subscriptions, and AI coach chat rows tied to your user_id",
 ]
@@ -81,6 +82,10 @@ async def delete_user_account(current_user: dict) -> dict[str, Any]:
 
     try:
         _delete_progress_photo_objects(supabase, user_id)
+        try:
+            supabase.table("proof_shares").delete().eq("user_id", user_id).execute()
+        except Exception:
+            logger.warning("Failed to revoke proof shares during account deletion for user %s", user_id, exc_info=True)
         supabase.auth.admin.delete_user(user_id, should_soft_delete=False)
         logger.info("Deleted account for user %s", user_id)
     except HTTPException:

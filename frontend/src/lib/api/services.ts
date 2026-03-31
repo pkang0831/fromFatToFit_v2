@@ -46,6 +46,9 @@ import type {
   GoalProjectionResponse,
   HomeSummaryResponse,
   ReminderStatusResponse,
+  ProgressPhoto,
+  ProgressPhotoCompareResponse,
+  ProofShareResponse,
 } from '@/types/api';
 
 // Guest API (no auth required)
@@ -353,11 +356,21 @@ export const chatApi = {
 // Progress Photos API
 export const progressPhotoApi = {
   upload: (imageBase64: string, notes?: string, weightKg?: number, bodyFatPct?: number) =>
-    api.post('/progress-photos', { image_base64: imageBase64, notes, weight_kg: weightKg, body_fat_pct: bodyFatPct }),
-  getAll: () => api.get('/progress-photos'),
-  getOne: (id: string) => api.get(`/progress-photos/${id}`),
+    api.post<ProgressPhoto>('/progress-photos', { image_base64: imageBase64, notes, weight_kg: weightKg, body_fat_pct: bodyFatPct }),
+  getAll: () => api.get<ProgressPhoto[]>('/progress-photos'),
+  getOne: (id: string) => api.get<ProgressPhoto>(`/progress-photos/${id}`),
   delete: (id: string) => api.delete(`/progress-photos/${id}`),
-  compare: (id1: string, id2: string) => api.get(`/progress-photos/compare/${id1}/${id2}`),
+  compare: (id1: string, id2: string) => api.get<ProgressPhotoCompareResponse>(`/progress-photos/compare/${id1}/${id2}`),
+};
+
+export const proofShareApi = {
+  create: (progressPhotoId: string, weekMarker?: number) =>
+    api.post<ProofShareResponse>('/proof-shares', { progress_photo_id: progressPhotoId, week_marker: weekMarker }),
+  getAll: (progressPhotoId?: string) =>
+    api.get<ProofShareResponse[]>('/proof-shares', {
+      params: progressPhotoId ? { progress_photo_id: progressPhotoId } : undefined,
+    }),
+  revoke: (shareId: string) => api.delete<{ message: string }>(`/proof-shares/${shareId}`),
 };
 
 // Streak API

@@ -202,7 +202,7 @@ def test_delete_progress_photo_removes_storage_then_row():
         "storage_bucket": "progress-photos-private",
         "storage_key": "user-123/photo-1.jpg",
     }
-    chain = _mock_chain([_result([existing]), _result([])])
+    chain = _mock_chain([_result([existing]), _result([]), _result([])])
     supabase = MagicMock()
     supabase.table.return_value = chain
 

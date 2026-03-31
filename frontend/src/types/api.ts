@@ -126,6 +126,63 @@ export interface HomeSummaryResponse {
   primary_cta: HomePrimaryCta;
 }
 
+export interface ProgressPhoto {
+  id: string;
+  notes: string;
+  weight_kg: number | null;
+  body_fat_pct: number | null;
+  taken_at: string;
+  created_at: string;
+  image_base64?: string | null;
+  image_url?: string | null;
+}
+
+export interface ProgressPhotoCompareResponse {
+  before: ProgressPhoto;
+  after: ProgressPhoto;
+  days_between: number | null;
+  weight_change: number | null;
+  bf_change: number | null;
+}
+
+export interface ProofShareGoalSummary {
+  current_bf: number | null;
+  target_bf: number | null;
+  gap: number | null;
+}
+
+export interface ProofSharePhotoSummary {
+  progress_photo_id: string;
+  taken_at: string | null;
+  weight_kg: number | null;
+  body_fat_pct: number | null;
+}
+
+export interface ProofShareResponse {
+  id: string;
+  token: string;
+  progress_photo_id: string;
+  week_marker: number | null;
+  status: 'active' | 'revoked';
+  created_at: string;
+  revoked_at: string | null;
+  public_url: string;
+  image_url: string;
+  referred_try_url: string;
+  goal_summary: ProofShareGoalSummary;
+  photo_summary: ProofSharePhotoSummary;
+}
+
+export interface PublicProofShareResponse {
+  token: string;
+  public_url: string;
+  image_url: string;
+  referred_try_url: string;
+  week_marker: number | null;
+  goal_summary: ProofShareGoalSummary;
+  photo_summary: ProofSharePhotoSummary;
+}
+
 // Food types
 export interface FoodLogCreate {
   date: string;

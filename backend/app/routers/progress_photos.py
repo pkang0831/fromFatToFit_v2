@@ -143,6 +143,10 @@ async def delete_progress_photo(
         raise HTTPException(status_code=404, detail="Photo not found")
 
     photo = result.data[0]
+    try:
+        supabase.table("proof_shares").delete().eq("progress_photo_id", photo_id).eq("user_id", user_id).execute()
+    except Exception:
+        logger.warning("Failed to revoke proof shares for deleted progress photo %s", photo_id, exc_info=True)
     if photo.get("storage_key"):
         delete_progress_image(
             photo["storage_key"],
