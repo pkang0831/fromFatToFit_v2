@@ -1,6 +1,9 @@
 import asyncio
-import sys
-import types
+import base64
+import hashlib
+import hmac
+from datetime import datetime, timezone
+from math import floor
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -363,22 +366,37 @@ def test_process_resend_webhook_surfaces_verification_cause():
 
 def test_verify_resend_webhook_accepts_webhook_header_names():
     from app.services.notification_service import verify_resend_webhook
+    from app.config import settings
+
+    payload = '{"type":"email.sent"}'
+    timestamp = datetime(2026, 3, 31, 20, 0, 0, tzinfo=timezone.utc)
+    timestamp_str = str(floor(timestamp.timestamp()))
+    secret = "whsec_ZmFrZV9yZXNlbmRfc2VjcmV0X2tleQ=="
+    secret_bytes = base64.b64decode("ZmFrZV9yZXNlbmRfc2VjcmV0X2tleQ==")
+    msg_id = "msg_123"
+    signature = base64.b64encode(
+        hmac.new(
+            secret_bytes,
+            f"{msg_id}.{timestamp_str}.{payload}".encode("utf-8"),
+            hashlib.sha256,
+        ).digest()
+    ).decode("utf-8")
 
     headers = {
-        "webhook-id": "msg_123",
-        "webhook-timestamp": "1711900000",
-        "webhook-signature": "v1,testsig",
+        "webhook-id": msg_id,
+        "webhook-timestamp": timestamp_str,
+        "webhook-signature": f"v1,{signature}",
     }
 
-    verify = MagicMock(return_value={"type": "email.sent"})
-    fake_svix = types.SimpleNamespace(Webhook=MagicMock(return_value=types.SimpleNamespace(verify=verify)))
+    frozen_now = datetime(2026, 3, 31, 20, 0, 30, tzinfo=timezone.utc)
 
-    with patch.dict(sys.modules, {"svix": fake_svix}):
-        result = verify_resend_webhook("{}", headers)
+    with (
+        patch.object(settings, "resend_webhook_secret", secret),
+        patch("app.services.notification_service.datetime") as mock_datetime,
+    ):
+        mock_datetime.now.return_value = frozen_now
+        mock_datetime.fromtimestamp.side_effect = datetime.fromtimestamp
+        mock_datetime.fromisoformat.side_effect = datetime.fromisoformat
+        result = verify_resend_webhook(payload, headers)
 
     assert result["type"] == "email.sent"
-    assert verify.call_args.args[1] == {
-        "svix-id": "msg_123",
-        "svix-timestamp": "1711900000",
-        "svix-signature": "v1,testsig",
-    }

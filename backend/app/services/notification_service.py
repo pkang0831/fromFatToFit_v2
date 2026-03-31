@@ -2,8 +2,12 @@ import logging
 import json
 import asyncio
 import smtplib
+import hmac
+import hashlib
+import base64
 from typing import Dict, Any, List, Optional, Mapping
 from datetime import datetime, timezone, timedelta
+from math import floor
 from email.message import EmailMessage
 from email.utils import make_msgid, parseaddr
 from urllib.parse import quote
@@ -827,9 +831,6 @@ def _build_provider_transition_updates(
 
 
 def verify_resend_webhook(payload: str, headers: Mapping[str, str]) -> Dict[str, Any]:
-    from svix import Webhook
-
-    webhook = Webhook(settings.resend_webhook_secret)
     header_id = (
         headers.get("svix-id")
         or headers.get("webhook-id")
@@ -854,7 +855,50 @@ def verify_resend_webhook(payload: str, headers: Mapping[str, str]) -> Dict[str,
         "svix-signature": header_signature,
     }
     try:
-        verified = webhook.verify(payload, svix_headers)
+        if not all(svix_headers.values()):
+            raise ValueError("Missing required headers")
+
+        try:
+            timestamp = datetime.fromtimestamp(float(header_timestamp), tz=timezone.utc)
+        except Exception as exc:
+            raise ValueError("Invalid Signature Headers") from exc
+
+        tolerance = timedelta(minutes=5)
+        now = datetime.now(tz=timezone.utc)
+        if timestamp < (now - tolerance):
+            raise ValueError("Message timestamp too old")
+        if timestamp > (now + tolerance):
+            raise ValueError("Message timestamp too new")
+
+        secret = settings.resend_webhook_secret or ""
+        if secret.startswith("whsec_"):
+            secret = secret[len("whsec_"):]
+        if not secret:
+            raise ValueError("Webhook secret is empty")
+
+        secret_bytes = base64.b64decode(secret)
+        timestamp_str = str(floor(timestamp.replace(tzinfo=timezone.utc).timestamp()))
+        to_sign = f"{header_id}.{timestamp_str}.{payload}".encode("utf-8")
+        expected_sig = hmac.new(secret_bytes, to_sign, hashlib.sha256).digest()
+
+        verified = None
+        for versioned_sig in header_signature.split(" "):
+            try:
+                version, signature = versioned_sig.split(",", 1)
+            except ValueError:
+                continue
+            if version != "v1":
+                continue
+            try:
+                sig_bytes = base64.b64decode(signature)
+            except Exception:
+                continue
+            if hmac.compare_digest(expected_sig, sig_bytes):
+                verified = json.loads(payload)
+                break
+
+        if verified is None:
+            raise ValueError("No matching signature found")
     except Exception as exc:
         logger.warning(
             "Resend webhook verification failed: error=%s headers_present=%s header_sources=%s payload_len=%s secret_len=%s",
@@ -873,11 +917,7 @@ def verify_resend_webhook(payload: str, headers: Mapping[str, str]) -> Dict[str,
             len(settings.resend_webhook_secret or ""),
         )
         raise
-    if isinstance(verified, dict):
-        return verified
-    if isinstance(verified, str):
-        return json.loads(verified)
-    return json.loads(verified.decode("utf-8"))
+    return verified
 
 
 async def process_resend_webhook(payload: str, headers: Mapping[str, str]) -> Dict[str, Any]:
