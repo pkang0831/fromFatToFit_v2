@@ -830,14 +830,26 @@ def verify_resend_webhook(payload: str, headers: Mapping[str, str]) -> Dict[str,
     from svix import Webhook
 
     webhook = Webhook(settings.resend_webhook_secret)
-    verified = webhook.verify(
-        payload,
-        {
-            "svix-id": headers.get("svix-id", ""),
-            "svix-timestamp": headers.get("svix-timestamp", ""),
-            "svix-signature": headers.get("svix-signature", ""),
-        },
-    )
+    svix_headers = {
+        "svix-id": headers.get("svix-id", ""),
+        "svix-timestamp": headers.get("svix-timestamp", ""),
+        "svix-signature": headers.get("svix-signature", ""),
+    }
+    try:
+        verified = webhook.verify(payload, svix_headers)
+    except Exception as exc:
+        logger.warning(
+            "Resend webhook verification failed: error=%s headers_present=%s payload_len=%s secret_len=%s",
+            str(exc),
+            {
+                "svix-id": bool(svix_headers["svix-id"]),
+                "svix-timestamp": bool(svix_headers["svix-timestamp"]),
+                "svix-signature": bool(svix_headers["svix-signature"]),
+            },
+            len(payload),
+            len(settings.resend_webhook_secret or ""),
+        )
+        raise
     if isinstance(verified, dict):
         return verified
     if isinstance(verified, str):
