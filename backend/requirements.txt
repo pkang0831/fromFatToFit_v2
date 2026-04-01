@@ -9,7 +9,7 @@ pydantic-settings==2.6.0
 supabase==2.11.0
 
 # OpenAI
-openai==1.58.0
+openai>=1.66.0
 
 # Image processing
 Pillow==11.0.0

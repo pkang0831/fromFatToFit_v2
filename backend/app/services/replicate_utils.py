@@ -1,7 +1,8 @@
 """
 Shared utilities for Replicate API calls.
 
-Uses curl subprocess for reliable operation through corporate proxies.
+Uses urllib for portable HTTP without external binary dependencies.
+Falls back to curl subprocess when available (corporate proxy workaround).
 """
 
 import asyncio
@@ -10,14 +11,43 @@ import io
 import json
 import logging
 import os
-import subprocess
-import tempfile
+import shutil
+import urllib.request
+import urllib.error
 
 logger = logging.getLogger(__name__)
 
+_HAS_CURL = shutil.which("curl") is not None
+
 
 def curl_json(method: str, url: str, api_key: str, json_body: dict | None = None) -> dict:
-    """Make an API call via curl subprocess."""
+    """Make an API call, preferring urllib with curl fallback."""
+    if _HAS_CURL:
+        return _curl_json_subprocess(method, url, api_key, json_body)
+    return _urllib_json(method, url, api_key, json_body)
+
+
+def _urllib_json(method: str, url: str, api_key: str, json_body: dict | None = None) -> dict:
+    """Make an API call via urllib (no external dependencies)."""
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    data = json.dumps(json_body).encode() if json_body is not None else None
+    req = urllib.request.Request(url, method=method, headers=headers, data=data)
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()[:500]
+        raise RuntimeError(f"HTTP {e.code} from {url}: {body}") from e
+
+
+def _curl_json_subprocess(method: str, url: str, api_key: str, json_body: dict | None = None) -> dict:
+    """Make an API call via curl subprocess (corporate proxy workaround)."""
+    import subprocess
+    import tempfile
+
     cmd = [
         "curl", "-s",
         "-X", method,
@@ -44,13 +74,21 @@ def curl_json(method: str, url: str, api_key: str, json_body: dict | None = None
 
 
 def curl_download(url: str, dest_path: str) -> None:
-    """Download a file via curl."""
-    result = subprocess.run(
-        ["curl", "-s", "-o", dest_path, url],
-        capture_output=True, timeout=60,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"curl download failed: {result.stderr[:200]}")
+    """Download a file via urllib, with curl fallback."""
+    if _HAS_CURL:
+        import subprocess
+        result = subprocess.run(
+            ["curl", "-s", "-o", dest_path, url],
+            capture_output=True, timeout=60,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"curl download failed: {result.stderr[:200]}")
+        return
+
+    req = urllib.request.Request(url)
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        with open(dest_path, "wb") as f:
+            f.write(resp.read())
 
 
 async def poll_prediction(poll_url: str, api_key: str, max_polls: int = 90, interval: float = 2.0) -> dict:
