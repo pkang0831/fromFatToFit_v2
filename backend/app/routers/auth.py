@@ -297,23 +297,35 @@ async def test_login():
         password = settings.test_login_password
         db = get_supabase()
 
-        try:
-            auth_response = auth_client.auth.sign_in_with_password({
+        def _sign_in():
+            return auth_client.auth.sign_in_with_password({
                 "email": email,
                 "password": password,
             })
-        except Exception:
+
+        def _bootstrap_user():
             logger.info("Test login user missing; creating dev-only bootstrap account")
-            auth_client.auth.admin.create_user({
-                "email": email,
-                "password": password,
-                "email_confirm": True,
-                "user_metadata": {"full_name": "Denevira E2E"},
-            })
-            auth_response = auth_client.auth.sign_in_with_password({
-                "email": email,
-                "password": password,
-            })
+            try:
+                auth_client.auth.admin.create_user({
+                    "email": email,
+                    "password": password,
+                    "email_confirm": True,
+                    "user_metadata": {"full_name": "Denevira E2E"},
+                })
+            except Exception as bootstrap_error:
+                message = str(bootstrap_error).lower()
+                if "already" not in message and "exists" not in message and "registered" not in message:
+                    raise
+
+        try:
+            auth_response = _sign_in()
+        except Exception:
+            _bootstrap_user()
+            auth_response = _sign_in()
+
+        if not auth_response.user or not auth_response.session:
+            _bootstrap_user()
+            auth_response = _sign_in()
 
         if not auth_response.user or not auth_response.session:
             raise HTTPException(
@@ -323,7 +335,7 @@ async def test_login():
 
         user = auth_response.user
         session = auth_response.session
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
 
         existing = db.table("user_profiles").select("*").eq("user_id", user.id).limit(1).execute()
         if existing.data:

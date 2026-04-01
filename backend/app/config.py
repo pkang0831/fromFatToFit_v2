@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     enable_ai_features: bool = True
     enable_payments: bool = True
     enable_test_login: bool = False
-    test_login_email: str = "e2e@denevira.local"
+    test_login_email: str = "e2e@devenira.test"
     test_login_password: str = "DeneviraE2E123!"
     
     # AI Provider Selection
