@@ -2,7 +2,7 @@
 Food Decision and Recommendation API Router
 """
 from fastapi import APIRouter, Depends, HTTPException, Request
-from typing import Annotated
+from typing import Annotated, Any
 from datetime import date
 import logging
 from ..rate_limit import limiter
@@ -42,6 +42,21 @@ def _get_decision_text(decision: str) -> str:
         'red': 'Consider choosing a different food for now 💭'
     }
     return texts.get(decision, 'Please check the analysis results')
+
+
+def _contains_detectable_food(ai_result: dict[str, Any]) -> bool:
+    """Treat empty or unnamed item lists as a user-photo issue, not a server crash."""
+    items = ai_result.get("items")
+    if not isinstance(items, list) or not items:
+        return False
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("name", "")).strip():
+            return True
+
+    return False
 
 
 async def _generate_ai_advice(decision_data: dict, ai_result: dict) -> str:
@@ -101,6 +116,14 @@ async def should_i_eat(
         # 1. Analyze photo with AI (using existing multi-provider strategy)
         # For now, use OpenAI - in production, use the hybrid strategy from food_camera
         ai_result = await openai_service.analyze_food_image(eat_request.image_base64)
+        if not _contains_detectable_food(ai_result):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "We couldn't find a clear food or drink in this photo. "
+                    "Try again with the item centered, brighter, and closer to the camera."
+                ),
+            )
         
         # 2. Make decision
         decision_service = FoodDecisionService(supabase)
@@ -156,9 +179,14 @@ async def should_i_eat(
             confidence=ai_result.get('confidence', 'medium')
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error in should_i_eat endpoint: {e}")
-        raise HTTPException(status_code=500, detail="Food analysis failed")
+        logger.exception(f"Error in should_i_eat endpoint: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="We couldn't analyze this photo right now. Please try again with a clearer food photo.",
+        )
 
 
 @router.post("/recommend", response_model=RecommendationResponse)

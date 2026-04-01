@@ -2,8 +2,10 @@
 Tests for Food Decision Service
 """
 import pytest
+import inspect
 from datetime import date
 from unittest.mock import Mock, AsyncMock, patch
+from fastapi import HTTPException
 from app.services.food_decision_service import FoodDecisionService
 
 
@@ -232,6 +234,26 @@ class TestFoodDecisionLogic:
         assert isinstance(reason, str)
         assert len(reason) > 0
         assert 'protein' in reason or 'saved' in reason or 'calorie' in reason.lower()
+
+
+class TestFoodDecisionRouter:
+    @pytest.mark.asyncio
+    async def test_should_i_eat_returns_422_when_no_food_detected(self):
+        from app.routers.food_decision import should_i_eat
+        from app.schemas.food_decision_schemas import ShouldIEatRequest
+
+        endpoint = inspect.unwrap(should_i_eat)
+
+        with patch('app.routers.food_decision.get_supabase', return_value=Mock()), \
+             patch('app.routers.food_decision.openai_service.analyze_food_image', new=AsyncMock(return_value={
+                 'items': [],
+                 'confidence': 'low',
+             })):
+            with pytest.raises(HTTPException) as exc:
+                await endpoint(Mock(), ShouldIEatRequest(image_base64='abc123'), {'id': 'user-1'})
+
+        assert exc.value.status_code == 422
+        assert 'food or drink' in exc.value.detail.lower()
 
 
 if __name__ == '__main__':

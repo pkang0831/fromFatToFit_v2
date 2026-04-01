@@ -12,6 +12,37 @@ import { FoodRecommendations } from '@/components/features/FoodRecommendations';
 import type { FoodAnalysisResponse, FoodItem } from '@/types/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+type FoodCameraErrorKind = 'limit' | 'analysis' | 'generic';
+
+type FoodCameraErrorState = {
+  kind: FoodCameraErrorKind;
+  message: string;
+};
+
+function normalizeFoodCameraError(status?: number, detail?: string): FoodCameraErrorState {
+  const message = detail?.trim();
+  const lowered = message?.toLowerCase() || '';
+
+  if (status === 402 || lowered.includes('scan limit') || lowered.includes('premium')) {
+    return {
+      kind: 'limit',
+      message: message || 'You have reached your scan limit. Upgrade to Premium for unlimited scans.',
+    };
+  }
+
+  if (status === 422 || lowered.includes("couldn't find a clear food") || lowered.includes('no food')) {
+    return {
+      kind: 'analysis',
+      message: message || 'We could not clearly detect food in this photo. Try again with the meal centered and fully visible.',
+    };
+  }
+
+  return {
+    kind: 'generic',
+    message: message || 'We could not analyze this photo right now. Please try again with a clearer food photo.',
+  };
+}
+
 export default function FoodCameraPage() {
   const router = useRouter();
   const { isPremium, checkFeatureAccess, refreshLimits } = useSubscription();
@@ -25,7 +56,7 @@ export default function FoodCameraPage() {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<any | null>(null);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorState, setErrorState] = useState<FoodCameraErrorState | null>(null);
   const [flow, setFlow] = useState<'upload' | 'decision' | 'recommendations'>('upload');
 
   const featureAccess = checkFeatureAccess('food_scan');
@@ -36,7 +67,7 @@ export default function FoodCameraPage() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
+      setErrorState({ kind: 'generic', message: 'Please select an image file.' });
       return;
     }
 
@@ -45,7 +76,7 @@ export default function FoodCameraPage() {
     reader.onloadend = () => {
       setSelectedImage(reader.result as string);
       setAnalysisResult(null);
-      setError(null);
+      setErrorState(null);
     };
     reader.readAsDataURL(file);
   };
@@ -55,12 +86,15 @@ export default function FoodCameraPage() {
 
     // Check usage limits
     if (!featureAccess.hasAccess) {
-      setError('You have reached your free scan limit. Upgrade to Premium for unlimited scans.');
+      setErrorState({
+        kind: 'limit',
+        message: 'You have reached your free scan limit. Upgrade to Premium for unlimited scans.',
+      });
       return;
     }
 
     setIsAnalyzing(true);
-    setError(null);
+    setErrorState(null);
 
     try {
       const base64 = selectedImage.split(',')[1];
@@ -70,13 +104,7 @@ export default function FoodCameraPage() {
       setFlow('decision');
       await refreshLimits();
     } catch (err: any) {
-      // Error handling
-
-      if (err.response?.status === 402) {
-        setError('You have reached your scan limit. Upgrade to Premium for unlimited scans.');
-      } else {
-        setError(err.response?.data?.detail || 'Failed to analyze image');
-      }
+      setErrorState(normalizeFoodCameraError(err.response?.status, err.response?.data?.detail));
     } finally {
       setIsAnalyzing(false);
     }
@@ -89,7 +117,7 @@ export default function FoodCameraPage() {
     setRecommendations(null);
     setShowRecommendations(false);
     setFlow('upload');
-    setError(null);
+    setErrorState(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -104,8 +132,10 @@ export default function FoodCameraPage() {
       setRecommendations(response.data);
       setFlow('recommendations');
     } catch (err: any) {
-      // Failed to get recommendations
-      setError('Failed to load recommendations');
+      setErrorState({
+        kind: 'generic',
+        message: err.response?.data?.detail || 'Failed to load recommendations.',
+      });
     } finally {
       setIsLoadingRecommendations(false);
     }
@@ -221,7 +251,6 @@ export default function FoodCameraPage() {
                   size="lg"
                   onClick={handleAnalyze}
                   isLoading={isAnalyzing}
-                  disabled={!featureAccess.hasAccess}
                   className="w-full"
                 >
                   <Camera className="h-5 w-5 mr-2" />
@@ -231,15 +260,22 @@ export default function FoodCameraPage() {
             </div>
           )}
 
-          {error && (
+          {errorState && (
             <div className="mt-4 p-4 bg-error/10 border border-error rounded-lg">
-              <p className="text-sm text-error">{error}</p>
-              {!isPremium && (
+              <p className="text-sm font-semibold text-error">
+                {errorState.kind === 'limit'
+                  ? 'Scan limit reached'
+                  : errorState.kind === 'analysis'
+                    ? 'Could not detect food'
+                    : 'Food analysis failed'}
+              </p>
+              <p className="mt-1 text-sm text-error">{errorState.message}</p>
+              {!isPremium && errorState.kind === 'limit' && (
                 <Button
                   variant="primary"
                   size="sm"
                   onClick={() => router.push('/upgrade')}
-                  className="mt-3 bg-premium text-primary hover:bg-premium-dark"
+                  className="mt-3 w-full sm:w-auto bg-premium text-slate-950 hover:bg-premium-dark hover:text-slate-950"
                 >
                   <Crown className="h-4 w-4 mr-2" />
                   {t('dashboard.upgradePremium')}
