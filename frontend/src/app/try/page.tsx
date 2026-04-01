@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useEffect, useRef, useState, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Camera, ArrowRight, Lock, Shield, Sparkles, BarChart3, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,6 +34,7 @@ function ConfidenceColor(confidence: string) {
 
 export default function TryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [registerHref, setRegisterHref] = useState('/register?next=%2Fbody-scan%3Ftab%3Djourney');
   const [step, setStep] = useState<Step>('upload');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -46,6 +47,23 @@ export default function TryPage() {
   const [validating, setValidating] = useState(false);
   /** Set when a file passes validate-photo; must match guest body-scan `framing`. */
   const [photoFraming, setPhotoFraming] = useState<PhotoFraming | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams();
+    params.set('next', '/body-scan?tab=journey');
+
+    const currentSearch = new URLSearchParams(window.location.search);
+    const source = currentSearch.get('source') || currentSearch.get('ref');
+    const shareToken = currentSearch.get('share_token') || currentSearch.get('share');
+    const sessionId = currentSearch.get('session_id');
+    if (source) params.set('source', source);
+    if (shareToken) params.set('share_token', shareToken);
+    if (sessionId) params.set('session_id', sessionId);
+
+    setRegisterHref(`/register?${params.toString()}`);
+  }, []);
 
   const processTryFile = async (f: File, framing: PhotoFraming): Promise<boolean> => {
     if (!f.type.startsWith('image/')) return false;
@@ -372,10 +390,7 @@ export default function TryPage() {
                   </div>
 
                   <Link
-                    href={{
-                      pathname: '/register',
-                      query: { next: '/body-scan?tab=journey' },
-                    }}
+                    href={registerHref}
                     className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-primary text-white font-semibold rounded-xl text-lg transition-all hover:shadow-glow-cyan hover:-translate-y-0.5 btn-glow"
                   >
                     Create Free Account

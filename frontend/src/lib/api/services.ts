@@ -229,14 +229,23 @@ export const homeApi = {
 export const analyticsApi = {
   captureRetentionEvent: (data: {
     event_name:
+      | 'scan_success'
       | 'reengagement_session'
       | 'history_viewed'
+      | 'notification_sent'
+      | 'notification_opened'
       | 'progress_proof_started'
       | 'progress_proof_completed'
       | 'progress_compare_viewed'
       | 'progress_checkin_started'
       | 'progress_checkin_completed'
-      | 'progress_checkin_failed';
+      | 'progress_checkin_failed'
+      | 'share_created'
+      | 'share_viewed'
+      | 'share_revoked'
+      | 'referred_try_started'
+      | 'register_completed'
+      | 'purchase_completed';
     surface: string;
     properties?: Record<string, string | number | boolean | null>;
   }) => api.post('/analytics/retention', data),
@@ -364,8 +373,12 @@ export const progressPhotoApi = {
 };
 
 export const proofShareApi = {
-  create: (progressPhotoId: string, weekMarker?: number) =>
-    api.post<ProofShareResponse>('/proof-shares', { progress_photo_id: progressPhotoId, week_marker: weekMarker }),
+  create: (progressPhotoId: string, weekMarker?: number, sessionId?: string) =>
+    api.post<ProofShareResponse>('/proof-shares', {
+      progress_photo_id: progressPhotoId,
+      week_marker: weekMarker,
+      session_id: sessionId,
+    }),
   getAll: (progressPhotoId?: string) =>
     api.get<ProofShareResponse[]>('/proof-shares', {
       params: progressPhotoId ? { progress_photo_id: progressPhotoId } : undefined,

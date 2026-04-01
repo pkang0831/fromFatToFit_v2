@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowRight, CalendarClock, Shield, Target } from 'lucide-react';
 
+import { getRetentionSessionId } from '@/lib/analytics';
 import type { PublicProofShareResponse } from '@/types/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
@@ -22,6 +23,7 @@ export default function PublicProofSharePage() {
   const params = useParams<{ token: string }>();
   const token = Array.isArray(params.token) ? params.token[0] : params.token;
   const [share, setShare] = useState<PublicProofShareResponse | null>(null);
+  const [sessionId] = useState<string | null>(() => getRetentionSessionId());
   const [loading, setLoading] = useState(true);
   const [unavailable, setUnavailable] = useState(false);
 
@@ -32,7 +34,12 @@ export default function PublicProofSharePage() {
     setLoading(true);
     setUnavailable(false);
 
-    void fetch(`${API_BASE}/proof-shares/public/${encodeURIComponent(token)}`, {
+    const url = new URL(`${API_BASE}/proof-shares/public/${encodeURIComponent(token)}`);
+    if (sessionId) {
+      url.searchParams.set('session_id', sessionId);
+    }
+
+    void fetch(url.toString(), {
       method: 'GET',
       cache: 'no-store',
     })
@@ -59,12 +66,20 @@ export default function PublicProofSharePage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [sessionId, token]);
 
   const gapLabel = useMemo(() => {
     if (!share || share.goal_summary.gap == null) return 'Goal gap unavailable';
     return `${share.goal_summary.gap.toFixed(1)}% to goal`;
   }, [share]);
+
+  const referredTryHref = useMemo(() => {
+    if (!share) return '#';
+    if (!sessionId) return share.referred_try_url;
+    const url = new URL(share.referred_try_url);
+    url.searchParams.set('session_id', sessionId);
+    return url.toString();
+  }, [sessionId, share]);
 
   if (loading) {
     return (
@@ -178,7 +193,7 @@ export default function PublicProofSharePage() {
               </div>
               <a
                 data-testid="proof-share-try-link"
-                href={share.referred_try_url}
+                href={referredTryHref}
                 className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-white hover:bg-emerald-400 transition-colors"
               >
                 Try Denevira free

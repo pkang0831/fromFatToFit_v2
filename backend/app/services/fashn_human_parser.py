@@ -34,15 +34,12 @@ import io
 import logging
 import os
 import urllib.request
-from typing import Optional
+from typing import Any, Optional
 
 import cv2
 import mediapipe as mp_lib
 import numpy as np
-import torch
-from mediapipe.tasks.python import BaseOptions, vision
 from PIL import Image, ImageOps
-from transformers import SegformerImageProcessor, SegformerForSemanticSegmentation
 
 from ..config import settings
 from .body_image_utils import load_and_normalize_image, lm_visible
@@ -57,12 +54,12 @@ logger = logging.getLogger(__name__)
 
 # ── Model singletons ─────────────────────────────────────────────────────────
 
-_processor: Optional[SegformerImageProcessor] = None
-_model: Optional[SegformerForSemanticSegmentation] = None
+_processor: Optional[Any] = None
+_model: Optional[Any] = None
 
 _POSE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task"
 _POSE_MODEL_PATH = "/tmp/pose_landmarker_heavy.task"
-_landmarker: Optional[vision.PoseLandmarker] = None
+_landmarker: Optional[Any] = None
 
 # MediaPipe landmark indices
 LM_NOSE = 0
@@ -182,6 +179,9 @@ def _get_parser():
     """Lazy-load the SegFormer model + processor (CPU)."""
     global _processor, _model
     if _model is None:
+        import torch
+        from transformers import SegformerImageProcessor, SegformerForSemanticSegmentation
+
         # Must run before any Hub HTTP — sets httpx verify=False when HF_HUB_DISABLE_SSL_VERIFICATION=true
         _configure_hf_hub_http()
         model_id = (settings.fashn_human_parser_model or "fashn-ai/fashn-human-parser").strip()
@@ -240,9 +240,11 @@ def _get_parser():
     return _processor, _model
 
 
-def _get_landmarker() -> vision.PoseLandmarker:
+def _get_landmarker():
     global _landmarker
     if _landmarker is None:
+        from mediapipe.tasks.python import BaseOptions, vision
+
         if not os.path.exists(_POSE_MODEL_PATH):
             logger.info("Downloading pose_landmarker_heavy…")
             urllib.request.urlretrieve(_POSE_MODEL_URL, _POSE_MODEL_PATH)
@@ -280,6 +282,8 @@ def run_fashn_parsing(pil_img: Image.Image) -> np.ndarray:
     Upsamples logits to original resolution via bilinear interpolation
     BEFORE argmax so class boundaries are smooth, not pixelated.
     """
+    import torch
+
     processor, model = _get_parser()
     inputs = processor(images=pil_img, return_tensors="pt")
     target_h, target_w = pil_img.size[1], pil_img.size[0]

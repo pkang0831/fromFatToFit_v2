@@ -17,6 +17,7 @@ from ..services.payment_service import (
     get_subscription_diagnostics, create_billing_portal_session,
     _upsert_external_subscription,
 )
+from ..services.retention_event_service import log_retention_event
 from ..services.usage_limiter import get_all_usage_limits, get_credit_balance
 from ..rate_limit import limiter
 
@@ -99,6 +100,22 @@ async def verify_purchase(
         )
 
         diagnostics = await get_subscription_diagnostics(current_user["id"])
+        if verification.get("is_valid"):
+            dedupe_key = ":".join([
+                provider,
+                subscription_id,
+                str(verification.get("start_date") or verification.get("end_date") or "unknown"),
+            ])
+            await log_retention_event(
+                current_user["id"],
+                "purchase_completed",
+                "revenuecat_verification",
+                {
+                    "payment_provider": provider,
+                    "purchase_type": "subscription",
+                    "dedupe_key": dedupe_key,
+                },
+            )
         return {
             "status": "verified" if verification.get("is_valid") else verification.get("status", "invalid"),
             "premium_status": diagnostics.get("premium_status", False),

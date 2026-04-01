@@ -6,6 +6,7 @@ import stripe
 
 from ..config import settings
 from ..database import get_supabase
+from .retention_event_service import log_retention_event
 
 logger = logging.getLogger(__name__)
 
@@ -562,6 +563,19 @@ async def handle_checkout_completed(
         if credit_amount > 0:
             await add_credits(user_id, credit_amount, credit_type="bonus")
             logger.info(f"Added {credit_amount} bonus credits for user {user_id}")
+        await log_retention_event(
+            user_id,
+            "purchase_completed",
+            "stripe_checkout_webhook",
+            {
+                "purchase_type": "credit_pack",
+                "credit_amount": credit_amount,
+                "payment_provider": "stripe",
+                "stripe_customer_id": stripe_customer_id,
+                "checkout_session_id": session_data.get("id"),
+                "source": metadata.get("source"),
+            },
+        )
         return
 
     subscription_id = session_data.get("subscription")
@@ -580,6 +594,21 @@ async def handle_checkout_completed(
         upgrade_credits = PRO_MONTHLY_CREDITS - FREE_MONTHLY_CREDITS
         await add_credits(user_id, upgrade_credits, credit_type="monthly")
         logger.info(f"Checkout completed for user {user_id}, added {upgrade_credits} monthly credits")
+
+    await log_retention_event(
+        user_id,
+        "purchase_completed",
+        "stripe_checkout_webhook",
+        {
+            "purchase_type": purchase_type,
+            "payment_provider": "stripe",
+            "stripe_customer_id": stripe_customer_id,
+            "subscription_id": subscription_id,
+            "checkout_session_id": session_data.get("id"),
+            "premium_status": diagnostics.get("premium_status"),
+            "source": metadata.get("source"),
+        },
+    )
 
 
 async def handle_subscription_created(

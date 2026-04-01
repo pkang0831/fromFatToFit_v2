@@ -67,6 +67,7 @@ class Settings(BaseSettings):
     weekly_proof_reminder_channel: str = "email"
     weekly_proof_reminder_cooldown_hours: int = 144
     weekly_proof_reminder_job_interval_minutes: int = 60
+    analytics_admin_emails: str = ""
     resend_webhook_secret: str = ""
     smtp_host: str = ""
     smtp_port: int = 587
@@ -93,6 +94,10 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def analytics_admin_emails_list(self) -> List[str]:
+        return [email.strip().lower() for email in self.analytics_admin_emails.split(",") if email.strip()]
 
     @property
     def is_production(self) -> bool:

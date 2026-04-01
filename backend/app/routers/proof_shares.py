@@ -220,8 +220,11 @@ async def create_proof_share(
         "progress_page",
         {
             "share_id": share["id"],
+            "share_token": share["token"],
             "progress_photo_id": share["progress_photo_id"],
             "week_marker": share.get("week_marker"),
+            "source": "proof_share",
+            "session_id": body.session_id,
         },
     )
     return _serialize_share(share)
@@ -275,23 +278,29 @@ async def revoke_proof_share(
         "progress_page",
         {
             "share_id": share_id,
+            "share_token": share.get("token"),
             "progress_photo_id": share.get("progress_photo_id"),
+            "source": "proof_share",
         },
     )
     return {"message": "Share revoked"}
 
 
 @router.get("/public/{token}", response_model=PublicProofShareResponse)
-async def get_public_proof_share(token: str):
+async def get_public_proof_share(token: str, session_id: str | None = None):
     supabase = get_supabase()
     share, _photo = _load_public_share_context(supabase, token)
 
     await log_retention_event(
-        share["user_id"],
+        None,
         "share_viewed",
         "proof_share_public",
         {
+            "owner_user_id": share["user_id"],
+            "source": "proof_share",
+            "session_id": session_id,
             "share_id": share["id"],
+            "share_token": share["token"],
             "progress_photo_id": share["progress_photo_id"],
             "week_marker": share.get("week_marker"),
         },
@@ -342,21 +351,27 @@ async def get_public_proof_share_image(token: str):
 
 
 @router.get("/public/{token}/try")
-async def start_referred_try(token: str):
+async def start_referred_try(token: str, session_id: str | None = None):
     supabase = get_supabase()
     share, _photo = _load_public_share_context(supabase, token)
 
     await log_retention_event(
-        share["user_id"],
+        None,
         "referred_try_started",
         "proof_share_public",
         {
+            "owner_user_id": share["user_id"],
+            "source": "proof_share",
+            "session_id": session_id,
             "share_id": share["id"],
+            "share_token": share["token"],
             "progress_photo_id": share["progress_photo_id"],
         },
     )
 
     from ..config import settings
 
-    redirect_url = f"{settings.public_app_url.rstrip('/')}/try?ref=proof_share&share={token}"
+    redirect_url = f"{settings.public_app_url.rstrip('/')}/try?source=proof_share&share_token={token}"
+    if session_id:
+        redirect_url = f"{redirect_url}&session_id={session_id}"
     return RedirectResponse(url=redirect_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)

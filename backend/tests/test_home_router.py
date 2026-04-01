@@ -27,8 +27,16 @@ class _FakeTable:
         self._limit = None
         self._order_key = None
         self._order_desc = False
+        self._operation = "select"
+        self._payload = None
 
     def select(self, *_args, **_kwargs):
+        self._operation = "select"
+        return self
+
+    def insert(self, payload):
+        self._operation = "insert"
+        self._payload = dict(payload)
         return self
 
     def eq(self, key, value):
@@ -50,6 +58,14 @@ class _FakeTable:
         return self
 
     def execute(self):
+        rows = self.supabase.tables.setdefault(self.name, [])
+        if self._operation == "insert":
+            row = dict(self._payload)
+            row.setdefault("id", f"{self.name}-{len(rows) + 1}")
+            rows.append(row)
+            self._reset()
+            return _Result([dict(row)])
+
         rows = [
             dict(row)
             for row in self.supabase.tables.get(self.name, [])
@@ -227,16 +243,22 @@ def test_retention_event_sink_logs_authenticated_events():
     from app.routers.retention_analytics import capture_retention_event
     from app.schemas.home_schemas import RetentionEventRequest
 
-    with patch("app.services.retention_event_service.logger") as logger:
+    supabase = _FakeSupabase({"funnel_events": []})
+
+    with patch("app.services.retention_event_service.get_supabase", return_value=supabase):
         result = _run(capture_retention_event(
             RetentionEventRequest(
                 event_name="history_viewed",
                 surface="progress_page",
-                properties={"target": "progress_proof"},
+                properties={"target": "progress_proof", "source": "weekly_reminder", "session_id": "sess-home-1"},
             ),
             {"id": "user-1"},
         ))
 
     assert result == {"status": "ok"}
-    logger.info.assert_called_once()
-    assert "history_viewed" in logger.info.call_args.args[1]
+    assert len(supabase.tables["funnel_events"]) == 1
+    row = supabase.tables["funnel_events"][0]
+    assert row["user_id"] == "user-1"
+    assert row["event_name"] == "history_viewed"
+    assert row["source"] == "weekly_reminder"
+    assert row["session_id"] == "sess-home-1"

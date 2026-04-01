@@ -10,6 +10,7 @@ ProofShareStatus = Literal["active", "revoked"]
 class CreateProofShareRequest(BaseModel):
     progress_photo_id: str = Field(..., min_length=1)
     week_marker: Optional[int] = Field(default=None, ge=1, le=52)
+    session_id: Optional[str] = Field(default=None, min_length=1, max_length=200)
 
 
 class ProofShareGoalSummary(BaseModel):

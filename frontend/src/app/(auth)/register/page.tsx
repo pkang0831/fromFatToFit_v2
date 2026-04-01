@@ -7,6 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, Button, Input } from '@/components/ui';
 import { SocialLoginButtons } from '@/components/features/SocialLoginButtons';
+import { getRetentionSessionId } from '@/lib/analytics';
 
 const EMAIL_LOGIN_ENABLED = process.env.NEXT_PUBLIC_ENABLE_EMAIL_LOGIN === 'true';
 
@@ -27,6 +28,9 @@ function RegisterPageContent() {
     age: false,
   });
   const nextPath = searchParams.get('next');
+  const attributionSource = searchParams.get('source') || searchParams.get('ref') || undefined;
+  const attributionToken = searchParams.get('share_token') || searchParams.get('share') || undefined;
+  const attributionSessionId = searchParams.get('session_id') || getRetentionSessionId() || undefined;
   const loginHref = nextPath && nextPath.startsWith('/')
     ? `/login?next=${encodeURIComponent(nextPath)}`
     : '/login';
@@ -57,6 +61,9 @@ function RegisterPageContent() {
         email: email.trim(),
         password,
         full_name: fullName.trim() || undefined,
+        attribution_source: attributionSource,
+        attribution_token: attributionToken,
+        attribution_session_id: attributionSessionId,
         consent_terms: consent.terms,
         consent_privacy: consent.privacy,
         consent_sensitive_data: consent.sensitiveData,

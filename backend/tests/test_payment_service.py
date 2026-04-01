@@ -339,6 +339,7 @@ def test_handle_checkout_completed_subscription_awards_upgrade_delta_after_recon
         "user_subscriptions": [],
     })
     add_credits = AsyncMock(return_value={"total_credits": 100})
+    log_event = AsyncMock()
     subscription = {
         "id": "sub_123",
         "customer": "cus_123",
@@ -354,15 +355,50 @@ def test_handle_checkout_completed_subscription_awards_upgrade_delta_after_recon
         "client_reference_id": "user-123",
         "customer": "cus_123",
         "subscription": "sub_123",
-        "metadata": {"purchase_type": "subscription"},
+        "metadata": {"purchase_type": "subscription", "source": "proof_share"},
     }
 
     with (
         patch("app.services.payment_service.get_supabase", return_value=supabase),
         patch("app.services.payment_service.stripe.Subscription.retrieve", return_value=subscription),
         patch("app.services.usage_limiter.add_credits", add_credits),
+        patch("app.services.payment_service.log_retention_event", log_event),
     ):
         _run(handle_checkout_completed(session_data, event_id="evt_checkout", event_created=int(datetime.now(timezone.utc).timestamp())))
 
     add_credits.assert_awaited_once_with("user-123", 90, credit_type="monthly")
     assert supabase.tables["user_profiles"][0]["premium_status"] is True
+    log_event.assert_awaited_once()
+    assert log_event.await_args.args[0] == "user-123"
+    assert log_event.await_args.args[1] == "purchase_completed"
+    assert log_event.await_args.args[3]["source"] == "proof_share"
+    assert log_event.await_args.args[3]["subscription_id"] == "sub_123"
+
+
+def test_verify_purchase_logs_deduped_purchase_completed_event():
+    from app.routers.payments import verify_purchase
+    from app.schemas.payment_schemas import VerifyPurchaseRequest
+
+    log_event = AsyncMock()
+
+    with (
+        patch("app.routers.payments.verify_revenuecat_purchase", AsyncMock(return_value={
+            "is_valid": True,
+            "status": "active",
+            "entitlement_id": "premium_access",
+            "start_date": "2026-03-31T00:00:00Z",
+            "end_date": "2026-04-30T00:00:00Z",
+            "auto_renew": True,
+        })),
+        patch("app.routers.payments._upsert_external_subscription", AsyncMock()),
+        patch("app.routers.payments.get_subscription_diagnostics", AsyncMock(return_value={"premium_status": True, "deletion_blocked": True})),
+        patch("app.routers.payments.log_retention_event", log_event),
+    ):
+        _run(verify_purchase(
+            VerifyPurchaseRequest(receipt_token="receipt-1", platform="ios"),
+            {"id": "user-1"},
+        ))
+
+    log_event.assert_awaited_once()
+    assert log_event.await_args.args[1] == "purchase_completed"
+    assert log_event.await_args.args[3]["dedupe_key"] == "revenuecat_ios:revenuecat:ios:user-1:premium_access:2026-03-31T00:00:00Z"

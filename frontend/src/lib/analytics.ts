@@ -6,14 +6,23 @@ type AnalyticsValue = string | number | boolean | null | undefined;
 type SanitizedAnalyticsValue = Exclude<AnalyticsValue, undefined>;
 
 type RetentionEventName =
+  | 'scan_success'
   | 'reengagement_session'
   | 'history_viewed'
+  | 'notification_sent'
+  | 'notification_opened'
   | 'progress_proof_started'
   | 'progress_proof_completed'
   | 'progress_compare_viewed'
   | 'progress_checkin_started'
   | 'progress_checkin_completed'
-  | 'progress_checkin_failed';
+  | 'progress_checkin_failed'
+  | 'share_created'
+  | 'share_viewed'
+  | 'share_revoked'
+  | 'referred_try_started'
+  | 'register_completed'
+  | 'purchase_completed';
 
 export function trackEvent(
   eventName: string,
@@ -42,11 +51,35 @@ function sanitizeProperties(
   ) as Record<string, SanitizedAnalyticsValue>;
 }
 
+const RETENTION_SESSION_KEY = 'denevira_retention_session_id';
+
+export function getRetentionSessionId(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const existing = window.sessionStorage.getItem(RETENTION_SESSION_KEY);
+    if (existing) return existing;
+
+    const nextId =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+    window.sessionStorage.setItem(RETENTION_SESSION_KEY, nextId);
+    return nextId;
+  } catch {
+    return null;
+  }
+}
+
 export function trackRetentionEvent(
   eventName: RetentionEventName,
   properties: Record<string, AnalyticsValue> = {},
 ) {
-  const params = sanitizeProperties(properties);
+  const params = sanitizeProperties({
+    session_id: properties.session_id ?? getRetentionSessionId(),
+    ...properties,
+  });
   trackEvent(eventName, params);
 
   if (typeof window === 'undefined') return;

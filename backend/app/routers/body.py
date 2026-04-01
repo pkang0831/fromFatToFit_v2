@@ -32,6 +32,7 @@ from ..services.journey_telemetry import (
 )
 from ..services.usage_limiter import check_usage_limit, increment_usage, get_credit_balance
 from ..services.payment_service import check_premium_status, deduct_credits
+from ..services.retention_event_service import log_retention_event
 from ..config import settings
 from ..rate_limit import limiter
 
@@ -293,6 +294,20 @@ async def estimate_bodyfat(
         }
         result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = result.data[0]["id"] if result.data else None
+
+        await log_retention_event(
+            current_user["id"],
+            "scan_success",
+            "body_scan_api",
+            {
+                "scan_id": scan_id,
+                "scan_type": "bodyfat",
+                "source": scan_request.source,
+                "session_id": scan_request.session_id,
+                "used_credits": used_credits,
+                "is_premium": is_premium,
+            },
+        )
         
         # Increment usage count (only for free scans, credits already deducted)
         if not is_premium and not used_credits:
@@ -387,6 +402,21 @@ async def calculate_body_percentile(
         }
         result = supabase.table("body_scans").insert(scan_data).execute()
         scan_id = result.data[0]["id"] if result.data else None
+
+        await log_retention_event(
+            current_user["id"],
+            "scan_success",
+            "body_scan_api",
+            {
+                "scan_id": scan_id,
+                "scan_type": "percentile",
+                "source": scan_request.source,
+                "session_id": scan_request.session_id,
+                "entry_state": "weekly_scan" if scan_request.source == "weekly_reminder" else None,
+                "used_credits": used_credits,
+                "is_premium": is_premium,
+            },
+        )
         
         # Increment usage count (only for free scans, credits already deducted)
         if not is_premium and not used_credits:

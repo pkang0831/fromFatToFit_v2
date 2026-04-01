@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Scan, Crown, Sparkles, Coins, ArrowRight, Dumbbell, Camera } from 'lucide-react';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input, Select } from '@/components/ui';
-import { ShareableResultCard } from '@/components/features/ShareableResultCard';
 import { WeeklyRescanPrompt } from '@/components/features/WeeklyRescanPrompt';
 import { JourneyResult } from '@/components/features/JourneyResult';
 import { BodyCaptureGuide } from '@/components/features/BodyCaptureGuide';
@@ -17,7 +16,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { bodyApi, paymentApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { formatApiError } from '@/lib/utils/apiError';
-import { trackEvent, trackRetentionEvent } from '@/lib/analytics';
+import { getRetentionSessionId, trackEvent, trackRetentionEvent } from '@/lib/analytics';
 import { AxiosError } from 'axios';
 import dynamic from 'next/dynamic';
 import type { BodyScanRequest, BodyFatEstimateResponse, PercentileResponse, TransformationJourneyResponse, GapToGoalResponse } from '@/types/api';
@@ -322,6 +321,8 @@ export default function BodyScanPage() {
       const requestData: BodyScanRequest = {
         image_base64: base64,
         scan_type: 'percentile',
+        source: searchParams.get('from') || undefined,
+        session_id: getRetentionSessionId() || undefined,
         gender: formData.gender as 'male' | 'female',
         age: Number(formData.age),
         ethnicity: (formData.ethnicity as string) || 'Other',
@@ -639,19 +640,6 @@ export default function BodyScanPage() {
                     </>
                   )}
 
-                  {/* Shareable Card */}
-                  {scanResult.bodyfat && (
-                    <div className="pt-4 border-t border-border">
-                      <ShareableResultCard
-                        bodyFatPercent={scanResult.bodyfat.body_fat_percentage}
-                        previousBodyFat={(() => { try { const p = localStorage.getItem('devenira_prev_bodyfat'); return p ? parseFloat(p) : undefined; } catch { return undefined; } })()}
-                        weekNumber={(() => { try { return parseInt(localStorage.getItem('devenira_scan_count') || '1'); } catch { return 1; } })()}
-                        currentImageUrl={scanImage || undefined}
-                        userName={user?.full_name || undefined}
-                      />
-                    </div>
-                  )}
-
                   {/* Side-by-side: Current vs Goal (if goal exists) */}
                   {gapData?.goal_image_url && scanResult.bodyfat && (
                     <div className="pt-6 border-t border-border">
@@ -687,7 +675,7 @@ export default function BodyScanPage() {
                   {!gapData?.goal_image_url && (
                     <div className="text-center pt-4">
                       <p className="text-sm text-text-secondary mb-3">Ready to see your goal physique?</p>
-                      <Button variant="primary" onClick={() => setActiveTab('journey')}>
+                      <Button variant="primary" onClick={() => updateLocationForTab('journey')}>
                         <Sparkles className="h-4 w-4 mr-2" />
                         Start Your Transformation Journey
                         <ArrowRight className="h-4 w-4 ml-2" />

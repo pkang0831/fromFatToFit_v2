@@ -172,7 +172,7 @@ def test_create_and_revoke_proof_share_flow():
         patch("app.routers.proof_shares.token_urlsafe", return_value="token-123"),
     ):
         created = _run(create_proof_share(
-            CreateProofShareRequest(progress_photo_id="photo-1", week_marker=4),
+            CreateProofShareRequest(progress_photo_id="photo-1", week_marker=4, session_id="sess-share-1"),
             {"id": "user-1"},
         ))
         shares = _run(list_proof_shares(current_user={"id": "user-1"}))
@@ -187,6 +187,7 @@ def test_create_and_revoke_proof_share_flow():
     assert supabase.tables["proof_shares"][0]["status"] == "revoked"
     assert log_event.await_count == 2
     assert log_event.await_args_list[0].args[1] == "share_created"
+    assert log_event.await_args_list[0].args[3]["session_id"] == "sess-share-1"
     assert log_event.await_args_list[1].args[1] == "share_revoked"
 
 
@@ -217,14 +218,18 @@ def test_public_share_view_returns_proxy_image_and_logs_view():
         patch("app.routers.proof_shares.get_supabase", return_value=supabase),
         patch("app.routers.proof_shares.log_retention_event", log_event),
     ):
-        result = _run(get_public_proof_share("public-token"))
+        result = _run(get_public_proof_share("public-token", session_id="anon-session-1"))
 
     assert result.token == "public-token"
     assert result.image_url.endswith("/api/proof-shares/public/public-token/image")
     assert "signed.example" not in result.image_url
     assert result.referred_try_url.endswith("/api/proof-shares/public/public-token/try")
     assert log_event.await_count == 1
+    assert log_event.await_args.args[0] is None
     assert log_event.await_args.args[1] == "share_viewed"
+    assert log_event.await_args.args[3]["session_id"] == "anon-session-1"
+    assert log_event.await_args.args[3]["source"] == "proof_share"
+    assert log_event.await_args.args[3]["share_token"] == "public-token"
 
 
 def test_revoked_token_denies_anonymous_access():
@@ -322,8 +327,12 @@ def test_referred_try_redirect_logs_event():
         patch("app.routers.proof_shares.get_supabase", return_value=supabase),
         patch("app.routers.proof_shares.log_retention_event", log_event),
     ):
-        response = _run(start_referred_try("try-token"))
+        response = _run(start_referred_try("try-token", session_id="anon-session-2"))
 
     assert response.status_code == 307
-    assert response.headers["location"].endswith("/try?ref=proof_share&share=try-token")
+    assert response.headers["location"].endswith("/try?source=proof_share&share_token=try-token&session_id=anon-session-2")
+    assert log_event.await_args.args[0] is None
     assert log_event.await_args.args[1] == "referred_try_started"
+    assert log_event.await_args.args[3]["session_id"] == "anon-session-2"
+    assert log_event.await_args.args[3]["source"] == "proof_share"
+    assert log_event.await_args.args[3]["share_token"] == "try-token"

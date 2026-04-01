@@ -14,6 +14,7 @@ EntryState = Literal[
     "review_progress",
 ]
 RetentionEventName = Literal[
+    "scan_success",
     "reengagement_session",
     "history_viewed",
     "notification_sent",
@@ -24,6 +25,12 @@ RetentionEventName = Literal[
     "progress_checkin_started",
     "progress_checkin_completed",
     "progress_checkin_failed",
+    "share_created",
+    "share_viewed",
+    "share_revoked",
+    "referred_try_started",
+    "register_completed",
+    "purchase_completed",
 ]
 
 

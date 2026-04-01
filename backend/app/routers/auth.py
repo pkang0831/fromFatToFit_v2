@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from starlette.requests import Request
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from ..schemas.auth_schemas import (
     UserRegister, UserLogin, TokenResponse, UserResponse,
     PasswordReset, PasswordUpdate, AccountDeletionResponse
@@ -13,6 +13,7 @@ from ..middleware.auth_middleware import get_current_user
 from ..config import settings
 from ..rate_limit import limiter
 from ..services.account_deletion import delete_user_account
+from ..services.retention_event_service import log_retention_event
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -51,6 +52,40 @@ def _insert_user_profile_resilient(supabase, profile_data: dict) -> None:
         if key in _LEGACY_USER_PROFILE_COLUMNS
     }
     supabase.table("user_profiles").insert(legacy_payload).execute()
+
+
+def _sanitize_registration_attribution(db, user_data: UserRegister) -> tuple[str | None, str | None, str | None]:
+    source = (user_data.attribution_source or "").strip() or None
+    token = (user_data.attribution_token or "").strip() or None
+    session_id = (user_data.attribution_session_id or "").strip() or None
+
+    if source != "proof_share" or not token or not session_id:
+        return None, None, None
+
+    share_result = (
+        db.table("proof_shares")
+        .select("id, token, status")
+        .eq("token", token)
+        .eq("status", "active")
+        .limit(1)
+        .execute()
+    )
+    if not share_result.data:
+        return None, None, None
+
+    continuity_result = (
+        db.table("funnel_events")
+        .select("id")
+        .eq("event_name", "referred_try_started")
+        .eq("share_token", token)
+        .eq("session_id", session_id)
+        .limit(1)
+        .execute()
+    )
+    if not continuity_result.data:
+        return None, None, None
+
+    return source, token, session_id
 
 
 def _build_token_response(user, session, profile: dict) -> TokenResponse:
@@ -124,7 +159,7 @@ async def register(request: Request, user_data: UserRegister):
         
         # Create user profile
         has_required = all([user_data.gender, user_data.age, user_data.height_cm])
-        consent_timestamp = datetime.utcnow().isoformat()
+        consent_timestamp = datetime.now(timezone.utc).isoformat()
         profile_data = {
             "user_id": user.id,
             "email": user.email,
@@ -146,7 +181,19 @@ async def register(request: Request, user_data: UserRegister):
         }
         db = get_supabase()
         _insert_user_profile_resilient(db, profile_data)
-        
+        attribution_source, attribution_token, attribution_session_id = _sanitize_registration_attribution(db, user_data)
+
+        await log_retention_event(
+            str(user.id),
+            "register_completed",
+            "auth_register",
+            {
+                "source": attribution_source,
+                "share_token": attribution_token,
+                "session_id": attribution_session_id,
+            },
+        )
+
         return TokenResponse(
             access_token=session.access_token,
             refresh_token=session.refresh_token,
@@ -166,7 +213,7 @@ async def register(request: Request, user_data: UserRegister):
                 calorie_goal=None,
                 premium_status=False,
                 onboarding_completed=has_required,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             )
         )
         

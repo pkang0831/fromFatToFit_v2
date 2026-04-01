@@ -14,7 +14,7 @@ const GoalProjectionChart = dynamic(
 );
 import { Modal } from '@/components/ui/Modal';
 import { homeApi, progressPhotoApi, proofShareApi } from '@/lib/api/services';
-import { trackRetentionEvent } from '@/lib/analytics';
+import { getRetentionSessionId, trackRetentionEvent } from '@/lib/analytics';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { Camera, ImageIcon, ArrowLeftRight, Trash2, X, Plus, Check, ArrowRight, CalendarClock, Share2, Copy, ExternalLink, Shield } from 'lucide-react';
 import type { HomeSummaryResponse, ProgressPhoto, ProgressPhotoCompareResponse, ProofShareResponse } from '@/types/api';
@@ -125,6 +125,7 @@ export default function ProgressPage() {
     trackRetentionEvent('progress_proof_started', {
       surface: 'progress_page',
       source,
+      entry_state: 'progress_proof',
       photo_count: photos.length,
     });
   }, [photos.length]);
@@ -223,6 +224,8 @@ export default function ProgressPage() {
 
     trackRetentionEvent('progress_compare_viewed', {
       surface: 'progress_page',
+      source: searchParams.get('from') || undefined,
+      entry_state: 'review_progress',
       before_photo_id: compareData.before.id,
       after_photo_id: compareData.after.id,
       days_between: compareData.days_between,
@@ -231,7 +234,7 @@ export default function ProgressPage() {
       goal_gap: homeSummary?.goal_summary.gap,
       prompt_state: homeSummary?.scan_summary.prompt_state,
     });
-  }, [compareData, homeSummary]);
+  }, [compareData, homeSummary, searchParams]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -259,6 +262,8 @@ export default function ProgressPage() {
       await fetchProofShares();
       trackRetentionEvent('progress_proof_completed', {
         surface: 'progress_page',
+        source: searchParams.get('from') || 'progress_upload',
+        entry_state: 'progress_proof',
         photo_count: refreshedPhotos.length,
         has_compare_ready: refreshedPhotos.length >= 2,
       });
@@ -357,6 +362,7 @@ export default function ProgressPage() {
     ? Math.max(1, Math.round(compareData.days_between / 7))
     : null;
   const proofBranch = photos.length === 0 ? 'empty' : photos.length === 1 ? 'single' : 'compare';
+  const shouldShowShareManager = Boolean(shareSourcePhoto) || Boolean(activeProofShare);
   const latestScanLabel = homeSummary?.goal_summary.current_bf != null
     ? `${homeSummary.goal_summary.current_bf.toFixed(1)}% BF`
     : 'No recent scan yet';
@@ -378,7 +384,11 @@ export default function ProgressPage() {
     setCreatingShare(true);
     try {
       const weekMarker = shareWeekMarker ? Number(shareWeekMarker) : undefined;
-      const res = await proofShareApi.create(shareSourcePhoto.id, weekMarker);
+      const res = await proofShareApi.create(
+        shareSourcePhoto.id,
+        weekMarker,
+        getRetentionSessionId() || undefined,
+      );
       setProofShares(prev => {
         const next = prev.filter(share => share.id !== res.data.id);
         return [res.data, ...next];
@@ -663,85 +673,93 @@ export default function ProgressPage() {
               </div>
             </div>
 
-            <div
-              data-testid="proof-share-manager"
-              className="mt-5 rounded-xl border border-emerald-200/80 dark:border-emerald-800 bg-white/80 dark:bg-gray-900/50 p-4"
-            >
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
-                    <Share2 className="h-3.5 w-3.5" />
-                    Public-safe share
-                  </div>
-                  <div>
-                    <h4 className="text-base font-semibold text-gray-900 dark:text-white">
-                      {shareSourcePhoto ? 'Create a public proof card' : 'Public proof cards need a proof photo first'}
-                    </h4>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      {shareSourcePhoto
-                        ? `This share uses your ${compareData ? 'latest compare result' : 'latest proof photo'} and goal gap summary. The private storage URL stays hidden, and you can revoke access anytime.`
-                        : 'Upload a progress proof photo before you create a public card.'}
-                    </p>
-                  </div>
-                  {shareSourcePhoto && (
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
-                      Selected visual: {formatDate(shareSourcePhoto.taken_at)}
-                      {suggestedWeekMarker ? ` · suggested week ${suggestedWeekMarker}` : ''}
-                    </p>
-                  )}
-                </div>
-
-                {activeProofShare ? (
-                  <div className="lg:min-w-[320px] space-y-3">
-                    <div className="rounded-lg bg-gray-50 dark:bg-gray-950/50 border border-gray-200 dark:border-gray-800 px-3 py-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Public route</p>
-                      <p data-testid="proof-share-public-url" className="mt-1 text-sm text-gray-800 dark:text-gray-200 break-all">
-                        {activeProofShare.public_url}
+            {shouldShowShareManager && (
+              <div
+                data-testid="proof-share-manager"
+                className="mt-5 rounded-xl border border-emerald-200/80 dark:border-emerald-800 bg-white/80 dark:bg-gray-900/50 p-4"
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+                      <Share2 className="h-3.5 w-3.5" />
+                      Public-safe share
+                    </div>
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                        {activeProofShare
+                          ? 'Manage your public proof card'
+                          : proofBranch === 'single'
+                            ? 'Create a public proof card from your first proof photo'
+                            : 'Create a public proof card from your proof loop'}
+                      </h4>
+                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        {activeProofShare
+                          ? 'This public card is already live. The image stays proxied through Denevira, and you can revoke access anytime.'
+                          : proofBranch === 'single'
+                            ? 'Share a public-safe card built from your latest proof photo and current goal gap. You can upgrade it later with compare-ready proof.'
+                            : 'Share a public-safe card built from your latest proof visual and goal gap summary. You can revoke access anytime.'}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyShareLink(activeProofShare.public_url)}
-                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium inline-flex items-center gap-2"
-                      >
-                        {copiedShareUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        {copiedShareUrl ? 'Copied' : 'Copy link'}
-                      </button>
-                      <a
-                        href={activeProofShare.public_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium inline-flex items-center gap-2"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        Open share
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleRevokeShare(activeProofShare)}
-                        disabled={revokingShareId === activeProofShare.id}
-                        className="px-4 py-2 rounded-lg border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium inline-flex items-center gap-2 disabled:opacity-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        {revokingShareId === activeProofShare.id ? 'Revoking…' : 'Revoke'}
-                      </button>
-                    </div>
+                    {shareSourcePhoto && (
+                      <p className="text-xs text-gray-500 dark:text-gray-500">
+                        Selected visual: {formatDate(shareSourcePhoto.taken_at)}
+                        {suggestedWeekMarker ? ` · suggested week ${suggestedWeekMarker}` : ''}
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    data-testid="open-proof-share-modal"
-                    onClick={openShareModal}
-                    disabled={!shareSourcePhoto || loadingProofShares}
-                    className="px-5 py-3 bg-gray-900 text-white dark:bg-white dark:text-gray-900 rounded-lg hover:opacity-90 transition-opacity font-medium inline-flex items-center gap-2 disabled:opacity-50"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    Create public proof card
-                  </button>
-                )}
+
+                  {activeProofShare ? (
+                    <div className="lg:min-w-[320px] space-y-3">
+                      <div className="rounded-lg bg-gray-50 dark:bg-gray-950/50 border border-gray-200 dark:border-gray-800 px-3 py-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Public route</p>
+                        <p data-testid="proof-share-public-url" className="mt-1 text-sm text-gray-800 dark:text-gray-200 break-all">
+                          {activeProofShare.public_url}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleCopyShareLink(activeProofShare.public_url)}
+                          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium inline-flex items-center gap-2"
+                        >
+                          {copiedShareUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          {copiedShareUrl ? 'Copied' : 'Copy link'}
+                        </button>
+                        <a
+                          href={activeProofShare.public_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium inline-flex items-center gap-2"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Open share
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleRevokeShare(activeProofShare)}
+                          disabled={revokingShareId === activeProofShare.id}
+                          className="px-4 py-2 rounded-lg border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium inline-flex items-center gap-2 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          {revokingShareId === activeProofShare.id ? 'Revoking…' : 'Revoke'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      data-testid="open-proof-share-modal"
+                      onClick={openShareModal}
+                      disabled={!shareSourcePhoto || loadingProofShares}
+                      className="px-5 py-3 bg-gray-900 text-white dark:bg-white dark:text-gray-900 rounded-lg hover:opacity-90 transition-opacity font-medium inline-flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Create public proof card
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Compare mode banner */}
@@ -1073,12 +1091,14 @@ export default function ProgressPage() {
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
               <button
+                data-testid="progress-upload-cancel"
                 onClick={resetUploadState}
                 className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
             >
               {t('common.cancel')}
             </button>
             <button
+              data-testid="progress-upload-submit"
               onClick={handleUpload}
               disabled={!uploadFile || uploading}
               className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"

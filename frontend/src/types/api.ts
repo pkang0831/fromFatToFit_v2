@@ -25,6 +25,9 @@ export interface UserRegister {
   email: string;
   password: string;
   full_name?: string;
+  attribution_source?: string;
+  attribution_token?: string;
+  attribution_session_id?: string;
   ethnicity?: string;
   gender?: 'male' | 'female';
   age?: number;
@@ -350,6 +353,8 @@ export interface BodyPhotoQualityResponse {
 export interface BodyScanRequest {
   image_base64: string;
   scan_type: 'bodyfat' | 'percentile' | 'transformation' | 'enhancement';
+  source?: string;
+  session_id?: string;
   gender: 'male' | 'female';
   age?: number;
   ethnicity?: string;

@@ -130,31 +130,35 @@ test.describe('Smoke Tests @smoke', () => {
   });
 
   test.describe('Middleware Protection', () => {
+    const expectRedirectToLoginWithNext = async (page: import('@playwright/test').Page, nextPath: string) => {
+      await expect(page).toHaveURL(new RegExp(`/login\\?next=${encodeURIComponent(nextPath).replace(/\//g, '\\/')}$`));
+    };
+
     test('unauthenticated user redirected from /home to /login', async ({ page }) => {
       await page.goto('/home');
-      await expect(page).toHaveURL('/login');
+      await expectRedirectToLoginWithNext(page, '/home');
     });
 
     test('unauthenticated user redirected from /calories to /login', async ({ page }) => {
       await page.goto('/calories');
-      await expect(page).toHaveURL('/login');
+      await expectRedirectToLoginWithNext(page, '/calories');
     });
 
     test('unauthenticated user redirected from /body-scan to /login', async ({ page }) => {
       await page.goto('/body-scan');
-      await expect(page).toHaveURL('/login');
+      await expectRedirectToLoginWithNext(page, '/body-scan');
     });
 
     test('unauthenticated user on /fasting eventually redirects to /login', async ({ page }) => {
       await page.goto('/fasting');
-      await page.waitForURL('/login', { timeout: 10000 });
-      await expect(page).toHaveURL('/login');
+      await page.waitForURL(/\/login\?next=%2Ffasting$/, { timeout: 10000 });
+      await expectRedirectToLoginWithNext(page, '/fasting');
     });
 
     test('unauthenticated user on /chat eventually redirects to /login', async ({ page }) => {
       await page.goto('/chat');
-      await page.waitForURL('/login', { timeout: 10000 });
-      await expect(page).toHaveURL('/login');
+      await page.waitForURL(/\/login\?next=%2Fchat$/, { timeout: 10000 });
+      await expectRedirectToLoginWithNext(page, '/chat');
     });
   });
 });

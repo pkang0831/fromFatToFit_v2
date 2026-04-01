@@ -340,7 +340,7 @@ test.describe('Progress Proof Loop @regression', () => {
     await page.locator('[data-testid="progress-upload-modal"] input[placeholder="e.g. 75.5"]').fill('80.4');
     await page.locator('[data-testid="progress-upload-modal"] input[placeholder="e.g. 18.5"]').fill('18.2');
     await page.locator('[data-testid="progress-upload-modal"] textarea').fill('Week 2 proof');
-    await page.getByRole('button', { name: /^upload$/i }).click();
+    await page.getByTestId('progress-upload-submit').click();
 
     await expect(page.getByTestId('progress-proof-branch-compare')).toBeVisible();
     await expect(page.getByTestId('progress-compare-surface')).toBeVisible();

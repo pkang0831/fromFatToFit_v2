@@ -9,6 +9,9 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
     full_name: Optional[str] = None
+    attribution_source: Optional[str] = None
+    attribution_token: Optional[str] = None
+    attribution_session_id: Optional[str] = None
     ethnicity: Optional[str] = None
     gender: Optional[str] = None
     age: Optional[int] = None

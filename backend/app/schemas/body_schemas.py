@@ -17,6 +17,8 @@ class MuscleGainsInput(BaseModel):
 class BodyScanRequest(BaseModel):
     image_base64: str
     scan_type: str = Field(..., description="bodyfat, percentile, or transformation")
+    source: Optional[str] = None
+    session_id: Optional[str] = None
     gender: Optional[str] = None
     age: Optional[int] = None
     ethnicity: Optional[str] = None

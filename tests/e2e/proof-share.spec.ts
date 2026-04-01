@@ -77,7 +77,7 @@ async function mockAuthenticatedShell(page: Page) {
 
 test.describe('Public-safe proof share @regression', () => {
   test('renders an anonymous public share without exposing private URLs', async ({ page }) => {
-    await page.route('**/api/proof-shares/public/public-token', (route) =>
+    await page.route('**/api/proof-shares/public/public-token*', (route) =>
       json(route, {
         token: 'public-token',
         public_url: 'http://127.0.0.1:3000/proof/public-token',
@@ -111,13 +111,13 @@ test.describe('Public-safe proof share @regression', () => {
     await expect(page.getByTestId('public-proof-share-image')).toBeVisible();
     await expect(page.getByTestId('proof-share-try-link')).toHaveAttribute(
       'href',
-      `${BACKEND_URL}/proof-shares/public/public-token/try`,
+      /\/proof-shares\/public\/public-token\/try\?session_id=/,
     );
     await expect(page.locator('body')).not.toContainText('signed.example');
   });
 
   test('denies anonymous access for revoked shares', async ({ page }) => {
-    await page.route('**/api/proof-shares/public/revoked-token', (route) =>
+    await page.route('**/api/proof-shares/public/revoked-token*', (route) =>
       json(route, { detail: 'Share not found' }, 404),
     );
 
@@ -208,7 +208,7 @@ test.describe('Public-safe proof share @regression', () => {
         return json(route, shares);
       }
 
-      const payload = route.request().postDataJSON() as { progress_photo_id: string; week_marker?: number };
+      const payload = route.request().postDataJSON() as { progress_photo_id: string; week_marker?: number; session_id?: string };
       const created = {
         id: 'share-1',
         token: 'public-token',
