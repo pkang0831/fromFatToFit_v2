@@ -48,6 +48,6 @@ test.describe('Home Re-entry Surface @regression', () => {
     ).toBeVisible();
     await expect(page.getByText(/current goal/i)).toBeVisible();
     await expect(page.getByText(/^journey$/i)).toBeVisible();
-    await expect(page.getByText(/progress proof/i)).toBeVisible();
+    await expect(page.getByText(/^progress proof$/i)).toBeVisible();
   });
 });
