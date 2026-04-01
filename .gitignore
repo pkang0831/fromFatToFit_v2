@@ -77,6 +77,8 @@ yarn-error.log*
 # ===== Personal / Temporary =====
 *.jpg
 *.jpeg
+!sample_image.jpg
+!sample_final_image.jpg
 !frontend/public/**/*.jpg
 !frontend/public/**/*.jpeg
 !backend/app/data/body_fat/**
