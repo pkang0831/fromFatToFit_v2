@@ -28,6 +28,8 @@ from ..services.food_database_service import get_food_database
 from ..services import openai_service
 from ..middleware.auth_middleware import get_current_user
 from ..database import get_supabase
+from ..services.payment_service import check_premium_status
+from ..services.usage_limiter import check_usage_limit, increment_usage
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +114,12 @@ async def should_i_eat(
     """
     try:
         supabase = get_supabase()
+        is_premium = await check_premium_status(current_user["id"])
+
+        try:
+            await check_usage_limit(current_user["id"], "food_scan", is_premium)
+        except Exception as usage_error:
+            raise HTTPException(status_code=402, detail=str(usage_error))
         
         # 1. Analyze photo with AI (using existing multi-provider strategy)
         # For now, use OpenAI - in production, use the hybrid strategy from food_camera
@@ -160,6 +168,9 @@ async def should_i_eat(
             alternatives = [
                 AlternativeFood(**alt) for alt in decision['alternatives']
             ]
+
+        if not is_premium:
+            await increment_usage(current_user["id"], "food_scan")
         
         return ShouldIEatResponse(
             decision=decision['decision'],
