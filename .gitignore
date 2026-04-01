@@ -86,8 +86,6 @@ yarn-error.log*
 *.mp4
 *.png
 !frontend/public/**/*.png
-sample_image.*
-sample_final_image.*
 
 # ===== Experiment / scratch directories =====
 tmp/
