@@ -178,7 +178,7 @@ def test_test_login_bootstraps_user_when_sign_in_returns_no_session():
         patch.object(settings, "enable_test_login", True),
         patch.object(settings, "test_login_email", "e2e@devenira.test"),
         patch.object(settings, "test_login_password", "DeneviraE2E123!"),
-        patch("app.routers.auth.get_supabase_auth", return_value=auth_client),
+        patch("app.routers.auth.create_client", return_value=auth_client),
         patch("app.routers.auth.get_supabase", return_value=db),
         patch("app.routers.auth._insert_user_profile_resilient"),
         patch("app.routers.auth._build_token_response", return_value="ok") as build_response,
@@ -188,4 +188,44 @@ def test_test_login_bootstraps_user_when_sign_in_returns_no_session():
     assert result == "ok"
     assert auth_client.auth.sign_in_with_password.call_count == 2
     auth_client.auth.admin.create_user.assert_called_once()
+    build_response.assert_called_once()
+
+
+def test_test_login_repairs_existing_user_when_session_is_still_missing():
+    from app.routers.auth import test_login
+    from app.config import settings
+
+    auth_client = MagicMock()
+    existing_user = SimpleNamespace(id="user-123", email="e2e@devenira.test")
+    session = SimpleNamespace(access_token="access", refresh_token="refresh", expires_in=3600)
+    auth_client.auth.sign_in_with_password.side_effect = [
+        SimpleNamespace(user=None, session=None),
+        SimpleNamespace(user=None, session=None),
+        SimpleNamespace(user=existing_user, session=session),
+    ]
+    auth_client.auth.admin.list_users.return_value = [existing_user]
+
+    db = MagicMock()
+    query = MagicMock()
+    query.select.return_value = query
+    query.eq.return_value = query
+    query.limit.return_value = query
+    query.execute.return_value = MagicMock(data=[])
+    db.table.return_value = query
+
+    with (
+        patch.object(settings, "enable_test_login", True),
+        patch.object(settings, "test_login_email", "e2e@devenira.test"),
+        patch.object(settings, "test_login_password", "DeneviraE2E123!"),
+        patch("app.routers.auth.create_client", return_value=auth_client),
+        patch("app.routers.auth.get_supabase", return_value=db),
+        patch("app.routers.auth._insert_user_profile_resilient"),
+        patch("app.routers.auth._build_token_response", return_value="ok") as build_response,
+    ):
+        result = _run(test_login())
+
+    assert result == "ok"
+    assert auth_client.auth.sign_in_with_password.call_count == 3
+    auth_client.auth.admin.create_user.assert_called_once()
+    auth_client.auth.admin.update_user_by_id.assert_called_once()
     build_response.assert_called_once()

@@ -88,6 +88,14 @@ def _sanitize_registration_attribution(db, user_data: UserRegister) -> tuple[str
     return source, token, session_id
 
 
+def _find_auth_user_by_email(auth_client, email: str):
+    email = email.strip().lower()
+    for user in auth_client.auth.admin.list_users():
+        if (getattr(user, "email", "") or "").strip().lower() == email:
+            return user
+    return None
+
+
 def _build_token_response(user, session, profile: dict) -> TokenResponse:
     has_required = all([profile.get("gender"), profile.get("age"), profile.get("height_cm")])
     return TokenResponse(
@@ -292,7 +300,7 @@ async def test_login():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
 
     try:
-        auth_client = get_supabase_auth()
+        auth_client = create_client(settings.supabase_url, settings.supabase_service_key)
         email = settings.test_login_email.strip().lower()
         password = settings.test_login_password
         db = get_supabase()
@@ -317,6 +325,19 @@ async def test_login():
                 if "already" not in message and "exists" not in message and "registered" not in message:
                     raise
 
+        def _repair_existing_user():
+            existing_user = _find_auth_user_by_email(auth_client, email)
+            if not existing_user:
+                return
+            auth_client.auth.admin.update_user_by_id(
+                str(existing_user.id),
+                {
+                    "password": password,
+                    "email_confirm": True,
+                    "user_metadata": {"full_name": "Denevira E2E"},
+                },
+            )
+
         try:
             auth_response = _sign_in()
         except Exception:
@@ -325,6 +346,11 @@ async def test_login():
 
         if not auth_response.user or not auth_response.session:
             _bootstrap_user()
+            auth_response = _sign_in()
+
+        if not auth_response.user or not auth_response.session:
+            logger.info("Test login user exists but session is missing; repairing bootstrap account")
+            _repair_existing_user()
             auth_response = _sign_in()
 
         if not auth_response.user or not auth_response.session:
