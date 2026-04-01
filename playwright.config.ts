@@ -1,5 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const frontendBaseURL =
+  process.env.PLAYWRIGHT_FRONTEND_URL || (process.env.CI ? 'http://127.0.0.1:3000' : 'http://127.0.0.1:3100');
+const backendApiURL =
+  process.env.PLAYWRIGHT_BACKEND_URL || (process.env.CI ? 'http://127.0.0.1:8000/api' : 'http://127.0.0.1:8010/api');
+const backendOriginURL = backendApiURL.replace(/\/api$/, '');
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -11,7 +17,7 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: frontendBaseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -25,7 +31,7 @@ export default defineConfig({
     {
       name: 'api',
       use: {
-        baseURL: 'http://127.0.0.1:8000',
+        baseURL: backendOriginURL,
       },
       testMatch: /api\/.*/,
     },
@@ -35,16 +41,16 @@ export default defineConfig({
     : [
         {
           command:
-            'cd frontend && NEXT_PUBLIC_ENABLE_EMAIL_LOGIN=true NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000 npm run dev',
-          url: 'http://127.0.0.1:3000',
-          reuseExistingServer: true,
+            `cd frontend && NEXT_PUBLIC_ENABLE_EMAIL_LOGIN=true NEXT_PUBLIC_API_URL=${backendApiURL} NEXT_PUBLIC_APP_URL=${frontendBaseURL} npm run dev -- --port 3100`,
+          url: frontendBaseURL,
+          reuseExistingServer: false,
           timeout: 30000,
         },
         {
           command:
-            'cd backend && source venv/bin/activate && ENABLE_TEST_LOGIN=true uvicorn app.main:app --host 0.0.0.0 --port 8000',
-          url: 'http://localhost:8000/health',
-          reuseExistingServer: true,
+            'cd backend && source venv/bin/activate && ENABLE_TEST_LOGIN=true uvicorn app.main:app --host 0.0.0.0 --port 8010',
+          url: `${backendOriginURL}/health`,
+          reuseExistingServer: false,
           timeout: 30000,
         },
       ],

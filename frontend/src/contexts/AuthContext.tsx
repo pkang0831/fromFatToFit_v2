@@ -22,12 +22,46 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const TEST_LOGIN_STUB_ACCESS_TOKEN = 'test-access-token';
+const TEST_LOGIN_STUB_REFRESH_TOKEN = 'test-refresh-token';
 
 function clearAllTokens() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
   clearAuthCookie('access_token');
   clearAuthCookie('refresh_token');
+}
+
+function isTestLoginStubSession(accessToken: string | null, refreshToken: string | null) {
+  return accessToken === TEST_LOGIN_STUB_ACCESS_TOKEN && refreshToken === TEST_LOGIN_STUB_REFRESH_TOKEN;
+}
+
+async function syncSupabaseSession(accessToken: string | null, refreshToken: string | null) {
+  if (!accessToken || !refreshToken || isTestLoginStubSession(accessToken, refreshToken)) {
+    return;
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session?.access_token === accessToken && session.refresh_token === refreshToken) {
+    return;
+  }
+
+  const { data, error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  if (error || !data.session) {
+    throw error || new Error('Could not sync Supabase session');
+  }
+
+  localStorage.setItem('access_token', data.session.access_token);
+  localStorage.setItem('refresh_token', data.session.refresh_token);
+  setAuthCookie('access_token', data.session.access_token);
+  setAuthCookie('refresh_token', data.session.refresh_token);
 }
 
 function redirectToLogin() {
@@ -53,19 +87,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (isAuthPage) { setLoading(false); return; }
 
-        const token = localStorage.getItem('access_token');
-        if (!token) { clearAllTokens(); setLoading(false); return; }
+        const accessToken = localStorage.getItem('access_token');
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (!accessToken) { clearAllTokens(); setLoading(false); return; }
 
-        // Proactively refresh the Supabase session so the API call uses a valid JWT
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          const { data: refreshData } = await supabase.auth.refreshSession();
-          if (refreshData.session) {
-            localStorage.setItem('access_token', refreshData.session.access_token);
-            localStorage.setItem('refresh_token', refreshData.session.refresh_token);
-            setAuthCookie('access_token', refreshData.session.access_token);
-            setAuthCookie('refresh_token', refreshData.session.refresh_token);
-          }
+        try {
+          await syncSupabaseSession(accessToken, refreshToken);
+        } catch (_) {
+          // The backend token is still the source of truth for the immediate profile fetch.
+          // We only clear the session if the profile fetch itself fails.
         }
 
         const timeoutPromise = new Promise((_, reject) =>
@@ -110,6 +140,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('refresh_token', refresh_token);
       setAuthCookie('access_token', access_token);
       setAuthCookie('refresh_token', refresh_token);
+      try {
+        await syncSupabaseSession(access_token, refresh_token);
+      } catch (_) {
+        /* noop */
+      }
       setUser(userData);
       return userData;
     } catch (err) {
@@ -150,6 +185,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('refresh_token', refresh_token);
       setAuthCookie('access_token', access_token);
       setAuthCookie('refresh_token', refresh_token);
+      try {
+        await syncSupabaseSession(access_token, refresh_token);
+      } catch (_) {
+        /* noop */
+      }
       setUser(userData);
     } catch (err) {
       const error = err as AxiosError<{ detail: string }>;

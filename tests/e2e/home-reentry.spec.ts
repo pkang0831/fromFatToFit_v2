@@ -1,7 +1,7 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
 
-const BACKEND_URL = 'http://127.0.0.1:8000/api';
-const FRONTEND_URL = 'http://127.0.0.1:3000';
+const BACKEND_URL = process.env.PLAYWRIGHT_BACKEND_URL || 'http://127.0.0.1:8010/api';
+const FRONTEND_URL = process.env.PLAYWRIGHT_FRONTEND_URL || 'http://127.0.0.1:3100';
 
 async function bootstrapAuthenticatedSession(page: Page, request: APIRequestContext) {
   const res = await request.post(`${BACKEND_URL}/auth/test-login`);

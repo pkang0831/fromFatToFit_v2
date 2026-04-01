@@ -125,7 +125,7 @@ test.describe('Dashboard Comprehensive QA @regression', () => {
       const token = await page.evaluate(() => localStorage.getItem('access_token'));
       expect(token).toBeTruthy();
 
-      const apiBase = 'http://127.0.0.1:8000/api';
+      const apiBase = process.env.PLAYWRIGHT_BACKEND_URL || 'http://127.0.0.1:8010/api';
       const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
       const [stats, credits, gap] = await Promise.all([

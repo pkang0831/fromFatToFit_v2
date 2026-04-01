@@ -151,6 +151,9 @@ jobs:
         run: npx wait-on http-get://127.0.0.1:3000 --timeout 60000
       - name: Run E2E smoke tests
         run: npx playwright test --project=chromium
+        env:
+          PLAYWRIGHT_FRONTEND_URL: http://127.0.0.1:3000
+          PLAYWRIGHT_BACKEND_URL: http://127.0.0.1:8000/api
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

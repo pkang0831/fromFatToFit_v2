@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     public_api_url: str = "http://127.0.0.1:8000/api"
     # Include 127.0.0.1 — browsers treat it as a different origin than "localhost".
     cors_origins: str = (
-        "http://localhost:3000,http://127.0.0.1:3000,http://localhost:19006"
+        "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3100,http://127.0.0.1:3100,http://localhost:19006"
     )
     
     # Feature Flags

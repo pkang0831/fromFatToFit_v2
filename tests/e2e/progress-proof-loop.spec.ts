@@ -1,7 +1,7 @@
 import { test, expect, type APIRequestContext, type Page, type Route } from '@playwright/test';
 
-const BACKEND_URL = 'http://127.0.0.1:8000/api';
-const FRONTEND_URL = 'http://127.0.0.1:3000';
+const BACKEND_URL = process.env.PLAYWRIGHT_BACKEND_URL || 'http://127.0.0.1:8010/api';
+const FRONTEND_URL = process.env.PLAYWRIGHT_FRONTEND_URL || 'http://127.0.0.1:3100';
 const TINY_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn4m0QAAAAASUVORK5CYII=',
   'base64',
