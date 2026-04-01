@@ -17,6 +17,7 @@ import { homeApi, progressPhotoApi, proofShareApi } from '@/lib/api/services';
 import { getRetentionSessionId, trackRetentionEvent } from '@/lib/analytics';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { Camera, ImageIcon, ArrowLeftRight, Trash2, X, Plus, Check, ArrowRight, CalendarClock, Share2, Copy, ExternalLink, Shield } from 'lucide-react';
+import { coerceHomeEntryState } from '@/types/api';
 import type { HomeSummaryResponse, ProgressPhoto, ProgressPhotoCompareResponse, ProofShareResponse } from '@/types/api';
 
 type Tab = 'goals' | 'photos';
@@ -69,9 +70,11 @@ export default function ProgressPage() {
   const reminderSource = searchParams.get('from') || undefined;
   const reminderEventId = searchParams.get('reminder_event_id') || undefined;
   const reminderReentryState = reminderSource === 'weekly_reminder'
-    ? (searchParams.get('reentry_state') || 'weekly_scan')
+    ? coerceHomeEntryState(searchParams.get('reentry_state'), 'weekly_scan')
     : undefined;
-  const reminderLandingSurfaceState = searchParams.get('surface_state') || undefined;
+  const reminderLandingSurfaceState = reminderSource === 'weekly_reminder'
+    ? coerceHomeEntryState(searchParams.get('surface_state'))
+    : undefined;
 
   const buildProofLoopAnalytics = useCallback((
     sourceFallback: string | undefined,

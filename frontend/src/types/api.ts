@@ -75,6 +75,26 @@ export type HomeEntryState =
   | 'progress_proof'
   | 'review_progress';
 
+export const HOME_ENTRY_STATES = [
+  'plan_setup',
+  'challenge_checkin',
+  'first_scan',
+  'weekly_scan',
+  'progress_proof',
+  'review_progress',
+] as const;
+
+export function isHomeEntryState(value: string | null | undefined): value is HomeEntryState {
+  return Boolean(value && HOME_ENTRY_STATES.includes(value as HomeEntryState));
+}
+
+export function coerceHomeEntryState(
+  value: string | null | undefined,
+  fallback?: HomeEntryState,
+): HomeEntryState | undefined {
+  return isHomeEntryState(value) ? value : fallback;
+}
+
 export interface HomeTransformationSummary {
   id: string;
   date: string;

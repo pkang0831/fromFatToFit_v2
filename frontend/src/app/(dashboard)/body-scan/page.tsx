@@ -19,6 +19,7 @@ import { formatApiError } from '@/lib/utils/apiError';
 import { getRetentionSessionId, trackEvent, trackRetentionEvent } from '@/lib/analytics';
 import { AxiosError } from 'axios';
 import dynamic from 'next/dynamic';
+import { coerceHomeEntryState } from '@/types/api';
 import type { BodyScanRequest, BodyFatEstimateResponse, PercentileResponse, TransformationJourneyResponse, GapToGoalResponse } from '@/types/api';
 
 const BellCurveChart = dynamic(
@@ -76,9 +77,11 @@ export default function BodyScanPage() {
   const reminderSource = searchParams.get('from') || undefined;
   const reminderEventId = searchParams.get('reminder_event_id') || undefined;
   const reminderReentryState = reminderSource === 'weekly_reminder'
-    ? (searchParams.get('reentry_state') || 'weekly_scan')
+    ? coerceHomeEntryState(searchParams.get('reentry_state'), 'weekly_scan')
     : undefined;
-  const reminderSurfaceState = searchParams.get('surface_state') || undefined;
+  const reminderSurfaceState = reminderSource === 'weekly_reminder'
+    ? coerceHomeEntryState(searchParams.get('surface_state'))
+    : undefined;
 
   const scanCost = isPremium ? 0 : 10;
   const journeyCost = 30;
