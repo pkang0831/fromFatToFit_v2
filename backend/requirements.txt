@@ -30,6 +30,7 @@ anthropic==0.40.0
 
 # Human body parsing (fashn-ai/fashn-human-parser)
 torch>=2.2.0
+torchvision>=0.17.0
 transformers>=4.39.0
 
 # Local CPU diffusion inpainting
