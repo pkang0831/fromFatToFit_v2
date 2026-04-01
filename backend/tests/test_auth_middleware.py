@@ -52,3 +52,22 @@ def test_get_current_user_rejects_missing_authorization_header():
         assert exc.detail == "Missing authorization header"
     else:
         raise AssertionError("Expected HTTPException for missing authorization header")
+
+
+def test_get_current_user_accepts_stub_test_login_token():
+    from app.middleware.auth_middleware import get_current_user
+    from app.config import settings
+
+    with (
+        patch.object(settings, "enable_test_login", True),
+        patch.object(settings, "supabase_url", ""),
+        patch.object(settings, "supabase_service_key", ""),
+        patch.object(settings, "test_login_stub_access_token", "test-access-token"),
+        patch.object(settings, "test_login_stub_user_id", "test-user-e2e"),
+        patch.object(settings, "test_login_email", "e2e@devenira.test"),
+    ):
+        current_user = _run(get_current_user("Bearer test-access-token"))
+
+    assert current_user["id"] == "test-user-e2e"
+    assert current_user["email"] == "e2e@devenira.test"
+    assert current_user["premium_status"] is True

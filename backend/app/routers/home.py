@@ -5,6 +5,7 @@ import logging
 
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
+from ..config import settings
 from ..schemas.home_schemas import (
     HomeChallengeSummary,
     HomeGoalSummary,
@@ -17,6 +18,50 @@ from ..schemas.home_schemas import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _build_test_home_summary() -> HomeSummaryResponse:
+    return HomeSummaryResponse(
+        entry_state="progress_proof",
+        goal_summary=HomeGoalSummary(
+            has_saved_plan=True,
+            plan_updated_at=datetime.now(timezone.utc),
+            current_bf=18.4,
+            target_bf=14.0,
+            goal_image_url=None,
+            gap=4.4,
+            selected_tier_calories=2100,
+        ),
+        scan_summary=HomeScanSummary(
+            scan_count=3,
+            last_scan_date=datetime.now(timezone.utc).isoformat(),
+            prompt_state="too_early",
+            latest_transformation=HomeTransformationSummary(
+                id="transform-test-1",
+                date=datetime.now(timezone.utc),
+                result_summary="Transformation: -4%",
+                image_url="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn4m0QAAAAASUVORK5CYII=",
+            ),
+            next_check_in_label="5 days",
+        ),
+        challenge_summary=HomeChallengeSummary(
+            is_active=False,
+            checked_in_today=False,
+            day_index=None,
+        ),
+        progress_summary=HomeProgressSummary(
+            photo_count=1,
+            latest_photo_date=datetime.now(timezone.utc).isoformat(),
+            compare_ready=False,
+        ),
+        primary_cta=HomePrimaryCta(
+            state="progress_proof",
+            href="/progress?tab=photos&focus=upload&from=home_progress_proof",
+            label="Upload progress proof",
+            title="You have data, but no proof yet",
+            description="Add a progress photo so the journey is not just estimates and future previews.",
+        ),
+    )
 
 
 def _days_since(value: str) -> int:
@@ -149,6 +194,10 @@ def _build_primary_cta(
 @router.get("/summary", response_model=HomeSummaryResponse)
 async def get_home_summary(current_user: dict = Depends(get_current_user)):
     user_id = current_user["id"]
+
+    if settings.test_login_stub_mode and user_id == settings.test_login_stub_user_id:
+        return _build_test_home_summary()
+
     supabase = get_supabase()
 
     try:

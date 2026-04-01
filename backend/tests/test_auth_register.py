@@ -260,3 +260,23 @@ def test_test_login_returns_tokens_even_if_profile_bootstrap_fails():
     assert response.access_token == "access"
     assert response.user.email == "e2e@devenira.test"
     assert response.user.onboarding_completed is True
+
+
+def test_test_login_returns_stub_session_when_supabase_settings_are_missing():
+    from app.routers.auth import test_login
+    from app.config import settings
+
+    with (
+        patch.object(settings, "enable_test_login", True),
+        patch.object(settings, "supabase_url", ""),
+        patch.object(settings, "supabase_service_key", ""),
+        patch.object(settings, "test_login_email", "e2e@devenira.test"),
+        patch.object(settings, "test_login_stub_user_id", "test-user-e2e"),
+        patch.object(settings, "test_login_stub_access_token", "test-access-token"),
+        patch.object(settings, "test_login_stub_refresh_token", "test-refresh-token"),
+    ):
+        response = _run(test_login())
+
+    assert response.access_token == "test-access-token"
+    assert response.refresh_token == "test-refresh-token"
+    assert response.user.id == "test-user-e2e"

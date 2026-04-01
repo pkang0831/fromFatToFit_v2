@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     enable_test_login: bool = False
     test_login_email: str = "e2e@devenira.test"
     test_login_password: str = "DeneviraE2E123!"
+    test_login_stub_user_id: str = "test-user-e2e"
+    test_login_stub_access_token: str = "test-access-token"
+    test_login_stub_refresh_token: str = "test-refresh-token"
     
     # AI Provider Selection
     ai_provider: str = "openai"
@@ -106,6 +109,10 @@ class Settings(BaseSettings):
     @property
     def max_upload_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024
+
+    @property
+    def test_login_stub_mode(self) -> bool:
+        return self.enable_test_login and (not self.supabase_url or not self.supabase_service_key)
     
     def validate_required(self):
         missing = []

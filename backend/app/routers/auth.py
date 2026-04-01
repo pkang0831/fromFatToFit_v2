@@ -122,6 +122,32 @@ def _build_token_response(user, session, profile: dict) -> TokenResponse:
     )
 
 
+def _build_test_login_stub_response() -> TokenResponse:
+    created_at = datetime.now(timezone.utc)
+    return TokenResponse(
+        access_token=settings.test_login_stub_access_token,
+        refresh_token=settings.test_login_stub_refresh_token,
+        token_type="bearer",
+        expires_in=3600,
+        user=UserResponse(
+            id=settings.test_login_stub_user_id,
+            email=settings.test_login_email,
+            full_name="Denevira E2E",
+            height_cm=180,
+            weight_kg=82,
+            target_weight_kg=None,
+            age=30,
+            gender="male",
+            ethnicity=None,
+            activity_level="moderate",
+            calorie_goal=None,
+            premium_status=True,
+            onboarding_completed=True,
+            created_at=created_at,
+        ),
+    )
+
+
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def register(request: Request, user_data: UserRegister):
@@ -298,6 +324,10 @@ async def test_login():
     """Explicitly opt-in auth bootstrap for Playwright and local QA."""
     if not settings.enable_test_login:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
+    if settings.test_login_stub_mode:
+        logger.warning("Test login stub mode active: returning secretless E2E bootstrap session")
+        return _build_test_login_stub_response()
 
     try:
         auth_client = create_client(settings.supabase_url, settings.supabase_service_key)

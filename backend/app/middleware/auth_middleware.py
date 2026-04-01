@@ -59,6 +59,25 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 detail="Invalid authentication scheme",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+
+        if settings.test_login_stub_mode and token == settings.test_login_stub_access_token:
+            return {
+                "id": settings.test_login_stub_user_id,
+                "email": settings.test_login_email,
+                "access_token": token,
+                "full_name": "Denevira E2E",
+                "premium_status": True,
+                "height_cm": 180,
+                "weight_kg": 82,
+                "target_weight_kg": None,
+                "age": 30,
+                "gender": "male",
+                "ethnicity": None,
+                "activity_level": "moderate",
+                "calorie_goal": None,
+                "stripe_customer_id": None,
+                "onboarding_completed": True,
+            }
         
         # Verify token with an ephemeral client to avoid mutating
         # the singleton's PostgREST auth headers.

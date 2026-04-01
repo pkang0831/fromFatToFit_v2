@@ -239,6 +239,25 @@ def test_home_summary_review_progress_cta_routes_to_compare_focus():
     assert summary.primary_cta.href == "/progress?tab=photos&focus=compare&from=home_review_progress"
 
 
+def test_home_summary_returns_stub_payload_in_secretless_test_login_mode():
+    from app.routers.home import get_home_summary
+    from app.config import settings
+
+    with (
+        patch.object(settings, "enable_test_login", True),
+        patch.object(settings, "supabase_url", ""),
+        patch.object(settings, "supabase_service_key", ""),
+        patch.object(settings, "test_login_stub_user_id", "test-user-e2e"),
+    ):
+        summary = _run(get_home_summary({"id": "test-user-e2e"}))
+
+    assert summary.entry_state == "progress_proof"
+    assert summary.primary_cta.label == "Upload progress proof"
+    assert summary.goal_summary.target_bf == 14.0
+    assert summary.scan_summary.scan_count == 3
+    assert summary.progress_summary.photo_count == 1
+
+
 def test_retention_event_sink_logs_authenticated_events():
     from app.routers.retention_analytics import capture_retention_event
     from app.schemas.home_schemas import RetentionEventRequest
