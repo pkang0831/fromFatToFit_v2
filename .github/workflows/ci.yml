@@ -100,6 +100,37 @@ jobs:
       - run: npm ci
         working-directory: frontend
       - run: npx playwright install chromium
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install backend deps
+        working-directory: backend
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+      - name: Start backend
+        working-directory: backend
+        run: |
+          source venv/bin/activate
+          ENABLE_TEST_LOGIN=true uvicorn app.main:app --host 0.0.0.0 --port 8000 > ../backend.log 2>&1 &
+          echo $! > ../backend.pid
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ENABLE_TEST_LOGIN: true
+          ENVIRONMENT: development
+      - name: Wait for backend
+        run: |
+          npx wait-on http-get://127.0.0.1:8000/health --timeout 30000 || {
+            echo "=== Backend failed to start. Logs: ==="
+            cat backend.log || true
+            echo "=== Process status: ==="
+            kill -0 $(cat backend.pid) 2>/dev/null && echo "Process still running" || echo "Process crashed"
+            exit 1
+          }
       - name: Build frontend
         working-directory: frontend
         run: npm run build
@@ -127,4 +158,5 @@ jobs:
           path: |
             test-results/
             playwright-report/
+            backend.log
           retention-days: 7
