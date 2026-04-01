@@ -32,6 +32,8 @@ def _urllib_json(method: str, url: str, api_key: str, json_body: dict | None = N
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
+        "User-Agent": "Devenira/1.0 (Python urllib)",
+        "Accept": "application/json",
     }
     data = json.dumps(json_body).encode() if json_body is not None else None
     req = urllib.request.Request(url, method=method, headers=headers, data=data)
@@ -85,7 +87,7 @@ def curl_download(url: str, dest_path: str) -> None:
             raise RuntimeError(f"curl download failed: {result.stderr[:200]}")
         return
 
-    req = urllib.request.Request(url)
+    req = urllib.request.Request(url, headers={"User-Agent": "Devenira/1.0 (Python urllib)"})
     with urllib.request.urlopen(req, timeout=60) as resp:
         with open(dest_path, "wb") as f:
             f.write(resp.read())
