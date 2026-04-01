@@ -66,6 +66,26 @@ export default function ProgressPage() {
   const [revokingShareId, setRevokingShareId] = useState<string | null>(null);
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
 
+  const reminderSource = searchParams.get('from') || undefined;
+  const reminderEventId = searchParams.get('reminder_event_id') || undefined;
+  const reminderReentryState = reminderSource === 'weekly_reminder'
+    ? (searchParams.get('reentry_state') || 'weekly_scan')
+    : undefined;
+  const reminderLandingSurfaceState = searchParams.get('surface_state') || undefined;
+
+  const buildProofLoopAnalytics = useCallback((
+    sourceFallback: string | undefined,
+    surfaceState: 'progress_proof' | 'review_progress',
+    extra: Record<string, string | number | boolean | null | undefined> = {},
+  ) => ({
+    source: reminderSource === 'weekly_reminder' ? 'weekly_reminder' : sourceFallback,
+    reentry_state: reminderReentryState,
+    surface_state: surfaceState,
+    reminder_event_id: reminderEventId,
+    session_id: getRetentionSessionId() || undefined,
+    ...extra,
+  }), [reminderEventId, reminderReentryState, reminderSource]);
+
   const handleWeightLogSuccess = () => {
     setShowWeightLogModal(false);
     setRefreshKey(prev => prev + 1);
@@ -92,14 +112,14 @@ export default function ProgressPage() {
 
   const fetchHomeSummary = useCallback(async () => {
     try {
-      const res = await homeApi.getSummary();
+      const res = await homeApi.getSummary(reminderSource);
       setHomeSummary(res.data);
       return res.data as HomeSummaryResponse;
     } catch {
       setHomeSummary(null);
       return null;
     }
-  }, []);
+  }, [reminderSource]);
 
   const fetchProofShares = useCallback(async () => {
     setLoadingProofShares(true);
@@ -122,13 +142,16 @@ export default function ProgressPage() {
 
   const openUploadModal = useCallback((source: string) => {
     setShowUpload(true);
-    trackRetentionEvent('progress_proof_started', {
-      surface: 'progress_page',
+    trackRetentionEvent('progress_proof_started', buildProofLoopAnalytics(
       source,
-      entry_state: 'progress_proof',
-      photo_count: photos.length,
-    });
-  }, [photos.length]);
+      'progress_proof',
+      {
+        surface: 'progress_page',
+        entry_state: reminderReentryState || 'progress_proof',
+        photo_count: photos.length,
+      },
+    ));
+  }, [buildProofLoopAnalytics, photos.length, reminderReentryState]);
 
   const loadLatestCompare = useCallback(async (photoList: ProgressPhoto[]) => {
     if (photoList.length < 2) {
@@ -181,12 +204,15 @@ export default function ProgressPage() {
     if (activeTab !== 'photos') return;
 
     reminderTrackedRef.current = true;
-    trackRetentionEvent('reengagement_session', {
-      surface: 'progress_page',
-      source: 'weekly_reminder',
-      entry_state: 'progress_proof',
-    });
-  }, [activeTab, searchParams]);
+    trackRetentionEvent('reengagement_session', buildProofLoopAnalytics(
+      'weekly_reminder',
+      reminderLandingSurfaceState === 'review_progress' ? 'review_progress' : 'progress_proof',
+      {
+        surface: 'progress_page',
+        entry_state: reminderReentryState || 'weekly_scan',
+      },
+    ));
+  }, [activeTab, buildProofLoopAnalytics, reminderLandingSurfaceState, reminderReentryState, searchParams]);
 
   useEffect(() => {
     if (activeTab !== 'photos' || compareMode) return;
@@ -222,19 +248,22 @@ export default function ProgressPage() {
     if (compareTrackedRef.current === compareKey) return;
     compareTrackedRef.current = compareKey;
 
-    trackRetentionEvent('progress_compare_viewed', {
-      surface: 'progress_page',
-      source: searchParams.get('from') || undefined,
-      entry_state: 'review_progress',
-      before_photo_id: compareData.before.id,
-      after_photo_id: compareData.after.id,
-      days_between: compareData.days_between,
-      weight_change: compareData.weight_change,
-      bf_change: compareData.bf_change,
-      goal_gap: homeSummary?.goal_summary.gap,
-      prompt_state: homeSummary?.scan_summary.prompt_state,
-    });
-  }, [compareData, homeSummary, searchParams]);
+    trackRetentionEvent('progress_compare_viewed', buildProofLoopAnalytics(
+      reminderSource,
+      'review_progress',
+      {
+        surface: 'progress_page',
+        entry_state: reminderReentryState || 'review_progress',
+        before_photo_id: compareData.before.id,
+        after_photo_id: compareData.after.id,
+        days_between: compareData.days_between,
+        weight_change: compareData.weight_change,
+        bf_change: compareData.bf_change,
+        goal_gap: homeSummary?.goal_summary.gap,
+        prompt_state: homeSummary?.scan_summary.prompt_state,
+      },
+    ));
+  }, [buildProofLoopAnalytics, compareData, homeSummary, reminderReentryState, reminderSource]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -260,17 +289,29 @@ export default function ProgressPage() {
       const refreshedPhotos = await fetchPhotos();
       await fetchHomeSummary();
       await fetchProofShares();
-      trackRetentionEvent('progress_proof_completed', {
-        surface: 'progress_page',
-        source: searchParams.get('from') || 'progress_upload',
-        entry_state: 'progress_proof',
-        photo_count: refreshedPhotos.length,
-        has_compare_ready: refreshedPhotos.length >= 2,
-      });
+      trackRetentionEvent('progress_proof_completed', buildProofLoopAnalytics(
+        reminderSource || 'progress_upload',
+        refreshedPhotos.length >= 2 ? 'review_progress' : 'progress_proof',
+        {
+          surface: 'progress_page',
+          entry_state: reminderReentryState || 'progress_proof',
+          photo_count: refreshedPhotos.length,
+          has_compare_ready: refreshedPhotos.length >= 2,
+        },
+      ));
       if (refreshedPhotos.length >= 2) {
         await loadLatestCompare(refreshedPhotos);
       }
     } catch {
+      trackRetentionEvent('proof_upload_failed', buildProofLoopAnalytics(
+        reminderSource || 'progress_upload',
+        'progress_proof',
+        {
+          surface: 'progress_page',
+          entry_state: reminderReentryState || 'progress_proof',
+          photo_count: photos.length,
+        },
+      ));
       console.error('Upload failed');
     } finally {
       setUploading(false);
@@ -387,7 +428,13 @@ export default function ProgressPage() {
       const res = await proofShareApi.create(
         shareSourcePhoto.id,
         weekMarker,
-        getRetentionSessionId() || undefined,
+        {
+          sessionId: getRetentionSessionId() || undefined,
+          source: reminderSource === 'weekly_reminder' ? 'weekly_reminder' : undefined,
+          reentryState: reminderReentryState,
+          surfaceState: compareData ? 'review_progress' : 'progress_proof',
+          reminderEventId,
+        },
       );
       setProofShares(prev => {
         const next = prev.filter(share => share.id !== res.data.id);

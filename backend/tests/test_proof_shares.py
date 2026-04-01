@@ -172,7 +172,15 @@ def test_create_and_revoke_proof_share_flow():
         patch("app.routers.proof_shares.token_urlsafe", return_value="token-123"),
     ):
         created = _run(create_proof_share(
-            CreateProofShareRequest(progress_photo_id="photo-1", week_marker=4, session_id="sess-share-1"),
+            CreateProofShareRequest(
+                progress_photo_id="photo-1",
+                week_marker=4,
+                session_id="sess-share-1",
+                source="weekly_reminder",
+                reentry_state="weekly_scan",
+                surface_state="progress_proof",
+                reminder_event_id="rem-1",
+            ),
             {"id": "user-1"},
         ))
         shares = _run(list_proof_shares(current_user={"id": "user-1"}))
@@ -188,6 +196,10 @@ def test_create_and_revoke_proof_share_flow():
     assert log_event.await_count == 2
     assert log_event.await_args_list[0].args[1] == "share_created"
     assert log_event.await_args_list[0].args[3]["session_id"] == "sess-share-1"
+    assert log_event.await_args_list[0].args[3]["source"] == "weekly_reminder"
+    assert log_event.await_args_list[0].args[3]["reentry_state"] == "weekly_scan"
+    assert log_event.await_args_list[0].args[3]["surface_state"] == "progress_proof"
+    assert log_event.await_args_list[0].args[3]["reminder_event_id"] == "rem-1"
     assert log_event.await_args_list[1].args[1] == "share_revoked"
 
 

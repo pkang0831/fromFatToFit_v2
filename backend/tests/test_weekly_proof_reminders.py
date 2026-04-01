@@ -19,18 +19,40 @@ def _run(coro):
         loop.close()
 
 
-def _summary(entry_state: str, scan_count: int = 1):
+def _summary(entry_state: str, scan_count: int = 1, photo_count: int = 0):
     return SimpleNamespace(
         entry_state=entry_state,
+        reentry_state=entry_state,
+        surface_state=entry_state,
         scan_summary=SimpleNamespace(scan_count=scan_count),
+        progress_summary=SimpleNamespace(photo_count=photo_count),
     )
 
 
 def test_build_weekly_proof_reminder_path_matches_supported_states():
     from app.services.notification_service import build_weekly_proof_reminder_path
+    from app.config import settings
 
-    assert build_weekly_proof_reminder_path("progress_proof") == "/progress?tab=photos&focus=upload&from=weekly_reminder"
-    assert build_weekly_proof_reminder_path("weekly_scan") == "/body-scan?tab=journey&from=weekly_reminder#transformation"
+    with patch.object(settings, "weekly_scan_upload_first_handoff_enabled", False):
+        assert build_weekly_proof_reminder_path("progress_proof") == (
+            "/progress?tab=photos&focus=upload&from=weekly_reminder"
+            "&reentry_state=progress_proof&surface_state=progress_proof"
+        )
+        assert build_weekly_proof_reminder_path("weekly_scan", progress_photo_count=2) == (
+            "/body-scan?tab=journey&from=weekly_reminder"
+            "&reentry_state=weekly_scan&surface_state=weekly_scan#transformation"
+        )
+
+
+def test_build_weekly_proof_reminder_path_routes_eligible_weekly_scan_to_upload_first():
+    from app.services.notification_service import build_weekly_proof_reminder_path
+    from app.config import settings
+
+    with patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True):
+        assert build_weekly_proof_reminder_path("weekly_scan", progress_photo_count=1) == (
+            "/progress?tab=photos&focus=upload&from=weekly_reminder"
+            "&reentry_state=weekly_scan&surface_state=progress_proof"
+        )
 
 
 def test_weekly_proof_candidate_allows_opted_in_progress_proof_user():
@@ -39,15 +61,65 @@ def test_weekly_proof_candidate_allows_opted_in_progress_proof_user():
     candidate = _build_weekly_proof_candidate(
         profile={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
         prefs={"email_weekly_summary": True},
-        summary=_summary("progress_proof", scan_count=2),
+        summary=_summary("progress_proof", scan_count=2, photo_count=0),
         last_event=None,
         now=__import__("datetime").datetime(2026, 3, 31, tzinfo=__import__("datetime").timezone.utc),
     )
 
     assert candidate is not None
     assert candidate["entry_state"] == "progress_proof"
-    assert candidate["next_path"] == "/progress?tab=photos&focus=upload&from=weekly_reminder"
+    assert candidate["reentry_state"] == "progress_proof"
+    assert candidate["surface_state"] == "progress_proof"
+    assert candidate["next_path"] == (
+        "/progress?tab=photos&focus=upload&from=weekly_reminder"
+        "&reentry_state=progress_proof&surface_state=progress_proof"
+    )
     assert candidate["channel"] == "email"
+
+
+def test_weekly_proof_candidate_routes_eligible_weekly_scan_user_to_upload_first_when_flag_enabled():
+    from app.services.notification_service import _build_weekly_proof_candidate
+    from app.config import settings
+
+    with patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True):
+        candidate = _build_weekly_proof_candidate(
+            profile={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
+            prefs={"email_weekly_summary": True},
+            summary=_summary("weekly_scan", scan_count=3, photo_count=1),
+            last_event=None,
+            now=__import__("datetime").datetime(2026, 3, 31, tzinfo=__import__("datetime").timezone.utc),
+        )
+
+    assert candidate is not None
+    assert candidate["entry_state"] == "weekly_scan"
+    assert candidate["reentry_state"] == "weekly_scan"
+    assert candidate["surface_state"] == "progress_proof"
+    assert candidate["proof_photo_count"] == 1
+    assert candidate["next_path"] == (
+        "/progress?tab=photos&focus=upload&from=weekly_reminder"
+        "&reentry_state=weekly_scan&surface_state=progress_proof"
+    )
+
+
+def test_weekly_proof_candidate_keeps_weekly_scan_journey_for_ineligible_user():
+    from app.services.notification_service import _build_weekly_proof_candidate
+    from app.config import settings
+
+    with patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True):
+        candidate = _build_weekly_proof_candidate(
+            profile={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
+            prefs={"email_weekly_summary": True},
+            summary=_summary("weekly_scan", scan_count=3, photo_count=2),
+            last_event=None,
+            now=__import__("datetime").datetime(2026, 3, 31, tzinfo=__import__("datetime").timezone.utc),
+        )
+
+    assert candidate is not None
+    assert candidate["surface_state"] == "weekly_scan"
+    assert candidate["next_path"] == (
+        "/body-scan?tab=journey&from=weekly_reminder"
+        "&reentry_state=weekly_scan&surface_state=weekly_scan#transformation"
+    )
 
 
 def test_weekly_proof_candidate_respects_opt_out():
@@ -56,7 +128,7 @@ def test_weekly_proof_candidate_respects_opt_out():
     candidate = _build_weekly_proof_candidate(
         profile={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
         prefs={"email_weekly_summary": False},
-        summary=_summary("progress_proof", scan_count=2),
+        summary=_summary("progress_proof", scan_count=2, photo_count=0),
         last_event=None,
         now=__import__("datetime").datetime(2026, 3, 31, tzinfo=__import__("datetime").timezone.utc),
     )
@@ -94,7 +166,7 @@ def test_weekly_proof_candidate_respects_cooldown():
         candidate = _build_weekly_proof_candidate(
             profile={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
             prefs={"email_weekly_summary": True},
-            summary=_summary("weekly_scan", scan_count=3),
+            summary=_summary("weekly_scan", scan_count=3, photo_count=2),
             last_event=recent_sent,
             now=now,
         )
@@ -138,9 +210,9 @@ def test_evaluate_weekly_proof_reminder_candidates_filters_ineligible_users():
         patch(
             "app.services.notification_service._get_home_summary_for_user",
             AsyncMock(side_effect=[
-                _summary("progress_proof", scan_count=1),
-                _summary("progress_proof", scan_count=1),
-                _summary("progress_proof", scan_count=0),
+                _summary("progress_proof", scan_count=1, photo_count=0),
+                _summary("progress_proof", scan_count=1, photo_count=0),
+                _summary("progress_proof", scan_count=0, photo_count=0),
             ]),
         ),
         patch("app.services.notification_service._get_latest_weekly_reminder_event", return_value=None),
@@ -186,7 +258,13 @@ def test_run_weekly_proof_reminder_job_marks_sent_and_logs_analytics():
         "email": "user@example.com",
         "channel": "email",
         "entry_state": "progress_proof",
-        "next_path": "/progress?tab=photos&focus=upload&from=weekly_reminder",
+        "reentry_state": "progress_proof",
+        "surface_state": "progress_proof",
+        "proof_photo_count": 0,
+        "next_path": (
+            "/progress?tab=photos&focus=upload&from=weekly_reminder"
+            "&reentry_state=progress_proof&surface_state=progress_proof"
+        ),
         "subject": "Upload proof",
         "headline": "Headline",
         "body": "Body",
@@ -212,6 +290,9 @@ def test_run_weekly_proof_reminder_job_marks_sent_and_logs_analytics():
     assert update_event.call_args.args[1]["status"] == "sent"
     log_event.assert_awaited_once()
     assert log_event.await_args.args[1] == "notification_sent"
+    assert log_event.await_args.args[3]["event_origin"] == "live"
+    assert log_event.await_args.args[3]["reentry_state"] == "progress_proof"
+    assert log_event.await_args.args[3]["surface_state"] == "progress_proof"
     finish_job.assert_called_once()
 
 
@@ -236,13 +317,28 @@ def test_open_weekly_proof_reminder_marks_open_and_redirects():
 
     with patch(
         "app.routers.notifications.mark_weekly_proof_reminder_opened",
-        AsyncMock(return_value="https://app.denevira.test/progress?tab=photos&focus=upload&from=weekly_reminder"),
+        AsyncMock(
+            return_value=(
+                "https://app.denevira.test/progress?tab=photos&focus=upload&from=weekly_reminder"
+                "&reentry_state=weekly_scan&surface_state=progress_proof&reminder_event_id=event-1"
+            )
+        ),
     ) as mark_opened:
-        response = _run(open_weekly_proof_reminder(request, "event-1", "/progress?tab=photos&focus=upload&from=weekly_reminder"))
+        response = _run(
+            open_weekly_proof_reminder(
+                request,
+                "event-1",
+                "/progress?tab=photos&focus=upload&from=weekly_reminder"
+                "&reentry_state=weekly_scan&surface_state=progress_proof",
+            )
+        )
 
     mark_opened.assert_awaited_once()
     assert response.status_code == status.HTTP_307_TEMPORARY_REDIRECT
-    assert response.headers["location"] == "https://app.denevira.test/progress?tab=photos&focus=upload&from=weekly_reminder"
+    assert response.headers["location"] == (
+        "https://app.denevira.test/progress?tab=photos&focus=upload&from=weekly_reminder"
+        "&reentry_state=weekly_scan&surface_state=progress_proof&reminder_event_id=event-1"
+    )
 
 
 def test_mark_weekly_proof_reminder_opened_updates_event_and_logs():
@@ -258,13 +354,24 @@ def test_mark_weekly_proof_reminder_opened_updates_event_and_logs():
         patch("app.services.notification_service._update_reminder_event") as update_event,
         patch("app.services.notification_service.log_retention_event", AsyncMock()) as log_event,
     ):
-        redirect_url = _run(mark_weekly_proof_reminder_opened("event-1", "/body-scan?tab=journey&from=weekly_reminder#transformation"))
+        redirect_url = _run(
+            mark_weekly_proof_reminder_opened(
+                "event-1",
+                "/progress?tab=photos&focus=upload&from=weekly_reminder"
+                "&reentry_state=weekly_scan&surface_state=progress_proof",
+            )
+        )
 
-    assert redirect_url == "https://app.denevira.test/body-scan?tab=journey&from=weekly_reminder#transformation"
+    assert redirect_url == (
+        "https://app.denevira.test/progress?tab=photos&focus=upload&from=weekly_reminder"
+        "&reentry_state=weekly_scan&surface_state=progress_proof&reminder_event_id=event-1"
+    )
     update_event.assert_called_once()
     assert update_event.call_args.args[1]["status"] == "clicked"
     log_event.assert_awaited_once()
     assert log_event.await_args.args[1] == "notification_opened"
+    assert log_event.await_args.args[3]["reentry_state"] == "weekly_scan"
+    assert log_event.await_args.args[3]["surface_state"] == "progress_proof"
 
 
 def test_process_resend_webhook_updates_delivered_status():

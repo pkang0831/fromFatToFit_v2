@@ -148,6 +148,8 @@ test.describe('Public-safe proof share @regression', () => {
     await page.route('**/api/home/summary', (route) =>
       json(route, {
         entry_state: 'progress_proof',
+        reentry_state: 'progress_proof',
+        surface_state: 'progress_proof',
         goal_summary: {
           has_saved_plan: true,
           plan_updated_at: '2026-03-28T12:00:00+00:00',

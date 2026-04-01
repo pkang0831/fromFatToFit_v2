@@ -14,6 +14,14 @@ from urllib.parse import quote
 from uuid import uuid4
 from ..database import get_supabase
 from ..config import settings
+from .proof_loop_handoff import (
+    WEEKLY_REMINDER_SOURCE,
+    append_query_params_to_path,
+    build_progress_upload_handoff_path,
+    build_weekly_scan_journey_handoff_path,
+    extract_query_param,
+    resolve_surface_state,
+)
 from .retention_event_service import log_retention_event
 
 logger = logging.getLogger(__name__)
@@ -376,11 +384,29 @@ def get_weekly_proof_reminder_status() -> Dict[str, Any]:
     }
 
 
-def build_weekly_proof_reminder_path(entry_state: str) -> str:
-    if entry_state == "progress_proof":
-        return "/progress?tab=photos&focus=upload&from=weekly_reminder"
+def build_weekly_proof_reminder_path(
+    entry_state: str,
+    *,
+    progress_photo_count: int = 0,
+) -> str:
+    surface_state = resolve_surface_state(
+        source=WEEKLY_REMINDER_SOURCE,
+        reentry_state=entry_state,
+        proof_photo_count=progress_photo_count,
+        enabled=settings.weekly_scan_upload_first_handoff_enabled,
+    )
+    if surface_state == "progress_proof":
+        return build_progress_upload_handoff_path(
+            source=WEEKLY_REMINDER_SOURCE,
+            reentry_state=entry_state,
+            surface_state=surface_state,
+        )
     if entry_state == "weekly_scan":
-        return "/body-scan?tab=journey&from=weekly_reminder#transformation"
+        return build_weekly_scan_journey_handoff_path(
+            source=WEEKLY_REMINDER_SOURCE,
+            reentry_state=entry_state,
+            surface_state=surface_state,
+        )
     raise ValueError(f"Unsupported reminder entry_state: {entry_state}")
 
 
@@ -407,17 +433,22 @@ def _sanitize_frontend_path(next_path: str | None) -> str:
     return next_path
 
 
-def _build_weekly_proof_subject(entry_state: str) -> str:
-    if entry_state == "weekly_scan":
+def _build_weekly_proof_subject(reentry_state: str, surface_state: str) -> str:
+    if reentry_state == "weekly_scan" and surface_state == "weekly_scan":
         return "Your weekly proof check-in is ready"
     return "Add this week’s progress proof before the next scan"
 
 
-def _build_weekly_proof_copy(entry_state: str) -> tuple[str, str]:
-    if entry_state == "weekly_scan":
+def _build_weekly_proof_copy(reentry_state: str, surface_state: str) -> tuple[str, str]:
+    if reentry_state == "weekly_scan" and surface_state == "weekly_scan":
         return (
             "Your weekly check-in window is open.",
             "Open your journey, compare the latest proof, and run the next check-in while the change is still fresh.",
+        )
+    if reentry_state == "weekly_scan" and surface_state == "progress_proof":
+        return (
+            "Your next weekly check-in needs one more proof photo first.",
+            "Start with an upload-first proof handoff now so your next compare is grounded in real evidence, not just scan history.",
         )
     return (
         "You already have scan data. Now lock it with proof.",
@@ -467,15 +498,29 @@ def _build_weekly_proof_candidate(
     ):
         return None
 
-    next_path = build_weekly_proof_reminder_path(entry_state)
-    headline, body = _build_weekly_proof_copy(entry_state)
+    progress_summary = getattr(summary, "progress_summary", None)
+    proof_photo_count = int(getattr(progress_summary, "photo_count", 0) or 0)
+    surface_state = resolve_surface_state(
+        source=WEEKLY_REMINDER_SOURCE,
+        reentry_state=entry_state,
+        proof_photo_count=proof_photo_count,
+        enabled=settings.weekly_scan_upload_first_handoff_enabled,
+    )
+    next_path = build_weekly_proof_reminder_path(
+        entry_state,
+        progress_photo_count=proof_photo_count,
+    )
+    headline, body = _build_weekly_proof_copy(entry_state, surface_state)
     return {
         "user_id": profile["user_id"],
         "email": profile["email"],
         "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
         "entry_state": entry_state,
+        "reentry_state": entry_state,
+        "surface_state": surface_state,
+        "proof_photo_count": proof_photo_count,
         "next_path": next_path,
-        "subject": _build_weekly_proof_subject(entry_state),
+        "subject": _build_weekly_proof_subject(entry_state, surface_state),
         "headline": headline,
         "body": body,
     }
@@ -1089,9 +1134,13 @@ async def run_weekly_proof_reminder_job(now: datetime | None = None) -> Dict[str
                     "weekly_proof_reminder_email",
                     {
                         "channel": candidate["channel"],
-                        "entry_state": candidate["entry_state"],
+                        "entry_state": candidate["reentry_state"],
+                        "reentry_state": candidate["reentry_state"],
+                        "surface_state": candidate["surface_state"],
                         "reminder_event_id": reminder_event["id"],
-                        "source": "weekly_reminder",
+                        "source": WEEKLY_REMINDER_SOURCE,
+                        "event_origin": "live",
+                        "proof_photo_count": candidate["proof_photo_count"],
                     },
                 )
                 sent += 1
@@ -1146,6 +1195,8 @@ async def run_weekly_proof_reminder_scheduler() -> None:
 async def mark_weekly_proof_reminder_opened(reminder_event_id: str, next_path: str | None) -> str:
     safe_path = _sanitize_frontend_path(next_path)
     event = _get_reminder_event(reminder_event_id)
+    surface_state = extract_query_param(safe_path, "surface_state")
+    reentry_state = extract_query_param(safe_path, "reentry_state")
     if event:
         opened_at = _utcnow().isoformat()
         _update_reminder_event(
@@ -1163,8 +1214,14 @@ async def mark_weekly_proof_reminder_opened(reminder_event_id: str, next_path: s
             {
                 "channel": event.get("channel", WEEKLY_PROOF_REMINDER_CHANNEL),
                 "entry_state": event.get("entry_state"),
+                "reentry_state": reentry_state or event.get("entry_state"),
+                "surface_state": surface_state or event.get("entry_state"),
                 "reminder_event_id": reminder_event_id,
-                "source": "weekly_reminder",
+                "source": WEEKLY_REMINDER_SOURCE,
             },
         )
-    return f"{settings.public_app_url.rstrip('/')}{safe_path}"
+    annotated_path = append_query_params_to_path(
+        safe_path,
+        {"reminder_event_id": reminder_event_id},
+    )
+    return f"{settings.public_app_url.rstrip('/')}{annotated_path}"

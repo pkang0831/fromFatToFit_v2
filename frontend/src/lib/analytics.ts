@@ -13,6 +13,7 @@ type RetentionEventName =
   | 'notification_opened'
   | 'progress_proof_started'
   | 'progress_proof_completed'
+  | 'proof_upload_failed'
   | 'progress_compare_viewed'
   | 'progress_checkin_started'
   | 'progress_checkin_completed'

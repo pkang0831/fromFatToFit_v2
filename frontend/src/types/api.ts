@@ -122,6 +122,8 @@ export interface HomePrimaryCta {
 
 export interface HomeSummaryResponse {
   entry_state: HomeEntryState;
+  reentry_state: HomeEntryState;
+  surface_state: HomeEntryState;
   goal_summary: HomeGoalSummary;
   scan_summary: HomeScanSummary;
   challenge_summary: HomeChallengeSummary;
@@ -355,6 +357,9 @@ export interface BodyScanRequest {
   scan_type: 'bodyfat' | 'percentile' | 'transformation' | 'enhancement';
   source?: string;
   session_id?: string;
+  reminder_event_id?: string;
+  reentry_state?: HomeEntryState;
+  surface_state?: HomeEntryState;
   gender: 'male' | 'female';
   age?: number;
   ethnicity?: string;

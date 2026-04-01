@@ -6,6 +6,12 @@ import logging
 from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..config import settings
+from ..services.proof_loop_handoff import (
+    WEEKLY_REMINDER_SOURCE,
+    build_progress_upload_handoff_path,
+    build_weekly_scan_journey_handoff_path,
+    resolve_surface_state,
+)
 from ..schemas.home_schemas import (
     HomeChallengeSummary,
     HomeGoalSummary,
@@ -23,6 +29,8 @@ router = APIRouter()
 def _build_test_home_summary() -> HomeSummaryResponse:
     return HomeSummaryResponse(
         entry_state="progress_proof",
+        reentry_state="progress_proof",
+        surface_state="progress_proof",
         goal_summary=HomeGoalSummary(
             has_saved_plan=True,
             plan_updated_at=datetime.now(timezone.utc),
@@ -61,6 +69,33 @@ def _build_test_home_summary() -> HomeSummaryResponse:
             title="You have data, but no proof yet",
             description="Add a progress photo so the journey is not just estimates and future previews.",
         ),
+    )
+
+
+def _build_upload_first_weekly_reminder_cta(*, reentry_state: str) -> HomePrimaryCta:
+    return HomePrimaryCta(
+        state="progress_proof",
+        href=build_progress_upload_handoff_path(
+            source=WEEKLY_REMINDER_SOURCE,
+            reentry_state=reentry_state,
+        ),
+        label="Upload progress proof",
+        title="Start with proof before the next weekly scan",
+        description="You already have enough scan history. Add the next proof photo first so the next compare has something real to show.",
+    )
+
+
+def _build_weekly_scan_weekly_reminder_cta(*, reentry_state: str, surface_state: str) -> HomePrimaryCta:
+    return HomePrimaryCta(
+        state="weekly_scan",
+        href=build_weekly_scan_journey_handoff_path(
+            source=WEEKLY_REMINDER_SOURCE,
+            reentry_state=reentry_state,
+            surface_state=surface_state,
+        ),
+        label="Open weekly check-in",
+        title="Review the journey, then run this week's scan",
+        description="Use the weekly reminder flow to review the latest journey context before you start the next check-in.",
     )
 
 
@@ -192,7 +227,10 @@ def _build_primary_cta(
 
 
 @router.get("/summary", response_model=HomeSummaryResponse)
-async def get_home_summary(current_user: dict = Depends(get_current_user)):
+async def get_home_summary(
+    current_user: dict = Depends(get_current_user),
+    source: str | None = None,
+):
     user_id = current_user["id"]
 
     if settings.test_login_stub_mode and user_id == settings.test_login_stub_user_id:
@@ -328,9 +366,26 @@ async def get_home_summary(current_user: dict = Depends(get_current_user)):
             prompt_state=prompt_state,
             progress_photo_count=len(progress_rows),
         )
+        reentry_state = primary_cta.state
+        surface_state = resolve_surface_state(
+            source=source,
+            reentry_state=reentry_state,
+            proof_photo_count=len(progress_rows),
+            enabled=settings.weekly_scan_upload_first_handoff_enabled,
+        )
+        if source == WEEKLY_REMINDER_SOURCE and reentry_state == "weekly_scan":
+            if surface_state == "progress_proof":
+                primary_cta = _build_upload_first_weekly_reminder_cta(reentry_state=reentry_state)
+            else:
+                primary_cta = _build_weekly_scan_weekly_reminder_cta(
+                    reentry_state=reentry_state,
+                    surface_state=surface_state,
+                )
 
         return HomeSummaryResponse(
-            entry_state=primary_cta.state,
+            entry_state=reentry_state,
+            reentry_state=reentry_state,
+            surface_state=surface_state,
             goal_summary=HomeGoalSummary(
                 has_saved_plan=bool(saved_plan_row),
                 plan_updated_at=saved_plan_row["updated_at"] if saved_plan_row else None,

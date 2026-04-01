@@ -11,6 +11,10 @@ class CreateProofShareRequest(BaseModel):
     progress_photo_id: str = Field(..., min_length=1)
     week_marker: Optional[int] = Field(default=None, ge=1, le=52)
     session_id: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    source: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    reentry_state: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    surface_state: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    reminder_event_id: Optional[str] = Field(default=None, min_length=1, max_length=200)
 
 
 class ProofShareGoalSummary(BaseModel):

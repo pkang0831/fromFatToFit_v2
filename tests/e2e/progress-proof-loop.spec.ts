@@ -55,9 +55,12 @@ function json(route: Route, data: unknown, status = 200) {
 function buildHomeSummary(photoCount: number) {
   const compareReady = photoCount >= 2;
   const latestPhotoDate = photoCount > 0 ? '2026-03-31T12:00:00+00:00' : null;
+  const entryState = compareReady ? 'review_progress' : 'progress_proof';
 
   return {
-    entry_state: compareReady ? 'review_progress' : 'progress_proof',
+    entry_state: entryState,
+    reentry_state: entryState,
+    surface_state: entryState,
     goal_summary: {
       has_saved_plan: true,
       plan_updated_at: '2026-03-28T12:00:00+00:00',
@@ -145,16 +148,21 @@ async function mockAuthenticatedShell(page: Page) {
 
 async function mockProgressLoopApis(page: Page, initialPhotos: ProgressPhoto[], analyticsEvents?: string[]) {
   let photos = [...initialPhotos];
+  const analyticsPayloads: Array<{ event_name?: string; properties?: Record<string, unknown> }> = [];
 
   await page.route('**/api/home/summary', (route) =>
     json(route, buildHomeSummary(photos.length)),
   );
 
   await page.route('**/api/analytics/retention', async (route) => {
+    const payload = route.request().postDataJSON() as {
+      event_name?: string;
+      properties?: Record<string, unknown>;
+    };
     if (analyticsEvents) {
-      const payload = route.request().postDataJSON() as { event_name?: string };
       if (payload.event_name) analyticsEvents.push(payload.event_name);
     }
+    analyticsPayloads.push(payload);
     return json(route, { status: 'ok' });
   });
 
@@ -209,6 +217,8 @@ async function mockProgressLoopApis(page: Page, initialPhotos: ProgressPhoto[], 
     photos = [newPhoto, ...photos];
     return json(route, newPhoto);
   });
+
+  return analyticsPayloads;
 }
 
 test.describe('Progress Proof Loop @regression', () => {
@@ -355,5 +365,73 @@ test.describe('Progress Proof Loop @regression', () => {
         'progress_compare_viewed',
       ]),
     );
+  });
+
+  test('preserves weekly reminder continuity through upload-first handoff and compare', async ({ page, request }) => {
+    await bootstrapAuthenticatedSession(page, request);
+    await mockAuthenticatedShell(page);
+    const analyticsPayloads = await mockProgressLoopApis(
+      page,
+      [
+        {
+          id: 'photo-1',
+          notes: 'Week 1',
+          weight_kg: 82.1,
+          body_fat_pct: 19.8,
+          taken_at: '2026-03-24T12:00:00+00:00',
+          created_at: '2026-03-24T12:00:00+00:00',
+          image_url: DATA_URL,
+        },
+      ],
+    );
+
+    await page.goto(
+      '/progress?tab=photos&focus=upload&from=weekly_reminder'
+      + '&reentry_state=weekly_scan&surface_state=progress_proof&reminder_event_id=event-1',
+      { waitUntil: 'domcontentloaded' },
+    );
+
+    await expect(page.getByTestId('progress-upload-modal')).toBeVisible();
+    await page.locator('[data-testid="progress-upload-modal"] input[type="file"]').setInputFiles({
+      name: 'proof.png',
+      mimeType: 'image/png',
+      buffer: TINY_PNG,
+    });
+    await page.locator('[data-testid="progress-upload-modal"] input[placeholder="e.g. 75.5"]').fill('80.4');
+    await page.locator('[data-testid="progress-upload-modal"] input[placeholder="e.g. 18.5"]').fill('18.2');
+    await page.locator('[data-testid="progress-upload-modal"] textarea').fill('Weekly reminder upload');
+    await page.getByTestId('progress-upload-submit').click();
+
+    await expect(page.getByTestId('progress-proof-branch-compare')).toBeVisible();
+
+    await expect
+      .poll(() => analyticsPayloads.map((payload) => payload.event_name))
+      .toEqual(
+        expect.arrayContaining([
+          'reengagement_session',
+          'progress_proof_started',
+          'progress_proof_completed',
+          'progress_compare_viewed',
+        ]),
+      );
+
+    const started = analyticsPayloads.find((payload) => payload.event_name === 'progress_proof_started');
+    const completed = analyticsPayloads.find((payload) => payload.event_name === 'progress_proof_completed');
+    const compareViewed = analyticsPayloads.find((payload) => payload.event_name === 'progress_compare_viewed');
+
+    expect(started?.properties?.source).toBe('weekly_reminder');
+    expect(started?.properties?.reentry_state).toBe('weekly_scan');
+    expect(started?.properties?.surface_state).toBe('progress_proof');
+    expect(started?.properties?.reminder_event_id).toBe('event-1');
+
+    expect(completed?.properties?.source).toBe('weekly_reminder');
+    expect(completed?.properties?.reentry_state).toBe('weekly_scan');
+    expect(completed?.properties?.surface_state).toBe('review_progress');
+    expect(completed?.properties?.reminder_event_id).toBe('event-1');
+
+    expect(compareViewed?.properties?.source).toBe('weekly_reminder');
+    expect(compareViewed?.properties?.reentry_state).toBe('weekly_scan');
+    expect(compareViewed?.properties?.surface_state).toBe('review_progress');
+    expect(compareViewed?.properties?.reminder_event_id).toBe('event-1');
   });
 });

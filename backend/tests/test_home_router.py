@@ -107,6 +107,8 @@ def test_home_summary_defaults_to_plan_setup_for_empty_user():
         summary = _run(get_home_summary({"id": "user-1"}))
 
     assert summary.entry_state == "plan_setup"
+    assert summary.reentry_state == "plan_setup"
+    assert summary.surface_state == "plan_setup"
     assert summary.primary_cta.href == "/goal-planner"
     assert summary.goal_summary.has_saved_plan is False
     assert summary.scan_summary.scan_count == 0
@@ -159,6 +161,8 @@ def test_home_summary_surfaces_weekly_scan_and_progress_context():
         summary = _run(get_home_summary({"id": "user-1"}))
 
     assert summary.entry_state == "weekly_scan"
+    assert summary.reentry_state == "weekly_scan"
+    assert summary.surface_state == "weekly_scan"
     assert summary.goal_summary.gap == 5.5
     assert summary.goal_summary.selected_tier_calories == 2100
     assert summary.scan_summary.prompt_state == "ready"
@@ -199,6 +203,8 @@ def test_home_summary_progress_proof_cta_routes_to_upload_focus():
         summary = _run(get_home_summary({"id": "user-1"}))
 
     assert summary.entry_state == "progress_proof"
+    assert summary.reentry_state == "progress_proof"
+    assert summary.surface_state == "progress_proof"
     assert summary.primary_cta.href == "/progress?tab=photos&focus=upload&from=home_progress_proof"
 
 
@@ -236,6 +242,8 @@ def test_home_summary_review_progress_cta_routes_to_compare_focus():
         summary = _run(get_home_summary({"id": "user-1"}))
 
     assert summary.entry_state == "review_progress"
+    assert summary.reentry_state == "review_progress"
+    assert summary.surface_state == "review_progress"
     assert summary.primary_cta.href == "/progress?tab=photos&focus=compare&from=home_review_progress"
 
 
@@ -252,10 +260,111 @@ def test_home_summary_returns_stub_payload_in_secretless_test_login_mode():
         summary = _run(get_home_summary({"id": "test-user-e2e"}))
 
     assert summary.entry_state == "progress_proof"
+    assert summary.reentry_state == "progress_proof"
+    assert summary.surface_state == "progress_proof"
     assert summary.primary_cta.label == "Upload progress proof"
     assert summary.goal_summary.target_bf == 14.0
     assert summary.scan_summary.scan_count == 3
     assert summary.progress_summary.photo_count == 1
+
+
+def test_home_summary_routes_weekly_reminder_weekly_scan_users_to_upload_first_when_eligible():
+    from app.routers.home import get_home_summary
+    from app.config import settings
+
+    supabase = _FakeSupabase({
+        "user_profiles": [{
+            "user_id": "user-1",
+            "target_body_fat_percentage": 14.0,
+            "goal_image_url": "https://cdn.test/goal.jpg",
+        }],
+        "saved_goal_plans": [{
+            "user_id": "user-1",
+            "updated_at": _iso_days_ago(2),
+            "plan_data": {"goals": {"targetBf": 14}},
+        }],
+        "body_scans": [
+            {
+                "user_id": "user-1",
+                "scan_type": "bodyfat",
+                "created_at": _iso_days_ago(8),
+                "result_data": {"body_fat_percentage": 19.5},
+            },
+            {
+                "user_id": "user-1",
+                "id": "scan-transform-1",
+                "scan_type": "transformation",
+                "created_at": _iso_days_ago(3),
+                "result_data": {"target_bf_reduction": 5},
+                "image_url": "https://cdn.test/transformation.jpg",
+            },
+        ],
+        "progress_photos": [
+            {"user_id": "user-1", "taken_at": _iso_days_ago(1)},
+        ],
+        "seven_day_challenges": [],
+        "seven_day_checkins": [],
+    })
+
+    with (
+        patch("app.routers.home.get_supabase", return_value=supabase),
+        patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True),
+    ):
+        summary = _run(get_home_summary({"id": "user-1"}, source="weekly_reminder"))
+
+    assert summary.entry_state == "weekly_scan"
+    assert summary.reentry_state == "weekly_scan"
+    assert summary.surface_state == "progress_proof"
+    assert summary.primary_cta.href == (
+        "/progress?tab=photos&focus=upload&from=weekly_reminder"
+        "&reentry_state=weekly_scan&surface_state=progress_proof"
+    )
+
+
+def test_home_summary_keeps_weekly_scan_journey_for_ineligible_weekly_reminder_users():
+    from app.routers.home import get_home_summary
+    from app.config import settings
+
+    supabase = _FakeSupabase({
+        "user_profiles": [{
+            "user_id": "user-1",
+            "target_body_fat_percentage": 14.0,
+            "goal_image_url": "https://cdn.test/goal.jpg",
+        }],
+        "saved_goal_plans": [{
+            "user_id": "user-1",
+            "updated_at": _iso_days_ago(2),
+            "plan_data": {"goals": {"targetBf": 14}},
+        }],
+        "body_scans": [
+            {
+                "user_id": "user-1",
+                "scan_type": "bodyfat",
+                "created_at": _iso_days_ago(8),
+                "result_data": {"body_fat_percentage": 19.5},
+            },
+        ],
+        "progress_photos": [
+            {"user_id": "user-1", "taken_at": _iso_days_ago(1)},
+            {"user_id": "user-1", "taken_at": _iso_days_ago(10)},
+        ],
+        "seven_day_challenges": [],
+        "seven_day_checkins": [],
+    })
+
+    with (
+        patch("app.routers.home.get_supabase", return_value=supabase),
+        patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True),
+    ):
+        summary = _run(get_home_summary({"id": "user-1"}, source="weekly_reminder"))
+
+    assert summary.entry_state == "weekly_scan"
+    assert summary.reentry_state == "weekly_scan"
+    assert summary.surface_state == "weekly_scan"
+    assert summary.primary_cta.href == (
+        "/body-scan?tab=journey&from=weekly_reminder"
+        "&reentry_state=weekly_scan&surface_state=weekly_scan#transformation"
+    )
 
 
 def test_retention_event_sink_logs_authenticated_events():

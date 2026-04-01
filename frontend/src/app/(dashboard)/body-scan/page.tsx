@@ -73,6 +73,13 @@ export default function BodyScanPage() {
   const historyTrackedRef = useRef<{ journey: boolean }>({ journey: false });
   const reminderTrackedRef = useRef(false);
 
+  const reminderSource = searchParams.get('from') || undefined;
+  const reminderEventId = searchParams.get('reminder_event_id') || undefined;
+  const reminderReentryState = reminderSource === 'weekly_reminder'
+    ? (searchParams.get('reentry_state') || 'weekly_scan')
+    : undefined;
+  const reminderSurfaceState = searchParams.get('surface_state') || undefined;
+
   const scanCost = isPremium ? 0 : 10;
   const journeyCost = 30;
 
@@ -130,10 +137,14 @@ export default function BodyScanPage() {
     trackRetentionEvent('reengagement_session', {
       surface: 'body_scan_page',
       source: 'weekly_reminder',
-      entry_state: 'weekly_scan',
+      entry_state: reminderReentryState || 'weekly_scan',
+      reentry_state: reminderReentryState || 'weekly_scan',
+      surface_state: reminderSurfaceState || 'weekly_scan',
+      reminder_event_id: reminderEventId,
+      session_id: getRetentionSessionId() || undefined,
       target_tab: activeTab,
     });
-  }, [searchParams, activeTab]);
+  }, [searchParams, activeTab, reminderEventId, reminderReentryState, reminderSurfaceState]);
 
   useEffect(() => {
     if (!journeyResult) return;
@@ -321,8 +332,13 @@ export default function BodyScanPage() {
       const requestData: BodyScanRequest = {
         image_base64: base64,
         scan_type: 'percentile',
-        source: searchParams.get('from') || undefined,
+        source: reminderSource,
         session_id: getRetentionSessionId() || undefined,
+        reminder_event_id: reminderEventId,
+        reentry_state: reminderReentryState,
+        surface_state: reminderSource === 'weekly_reminder'
+          ? (reminderSurfaceState || 'weekly_scan')
+          : undefined,
         gender: formData.gender as 'male' | 'female',
         age: Number(formData.age),
         ethnicity: (formData.ethnicity as string) || 'Other',
@@ -407,6 +423,13 @@ export default function BodyScanPage() {
       const requestData: BodyScanRequest = {
         image_base64: base64,
         scan_type: 'transformation',
+        source: reminderSource,
+        session_id: getRetentionSessionId() || undefined,
+        reminder_event_id: reminderEventId,
+        reentry_state: reminderReentryState,
+        surface_state: reminderSource === 'weekly_reminder'
+          ? (reminderSurfaceState || 'weekly_scan')
+          : undefined,
         gender: formData.gender as 'male' | 'female',
         age: formData.age ? Number(formData.age) : undefined,
         target_bf: Number(formData.target_bf),

@@ -19,6 +19,9 @@ class BodyScanRequest(BaseModel):
     scan_type: str = Field(..., description="bodyfat, percentile, or transformation")
     source: Optional[str] = None
     session_id: Optional[str] = None
+    reminder_event_id: Optional[str] = None
+    reentry_state: Optional[str] = None
+    surface_state: Optional[str] = None
     gender: Optional[str] = None
     age: Optional[int] = None
     ethnicity: Optional[str] = None

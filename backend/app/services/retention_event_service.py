@@ -62,6 +62,21 @@ def _extract_share_token(properties: dict[str, Any]) -> str | None:
     )
 
 
+def _extract_reentry_state(properties: dict[str, Any]) -> str | None:
+    return _coerce_string(
+        properties.get("reentry_state")
+        or properties.get("entry_state")
+    )
+
+
+def _extract_surface_state(properties: dict[str, Any]) -> str | None:
+    return _coerce_string(
+        properties.get("surface_state")
+        or properties.get("entry_state")
+        or properties.get("reentry_state")
+    )
+
+
 def list_funnel_view_rows(
     view_name: str,
     *,
@@ -106,7 +121,10 @@ async def log_retention_event(
         "event_name": event_name,
         "surface": surface,
         "source": _extract_source(normalized_properties),
-        "entry_state": _coerce_string(normalized_properties.get("entry_state")),
+        "entry_state": _extract_reentry_state(normalized_properties),
+        "reentry_state": _extract_reentry_state(normalized_properties),
+        "surface_state": _extract_surface_state(normalized_properties),
+        "event_origin": _coerce_string(normalized_properties.get("event_origin")),
         "session_id": _coerce_string(normalized_properties.get("session_id")),
         "reminder_event_id": _coerce_string(normalized_properties.get("reminder_event_id")),
         "share_id": _coerce_string(normalized_properties.get("share_id")),
@@ -120,6 +138,9 @@ async def log_retention_event(
             "surface": surface,
             "source": event["source"],
             "entry_state": event["entry_state"],
+            "reentry_state": event["reentry_state"],
+            "surface_state": event["surface_state"],
+            "event_origin": event["event_origin"],
             "session_id": event["session_id"],
             "reminder_event_id": event["reminder_event_id"],
             "share_id": event["share_id"],

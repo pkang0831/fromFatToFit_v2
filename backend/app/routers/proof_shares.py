@@ -223,7 +223,10 @@ async def create_proof_share(
             "share_token": share["token"],
             "progress_photo_id": share["progress_photo_id"],
             "week_marker": share.get("week_marker"),
-            "source": "proof_share",
+            "source": body.source or "proof_share",
+            "reentry_state": body.reentry_state,
+            "surface_state": body.surface_state,
+            "reminder_event_id": body.reminder_event_id,
             "session_id": body.session_id,
         },
     )

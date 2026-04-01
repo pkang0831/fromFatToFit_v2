@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowRight,
   CalendarClock,
@@ -41,6 +41,7 @@ function getGreeting() {
 
 export default function HomePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { isPremium } = useSubscription();
 
@@ -53,7 +54,7 @@ export default function HomePage() {
     async function loadHomeSummary() {
       setLoading(true);
       try {
-        const res = await homeApi.getSummary();
+        const res = await homeApi.getSummary(searchParams.get('from') || undefined);
         if (!cancelled) setSummary(res.data);
       } catch {
         if (!cancelled) setSummary(null);
@@ -66,14 +67,17 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (loading || !summary) return;
 
     trackReengagementSession({
       surface: 'home',
+      source: searchParams.get('from') || undefined,
       entry_state: summary.entry_state,
+      reentry_state: summary.reentry_state,
+      surface_state: summary.surface_state,
       has_saved_plan: summary.goal_summary.has_saved_plan,
       has_goal_image: Boolean(summary.goal_summary.goal_image_url),
       has_transformation: Boolean(summary.scan_summary.latest_transformation),
@@ -81,7 +85,7 @@ export default function HomePage() {
       scan_count: summary.scan_summary.scan_count,
       challenge_active: summary.challenge_summary.is_active,
     });
-  }, [loading, summary]);
+  }, [loading, searchParams, summary]);
 
   if (loading) {
     return (

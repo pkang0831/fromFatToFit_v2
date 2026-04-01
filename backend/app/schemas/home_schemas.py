@@ -21,6 +21,7 @@ RetentionEventName = Literal[
     "notification_opened",
     "progress_proof_started",
     "progress_proof_completed",
+    "proof_upload_failed",
     "progress_compare_viewed",
     "progress_checkin_started",
     "progress_checkin_completed",
@@ -81,6 +82,8 @@ class HomePrimaryCta(BaseModel):
 
 class HomeSummaryResponse(BaseModel):
     entry_state: EntryState
+    reentry_state: EntryState
+    surface_state: EntryState
     goal_summary: HomeGoalSummary
     scan_summary: HomeScanSummary
     challenge_summary: HomeChallengeSummary

@@ -105,13 +105,19 @@ def test_log_retention_event_persists_append_only_funnel_row():
                 "source": "proof_share",
                 "share_token": "share-token-1",
                 "session_id": "sess-proof-1",
-                "entry_state": "review_progress",
+                "entry_state": "weekly_scan",
+                "reentry_state": "weekly_scan",
+                "surface_state": "progress_proof",
+                "event_origin": "live",
             },
         ))
 
     assert event["source"] == "proof_share"
     assert event["share_token"] == "share-token-1"
     assert event["session_id"] == "sess-proof-1"
+    assert event["reentry_state"] == "weekly_scan"
+    assert event["surface_state"] == "progress_proof"
+    assert event["event_origin"] == "live"
     assert len(supabase.tables["funnel_events"]) == 1
     row = supabase.tables["funnel_events"][0]
     assert row["user_id"] is None
@@ -120,7 +126,10 @@ def test_log_retention_event_persists_append_only_funnel_row():
     assert row["source"] == "proof_share"
     assert row["session_id"] == "sess-proof-1"
     assert row["share_token"] == "share-token-1"
-    assert row["entry_state"] == "review_progress"
+    assert row["entry_state"] == "weekly_scan"
+    assert row["reentry_state"] == "weekly_scan"
+    assert row["surface_state"] == "progress_proof"
+    assert row["event_origin"] == "live"
 
 
 def test_funnel_summary_endpoints_read_expected_views():
@@ -135,8 +144,20 @@ def test_funnel_summary_endpoints_read_expected_views():
     supabase = _FakeSupabase({
         "analytics_daily_funnel_snapshot": [{"snapshot_date": "2026-03-31", "scan_success_count": 3}],
         "analytics_weekly_cohort_by_source": [{"cohort_week": "2026-03-30", "source": "weekly_reminder", "scan_successes": 2}],
-        "analytics_entry_state_performance": [{"entry_state": "progress_proof", "source": "weekly_reminder", "reengagement_sessions": 4}],
-        "analytics_reminder_open_to_proof": [{"opened_date": "2026-03-31", "reminder_opens": 2, "proof_uploads_after_open": 1}],
+        "analytics_entry_state_performance": [{
+            "entry_state": "weekly_scan",
+            "reentry_state": "weekly_scan",
+            "surface_state": "progress_proof",
+            "source": "weekly_reminder",
+            "reengagement_sessions": 4,
+        }],
+        "analytics_reminder_open_to_proof": [{
+            "opened_date": "2026-03-31",
+            "reentry_state": "weekly_scan",
+            "surface_state": "progress_proof",
+            "reminder_opens": 2,
+            "proof_uploads_after_open": 1,
+        }],
         "analytics_share_view_to_try_to_register": [{"share_token": "share-token-1", "share_views": 5, "try_starts": 2, "register_completions": 1}],
     })
 
@@ -148,10 +169,12 @@ def test_funnel_summary_endpoints_read_expected_views():
     ):
         assert _run(get_daily_funnel_snapshot({"id": "user-1"}))[0]["scan_success_count"] == 3
         assert _run(get_weekly_cohort_by_source({"id": "user-1"}))[0]["source"] == "weekly_reminder"
-        assert _run(get_entry_state_performance({"id": "user-1"}))[0]["entry_state"] == "progress_proof"
+        entry_state_row = _run(get_entry_state_performance({"id": "user-1"}))[0]
         assert _run(get_reminder_open_to_proof({"id": "user-1"}))[0]["proof_uploads_after_open"] == 1
         share_row = _run(get_share_view_to_register({"id": "user-1"}))[0]
 
+    assert entry_state_row["reentry_state"] == "weekly_scan"
+    assert entry_state_row["surface_state"] == "progress_proof"
     assert share_row["register_completions"] == 1
     assert "share_token" not in share_row
     assert share_row["share_token_preview"] == "share-...en-1"
@@ -246,6 +269,9 @@ def test_calculate_body_percentile_logs_scan_success_with_weekly_reminder_contex
                 ethnicity="asian",
                 source="weekly_reminder",
                 session_id="sess-body-1",
+                reminder_event_id="rem-1",
+                reentry_state="weekly_scan",
+                surface_state="progress_proof",
                 ownership_confirmed=True,
             ),
             {"id": "user-1"},
@@ -258,6 +284,9 @@ def test_calculate_body_percentile_logs_scan_success_with_weekly_reminder_contex
     assert log_event.await_args.args[3]["source"] == "weekly_reminder"
     assert log_event.await_args.args[3]["session_id"] == "sess-body-1"
     assert log_event.await_args.args[3]["entry_state"] == "weekly_scan"
+    assert log_event.await_args.args[3]["reentry_state"] == "weekly_scan"
+    assert log_event.await_args.args[3]["surface_state"] == "progress_proof"
+    assert log_event.await_args.args[3]["reminder_event_id"] == "rem-1"
 
 
 def test_proof_loop_analytics_sql_defines_required_views_and_attribution_filters():

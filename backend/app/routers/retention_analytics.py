@@ -14,6 +14,7 @@ CLIENT_CAPTURED_RETENTION_EVENTS = {
     "history_viewed",
     "progress_proof_started",
     "progress_proof_completed",
+    "proof_upload_failed",
     "progress_compare_viewed",
     "progress_checkin_started",
     "progress_checkin_completed",

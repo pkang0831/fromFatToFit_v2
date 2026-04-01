@@ -222,8 +222,10 @@ export const dashboardApi = {
 };
 
 export const homeApi = {
-  getSummary: () =>
-    api.get<HomeSummaryResponse>('/home/summary'),
+  getSummary: (source?: string) =>
+    api.get<HomeSummaryResponse>('/home/summary', {
+      params: source ? { source } : undefined,
+    }),
 };
 
 export const analyticsApi = {
@@ -236,6 +238,7 @@ export const analyticsApi = {
       | 'notification_opened'
       | 'progress_proof_started'
       | 'progress_proof_completed'
+      | 'proof_upload_failed'
       | 'progress_compare_viewed'
       | 'progress_checkin_started'
       | 'progress_checkin_completed'
@@ -373,11 +376,25 @@ export const progressPhotoApi = {
 };
 
 export const proofShareApi = {
-  create: (progressPhotoId: string, weekMarker?: number, sessionId?: string) =>
+  create: (
+    progressPhotoId: string,
+    weekMarker?: number,
+    context?: {
+      sessionId?: string;
+      source?: string;
+      reentryState?: string;
+      surfaceState?: string;
+      reminderEventId?: string;
+    },
+  ) =>
     api.post<ProofShareResponse>('/proof-shares', {
       progress_photo_id: progressPhotoId,
       week_marker: weekMarker,
-      session_id: sessionId,
+      session_id: context?.sessionId,
+      source: context?.source,
+      reentry_state: context?.reentryState,
+      surface_state: context?.surfaceState,
+      reminder_event_id: context?.reminderEventId,
     }),
   getAll: (progressPhotoId?: string) =>
     api.get<ProofShareResponse[]>('/proof-shares', {

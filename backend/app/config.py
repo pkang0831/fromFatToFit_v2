@@ -67,6 +67,7 @@ class Settings(BaseSettings):
     # Weekly proof reminder
     enable_weekly_proof_reminders: bool = False
     weekly_proof_reminder_provider_ready: bool = False
+    weekly_scan_upload_first_handoff_enabled: bool = False
     weekly_proof_reminder_channel: str = "email"
     weekly_proof_reminder_cooldown_hours: int = 144
     weekly_proof_reminder_job_interval_minutes: int = 60
