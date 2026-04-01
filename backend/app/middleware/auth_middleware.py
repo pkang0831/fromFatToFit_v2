@@ -6,6 +6,27 @@ from ..config import settings
 
 logger = logging.getLogger(__name__)
 
+
+def _build_fallback_current_user(user, token: str):
+    meta = user.user_metadata or {}
+    return {
+        "id": user.id,
+        "email": user.email,
+        "access_token": token,
+        "full_name": meta.get("full_name") or meta.get("name") or meta.get("user_name"),
+        "premium_status": False,
+        "height_cm": None,
+        "weight_kg": None,
+        "target_weight_kg": None,
+        "age": None,
+        "gender": None,
+        "ethnicity": None,
+        "activity_level": None,
+        "calorie_goal": None,
+        "stripe_customer_id": None,
+        "onboarding_completed": bool(meta.get("onboarding_completed", False)),
+    }
+
 def _make_auth_client():
     """Ephemeral client used only for auth.get_user() verification,
     so the singleton PostgREST auth state is never polluted."""
@@ -64,7 +85,15 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
             ),
         )
         
-        profile_result = db.table("user_profiles").select("*").eq("user_id", user.id).execute()
+        try:
+            profile_result = db.table("user_profiles").select("*").eq("user_id", user.id).execute()
+        except Exception as profile_error:
+            logger.warning(
+                "Auth middleware profile lookup degraded for user %s: %s",
+                user.id,
+                profile_error,
+            )
+            return _build_fallback_current_user(user, token)
         
         if profile_result.data:
             profile = profile_result.data[0]
@@ -101,27 +130,19 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "created_at": datetime.utcnow().isoformat()
             }
             profile_data = {k: v for k, v in profile_data.items() if v is not None}
-            db.table("user_profiles").insert(profile_data).execute()
+            try:
+                db.table("user_profiles").insert(profile_data).execute()
+            except Exception as profile_insert_error:
+                logger.warning(
+                    "Auth middleware profile autoinsert degraded for user %s: %s",
+                    user.id,
+                    profile_insert_error,
+                )
+                return _build_fallback_current_user(user, token)
             
             logger.info(f"Auto-created profile for user {user.id} (provider: {meta.get('iss', 'email')})")
             
-            return {
-                "id": user.id,
-                "email": user.email,
-                "access_token": token,
-                "full_name": profile_data.get("full_name"),
-                "premium_status": False,
-                "height_cm": None,
-                "weight_kg": None,
-                "target_weight_kg": None,
-                "age": None,
-                "gender": None,
-                "ethnicity": None,
-                "activity_level": None,
-                "calorie_goal": None,
-                "stripe_customer_id": None,
-                "onboarding_completed": False,
-            }
+            return _build_fallback_current_user(user, token)
         
     except HTTPException:
         raise

@@ -362,38 +362,41 @@ async def test_login():
         user = auth_response.user
         session = auth_response.session
         now = datetime.now(timezone.utc).isoformat()
+        profile = {
+            "user_id": user.id,
+            "email": user.email,
+            "full_name": "Denevira E2E",
+            "gender": "male",
+            "age": 30,
+            "height_cm": 180,
+            "weight_kg": 82,
+            "activity_level": "moderate",
+            "premium_status": False,
+            "onboarding_completed": True,
+            "created_at": now,
+        }
 
-        existing = db.table("user_profiles").select("*").eq("user_id", user.id).limit(1).execute()
-        if existing.data:
-            profile = existing.data[0]
-            update_data = {
-                "email": user.email,
-                "full_name": profile.get("full_name") or "Denevira E2E",
-                "gender": profile.get("gender") or "male",
-                "age": profile.get("age") or 30,
-                "height_cm": profile.get("height_cm") or 180,
-                "weight_kg": profile.get("weight_kg") or 82,
-                "activity_level": profile.get("activity_level") or "moderate",
-                "onboarding_completed": True,
-                "updated_at": now,
-            }
-            db.table("user_profiles").update(update_data).eq("user_id", user.id).execute()
-            profile = {**profile, **update_data}
-        else:
-            profile = {
-                "user_id": user.id,
-                "email": user.email,
-                "full_name": "Denevira E2E",
-                "gender": "male",
-                "age": 30,
-                "height_cm": 180,
-                "weight_kg": 82,
-                "activity_level": "moderate",
-                "premium_status": False,
-                "onboarding_completed": True,
-                "created_at": now,
-            }
-            _insert_user_profile_resilient(db, profile)
+        try:
+            existing = db.table("user_profiles").select("*").eq("user_id", user.id).limit(1).execute()
+            if existing.data:
+                persisted_profile = existing.data[0]
+                update_data = {
+                    "email": user.email,
+                    "full_name": persisted_profile.get("full_name") or "Denevira E2E",
+                    "gender": persisted_profile.get("gender") or "male",
+                    "age": persisted_profile.get("age") or 30,
+                    "height_cm": persisted_profile.get("height_cm") or 180,
+                    "weight_kg": persisted_profile.get("weight_kg") or 82,
+                    "activity_level": persisted_profile.get("activity_level") or "moderate",
+                    "onboarding_completed": True,
+                    "updated_at": now,
+                }
+                db.table("user_profiles").update(update_data).eq("user_id", user.id).execute()
+                profile = {**persisted_profile, **update_data}
+            else:
+                _insert_user_profile_resilient(db, profile)
+        except Exception as profile_error:
+            logger.warning("Test login profile bootstrap degraded: %s", profile_error)
 
         return _build_token_response(user, session, profile)
     except HTTPException:

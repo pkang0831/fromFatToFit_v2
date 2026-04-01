@@ -155,6 +155,21 @@ function markPageToured(page: string) {
   } catch {}
 }
 
+function isVisibleElement(node: Element | null): node is HTMLElement {
+  if (!(node instanceof HTMLElement)) return false;
+  const style = window.getComputedStyle(node);
+  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+    return false;
+  }
+  const rect = node.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
+function hasBlockingDialog(): boolean {
+  const candidates = document.querySelectorAll('[role="dialog"], dialog[open], [aria-modal="true"]');
+  return Array.from(candidates).some((node) => isVisibleElement(node));
+}
+
 export function resetAllTours() {
   try {
     localStorage.removeItem(TOURED_PAGES_KEY);
@@ -292,12 +307,27 @@ export function FeatureTour() {
 
     const toured = getTouredPages();
     if (!toured.includes(pathname)) {
+      let cancelledByInteraction = false;
+      const cancelAutoStart = () => {
+        cancelledByInteraction = true;
+      };
       const timer = setTimeout(() => {
+        if (cancelledByInteraction || hasBlockingDialog()) return;
         setCurrentPage(pathname);
         setStep(0);
         setActive(true);
       }, 600);
-      return () => clearTimeout(timer);
+
+      window.addEventListener('pointerdown', cancelAutoStart, { once: true });
+      window.addEventListener('keydown', cancelAutoStart, { once: true });
+      window.addEventListener('touchstart', cancelAutoStart, { once: true });
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('pointerdown', cancelAutoStart);
+        window.removeEventListener('keydown', cancelAutoStart);
+        window.removeEventListener('touchstart', cancelAutoStart);
+      };
     }
   }, [pathname]);
 
@@ -336,6 +366,26 @@ export function FeatureTour() {
       window.removeEventListener('resize', remeasure);
     };
   }, [active, currentStep]);
+
+  // If a modal/dialog opens, yield immediately instead of trapping the page.
+  useEffect(() => {
+    if (!active) return;
+    const observer = new MutationObserver(() => {
+      if (hasBlockingDialog()) {
+        finish();
+      }
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['open', 'style', 'class', 'aria-hidden'],
+    });
+    if (hasBlockingDialog()) {
+      finish();
+    }
+    return () => observer.disconnect();
+  }, [active, finish]);
 
   // Keyboard
   useEffect(() => {

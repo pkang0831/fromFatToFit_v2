@@ -229,3 +229,34 @@ def test_test_login_repairs_existing_user_when_session_is_still_missing():
     auth_client.auth.admin.create_user.assert_called_once()
     auth_client.auth.admin.update_user_by_id.assert_called_once()
     build_response.assert_called_once()
+
+
+def test_test_login_returns_tokens_even_if_profile_bootstrap_fails():
+    from app.routers.auth import test_login
+    from app.config import settings
+
+    auth_client = MagicMock()
+    user = SimpleNamespace(id="user-123", email="e2e@devenira.test")
+    session = SimpleNamespace(access_token="access", refresh_token="refresh", expires_in=3600)
+    auth_client.auth.sign_in_with_password.return_value = SimpleNamespace(user=user, session=session)
+
+    db = MagicMock()
+    query = MagicMock()
+    query.select.return_value = query
+    query.eq.return_value = query
+    query.limit.return_value = query
+    query.execute.side_effect = Exception("temporary profiles outage")
+    db.table.return_value = query
+
+    with (
+        patch.object(settings, "enable_test_login", True),
+        patch.object(settings, "test_login_email", "e2e@devenira.test"),
+        patch.object(settings, "test_login_password", "DeneviraE2E123!"),
+        patch("app.routers.auth.create_client", return_value=auth_client),
+        patch("app.routers.auth.get_supabase", return_value=db),
+    ):
+        response = _run(test_login())
+
+    assert response.access_token == "access"
+    assert response.user.email == "e2e@devenira.test"
+    assert response.user.onboarding_completed is True
