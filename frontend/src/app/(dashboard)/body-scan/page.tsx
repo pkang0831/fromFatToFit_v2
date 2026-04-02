@@ -4,7 +4,7 @@ import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Scan, Crown, Sparkles, Coins, ArrowRight, Dumbbell, Camera } from 'lucide-react';
 import Image from 'next/image';
-import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input, Select } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Button, Badge, Input, Select, ProcessingOverlay, SCAN_STEPS, JOURNEY_STEPS } from '@/components/ui';
 import { WeeklyRescanPrompt } from '@/components/features/WeeklyRescanPrompt';
 import { JourneyResult } from '@/components/features/JourneyResult';
 import { BodyCaptureGuide } from '@/components/features/BodyCaptureGuide';
@@ -568,58 +568,63 @@ export default function BodyScanPage() {
                 </div>
               ) : !scanResult.percentile ? (
                 <div className="space-y-6">
-                  <Image src={scanImage} alt="Selected" width={800} height={600} className="w-full max-h-80 object-contain rounded-lg" unoptimized />
-                  {validatingScan && (
-                    <p className="text-sm text-text-secondary">Checking framing and pose…</p>
+                  {isScanning ? (
+                    <ProcessingOverlay active={isScanning} steps={SCAN_STEPS} />
+                  ) : (
+                    <>
+                      <Image src={scanImage} alt="Selected" width={800} height={600} className="w-full max-h-80 object-contain rounded-lg" unoptimized />
+                      {validatingScan && (
+                        <p className="text-sm text-text-secondary">Checking framing and pose…</p>
+                      )}
+                      <form
+                        key={JSON.stringify(formDefaults)}
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleBodyScan(Object.fromEntries(new FormData(e.currentTarget)));
+                        }}
+                        className="space-y-4"
+                      >
+                        <div className="grid grid-cols-2 gap-4">
+                          <Select name="gender" label="Gender" required defaultValue={formDefaults.gender}>
+                            <option value="">Select...</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                          </Select>
+                          <Input name="age" label="Age" type="number" placeholder="30" defaultValue={formDefaults.age} required />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <Select name="ethnicity" label="Ethnicity" defaultValue={formDefaults.ethnicity || 'Other'}>
+                            <option value="Asian">Asian</option>
+                            <option value="Caucasian">Caucasian</option>
+                            <option value="African">African</option>
+                            <option value="Hispanic">Hispanic</option>
+                            <option value="Other">Other</option>
+                          </Select>
+                          <Input name="height_cm" label="Height (cm)" type="number" placeholder="170" defaultValue={formDefaults.height_cm} />
+                        </div>
+
+                        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <input type="checkbox" id="scanConfirm" checked={photoConfirmed} onChange={(e) => setPhotoConfirmed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
+                            <label htmlFor="scanConfirm" className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer">
+                              I confirm this is my photo or I have permission to upload it. Results are AI approximations, not medical assessments.
+                            </label>
+                          </div>
+                        </div>
+
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="lg"
+                          disabled={!canScan || !photoConfirmed || scanQualityOk !== true || validatingScan}
+                          className="w-full"
+                        >
+                          <Scan className="h-5 w-5 mr-2" />
+                          {scanCost === 0 ? 'Scan (Pro: Free)' : `Scan (${scanCost} credits)`}
+                        </Button>
+                      </form>
+                    </>
                   )}
-                  <form
-                    key={JSON.stringify(formDefaults)}
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleBodyScan(Object.fromEntries(new FormData(e.currentTarget)));
-                    }}
-                    className="space-y-4"
-                  >
-                    <div className="grid grid-cols-2 gap-4">
-                      <Select name="gender" label="Gender" required defaultValue={formDefaults.gender}>
-                        <option value="">Select...</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </Select>
-                      <Input name="age" label="Age" type="number" placeholder="30" defaultValue={formDefaults.age} required />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Select name="ethnicity" label="Ethnicity" defaultValue={formDefaults.ethnicity || 'Other'}>
-                        <option value="Asian">Asian</option>
-                        <option value="Caucasian">Caucasian</option>
-                        <option value="African">African</option>
-                        <option value="Hispanic">Hispanic</option>
-                        <option value="Other">Other</option>
-                      </Select>
-                      <Input name="height_cm" label="Height (cm)" type="number" placeholder="170" defaultValue={formDefaults.height_cm} />
-                    </div>
-
-                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <input type="checkbox" id="scanConfirm" checked={photoConfirmed} onChange={(e) => setPhotoConfirmed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
-                        <label htmlFor="scanConfirm" className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer">
-                          I confirm this is my photo or I have permission to upload it. Results are AI approximations, not medical assessments.
-                        </label>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="lg"
-                      isLoading={isScanning}
-                      disabled={!canScan || !photoConfirmed || scanQualityOk !== true || validatingScan}
-                      className="w-full"
-                    >
-                      <Scan className="h-5 w-5 mr-2" />
-                      {scanCost === 0 ? 'Scan (Pro: Free)' : `Scan (${scanCost} credits)`}
-                    </Button>
-                  </form>
                 </div>
               ) : (
                 /* Combined Result: Body Fat + Percentile */
@@ -789,114 +794,114 @@ export default function BodyScanPage() {
                 </div>
               ) : !journeyResult ? (
                 <div className="space-y-6">
-                  <Image src={journeyImage} alt="Current" width={800} height={600} className="w-full max-h-64 object-contain rounded-lg" unoptimized />
-                  {validatingJourney && (
-                    <p className="text-sm text-text-secondary">Checking framing and pose…</p>
-                  )}
+                  {isGenerating ? (
+                    <ProcessingOverlay active={isGenerating} steps={JOURNEY_STEPS} />
+                  ) : (
+                    <>
+                      <Image src={journeyImage} alt="Current" width={800} height={600} className="w-full max-h-64 object-contain rounded-lg" unoptimized />
+                      {validatingJourney && (
+                        <p className="text-sm text-text-secondary">Checking framing and pose…</p>
+                      )}
 
-                  <form
-                    key={JSON.stringify(formDefaults)}
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleGenerateJourney(Object.fromEntries(new FormData(e.currentTarget)));
-                    }}
-                    className="space-y-6"
-                  >
-                    <div className="grid grid-cols-2 gap-4">
-                      <Select name="gender" label="Gender" required defaultValue={formDefaults.gender}>
-                        <option value="">Select...</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </Select>
-                      <Input name="age" label="Age" type="number" placeholder="30" defaultValue={formDefaults.age} />
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <Input name="weight_kg" label="Weight (kg)" type="number" step="0.1" min="30" max="300" placeholder="75" defaultValue={formDefaults.weight_kg} />
-                      <Input name="height_cm" label="Height (cm)" type="number" step="1" min="120" max="250" placeholder="175" defaultValue={formDefaults.height_cm} />
-                      <Select name="activity_level" label="Activity" defaultValue={formDefaults.activity_level || 'moderate'}>
-                        <option value="sedentary">Sedentary</option>
-                        <option value="light">Light</option>
-                        <option value="moderate">Moderate</option>
-                        <option value="active">Active</option>
-                        <option value="very_active">Very Active</option>
-                      </Select>
-                    </div>
-
-                    {/* Goal Settings */}
-                    <div className="p-4 bg-surfaceAlt rounded-xl border border-border space-y-4">
-                      <h3 className="font-semibold text-text flex items-center gap-2">
-                        <Dumbbell className="h-5 w-5 text-primary" />
-                        Your Goal
-                      </h3>
-                      <Input
-                        name="target_bf"
-                        label="Target Body Fat %"
-                        type="number"
-                        step="0.5"
-                        min="3"
-                        max="45"
-                        placeholder="12"
-                        required
-                      />
-
-                      {/* Muscle Gain per Body Part */}
-                      <div>
-                        <p className="text-sm font-medium text-text mb-3">Muscle Gain by Area (kg)</p>
-                        <div className="grid grid-cols-3 gap-3">
-                          {Object.entries(muscleGains).map(([part, val]) => (
-                            <div key={part}>
-                              <label className="text-xs text-text-secondary capitalize">{part}</label>
-                              <input
-                                type="number"
-                                step="0.5"
-                                min="0"
-                                max="10"
-                                value={val}
-                                onChange={(e) => setMuscleGains(prev => ({ ...prev, [part]: parseFloat(e.target.value) || 0 }))}
-                                className="w-full mt-1 px-3 py-2 bg-surface border border-border rounded-lg text-text text-sm"
-                              />
-                            </div>
-                          ))}
+                      <form
+                        key={JSON.stringify(formDefaults)}
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleGenerateJourney(Object.fromEntries(new FormData(e.currentTarget)));
+                        }}
+                        className="space-y-6"
+                      >
+                        <div className="grid grid-cols-2 gap-4">
+                          <Select name="gender" label="Gender" required defaultValue={formDefaults.gender}>
+                            <option value="">Select...</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                          </Select>
+                          <Input name="age" label="Age" type="number" placeholder="30" defaultValue={formDefaults.age} />
                         </div>
-                        <p className="text-xs text-text-light mt-2">
-                          Total: +{Object.values(muscleGains).reduce((a, b) => a + b, 0).toFixed(1)}kg muscle
-                        </p>
-                      </div>
-                    </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <Input name="weight_kg" label="Weight (kg)" type="number" step="0.1" min="30" max="300" placeholder="75" defaultValue={formDefaults.weight_kg} />
+                          <Input name="height_cm" label="Height (cm)" type="number" step="1" min="120" max="250" placeholder="175" defaultValue={formDefaults.height_cm} />
+                          <Select name="activity_level" label="Activity" defaultValue={formDefaults.activity_level || 'moderate'}>
+                            <option value="sedentary">Sedentary</option>
+                            <option value="light">Light</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="active">Active</option>
+                            <option value="very_active">Very Active</option>
+                          </Select>
+                        </div>
 
-                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <input type="checkbox" id="journeyConfirm" checked={photoConfirmed} onChange={(e) => setPhotoConfirmed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
-                        <label htmlFor="journeyConfirm" className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer">
-                          I confirm this is my photo or I have permission to upload it. AI previews are visualizations, not predictions or guarantees.
-                        </label>
-                      </div>
-                    </div>
+                        {/* Goal Settings */}
+                        <div className="p-4 bg-surfaceAlt rounded-xl border border-border space-y-4">
+                          <h3 className="font-semibold text-text flex items-center gap-2">
+                            <Dumbbell className="h-5 w-5 text-primary" />
+                            Your Goal
+                          </h3>
+                          <Input
+                            name="target_bf"
+                            label="Target Body Fat %"
+                            type="number"
+                            step="0.5"
+                            min="3"
+                            max="45"
+                            placeholder="12"
+                            required
+                          />
 
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="lg"
-                      isLoading={isGenerating}
-                      disabled={!canJourney || !photoConfirmed || journeyQualityOk !== true || validatingJourney}
-                      className="w-full"
-                    >
-                      <Sparkles className="h-5 w-5 mr-2" />
-                      Generate My Journey ({journeyCost} credits)
-                    </Button>
-                    {isGenerating && (
-                      <p className="text-center text-sm text-text-secondary animate-pulse">
-                        Generating 4 stage images + diet &amp; workout plan... this may take up to 2 minutes.
-                      </p>
-                    )}
+                          {/* Muscle Gain per Body Part */}
+                          <div>
+                            <p className="text-sm font-medium text-text mb-3">Muscle Gain by Area (kg)</p>
+                            <div className="grid grid-cols-3 gap-3">
+                              {Object.entries(muscleGains).map(([part, val]) => (
+                                <div key={part}>
+                                  <label className="text-xs text-text-secondary capitalize">{part}</label>
+                                  <input
+                                    type="number"
+                                    step="0.5"
+                                    min="0"
+                                    max="10"
+                                    value={val}
+                                    onChange={(e) => setMuscleGains(prev => ({ ...prev, [part]: parseFloat(e.target.value) || 0 }))}
+                                    className="w-full mt-1 px-3 py-2 bg-surface border border-border rounded-lg text-text text-sm"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-text-light mt-2">
+                              Total: +{Object.values(muscleGains).reduce((a, b) => a + b, 0).toFixed(1)}kg muscle
+                            </p>
+                          </div>
+                        </div>
 
-                    {!canJourney && (
-                      <Button type="button" variant="secondary" onClick={() => router.push('/upgrade')} className="w-full">
-                        <Coins className="h-5 w-5 mr-2" />
-                        Get Credits
-                      </Button>
-                    )}
-                  </form>
+                        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <input type="checkbox" id="journeyConfirm" checked={photoConfirmed} onChange={(e) => setPhotoConfirmed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" />
+                            <label htmlFor="journeyConfirm" className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer">
+                              I confirm this is my photo or I have permission to upload it. AI previews are visualizations, not predictions or guarantees.
+                            </label>
+                          </div>
+                        </div>
+
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="lg"
+                          disabled={!canJourney || !photoConfirmed || journeyQualityOk !== true || validatingJourney}
+                          className="w-full"
+                        >
+                          <Sparkles className="h-5 w-5 mr-2" />
+                          Generate My Journey ({journeyCost} credits)
+                        </Button>
+
+                        {!canJourney && (
+                          <Button type="button" variant="secondary" onClick={() => router.push('/upgrade')} className="w-full">
+                            <Coins className="h-5 w-5 mr-2" />
+                            Get Credits
+                          </Button>
+                        )}
+                      </form>
+                    </>
+                  )}
                 </div>
               ) : (
                 <JourneyResult

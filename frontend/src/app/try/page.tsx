@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Camera, ArrowRight, Lock, Shield, Sparkles, BarChart3, TrendingUp } from 'lucide-react';
+import { ProcessingOverlay, GUEST_SCAN_STEPS } from '@/components/ui/ProcessingOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
 import { guestApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
@@ -314,11 +315,8 @@ export default function TryPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="text-center py-20"
             >
-              <div className="w-16 h-16 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto mb-6" />
-              <p className="text-lg text-white/60">Analyzing your body composition...</p>
-              <p className="text-sm text-white/30 mt-2">This takes 5-15 seconds</p>
+              <ProcessingOverlay active={step === 'analyzing'} steps={GUEST_SCAN_STEPS} dark />
             </motion.div>
           )}
 
