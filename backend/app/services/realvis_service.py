@@ -105,11 +105,11 @@ PRESET_LIBRARY = {
             },
             "goal": {
                 "body_prompt": (
-                    "defined natural abs, lean athletic abdomen, visible defined obliques, "
+                    "visible natural abs, lean athletic abdomen, defined obliques, "
                     "noticeably leaner waist, same chest size, same shoulders, "
                     "realistic motivational transformation, not extreme"
                 ),
-                "strength": 0.46,
+                "strength": 0.42,
             },
         },
     },
@@ -159,10 +159,10 @@ PRESET_LIBRARY = {
             },
             "goal": {
                 "body_prompt": (
-                    "noticeably stronger athletic upper torso, full muscular chest, broad shoulders, "
-                    "well-defined arms, natural lean bulk result, not extreme"
+                    "noticeably stronger athletic upper torso, fuller chest, broader shoulders, "
+                    "stronger arms, natural lean bulk look, not extreme"
                 ),
-                "strength": 0.46,
+                "strength": 0.40,
             },
         },
     },
@@ -212,10 +212,10 @@ PRESET_LIBRARY = {
             },
             "goal": {
                 "body_prompt": (
-                    "lean athletic waist, defined natural ab outline, toned athletic midsection, "
+                    "lean athletic waist, natural ab outline, toned midsection, "
                     "realistic motivational cut result, not extreme"
                 ),
-                "strength": 0.40,
+                "strength": 0.36,
             },
         },
     },
@@ -265,10 +265,10 @@ PRESET_LIBRARY = {
             },
             "goal": {
                 "body_prompt": (
-                    "clearly stronger athletic upper torso, defined toned shoulders and arms, "
-                    "athletic feminine physique, realistic female lean bulk result, not extreme"
+                    "clearly stronger athletic upper torso, toned shoulders and arms, "
+                    "realistic female lean bulk result, not extreme"
                 ),
-                "strength": 0.40,
+                "strength": 0.36,
             },
         },
     },
