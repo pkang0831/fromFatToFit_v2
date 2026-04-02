@@ -126,43 +126,28 @@ export function JourneyResult({ result, originalImage, onReset, journeyPrefill }
         </span>
       </div>
 
-      {/* Before / After comparison */}
+      {/* Before / After comparison — all stage images */}
       <div className="space-y-3">
         <h3 className="font-semibold text-text">Before &amp; After</h3>
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-text-secondary text-center">
-              Now — {result.current_bf.toFixed(1)}% BF
-            </p>
-            <Image
-              src={originalImage}
-              alt="Before"
-              width={400}
-              height={600}
-              className="w-full rounded-lg object-contain max-h-[32rem]"
-              unoptimized
-            />
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-text-secondary text-center">
-              Goal — {result.target_bf.toFixed(1)}% BF
-              {result.total_weeks > 0 && ` (${result.total_weeks} wk)`}
-            </p>
-            {afterImage ? (
-              <Image
-                src={afterImage}
-                alt="After"
-                width={400}
-                height={600}
-                className="w-full rounded-lg object-contain max-h-[32rem]"
-                unoptimized
-              />
-            ) : (
-              <div className="w-full aspect-[3/4] bg-surfaceAlt rounded-lg flex items-center justify-center text-text-light text-sm">
-                Image unavailable
+          {stages
+            .filter((s) => s.image_url)
+            .map((stage) => (
+              <div key={stage.stage_number} className="space-y-2">
+                <p className="text-xs font-medium text-text-secondary text-center">
+                  {stage.label} — {stage.bf_pct.toFixed(1)}% BF
+                  {stage.week > 0 && ` (${stage.week} wk)`}
+                </p>
+                <Image
+                  src={stage.image_url!}
+                  alt={`Stage ${stage.stage_number}`}
+                  width={400}
+                  height={600}
+                  className="w-full rounded-lg object-contain max-h-[32rem]"
+                  unoptimized
+                />
               </div>
-            )}
-          </div>
+            ))}
         </div>
         {afterImage && (
           <ShareButtons imageUrl={afterImage} />
