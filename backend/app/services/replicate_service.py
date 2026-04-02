@@ -185,6 +185,39 @@ async def generate_transformation_image(
 
 REALVIS_MODEL = "pkang0831/realvis-v5-lightning"
 
+_replicate_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_replicate_semaphore() -> asyncio.Semaphore:
+    """Lazy-init semaphore to cap concurrent Replicate requests."""
+    global _replicate_semaphore
+    if _replicate_semaphore is None:
+        _replicate_semaphore = asyncio.Semaphore(4)
+    return _replicate_semaphore
+
+
+_realvis_version_cache: dict[str, tuple[str, float]] = {}
+_REALVIS_VERSION_TTL = 300  # 5 minutes
+
+
+def _get_realvis_version(api_key: str) -> str:
+    """Get model version ID with a 5-minute TTL cache."""
+    import time as _t
+    now = _t.monotonic()
+    cached = _realvis_version_cache.get("version")
+    if cached and (now - cached[1]) < _REALVIS_VERSION_TTL:
+        return cached[0]
+
+    model_url = f"{REPLICATE_MODELS_API}/{REALVIS_MODEL}"
+    model_info = curl_json("GET", model_url, api_key)
+    version_id = (model_info.get("latest_version") or {}).get("id")
+    if not version_id:
+        raise RuntimeError(f"No version found for model {REALVIS_MODEL}")
+
+    _realvis_version_cache["version"] = (version_id, now)
+    logger.info(f"Cached RealVis version: {version_id[:12]}...")
+    return version_id
+
 
 async def run_realvis_img2img(
     image: "Image.Image",
@@ -198,7 +231,27 @@ async def run_realvis_img2img(
     """Run RealVisXL V5.0 Lightning img2img on Replicate.
 
     Uses our custom Cog model with the exact same pipeline as the Colab notebook.
+    Guarded by a semaphore to prevent overwhelming Replicate with concurrent requests.
     """
+    import time as _time
+
+    sem = _get_replicate_semaphore()
+    async with sem:
+        return await _run_realvis_img2img_inner(
+            image, prompt, negative_prompt, strength,
+            num_inference_steps, guidance_scale, seed,
+        )
+
+
+async def _run_realvis_img2img_inner(
+    image: "Image.Image",
+    prompt: str,
+    negative_prompt: str,
+    strength: float,
+    num_inference_steps: int,
+    guidance_scale: float,
+    seed: int,
+) -> "Image.Image":
     import time as _time
 
     api_key = get_replicate_api_key()
@@ -216,11 +269,7 @@ async def run_realvis_img2img(
         f"cfg={guidance_scale} seed={seed}"
     )
 
-    model_url = f"{REPLICATE_MODELS_API}/{REALVIS_MODEL}"
-    model_info = curl_json("GET", model_url, api_key)
-    version_id = (model_info.get("latest_version") or {}).get("id")
-    if not version_id:
-        raise RuntimeError(f"No version found for model {REALVIS_MODEL}")
+    version_id = _get_realvis_version(api_key)
 
     payload = {
         "version": version_id,

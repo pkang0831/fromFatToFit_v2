@@ -435,6 +435,11 @@ export interface StageDescriptor {
   overall: string;
 }
 
+export interface StageNutritionSnapshot {
+  daily_calories: number;
+  protein_g: number;
+}
+
 export interface TransformationStage {
   stage_number: number;
   label: string;
@@ -446,6 +451,8 @@ export interface TransformationStage {
   body_state: StageDescriptor;
   image_url?: string;
   warnings: string[];
+  stage_nutrition?: StageNutritionSnapshot;
+  stage_exercises?: string[];
 }
 
 export interface NutritionPlanResponse {

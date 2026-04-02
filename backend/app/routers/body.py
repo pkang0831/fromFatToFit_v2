@@ -10,7 +10,8 @@ from ..schemas.body_schemas import (
     RegionTransformRequest, RegionTransformResponse,
     GapToGoalResponse, ScanHistoryPoint, SaveGoalRequest,
     TransformationJourneyResponse, TransformationStageResponse,
-    StageDescriptorResponse, NutritionPlanResponse, WorkoutPlanResponse,
+    StageDescriptorResponse, StageNutritionSnapshotResponse,
+    NutritionPlanResponse, WorkoutPlanResponse,
     AutoSegmentRequest, AutoSegmentResponse, SegClassInfo, CandidateSegmentInfo,
     CutEditPrepRequest, CutEditPrepResponse,
     CutWarpPreviewRequest, CutWarpPreviewResponse,
@@ -616,6 +617,13 @@ async def generate_transformation_journey(
                 ),
                 image_url=stage_image,
                 warnings=s.warnings,
+                stage_nutrition=(
+                    StageNutritionSnapshotResponse(
+                        daily_calories=s.stage_nutrition.daily_calories,
+                        protein_g=s.stage_nutrition.protein_g,
+                    ) if s.stage_nutrition else None
+                ),
+                stage_exercises=s.stage_exercises or [],
             ))
 
         nutrition_out = NutritionPlanResponse(

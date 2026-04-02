@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { Zap, Scale, Activity, ChevronRight } from 'lucide-react';
+import { Zap, Scale, Activity, ChevronRight, ArrowRight } from 'lucide-react';
 import { Card, CardContent, Button } from '@/components/ui';
 import { challengeApi } from '@/lib/api/services';
 import { trackRetentionEvent } from '@/lib/analytics';
@@ -193,6 +193,27 @@ export default function ChallengePage() {
                 <p className="text-sm text-text-secondary leading-relaxed">
                   {(week_one_compare as { message?: string }).message}
                 </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {day_index >= 7 && checkins.length >= 7 && (
+            <Card>
+              <CardContent className="p-6 space-y-4 text-center">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">7-Day Loop Complete</p>
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  You&apos;ve built the habit. Keep the momentum going with weekly body scans and progress tracking.
+                </p>
+                <Link href="/progress">
+                  <Button type="button" variant="primary" className="w-full">
+                    Continue with weekly check-ins <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+                <Link href="/body-scan">
+                  <Button type="button" variant="outline" className="w-full">
+                    New body scan
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           )}

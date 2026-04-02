@@ -1128,6 +1128,15 @@ async def run_weekly_proof_reminder_job(now: datetime | None = None) -> Dict[str
                         "last_provider_event_type": "email.sent",
                     },
                 )
+                try:
+                    await send_push_notification(
+                        candidate["user_id"],
+                        candidate["subject"],
+                        candidate["body"],
+                        {"action": "weekly_proof", "path": candidate["next_path"]},
+                    )
+                except Exception as push_exc:
+                    logger.warning("Push notification failed for %s: %s", candidate["user_id"], push_exc)
                 await log_retention_event(
                     candidate["user_id"],
                     "notification_sent",

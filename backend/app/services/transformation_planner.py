@@ -15,6 +15,7 @@ from .transformation_types import (
     BodyStateDescriptor,
     TransformationStage,
     TransformationPlan,
+    StageNutritionSnapshot,
 )
 from .transformation_prompts import render_stage_prompt
 from .nutrition_planner import build_nutrition_plan
@@ -314,6 +315,51 @@ def _build_stages(
     return stages
 
 
+# ── 5b. Enrich stages with per-stage nutrition & exercise snapshots ────────
+
+_CUT_EXERCISES = [
+    "Barbell Squat", "Romanian Deadlift", "Bench Press", "Overhead Press",
+    "Barbell Row", "Pull-ups", "Dumbbell Curl", "Tricep Pushdown",
+]
+_BULK_EXERCISES = [
+    "Barbell Squat", "Conventional Deadlift", "Bench Press", "Overhead Press",
+    "Barbell Row", "Weighted Pull-ups", "Barbell Curl", "Skull Crushers",
+]
+
+_STAGE_EXERCISE_COUNTS = {0: 0, 1: 6, 2: 6, 3: 5, 4: 4}
+
+
+def _enrich_stages(
+    stages: list[TransformationStage],
+    nutrition: "NutritionPlan",
+    workout: "WorkoutPlan",
+    mode: TransformationMode,
+) -> None:
+    """Add per-stage nutrition snapshots and top exercises to each stage."""
+    base_cals = nutrition.daily_calories
+    base_protein = nutrition.protein_g
+    is_cutting = mode in (TransformationMode.CUT, TransformationMode.RECOMP)
+    exercises = _CUT_EXERCISES if is_cutting else _BULK_EXERCISES
+
+    for stage in stages:
+        sn = stage.stage_number
+        if sn == 0:
+            continue
+
+        if is_cutting:
+            cal_adjust = -(sn - 1) * 50
+        else:
+            cal_adjust = (sn - 1) * 25
+
+        stage.stage_nutrition = StageNutritionSnapshot(
+            daily_calories=base_cals + cal_adjust,
+            protein_g=base_protein,
+        )
+
+        count = _STAGE_EXERCISE_COUNTS.get(sn, 4)
+        stage.stage_exercises = exercises[:count]
+
+
 # ── 6. Top-level entry point ───────────────────────────────────────────────
 
 _DISCLAIMER = (
@@ -403,6 +449,8 @@ def build_plan(
         activity_level=activity_level or "moderate",
         total_weeks=timeline,
     )
+
+    _enrich_stages(stages, nutrition, workout, mode)
 
     return TransformationPlan(
         mode=mode,

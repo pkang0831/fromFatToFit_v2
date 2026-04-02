@@ -196,11 +196,23 @@ export function JourneyResult({ result, originalImage, onReset, journeyPrefill }
                     </div>
                   )}
 
-                  {(nutritionNote || workoutNote) && (
-                    <div className="border-t border-border pt-2 space-y-1">
+                  {(nutritionNote || workoutNote || stage.stage_nutrition || stage.stage_exercises?.length) && (
+                    <div className="border-t border-border pt-2 space-y-1.5">
                       <p className="text-[10px] font-medium uppercase tracking-wider text-text-light">
                         What it takes
                       </p>
+
+                      {stage.stage_nutrition && (
+                        <div className="flex gap-3 text-[11px]">
+                          <span className="px-1.5 py-0.5 rounded bg-surface text-text font-medium">
+                            {stage.stage_nutrition.daily_calories} kcal
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded bg-surface text-text font-medium">
+                            {stage.stage_nutrition.protein_g}g protein
+                          </span>
+                        </div>
+                      )}
+
                       {nutritionNote && (
                         <p className="text-[11px] text-text-secondary leading-snug">
                           <span className="font-medium text-text">Nutrition:</span> {nutritionNote}
@@ -210,6 +222,13 @@ export function JourneyResult({ result, originalImage, onReset, journeyPrefill }
                         <p className="text-[11px] text-text-secondary leading-snug">
                           <span className="font-medium text-text">Training:</span> {workoutNote}
                         </p>
+                      )}
+
+                      {stage.stage_exercises && stage.stage_exercises.length > 0 && (
+                        <div className="text-[11px] text-text-secondary leading-snug">
+                          <span className="font-medium text-text">Exercises:</span>{' '}
+                          {stage.stage_exercises.join(', ')}
+                        </div>
                       )}
                     </div>
                   )}

@@ -333,6 +333,11 @@ class StageDescriptorResponse(BaseModel):
     overall: str
 
 
+class StageNutritionSnapshotResponse(BaseModel):
+    daily_calories: int
+    protein_g: int
+
+
 class TransformationStageResponse(BaseModel):
     stage_number: int
     label: str
@@ -344,6 +349,8 @@ class TransformationStageResponse(BaseModel):
     body_state: StageDescriptorResponse
     image_url: Optional[str] = None
     warnings: List[str] = []
+    stage_nutrition: Optional[StageNutritionSnapshotResponse] = None
+    stage_exercises: List[str] = []
 
 
 class NutritionPlanResponse(BaseModel):

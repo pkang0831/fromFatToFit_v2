@@ -488,6 +488,89 @@ def select_preset_key(gender: str, mode: TransformationMode) -> str:
 
 # ── Main pipeline ────────────────────────────────────────────────────────────
 
+async def _process_single_stage(
+    stage_number: int,
+    preset: dict,
+    backend: dict,
+    crop_bundle: CropBundle,
+    source_img: Image.Image,
+    family_seed: int,
+    run_img2img,
+) -> dict | None:
+    """Process one stage (shape pass + polish pass + composite). Runs independently."""
+    stage_name = STAGE_MAP.get(stage_number)
+    if not stage_name or stage_name not in preset["stages"]:
+        logger.warning(f"Unknown stage_number {stage_number}, skipping")
+        return None
+
+    stage_info = preset["stages"][stage_name]
+    t0 = time.monotonic()
+
+    shape_prompt = make_stage_prompt(preset, stage_info)
+    shape_strength = stage_info["strength"]
+    shape_steps, shape_eff = choose_safe_steps(
+        backend["steps"], shape_strength,
+        min_effective_steps=backend["min_effective_steps"],
+        max_step_multiplier=backend["max_step_multiplier"],
+    )
+
+    logger.info(
+        f"[realvis:{stage_name}:shape] seed={family_seed} strength={shape_strength:.2f} "
+        f"steps={shape_steps} eff={shape_eff}"
+    )
+
+    pass1_img = await run_img2img(
+        image=crop_bundle.gen_source,
+        prompt=shape_prompt,
+        negative_prompt=preset["common_neg"],
+        strength=shape_strength,
+        num_inference_steps=shape_steps,
+        guidance_scale=backend["cfg"],
+        seed=family_seed,
+    )
+
+    final_gen = pass1_img
+
+    sp = backend["second_pass"]
+    if sp["enabled"]:
+        stage_idx = stage_number - 1
+        pass2_seed = family_seed + 1000 + stage_idx
+        polish_prompt = make_polish_prompt(preset, stage_info)
+        polish_steps, polish_eff = choose_safe_steps(
+            sp["steps"], sp["strength"],
+            min_effective_steps=sp["min_effective_steps"],
+            max_step_multiplier=sp["max_step_multiplier"],
+        )
+
+        logger.info(
+            f"[realvis:{stage_name}:polish] seed={pass2_seed} strength={sp['strength']:.2f} "
+            f"steps={polish_steps} eff={polish_eff}"
+        )
+
+        final_gen = await run_img2img(
+            image=pass1_img,
+            prompt=polish_prompt,
+            negative_prompt=preset["common_neg"],
+            strength=sp["strength"],
+            num_inference_steps=polish_steps,
+            guidance_scale=sp["cfg"],
+            seed=pass2_seed,
+        )
+
+    final_full, _ = composite_crop_back(final_gen, crop_bundle, source_img, feather=CROP_BLEND_FEATHER)
+
+    latency_ms = round((time.monotonic() - t0) * 1000, 1)
+    logger.info(f"[realvis:{stage_name}] completed in {latency_ms}ms")
+
+    final_b64 = pil_to_base64(final_full)
+    return {
+        "stage_number": stage_number,
+        "stage_name": stage_name,
+        "image_data_uri": f"data:image/jpeg;base64,{final_b64}",
+        "latency_ms": latency_ms,
+    }
+
+
 async def generate_realvis_journey(
     image_base64: str,
     gender: str,
@@ -495,10 +578,11 @@ async def generate_realvis_journey(
     user_id: str = "",
     stage_numbers: list[int] | None = None,
 ) -> list[dict]:
-    """Generate transformation images for all requested stages.
+    """Generate transformation images for all requested stages in parallel.
 
     Returns a list of dicts: [{stage_number, stage_name, image_data_uri, latency_ms}, ...]
     """
+    import asyncio
     from .replicate_service import run_realvis_img2img
 
     if stage_numbers is None:
@@ -517,82 +601,20 @@ async def generate_realvis_journey(
     case_id = f"{user_id}_{int(time.time())}"
     family_seed = stable_case_seed(case_id)
 
-    results: list[dict] = []
+    t_total = time.monotonic()
 
-    for stage_number in stage_numbers:
-        stage_name = STAGE_MAP.get(stage_number)
-        if not stage_name or stage_name not in preset["stages"]:
-            logger.warning(f"Unknown stage_number {stage_number}, skipping")
-            continue
-
-        stage_info = preset["stages"][stage_name]
-        t0 = time.monotonic()
-
-        # Pass 1: shape
-        shape_prompt = make_stage_prompt(preset, stage_info)
-        shape_strength = stage_info["strength"]
-        shape_steps, shape_eff = choose_safe_steps(
-            backend["steps"], shape_strength,
-            min_effective_steps=backend["min_effective_steps"],
-            max_step_multiplier=backend["max_step_multiplier"],
+    raw_results = await asyncio.gather(*[
+        _process_single_stage(
+            sn, preset, backend, crop_bundle, source_img,
+            family_seed, run_realvis_img2img,
         )
+        for sn in stage_numbers
+    ])
 
-        logger.info(
-            f"[realvis:{stage_name}:shape] seed={family_seed} strength={shape_strength:.2f} "
-            f"steps={shape_steps} eff={shape_eff}"
-        )
+    results = [r for r in raw_results if r is not None]
+    results.sort(key=lambda r: r["stage_number"])
 
-        pass1_img = await run_realvis_img2img(
-            image=crop_bundle.gen_source,
-            prompt=shape_prompt,
-            negative_prompt=preset["common_neg"],
-            strength=shape_strength,
-            num_inference_steps=shape_steps,
-            guidance_scale=backend["cfg"],
-            seed=family_seed,
-        )
-
-        final_gen = pass1_img
-
-        # Pass 2: polish
-        sp = backend["second_pass"]
-        if sp["enabled"]:
-            stage_idx = stage_number - 1
-            pass2_seed = family_seed + 1000 + stage_idx
-            polish_prompt = make_polish_prompt(preset, stage_info)
-            polish_steps, polish_eff = choose_safe_steps(
-                sp["steps"], sp["strength"],
-                min_effective_steps=sp["min_effective_steps"],
-                max_step_multiplier=sp["max_step_multiplier"],
-            )
-
-            logger.info(
-                f"[realvis:{stage_name}:polish] seed={pass2_seed} strength={sp['strength']:.2f} "
-                f"steps={polish_steps} eff={polish_eff}"
-            )
-
-            final_gen = await run_realvis_img2img(
-                image=pass1_img,
-                prompt=polish_prompt,
-                negative_prompt=preset["common_neg"],
-                strength=sp["strength"],
-                num_inference_steps=polish_steps,
-                guidance_scale=sp["cfg"],
-                seed=pass2_seed,
-            )
-
-        # Composite back into original
-        final_full, _ = composite_crop_back(final_gen, crop_bundle, source_img, feather=CROP_BLEND_FEATHER)
-
-        latency_ms = round((time.monotonic() - t0) * 1000, 1)
-        logger.info(f"[realvis:{stage_name}] completed in {latency_ms}ms")
-
-        final_b64 = pil_to_base64(final_full)
-        results.append({
-            "stage_number": stage_number,
-            "stage_name": stage_name,
-            "image_data_uri": f"data:image/jpeg;base64,{final_b64}",
-            "latency_ms": latency_ms,
-        })
+    total_ms = round((time.monotonic() - t_total) * 1000, 1)
+    logger.info(f"[realvis:journey] all {len(results)} stages completed in {total_ms}ms (parallel)")
 
     return results

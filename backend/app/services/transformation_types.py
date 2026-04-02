@@ -46,6 +46,12 @@ class BodyStateDescriptor:
 
 
 @dataclass
+class StageNutritionSnapshot:
+    """Per-stage calorie/protein target."""
+    daily_calories: int
+    protein_g: int
+
+@dataclass
 class TransformationStage:
     stage_number: int
     label: str
@@ -57,6 +63,8 @@ class TransformationStage:
     body_state: BodyStateDescriptor
     prompt: str
     warnings: list[str] = field(default_factory=list)
+    stage_nutrition: Optional[StageNutritionSnapshot] = None
+    stage_exercises: list[str] = field(default_factory=list)
 
 
 @dataclass
