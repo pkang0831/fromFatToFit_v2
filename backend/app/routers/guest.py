@@ -1,5 +1,6 @@
 """Guest endpoints — no authentication required, IP-rate-limited."""
 
+import hashlib
 import time
 
 from fastapi import APIRouter, HTTPException, status
@@ -13,11 +14,75 @@ from ..schemas.body_schemas import (
     BodyPhotoQualityResponse,
 )
 from ..rate_limit import limiter
+from ..database import get_supabase
 from ..services.body_photo_quality import analyze_body_photo_quality
 from .body import estimate_body_fat_with_fallback, _require_safe_body_photo
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+GUEST_SCAN_LIFETIME_LIMIT = 2
+
+
+def _build_fingerprint(request: Request) -> str:
+    """Build a rough browser fingerprint from request headers."""
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "")
+    lang = request.headers.get("accept-language", "")
+    raw = f"{ip}|{ua}|{lang}"
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def _hash_ip(request: Request) -> str:
+    ip = request.client.host if request.client else "unknown"
+    return hashlib.sha256(ip.encode()).hexdigest()
+
+
+async def _check_guest_scan_limit(request: Request) -> None:
+    """Enforce lifetime scan cap per fingerprint via Supabase."""
+    fp = _build_fingerprint(request)
+    ip_h = _hash_ip(request)
+
+    try:
+        supabase = get_supabase()
+        result = supabase.table("guest_scan_usage").select("scan_count").eq("fingerprint_hash", fp).execute()
+
+        if result.data:
+            count = result.data[0]["scan_count"]
+            if count >= GUEST_SCAN_LIFETIME_LIMIT:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=f"Free scan limit reached ({GUEST_SCAN_LIFETIME_LIMIT} scans). Create a free account for more scans and to track your progress over time.",
+                )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning("guest_scan_usage check failed (allowing scan): %s", e)
+
+
+async def _record_guest_scan(request: Request) -> None:
+    """Increment the guest scan counter after a successful scan."""
+    fp = _build_fingerprint(request)
+    ip_h = _hash_ip(request)
+
+    try:
+        supabase = get_supabase()
+        result = supabase.table("guest_scan_usage").select("id, scan_count").eq("fingerprint_hash", fp).execute()
+
+        if result.data:
+            row = result.data[0]
+            supabase.table("guest_scan_usage").update({
+                "scan_count": row["scan_count"] + 1,
+                "last_scan_at": "now()",
+            }).eq("id", row["id"]).execute()
+        else:
+            supabase.table("guest_scan_usage").insert({
+                "ip_hash": ip_h,
+                "fingerprint_hash": fp,
+                "scan_count": 1,
+            }).execute()
+    except Exception as e:
+        logger.warning("guest_scan_usage record failed: %s", e)
 
 
 def _bf_category_and_insight(bf: float, gender: str) -> tuple[str, str]:
@@ -104,12 +169,15 @@ async def guest_validate_photo(request: Request, body: BodyPhotoQualityRequest):
 
 
 @router.post("/body-scan", response_model=GuestScanResponse)
-@limiter.limit("3/day")
+@limiter.limit("1/day")
 async def guest_body_scan(request: Request, scan_request: GuestScanRequest):
     """
     Free body-fat estimate — no account required.
-    Limited to 3 scans per day per IP.  Result is not stored.
+    Limited to 1 scan per day per IP + 2 lifetime scans per fingerprint.
+    Returns a BF% range (not exact) to incentivize registration.
     """
+    await _check_guest_scan_limit(request)
+
     try:
         await _require_safe_body_photo(
             scan_request.image_base64,
@@ -131,11 +199,19 @@ async def guest_body_scan(request: Request, scan_request: GuestScanRequest):
         confidence = analysis.get("confidence", "medium")
         category, insight = _bf_category_and_insight(bf, scan_request.gender)
 
+        # Return a rounded range instead of exact BF% to gate precision behind signup
+        range_low = round(bf - 2.5)
+        range_high = round(bf + 2.5)
+
+        await _record_guest_scan(request)
+
         return GuestScanResponse(
-            body_fat_percentage=bf,
+            body_fat_percentage=round(bf),
             confidence=confidence,
             category=category,
             insight=insight,
+            body_fat_range_low=max(range_low, 3),
+            body_fat_range_high=min(range_high, 50),
         )
 
     except HTTPException:

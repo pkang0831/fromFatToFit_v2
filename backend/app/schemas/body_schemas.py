@@ -296,10 +296,12 @@ class BodyPhotoQualityResponse(BaseModel):
 
 
 class GuestScanResponse(BaseModel):
-    body_fat_percentage: float
+    body_fat_percentage: float = Field(description="Rounded BF% (approximate). Create an account for exact measurement.")
     confidence: str
     category: str
     insight: str
+    body_fat_range_low: float = Field(default=0, description="Lower bound of estimated BF% range")
+    body_fat_range_high: float = Field(default=0, description="Upper bound of estimated BF% range")
 
 
 class UserProfileUpdate(BaseModel):

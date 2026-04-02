@@ -23,6 +23,8 @@ interface ScanResult {
   confidence: string;
   category: string;
   insight: string;
+  body_fat_range_low?: number;
+  body_fat_range_high?: number;
 }
 
 function ConfidenceColor(confidence: string) {
@@ -330,15 +332,27 @@ export default function TryPage() {
               transition={{ duration: 0.5 }}
               className="space-y-8"
             >
-              {/* Body Fat Result */}
+              {/* Body Fat Result — show range, exact is gated */}
               <div className="text-center p-8 rounded-2xl bg-white/[0.02] border border-white/[0.08]">
-                <p className="text-sm text-white/40 mb-2 uppercase tracking-wider">Estimated Body Fat</p>
-                <p className="text-7xl font-bold gradient-text mb-3">
-                  {result.body_fat_percentage.toFixed(1)}%
-                </p>
+                <p className="text-sm text-white/40 mb-2 uppercase tracking-wider">Estimated Body Fat Range</p>
+                {result.body_fat_range_low && result.body_fat_range_high ? (
+                  <p className="text-6xl font-bold gradient-text mb-3">
+                    {result.body_fat_range_low}–{result.body_fat_range_high}%
+                  </p>
+                ) : (
+                  <p className="text-6xl font-bold gradient-text mb-3">
+                    {Math.round(result.body_fat_percentage - 2.5)}–{Math.round(result.body_fat_percentage + 2.5)}%
+                  </p>
+                )}
                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${ConfidenceColor(result.confidence)}`}>
                   {result.confidence} confidence
                 </span>
+                <div className="mt-4 p-3 rounded-xl bg-primary/[0.08] border border-primary/20">
+                  <Lock className="w-4 h-4 text-primary/60 mx-auto mb-1" />
+                  <p className="text-xs text-primary/80">
+                    Create a free account to see your exact body fat %
+                  </p>
+                </div>
               </div>
 
               {/* Category & Insight */}
@@ -360,25 +374,23 @@ export default function TryPage() {
                 Visual estimate, not a medical measurement. Always consult a healthcare professional.
               </p>
 
-              {/* ===== LOCKED: Transformation Preview ===== */}
+              {/* ===== LOCKED: Features behind signup ===== */}
               <div className="relative rounded-2xl overflow-hidden">
                 <div className="p-10 bg-gradient-to-br from-primary/[0.06] to-secondary/[0.06] border border-white/[0.08] rounded-2xl text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mx-auto mb-6">
-                    <Lock className="w-8 h-8 text-white/20" />
-                  </div>
                   <h3 className="text-xl font-semibold text-white mb-2">
-                    Your Transformation Preview
+                    Save This Scan &amp; Track Your Progress
                   </h3>
-                  <p className="text-white/40 max-w-md mx-auto mb-8 leading-relaxed">
-                    Create a free account to save your scan, start your weekly tracking loop,
-                    and unlock AI goal previews when you upgrade.
+                  <p className="text-white/40 max-w-md mx-auto mb-6 leading-relaxed">
+                    This result disappears when you leave. Create a free account to save it,
+                    get your exact body fat %, and start tracking weekly changes.
                   </p>
 
-                  <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-8">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg mx-auto mb-8">
                     {[
-                      { icon: Sparkles, label: 'AI body preview' },
+                      { icon: Lock, label: 'Exact BF%' },
+                      { icon: BarChart3, label: 'Percentile ranking' },
                       { icon: TrendingUp, label: 'Weekly tracking' },
-                      { icon: BarChart3, label: 'Gap-to-goal data' },
+                      { icon: Sparkles, label: 'AI goal preview' },
                     ].map(({ icon: Icon, label }) => (
                       <div key={label} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                         <Icon className="w-5 h-5 text-primary/60 mx-auto mb-2" />
@@ -396,8 +408,34 @@ export default function TryPage() {
                   </Link>
 
                   <p className="text-xs text-white/20 mt-4">
-                    Free plan includes 1 body scan per month. AI goal previews require Pro or a paid credit pack.
+                    Free plan includes 3 body scans in your first month. No credit card required.
                   </p>
+                </div>
+              </div>
+
+              {/* Weekly tracking value prop */}
+              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.08]">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white">One scan is a number. Weekly scans are proof.</p>
+                  </div>
+                </div>
+                <div className="space-y-3 text-sm text-white/50">
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-0.5">Week 1</span>
+                    <span>Your starting point — save it.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-0.5">Week 4</span>
+                    <span>See your body fat trending down, side-by-side.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-emerald-400 mt-0.5">Week 8</span>
+                    <span>A visual timeline that proves your work paid off.</span>
+                  </div>
                 </div>
               </div>
 

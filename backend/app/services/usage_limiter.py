@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 FREE_MONTHLY_CREDITS = 10
 PRO_MONTHLY_CREDITS = 100
 
-# Feature usage limits for free tier
+# Feature usage limits for free tier (after first month)
 USAGE_LIMITS = {
     "food_scan": 5,
     "body_fat_scan": 1,
@@ -16,6 +16,17 @@ USAGE_LIMITS = {
     "form_check": 0,  # Premium only
     "transformation": 0  # Premium only
 }
+
+# Boosted limits for first 30 days after signup
+FIRST_MONTH_USAGE_LIMITS = {
+    "food_scan": 10,
+    "body_fat_scan": 3,
+    "percentile_scan": 3,
+    "form_check": 0,
+    "transformation": 0
+}
+
+FIRST_MONTH_DAYS = 30
 
 
 class UsageLimitExceeded(Exception):
@@ -163,58 +174,65 @@ async def add_credits(user_id: str, amount: int, credit_type: str = "bonus") -> 
     }
 
 
+async def _is_first_month(user_id: str) -> bool:
+    """Check if user signed up within the last FIRST_MONTH_DAYS days."""
+    try:
+        supabase = get_supabase()
+        result = supabase.table("user_profiles").select("created_at").eq("id", user_id).execute()
+        if not result.data:
+            return False
+        created_str = result.data[0].get("created_at")
+        if not created_str:
+            return False
+        created = datetime.fromisoformat(created_str.replace("Z", "+00:00"))
+        return (datetime.now(timezone.utc) - created).days < FIRST_MONTH_DAYS
+    except Exception as e:
+        logger.warning("Failed to check account age for first-month boost: %s", e)
+        return False
+
+
 async def check_usage_limit(user_id: str, feature_type: str, is_premium: bool = False) -> Dict[str, Any]:
     """
-    Check if user has remaining usage for a feature
-    
-    Args:
-        user_id: User's ID
-        feature_type: Type of feature (food_scan, body_fat_scan, etc.)
-        is_premium: Whether user has premium subscription
-        
-    Returns:
-        Dictionary with usage info
-        
-    Raises:
-        UsageLimitExceeded: If limit is reached
+    Check if user has remaining usage for a feature.
+    Free users get boosted limits during their first 30 days.
     """
     try:
-        # Premium users have unlimited access
         if is_premium:
             return {
                 "allowed": True,
                 "current_count": 0,
-                "limit": -1,  # Unlimited
+                "limit": -1,
                 "remaining": -1
             }
-        
-        # Get feature limit
-        limit = USAGE_LIMITS.get(feature_type, 0)
-        
-        if limit == 0:
+
+        base_limit = USAGE_LIMITS.get(feature_type, 0)
+
+        if base_limit == 0:
             raise UsageLimitExceeded(f"{feature_type} requires premium subscription")
-        
-        # Query current usage from database
+
+        # Check if user qualifies for first-month boosted limits
+        first_month_limit = FIRST_MONTH_USAGE_LIMITS.get(feature_type, base_limit)
+        if first_month_limit > base_limit and await _is_first_month(user_id):
+            limit = first_month_limit
+        else:
+            limit = base_limit
+
         supabase = get_supabase()
         result = supabase.table("usage_limits").select("*").eq("user_id", user_id).eq("feature_type", feature_type).execute()
-        
-        if result.data:
-            current_count = result.data[0]["count"]
-        else:
-            current_count = 0
-        
+
+        current_count = result.data[0]["count"] if result.data else 0
         remaining = limit - current_count
-        
+
         if remaining <= 0:
             raise UsageLimitExceeded(f"Usage limit exceeded for {feature_type}. Upgrade to premium for unlimited access.")
-        
+
         return {
             "allowed": True,
             "current_count": current_count,
             "limit": limit,
             "remaining": remaining
         }
-        
+
     except UsageLimitExceeded:
         raise
     except Exception as e:
