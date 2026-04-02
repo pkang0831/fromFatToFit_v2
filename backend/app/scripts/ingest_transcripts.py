@@ -24,7 +24,7 @@ SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
-TRANSCRIPTS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "openai_transcripts_markdown"
+TRANSCRIPTS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "marketing" / "openai_transcripts_markdown"
 CHUNK_SIZE = 500      # target tokens per chunk (approx 4 chars/token)
 CHUNK_OVERLAP = 50    # overlap tokens between chunks
 EMBED_MODEL = "text-embedding-3-small"

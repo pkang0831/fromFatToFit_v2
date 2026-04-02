@@ -96,7 +96,7 @@ test_outputs/
 test_cases/
 cog-realvis-sdxl/
 sd15_inpainting_local/
-openai_transcripts_markdown/
+marketing/openai_transcripts_markdown/
 
 # ===== Colab notebooks (large base64 outputs) =====
 colab_notebook/
