@@ -126,32 +126,99 @@ export function JourneyResult({ result, originalImage, onReset, journeyPrefill }
         </span>
       </div>
 
-      {/* Before / After comparison — all stage images */}
+      {/* Transformation Journey — horizontal scrollable timeline */}
       <div className="space-y-3">
-        <h3 className="font-semibold text-text">Before &amp; After</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {stages
-            .filter((s) => s.image_url)
-            .map((stage) => (
-              <div key={stage.stage_number} className="space-y-2">
-                <p className="text-xs font-medium text-text-secondary text-center">
-                  {stage.label} — {stage.bf_pct.toFixed(1)}% BF
-                  {stage.week > 0 && ` (${stage.week} wk)`}
-                </p>
-                <Image
-                  src={stage.image_url!}
-                  alt={`Stage ${stage.stage_number}`}
-                  width={400}
-                  height={600}
-                  className="w-full rounded-lg object-contain max-h-[32rem]"
-                  unoptimized
-                />
+        <h3 className="font-semibold text-text">Transformation Journey</h3>
+        <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory">
+          {/* Start card — user's original photo */}
+          <div className="snap-start shrink-0 w-[70vw] max-w-[260px] bg-surfaceAlt rounded-xl overflow-hidden border border-blue-500/30">
+            <div className="relative aspect-[3/4] w-full">
+              <Image
+                src={originalImage}
+                alt="Start"
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+            <div className="p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-blue-400">Start</p>
+              <p className="text-sm font-bold text-text mt-1">{result.current_bf.toFixed(1)}% BF</p>
+              <p className="text-[11px] text-text-secondary mt-0.5">Your starting point</p>
+            </div>
+          </div>
+
+          {/* Stage cards */}
+          {stages.filter((s) => s.image_url).map((stage) => {
+            const stageKey = String(stage.stage_number);
+            const isGoal = stage === finalStage;
+            const nutritionNote = result.nutrition.stage_notes[stageKey];
+            const workoutNote = result.workout.stage_adjustments[stageKey];
+
+            return (
+              <div
+                key={stage.stage_number}
+                className={`snap-start shrink-0 w-[70vw] max-w-[260px] rounded-xl overflow-hidden border ${
+                  isGoal ? 'bg-primary/10 border-primary/30' : 'bg-surfaceAlt border-border'
+                }`}
+              >
+                <div className="relative aspect-[3/4] w-full">
+                  <Image
+                    src={stage.image_url!}
+                    alt={stage.label}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+                <div className="p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className={`text-[10px] font-semibold uppercase tracking-wider ${
+                      isGoal ? 'text-primary' : 'text-emerald-400'
+                    }`}>
+                      {stage.label}
+                    </p>
+                    {stage.week > 0 && (
+                      <span className="text-[10px] text-text-light">Week {stage.week}</span>
+                    )}
+                  </div>
+                  <p className="text-sm font-bold text-text">{stage.bf_pct.toFixed(1)}% BF</p>
+
+                  {stage.weight_kg != null && (
+                    <div className="flex gap-3 text-[11px] text-text-secondary">
+                      <span>{stage.weight_kg} kg</span>
+                      {stage.fat_mass_delta_kg !== 0 && (
+                        <span>Fat {stage.fat_mass_delta_kg > 0 ? '+' : ''}{stage.fat_mass_delta_kg.toFixed(1)} kg</span>
+                      )}
+                      {stage.lean_mass_delta_kg !== 0 && (
+                        <span>Lean {stage.lean_mass_delta_kg > 0 ? '+' : ''}{stage.lean_mass_delta_kg.toFixed(1)} kg</span>
+                      )}
+                    </div>
+                  )}
+
+                  {(nutritionNote || workoutNote) && (
+                    <div className="border-t border-border pt-2 space-y-1">
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-text-light">
+                        What it takes
+                      </p>
+                      {nutritionNote && (
+                        <p className="text-[11px] text-text-secondary leading-snug">
+                          <span className="font-medium text-text">Nutrition:</span> {nutritionNote}
+                        </p>
+                      )}
+                      {workoutNote && (
+                        <p className="text-[11px] text-text-secondary leading-snug">
+                          <span className="font-medium text-text">Training:</span> {workoutNote}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            ))}
+            );
+          })}
         </div>
-        {afterImage && (
-          <ShareButtons imageUrl={afterImage} />
-        )}
+        {afterImage && <ShareButtons imageUrl={afterImage} />}
       </div>
 
       {/* Decision gate: separate browsers vs executors */}
