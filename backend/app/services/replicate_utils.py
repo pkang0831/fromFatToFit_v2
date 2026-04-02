@@ -42,7 +42,13 @@ def _urllib_json(method: str, url: str, api_key: str, json_body: dict | None = N
         with urllib.request.urlopen(req, timeout=120) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
-        body = e.read().decode()[:500]
+        body_bytes = e.read()
+        if e.code == 429:
+            try:
+                return json.loads(body_bytes.decode())
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return {"status": 429, "retry_after": 10}
+        body = body_bytes.decode()[:500]
         raise RuntimeError(f"HTTP {e.code} from {url}: {body}") from e
 
 
