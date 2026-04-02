@@ -46,9 +46,9 @@ LIGHTNING_BACKEND = {
     "max_step_multiplier": 1.5,
     "second_pass": {
         "enabled": True,
-        "steps": 8,
+        "steps": 6,
         "cfg": 1.8,
-        "strength": 0.09,
+        "strength": 0.05,
         "min_effective_steps": 2,
         "max_step_multiplier": 1.5,
     },
@@ -59,54 +59,63 @@ LIGHTNING_BACKEND = {
 PRESET_LIBRARY = {
     "male_cut": {
         "mask_cfg": {
-            "upper_left": (0.30, 0.40),
-            "lower_right": (0.70, 0.82),
-            "shoulder_ellipse": (0.25, 0.34, 0.75, 0.53),
+            "upper_left": (0.24, 0.40),
+            "lower_right": (0.76, 0.82),
+            "shoulder_ellipse": (0.20, 0.34, 0.80, 0.53),
             "cut_top": 0.33,
             "feather": MASK_FEATHER,
         },
         "identity_prefix": (
             "same man, same person, same face, same hair, same skin tone, "
+            "same lighting, same shadows, same color temperature, "
             "same bathroom or room, same camera angle, same pose, same phone pose, "
-            "photorealistic, realistic skin texture, natural body proportions"
+            "photorealistic, realistic skin texture, natural body proportions, "
+            "consistent lighting with source photo"
         ),
         "polish_suffix": (
             "preserve identity, preserve pose, preserve background, preserve chest size, "
             "preserve shoulder size, preserve arm size, keep changes focused on abdomen and waist, "
-            "clean natural skin texture, realistic details"
+            "match original skin texture and lighting exactly, realistic details"
         ),
         "common_neg": (
             "different person, changed face, changed hair, changed background, changed pose, "
+            "different lighting, different shadows, different skin color, color shift, "
             "oversized chest, oversized shoulders, oversized arms, smaller chest, smaller shoulders, "
             "extreme v taper, tiny waist, fake abs, etched abs, overly symmetrical abs, steroid look, "
+            "airbrushed skin, plastic skin, CG render, smooth skin, washed out, "
+            "overexposed, underexposed, desaturated, "
             "cartoon, illustration, blurry, low quality, bad anatomy, deformed"
         ),
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "noticeably flatter lower stomach, early waist tightening visible, "
-                    "smoother midsection, beginning of torso definition, natural early cut progress"
+                    "reduced subcutaneous fat on lower abdomen, love handles slightly smaller, "
+                    "waist circumference slightly narrower, same skin texture and lighting, "
+                    "natural two-week cutting progress"
                 ),
                 "strength": 0.22,
             },
             "1_month": {
                 "body_prompt": (
-                    "visibly leaner midsection, clear waist reduction, emerging upper ab lines, "
-                    "more defined torso shape, chest and shoulders maintained, realistic mid-cut progress"
+                    "less subcutaneous fat across abdomen, love handles visibly reduced, "
+                    "narrower waist circumference, faint upper ab separation emerging, "
+                    "chest and shoulders unchanged, realistic one-month cut"
                 ),
                 "strength": 0.30,
             },
             "2_months": {
                 "body_prompt": (
-                    "lean athletic stomach, visible natural ab definition, clearly narrower waist, "
-                    "oblique lines beginning to show, athletic torso shape, realistic late-stage cut"
+                    "significantly less abdominal fat, love handles much smaller, "
+                    "clearly narrower waist, upper abs visible, oblique lines emerging, "
+                    "athletic torso V-shape forming, realistic two-month cut"
                 ),
                 "strength": 0.38,
             },
             "goal": {
                 "body_prompt": (
-                    "visible natural abs, lean athletic abdomen, defined obliques, "
-                    "noticeably leaner waist, same chest size, same shoulders, "
+                    "lean abdomen with visible natural ab definition, minimal love handles, "
+                    "defined oblique lines, narrow athletic waist, "
+                    "same chest size, same shoulders, "
                     "realistic motivational transformation, not extreme"
                 ),
                 "strength": 0.42,
@@ -115,52 +124,62 @@ PRESET_LIBRARY = {
     },
     "male_bulk": {
         "mask_cfg": {
-            "upper_left": (0.29, 0.38),
-            "lower_right": (0.71, 0.82),
-            "shoulder_ellipse": (0.23, 0.32, 0.77, 0.54),
+            "upper_left": (0.23, 0.38),
+            "lower_right": (0.77, 0.82),
+            "shoulder_ellipse": (0.18, 0.32, 0.82, 0.54),
             "cut_top": 0.31,
             "feather": MASK_FEATHER,
         },
         "identity_prefix": (
             "same man, same person, same face, same hair, same skin tone, "
-            "same room, same camera angle, same pose, same phone pose, photorealistic, "
-            "realistic skin texture, natural body proportions"
+            "same lighting, same shadows, same color temperature, "
+            "same room, same camera angle, same pose, same phone pose, "
+            "photorealistic, realistic skin texture, natural body proportions, "
+            "consistent lighting with source photo"
         ),
         "polish_suffix": (
             "preserve identity, preserve pose, preserve background, maintain realistic proportions, "
-            "natural lean-bulk progress, avoid exaggerated bodybuilder changes"
+            "natural lean-bulk progress, match original skin texture and lighting exactly, "
+            "avoid exaggerated bodybuilder changes"
         ),
         "common_neg": (
             "different person, changed face, changed pose, changed background, bodybuilder, "
+            "different lighting, different shadows, different skin color, color shift, "
             "massive chest, massive shoulders, extreme arms, steroid look, fake muscle striations, "
+            "airbrushed skin, plastic skin, CG render, smooth skin, washed out, "
+            "overexposed, underexposed, desaturated, "
             "cartoon, illustration, blurry, low quality, bad anatomy, deformed"
         ),
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "noticeably fuller upper torso, visible chest and shoulder fullness, "
-                    "firmer arm definition, natural early lean bulk progress"
+                    "slightly thicker pectoral muscles, marginally wider shoulder caps, "
+                    "firmer upper arm volume, same waist, same skin texture, "
+                    "natural two-week lean bulk progress"
                 ),
                 "strength": 0.22,
             },
             "1_month": {
                 "body_prompt": (
-                    "clearly fuller chest, visibly broader shoulders, defined arm fullness, "
-                    "same waist, athletic mid lean bulk progress"
+                    "fuller pectoral mass, visibly wider deltoid caps, increased arm circumference, "
+                    "same waist, same abdominal area, "
+                    "athletic one-month lean bulk progress"
                 ),
                 "strength": 0.30,
             },
             "2_months": {
                 "body_prompt": (
-                    "athletically built chest and shoulders, thicker stronger arms, "
-                    "visible upper body mass gain, same waist, realistic late lean bulk progress"
+                    "noticeably larger chest muscles, broader thicker shoulders, "
+                    "thicker arms with visible bicep and tricep volume, "
+                    "same waist circumference, realistic two-month lean bulk"
                 ),
                 "strength": 0.38,
             },
             "goal": {
                 "body_prompt": (
-                    "noticeably stronger athletic upper torso, fuller chest, broader shoulders, "
-                    "stronger arms, natural lean bulk look, not extreme"
+                    "well-developed chest muscles, broad rounded shoulder caps, "
+                    "thick defined arms, upper body clearly more muscular, "
+                    "natural athletic lean bulk result, not extreme"
                 ),
                 "strength": 0.40,
             },
@@ -168,51 +187,62 @@ PRESET_LIBRARY = {
     },
     "female_cut": {
         "mask_cfg": {
-            "upper_left": (0.30, 0.42),
-            "lower_right": (0.70, 0.82),
-            "shoulder_ellipse": (0.26, 0.36, 0.74, 0.54),
+            "upper_left": (0.24, 0.42),
+            "lower_right": (0.76, 0.82),
+            "shoulder_ellipse": (0.22, 0.36, 0.78, 0.54),
             "cut_top": 0.35,
             "feather": MASK_FEATHER,
         },
         "identity_prefix": (
             "same woman, same person, same face, same hair, same skin tone, "
-            "same room, same camera angle, same pose, same phone pose, photorealistic, "
-            "realistic skin texture, natural body proportions"
+            "same lighting, same shadows, same color temperature, "
+            "same room, same camera angle, same pose, same phone pose, "
+            "photorealistic, realistic skin texture, natural body proportions, "
+            "consistent lighting with source photo"
         ),
         "polish_suffix": (
             "preserve identity, preserve pose, preserve background, preserve bust shape, "
-            "keep changes focused on waist and abdomen, realistic toned result, no exaggerated hourglass"
+            "keep changes focused on waist and abdomen, "
+            "match original skin texture and lighting exactly, "
+            "realistic toned result, no exaggerated hourglass"
         ),
         "common_neg": (
             "different person, changed face, changed pose, changed background, altered bust shape, "
-            "tiny waist, exaggerated hourglass, fake abs, bodybuilder, plastic skin, cartoon, "
-            "illustration, blurry, low quality, bad anatomy, deformed"
+            "different lighting, different shadows, different skin color, color shift, "
+            "tiny waist, exaggerated hourglass, fake abs, bodybuilder, "
+            "airbrushed skin, plastic skin, CG render, smooth skin, washed out, "
+            "overexposed, underexposed, desaturated, "
+            "cartoon, illustration, blurry, low quality, bad anatomy, deformed"
         ),
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "noticeably flatter lower stomach, early waist tightening visible, "
-                    "smoother midsection, bust and shoulders unchanged, natural early cut progress"
+                    "reduced subcutaneous fat on lower belly, love handles slightly smaller, "
+                    "waist circumference slightly narrower, bust and shoulders unchanged, "
+                    "same skin texture, natural two-week cut progress"
                 ),
                 "strength": 0.20,
             },
             "1_month": {
                 "body_prompt": (
-                    "visibly flatter stomach, clear waist reduction, emerging torso tone, "
-                    "bust unchanged, realistic mid-cut progress"
+                    "less lower abdominal fat, love handles visibly reduced, "
+                    "narrower waist, early torso muscle tone emerging, "
+                    "bust shape unchanged, realistic one-month cut"
                 ),
                 "strength": 0.28,
             },
             "2_months": {
                 "body_prompt": (
-                    "lean toned waist, visible ab definition beginning, clearly more athletic midsection, "
-                    "realistic late-stage cut progress"
+                    "significantly less abdominal fat, love handles much smaller, "
+                    "clearly narrower waist, upper ab outline visible, "
+                    "toned athletic midsection, realistic two-month cut"
                 ),
                 "strength": 0.34,
             },
             "goal": {
                 "body_prompt": (
-                    "lean athletic waist, natural ab outline, toned midsection, "
+                    "lean toned abdomen with faint ab outline, minimal love handles, "
+                    "narrow athletic waist, toned obliques, "
                     "realistic motivational cut result, not extreme"
                 ),
                 "strength": 0.36,
@@ -221,51 +251,62 @@ PRESET_LIBRARY = {
     },
     "female_bulk": {
         "mask_cfg": {
-            "upper_left": (0.30, 0.42),
-            "lower_right": (0.70, 0.82),
-            "shoulder_ellipse": (0.26, 0.36, 0.74, 0.54),
+            "upper_left": (0.24, 0.42),
+            "lower_right": (0.76, 0.82),
+            "shoulder_ellipse": (0.22, 0.36, 0.78, 0.54),
             "cut_top": 0.35,
             "feather": MASK_FEATHER,
         },
         "identity_prefix": (
             "same woman, same person, same face, same hair, same skin tone, "
-            "same room, same camera angle, same pose, same phone pose, photorealistic, "
-            "realistic skin texture, natural body proportions"
+            "same lighting, same shadows, same color temperature, "
+            "same room, same camera angle, same pose, same phone pose, "
+            "photorealistic, realistic skin texture, natural body proportions, "
+            "consistent lighting with source photo"
         ),
         "polish_suffix": (
             "preserve identity, preserve pose, preserve background, preserve bust shape, "
-            "show realistic athletic muscle gain, avoid exaggerated bodybuilding look"
+            "show realistic athletic muscle gain, "
+            "match original skin texture and lighting exactly, "
+            "avoid exaggerated bodybuilding look"
         ),
         "common_neg": (
             "different person, changed face, changed pose, changed background, altered bust shape, "
+            "different lighting, different shadows, different skin color, color shift, "
             "bodybuilder, oversized shoulders, oversized arms, fake striations, steroid look, "
+            "airbrushed skin, plastic skin, CG render, smooth skin, washed out, "
+            "overexposed, underexposed, desaturated, "
             "cartoon, illustration, blurry, low quality, bad anatomy, deformed"
         ),
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "noticeably firmer upper torso, visible shoulder and arm tone, "
-                    "same waist, natural early lean bulk progress"
+                    "slightly firmer deltoid caps, marginally more arm definition, "
+                    "same waist, same skin texture, "
+                    "natural two-week female lean bulk progress"
                 ),
                 "strength": 0.20,
             },
             "1_month": {
                 "body_prompt": (
-                    "visibly more athletic upper torso, clear shoulder definition, firmer toned arms, "
-                    "same waist, realistic mid lean bulk progress"
+                    "visibly rounder shoulder caps, firmer toned upper arms, "
+                    "subtle upper back width increase, same waist, "
+                    "realistic one-month female lean bulk"
                 ),
                 "strength": 0.28,
             },
             "2_months": {
                 "body_prompt": (
-                    "athletically stronger shoulders and arms, fuller defined upper torso, "
-                    "visible muscle tone, natural female late lean bulk progress"
+                    "defined rounded shoulders, toned arms with visible muscle shape, "
+                    "fuller upper torso, athletic feminine physique, "
+                    "natural two-month female lean bulk progress"
                 ),
                 "strength": 0.34,
             },
             "goal": {
                 "body_prompt": (
-                    "clearly stronger athletic upper torso, toned shoulders and arms, "
+                    "well-defined toned shoulders, shapely athletic arms, "
+                    "athletic feminine upper body, clearly more muscular, "
                     "realistic female lean bulk result, not extreme"
                 ),
                 "strength": 0.36,
@@ -402,6 +443,93 @@ def build_crop_bundle(source_img: Image.Image, mask_img: Image.Image, crop_max_s
     )
 
 
+# ── Color matching (LAB space) ────────────────────────────────────────────────
+
+def match_color_lab(
+    source: Image.Image,
+    target: Image.Image,
+    mask: Image.Image | None = None,
+    strength: float = 0.85,
+) -> Image.Image:
+    """Match the color/lighting of *target* to *source* in LAB space.
+
+    Uses mean/std transfer on each LAB channel so the generated image
+    inherits the original photo's lighting and skin tone.  When *mask*
+    is provided only the masked region is sampled for statistics, but
+    the correction is applied to the full image.
+
+    *strength* blends between the raw target (0.0) and fully corrected (1.0).
+    """
+    src_arr = np.asarray(source.convert("RGB")).astype(np.float32)
+    tgt_arr = np.asarray(target.convert("RGB")).astype(np.float32)
+
+    # RGB → LAB (approximate via linear transform, good enough for color transfer)
+    def rgb_to_lab(img_f32: np.ndarray) -> np.ndarray:
+        # sRGB → linear
+        lin = np.where(img_f32 / 255.0 > 0.04045,
+                       ((img_f32 / 255.0 + 0.055) / 1.055) ** 2.4,
+                       img_f32 / 255.0 / 12.92)
+        # linear RGB → XYZ (D65)
+        x = lin[..., 0] * 0.4124564 + lin[..., 1] * 0.3575761 + lin[..., 2] * 0.1804375
+        y = lin[..., 0] * 0.2126729 + lin[..., 1] * 0.7151522 + lin[..., 2] * 0.0721750
+        z = lin[..., 0] * 0.0193339 + lin[..., 1] * 0.1191920 + lin[..., 2] * 0.9503041
+        # XYZ → LAB
+        xn, yn, zn = 0.95047, 1.0, 1.08883
+        def f(t):
+            return np.where(t > 0.008856, t ** (1/3), 7.787 * t + 16/116)
+        fx, fy, fz = f(x / xn), f(y / yn), f(z / zn)
+        L = 116 * fy - 16
+        a = 500 * (fx - fy)
+        b = 200 * (fy - fz)
+        return np.stack([L, a, b], axis=-1)
+
+    def lab_to_rgb(lab: np.ndarray) -> np.ndarray:
+        L, a, b = lab[..., 0], lab[..., 1], lab[..., 2]
+        fy = (L + 16) / 116
+        fx = a / 500 + fy
+        fz = fy - b / 200
+        def finv(t):
+            return np.where(t > 0.206893, t ** 3, (t - 16/116) / 7.787)
+        xn, yn, zn = 0.95047, 1.0, 1.08883
+        x = finv(fx) * xn
+        y = finv(fy) * yn
+        z = finv(fz) * zn
+        r = x * 3.2404542 + y * -1.5371385 + z * -0.4985314
+        g = x * -0.9692660 + y * 1.8760108 + z * 0.0415560
+        bl = x * 0.0556434 + y * -0.2040259 + z * 1.0572252
+        lin = np.stack([r, g, bl], axis=-1)
+        lin = np.clip(lin, 0, None)
+        srgb = np.where(lin > 0.0031308,
+                        1.055 * (lin ** (1/2.4)) - 0.055,
+                        12.92 * lin)
+        return np.clip(srgb * 255, 0, 255).astype(np.uint8)
+
+    src_lab = rgb_to_lab(src_arr)
+    tgt_lab = rgb_to_lab(tgt_arr)
+
+    # Compute stats (optionally masked)
+    if mask is not None:
+        m = np.asarray(mask.convert("L").resize(source.size, Image.LANCZOS)) > 127
+        src_pixels = src_lab[m]
+        m_tgt = np.asarray(mask.convert("L").resize(target.size, Image.LANCZOS)) > 127
+        tgt_pixels = tgt_lab[m_tgt]
+    else:
+        src_pixels = src_lab.reshape(-1, 3)
+        tgt_pixels = tgt_lab.reshape(-1, 3)
+
+    if len(src_pixels) < 100 or len(tgt_pixels) < 100:
+        return target
+
+    for ch in range(3):
+        src_mean, src_std = src_pixels[:, ch].mean(), max(src_pixels[:, ch].std(), 1e-6)
+        tgt_mean, tgt_std = tgt_pixels[:, ch].mean(), max(tgt_pixels[:, ch].std(), 1e-6)
+        corrected = (tgt_lab[..., ch] - tgt_mean) * (src_std / tgt_std) + src_mean
+        tgt_lab[..., ch] = tgt_lab[..., ch] * (1 - strength) + corrected * strength
+
+    result_arr = lab_to_rgb(tgt_lab)
+    return Image.fromarray(result_arr)
+
+
 # ── Compositing (from notebook) ──────────────────────────────────────────────
 
 def blended_composite(edited_img: Image.Image, original_img: Image.Image, mask_img: Image.Image, feather: int = 24) -> Image.Image:
@@ -419,6 +547,9 @@ def composite_crop_back(
     feather: int = CROP_BLEND_FEATHER,
 ) -> tuple[Image.Image, Image.Image]:
     edited_crop = ensure_rgb(edited_gen_img, size=bundle.source_crop.size)
+    edited_crop = match_color_lab(
+        bundle.source_crop, edited_crop, mask=bundle.mask_crop, strength=0.85,
+    )
     blended_crop = blended_composite(
         edited_crop, bundle.source_crop, bundle.mask_crop, feather=feather,
     )
