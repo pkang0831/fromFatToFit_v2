@@ -84,32 +84,32 @@ PRESET_LIBRARY = {
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "slightly flatter lower stomach only, almost unchanged chest and shoulders, "
-                    "nearly unchanged waist, no visible abs, very subtle early fitness progress"
+                    "noticeably flatter lower stomach, early waist tightening visible, "
+                    "smoother midsection, beginning of torso definition, natural early cut progress"
                 ),
-                "strength": 0.16,
+                "strength": 0.22,
             },
             "1_month": {
                 "body_prompt": (
-                    "flatter lower stomach, mild waist reduction, faint natural torso definition, "
-                    "no pronounced abs, chest and shoulders unchanged, realistic one month progress"
+                    "visibly leaner midsection, clear waist reduction, emerging upper ab lines, "
+                    "more defined torso shape, chest and shoulders maintained, realistic mid-cut progress"
                 ),
-                "strength": 0.24,
+                "strength": 0.30,
             },
             "2_months": {
                 "body_prompt": (
-                    "leaner stomach, subtle natural upper ab lines, clearer waist reduction, "
-                    "realistic two month progress, chest and shoulders still natural and unchanged"
+                    "lean athletic stomach, visible natural ab definition, clearly narrower waist, "
+                    "oblique lines beginning to show, athletic torso shape, realistic late-stage cut"
                 ),
-                "strength": 0.34,
+                "strength": 0.38,
             },
             "goal": {
                 "body_prompt": (
-                    "visible natural abs, lean athletic abdomen, defined obliques, "
+                    "defined natural abs, lean athletic abdomen, visible defined obliques, "
                     "noticeably leaner waist, same chest size, same shoulders, "
                     "realistic motivational transformation, not extreme"
                 ),
-                "strength": 0.42,
+                "strength": 0.46,
             },
         },
     },
@@ -138,31 +138,31 @@ PRESET_LIBRARY = {
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "slightly fuller upper torso, very subtle chest and shoulder fullness, "
-                    "slight arm fullness, natural early lean bulk progress"
+                    "noticeably fuller upper torso, visible chest and shoulder fullness, "
+                    "firmer arm definition, natural early lean bulk progress"
                 ),
-                "strength": 0.16,
+                "strength": 0.22,
             },
             "1_month": {
                 "body_prompt": (
-                    "modestly fuller chest, slightly broader shoulders, mild arm fullness, "
-                    "same waist, natural one month lean bulk progress"
+                    "clearly fuller chest, visibly broader shoulders, defined arm fullness, "
+                    "same waist, athletic mid lean bulk progress"
                 ),
-                "strength": 0.24,
+                "strength": 0.30,
             },
             "2_months": {
                 "body_prompt": (
-                    "athletically fuller chest and shoulders, slightly thicker arms, "
-                    "same face and waist, realistic two month lean bulk progress"
+                    "athletically built chest and shoulders, thicker stronger arms, "
+                    "visible upper body mass gain, same waist, realistic late lean bulk progress"
                 ),
-                "strength": 0.32,
+                "strength": 0.38,
             },
             "goal": {
                 "body_prompt": (
-                    "noticeably stronger athletic upper torso, fuller chest, broader shoulders, "
-                    "stronger arms, natural lean bulk look, not extreme"
+                    "noticeably stronger athletic upper torso, full muscular chest, broad shoulders, "
+                    "well-defined arms, natural lean bulk result, not extreme"
                 ),
-                "strength": 0.40,
+                "strength": 0.46,
             },
         },
     },
@@ -191,31 +191,31 @@ PRESET_LIBRARY = {
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "slightly flatter lower stomach, very subtle waist cleanup, "
-                    "bust and shoulders unchanged, no visible abs, natural early cut progress"
+                    "noticeably flatter lower stomach, early waist tightening visible, "
+                    "smoother midsection, bust and shoulders unchanged, natural early cut progress"
                 ),
-                "strength": 0.15,
+                "strength": 0.20,
             },
             "1_month": {
                 "body_prompt": (
-                    "flatter stomach, mild waist reduction, subtle natural torso tone, "
-                    "bust unchanged, realistic one month cut progress"
+                    "visibly flatter stomach, clear waist reduction, emerging torso tone, "
+                    "bust unchanged, realistic mid-cut progress"
                 ),
-                "strength": 0.22,
+                "strength": 0.28,
             },
             "2_months": {
                 "body_prompt": (
-                    "leaner waist, toned abdomen, subtle natural ab outline, "
-                    "athletic but realistic two month cut progress"
+                    "lean toned waist, visible ab definition beginning, clearly more athletic midsection, "
+                    "realistic late-stage cut progress"
                 ),
-                "strength": 0.30,
+                "strength": 0.34,
             },
             "goal": {
                 "body_prompt": (
-                    "lean athletic waist, natural ab outline, toned midsection, "
+                    "lean athletic waist, defined natural ab outline, toned athletic midsection, "
                     "realistic motivational cut result, not extreme"
                 ),
-                "strength": 0.36,
+                "strength": 0.40,
             },
         },
     },
@@ -244,31 +244,31 @@ PRESET_LIBRARY = {
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "slightly stronger athletic upper torso, subtle shoulder and arm tone, "
+                    "noticeably firmer upper torso, visible shoulder and arm tone, "
                     "same waist, natural early lean bulk progress"
                 ),
-                "strength": 0.15,
+                "strength": 0.20,
             },
             "1_month": {
                 "body_prompt": (
-                    "more athletic upper torso, modest shoulder tone, slightly firmer arms, "
-                    "same waist, realistic one month lean bulk progress"
+                    "visibly more athletic upper torso, clear shoulder definition, firmer toned arms, "
+                    "same waist, realistic mid lean bulk progress"
                 ),
-                "strength": 0.22,
+                "strength": 0.28,
             },
             "2_months": {
                 "body_prompt": (
-                    "athletically stronger shoulders and arms, slightly fuller upper torso, "
-                    "natural female lean bulk progress, not extreme"
+                    "athletically stronger shoulders and arms, fuller defined upper torso, "
+                    "visible muscle tone, natural female late lean bulk progress"
                 ),
-                "strength": 0.30,
+                "strength": 0.34,
             },
             "goal": {
                 "body_prompt": (
-                    "clearly stronger athletic upper torso, toned shoulders and arms, "
-                    "realistic female lean bulk result, not extreme"
+                    "clearly stronger athletic upper torso, defined toned shoulders and arms, "
+                    "athletic feminine physique, realistic female lean bulk result, not extreme"
                 ),
-                "strength": 0.36,
+                "strength": 0.40,
             },
         },
     },
