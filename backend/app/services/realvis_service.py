@@ -48,7 +48,7 @@ LIGHTNING_BACKEND = {
         "enabled": True,
         "steps": 8,
         "cfg": 1.8,
-        "strength": 0.09,
+        "strength": 0.07,
         "min_effective_steps": 2,
         "max_step_multiplier": 1.5,
     },
@@ -59,9 +59,9 @@ LIGHTNING_BACKEND = {
 PRESET_LIBRARY = {
     "male_cut": {
         "mask_cfg": {
-            "upper_left": (0.30, 0.40),
-            "lower_right": (0.70, 0.82),
-            "shoulder_ellipse": (0.25, 0.34, 0.75, 0.53),
+            "upper_left": (0.24, 0.40),
+            "lower_right": (0.76, 0.82),
+            "shoulder_ellipse": (0.20, 0.34, 0.80, 0.53),
             "cut_top": 0.33,
             "feather": MASK_FEATHER,
         },
@@ -114,7 +114,7 @@ PRESET_LIBRARY = {
             },
             "goal": {
                 "body_prompt": (
-                    "visible natural abs, lean athletic abdomen, defined obliques, "
+                    "visible natural defined abs, lean athletic abdomen, defined obliques, "
                     "narrow athletic waist, same chest size, same shoulders, "
                     "realistic motivational transformation, not extreme"
                 ),
@@ -124,9 +124,9 @@ PRESET_LIBRARY = {
     },
     "male_bulk": {
         "mask_cfg": {
-            "upper_left": (0.29, 0.38),
-            "lower_right": (0.71, 0.82),
-            "shoulder_ellipse": (0.23, 0.32, 0.77, 0.54),
+            "upper_left": (0.23, 0.38),
+            "lower_right": (0.77, 0.82),
+            "shoulder_ellipse": (0.18, 0.32, 0.82, 0.54),
             "cut_top": 0.31,
             "feather": MASK_FEATHER,
         },
@@ -187,9 +187,9 @@ PRESET_LIBRARY = {
     },
     "female_cut": {
         "mask_cfg": {
-            "upper_left": (0.30, 0.42),
-            "lower_right": (0.70, 0.82),
-            "shoulder_ellipse": (0.26, 0.36, 0.74, 0.54),
+            "upper_left": (0.24, 0.42),
+            "lower_right": (0.76, 0.82),
+            "shoulder_ellipse": (0.22, 0.36, 0.78, 0.54),
             "cut_top": 0.35,
             "feather": MASK_FEATHER,
         },
@@ -252,9 +252,9 @@ PRESET_LIBRARY = {
     },
     "female_bulk": {
         "mask_cfg": {
-            "upper_left": (0.30, 0.42),
-            "lower_right": (0.70, 0.82),
-            "shoulder_ellipse": (0.26, 0.36, 0.74, 0.54),
+            "upper_left": (0.24, 0.42),
+            "lower_right": (0.76, 0.82),
+            "shoulder_ellipse": (0.22, 0.36, 0.78, 0.54),
             "cut_top": 0.35,
             "feather": MASK_FEATHER,
         },
