@@ -46,9 +46,9 @@ LIGHTNING_BACKEND = {
     "max_step_multiplier": 1.5,
     "second_pass": {
         "enabled": True,
-        "steps": 6,
+        "steps": 8,
         "cfg": 1.8,
-        "strength": 0.05,
+        "strength": 0.07,
         "min_effective_steps": 2,
         "max_step_multiplier": 1.5,
     },
