@@ -546,25 +546,35 @@ export default function BodyScanPage() {
             <CardContent className="p-6">
               {!scanImage ? (
                 <div>
-                  <BodyScanPoseGuide variant="light" className="mb-4" />
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScanFileSelect} className="hidden" />
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary transition-colors"
-                  >
-                    <Scan className="h-16 w-16 text-text-light mx-auto mb-4" />
-                    <p className="text-lg font-medium text-text mb-2">Upload a full-body photo</p>
-                    <p className="text-sm text-text-secondary">Get your body fat estimate and see where you rank</p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full mt-4"
-                    onClick={() => setShowScanGuide(true)}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    Use camera with guide
-                  </Button>
+                  {validatingScan ? (
+                    <div className="flex flex-col items-center justify-center py-16">
+                      <div className="w-16 h-16 rounded-full border-[3px] border-border border-t-primary animate-spin mb-6" />
+                      <p className="text-base font-medium text-text">Checking framing and pose…</p>
+                      <p className="text-sm text-text-light mt-2">This may take a moment</p>
+                    </div>
+                  ) : (
+                    <>
+                      <BodyScanPoseGuide variant="light" className="mb-4" />
+                      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleScanFileSelect} className="hidden" />
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary transition-colors"
+                      >
+                        <Scan className="h-16 w-16 text-text-light mx-auto mb-4" />
+                        <p className="text-lg font-medium text-text mb-2">Upload a full-body photo</p>
+                        <p className="text-sm text-text-secondary">Get your body fat estimate and see where you rank</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full mt-4"
+                        onClick={() => setShowScanGuide(true)}
+                      >
+                        <Camera className="h-4 w-4 mr-2" />
+                        Use camera with guide
+                      </Button>
+                    </>
+                  )}
                 </div>
               ) : !scanResult.percentile ? (
                 <div className="space-y-6">
@@ -772,25 +782,35 @@ export default function BodyScanPage() {
             <CardContent className="p-6">
               {!journeyImage ? (
                 <div>
-                  <BodyScanPoseGuide variant="light" className="mb-4" />
-                  <input ref={journeyFileInputRef} type="file" accept="image/*" onChange={handleJourneyFileSelect} className="hidden" />
-                  <div
-                    onClick={() => journeyFileInputRef.current?.click()}
-                    className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary transition-colors"
-                  >
-                    <Sparkles className="h-16 w-16 text-text-light mx-auto mb-4" />
-                    <p className="text-lg font-medium text-text mb-2">Upload your current body photo</p>
-                    <p className="text-sm text-text-secondary">We&apos;ll generate your transformation journey</p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="w-full mt-4"
-                    onClick={() => setShowJourneyGuide(true)}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    Use camera with guide
-                  </Button>
+                  {validatingJourney ? (
+                    <div className="flex flex-col items-center justify-center py-16">
+                      <div className="w-16 h-16 rounded-full border-[3px] border-border border-t-primary animate-spin mb-6" />
+                      <p className="text-base font-medium text-text">Checking framing and pose…</p>
+                      <p className="text-sm text-text-light mt-2">This may take a moment</p>
+                    </div>
+                  ) : (
+                    <>
+                      <BodyScanPoseGuide variant="light" className="mb-4" />
+                      <input ref={journeyFileInputRef} type="file" accept="image/*" onChange={handleJourneyFileSelect} className="hidden" />
+                      <div
+                        onClick={() => journeyFileInputRef.current?.click()}
+                        className="border-2 border-dashed border-border rounded-xl p-12 text-center cursor-pointer hover:border-primary transition-colors"
+                      >
+                        <Sparkles className="h-16 w-16 text-text-light mx-auto mb-4" />
+                        <p className="text-lg font-medium text-text mb-2">Upload your current body photo</p>
+                        <p className="text-sm text-text-secondary">We&apos;ll generate your transformation journey</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full mt-4"
+                        onClick={() => setShowJourneyGuide(true)}
+                      >
+                        <Camera className="h-4 w-4 mr-2" />
+                        Use camera with guide
+                      </Button>
+                    </>
+                  )}
                 </div>
               ) : !journeyResult ? (
                 <div className="space-y-6">
