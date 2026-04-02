@@ -82,6 +82,7 @@ PRESET_LIBRARY = {
             "different lighting, different shadows, different skin color, color shift, "
             "oversized chest, oversized shoulders, oversized arms, smaller chest, smaller shoulders, "
             "extreme v taper, tiny waist, fake abs, etched abs, overly symmetrical abs, steroid look, "
+            "weight gain, bloated, thicker waist, wider midsection, "
             "airbrushed skin, plastic skin, CG render, smooth skin, washed out, "
             "overexposed, underexposed, desaturated, "
             "cartoon, illustration, blurry, low quality, bad anatomy, deformed"
@@ -89,33 +90,32 @@ PRESET_LIBRARY = {
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "reduced subcutaneous fat on lower abdomen, love handles slightly smaller, "
-                    "waist circumference slightly narrower, same skin texture and lighting, "
-                    "natural two-week cutting progress"
+                    "slightly tighter midsection, slightly narrower waist, "
+                    "smoother lower abdomen, beginning of torso definition, "
+                    "natural early cut progress"
                 ),
                 "strength": 0.22,
             },
             "1_month": {
                 "body_prompt": (
-                    "less subcutaneous fat across abdomen, love handles visibly reduced, "
-                    "narrower waist circumference, faint upper ab separation emerging, "
-                    "chest and shoulders unchanged, realistic one-month cut"
+                    "noticeably tighter midsection, clearly narrower waist, "
+                    "faint upper ab lines emerging, more defined torso shape, "
+                    "chest and shoulders maintained, realistic mid-cut progress"
                 ),
                 "strength": 0.30,
             },
             "2_months": {
                 "body_prompt": (
-                    "significantly less abdominal fat, love handles much smaller, "
-                    "clearly narrower waist, upper abs visible, oblique lines emerging, "
-                    "athletic torso V-shape forming, realistic two-month cut"
+                    "lean athletic stomach, visible natural ab definition, "
+                    "clearly narrower waist, oblique lines emerging, "
+                    "athletic torso V-shape, realistic late-stage cut"
                 ),
                 "strength": 0.38,
             },
             "goal": {
                 "body_prompt": (
-                    "lean abdomen with visible natural ab definition, minimal love handles, "
-                    "defined oblique lines, narrow athletic waist, "
-                    "same chest size, same shoulders, "
+                    "visible natural abs, lean athletic abdomen, defined obliques, "
+                    "narrow athletic waist, same chest size, same shoulders, "
                     "realistic motivational transformation, not extreme"
                 ),
                 "strength": 0.42,
@@ -210,6 +210,7 @@ PRESET_LIBRARY = {
             "different person, changed face, changed pose, changed background, altered bust shape, "
             "different lighting, different shadows, different skin color, color shift, "
             "tiny waist, exaggerated hourglass, fake abs, bodybuilder, "
+            "weight gain, bloated, thicker waist, wider midsection, "
             "airbrushed skin, plastic skin, CG render, smooth skin, washed out, "
             "overexposed, underexposed, desaturated, "
             "cartoon, illustration, blurry, low quality, bad anatomy, deformed"
@@ -217,32 +218,32 @@ PRESET_LIBRARY = {
         "stages": {
             "2_weeks": {
                 "body_prompt": (
-                    "reduced subcutaneous fat on lower belly, love handles slightly smaller, "
-                    "waist circumference slightly narrower, bust and shoulders unchanged, "
-                    "same skin texture, natural two-week cut progress"
+                    "slightly tighter midsection, slightly narrower waist, "
+                    "smoother lower abdomen, bust and shoulders unchanged, "
+                    "natural early cut progress"
                 ),
                 "strength": 0.20,
             },
             "1_month": {
                 "body_prompt": (
-                    "less lower abdominal fat, love handles visibly reduced, "
-                    "narrower waist, early torso muscle tone emerging, "
-                    "bust shape unchanged, realistic one-month cut"
+                    "noticeably tighter midsection, clearly narrower waist, "
+                    "emerging torso tone, bust unchanged, "
+                    "realistic mid-cut progress"
                 ),
                 "strength": 0.28,
             },
             "2_months": {
                 "body_prompt": (
-                    "significantly less abdominal fat, love handles much smaller, "
-                    "clearly narrower waist, upper ab outline visible, "
-                    "toned athletic midsection, realistic two-month cut"
+                    "lean toned waist, visible ab definition beginning, "
+                    "clearly more athletic midsection, "
+                    "realistic late-stage cut progress"
                 ),
                 "strength": 0.34,
             },
             "goal": {
                 "body_prompt": (
-                    "lean toned abdomen with faint ab outline, minimal love handles, "
-                    "narrow athletic waist, toned obliques, "
+                    "lean athletic waist, natural ab outline, toned midsection, "
+                    "toned obliques, narrow waist, "
                     "realistic motivational cut result, not extreme"
                 ),
                 "strength": 0.36,
