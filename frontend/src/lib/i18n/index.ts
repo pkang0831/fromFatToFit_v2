@@ -26,7 +26,18 @@ export type Locale = keyof typeof LANGUAGES;
 export const DEFAULT_LOCALE: Locale = 'en';
 export const LOCALE_STORAGE_KEY = 'ftf-locale';
 
-const translations: Record<Locale, typeof en> = { en, ko, ja, zh, es, fr, de, pt, hi, ar };
+const translations: Record<Locale, Record<string, unknown>> = {
+  en: en as Record<string, unknown>,
+  ko: ko as Record<string, unknown>,
+  ja: ja as Record<string, unknown>,
+  zh: zh as Record<string, unknown>,
+  es: es as Record<string, unknown>,
+  fr: fr as Record<string, unknown>,
+  de: de as Record<string, unknown>,
+  pt: pt as Record<string, unknown>,
+  hi: hi as Record<string, unknown>,
+  ar: ar as Record<string, unknown>,
+};
 
 type NestedKeyOf<T, Prefix extends string = ''> = T extends object
   ? { [K in keyof T & string]: NestedKeyOf<T[K], Prefix extends '' ? K : `${Prefix}.${K}`> }[keyof T & string]
@@ -46,10 +57,10 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string {
 
 export function getTranslation(locale: Locale, key: string, params?: Record<string, string | number>): string {
   const dict = translations[locale] || translations[DEFAULT_LOCALE];
-  let text = getNestedValue(dict as unknown as Record<string, unknown>, key);
+  let text = getNestedValue(dict, key);
 
   if (text === key) {
-    text = getNestedValue(translations[DEFAULT_LOCALE] as unknown as Record<string, unknown>, key);
+    text = getNestedValue(translations[DEFAULT_LOCALE], key);
   }
 
   if (params) {
