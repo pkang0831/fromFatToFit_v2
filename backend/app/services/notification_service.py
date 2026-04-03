@@ -288,20 +288,40 @@ async def check_weekly_scan_reminder(user_id: str) -> bool:
         return False
 
 
+def _vapid_ready() -> bool:
+    return bool(settings.vapid_private_key and settings.vapid_public_key)
+
+
+def _send_webpush(sub_data: Dict[str, Any], payload_str: str) -> None:
+    from pywebpush import webpush, WebPushException  # type: ignore[import]
+
+    webpush(
+        subscription_info=sub_data,
+        data=payload_str,
+        vapid_private_key=settings.vapid_private_key,
+        vapid_claims={"sub": settings.vapid_claims_email},
+    )
+
+
 async def send_push_notification(user_id: str, title: str, body: str, data: Optional[Dict] = None) -> int:
     """
-    Send push notification to all active subscriptions for a user.
-    Uses web-push (pywebpush) in production; logs in development.
+    Send push notification to all active subscriptions for a user via pywebpush.
+    Silently skips if VAPID keys are not configured.
     """
+    if not _vapid_ready():
+        logger.debug("Push skipped for %s: VAPID keys not configured", user_id)
+        return 0
+
     subs = await get_push_subscriptions(user_id)
+    payload = json.dumps({"title": title, "body": body, **(data or {})})
     sent = 0
     for sub in subs:
         try:
             sub_data = json.loads(sub["subscription_data"])
-            logger.info(f"[DEV] Push to {user_id}: {title} - {body}")
+            await asyncio.to_thread(_send_webpush, sub_data, payload)
             sent += 1
         except Exception as e:
-            logger.error(f"Failed to send push to {user_id}: {e}")
+            logger.warning("Failed to send push to %s: %s", user_id, e)
     return sent
 
 
