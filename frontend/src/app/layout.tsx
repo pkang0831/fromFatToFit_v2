@@ -23,24 +23,24 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Devenira — AI-Powered Fitness Tracking',
+    default: 'Devenira — See Proof Your Cut Is Working, Weekly',
     template: '%s | Devenira',
   },
-  description: 'Track calories with your camera, scan your body fat with AI, and visualize your transformation. All-in-one AI fitness app.',
-  keywords: ['fitness tracker', 'calorie counter', 'body fat scanner', 'AI fitness', 'workout tracker', 'meal tracker', 'body transformation'],
+  description: 'Upload a photo. See your AI goal body. Check in weekly to watch the gap close with visual proof. Built by someone who lost 50kg and knows the mirror lies.',
+  keywords: ['body fat tracking', 'body transformation progress', 'weekly body check-in', 'cutting progress tracker', 'body recomp tracker', 'physique tracking app', 'body fat scanner', 'AI body transformation', 'visual progress proof'],
   authors: [{ name: 'Devenira' }],
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://devenira.com',
     siteName: 'Devenira',
-    title: 'Devenira — AI-Powered Fitness Tracking',
-    description: 'Track calories with your camera, scan your body fat with AI, and visualize your transformation.',
+    title: 'Devenira — The Mirror Lies. Your Weekly Check-in Doesn\u2019t.',
+    description: 'AI body check-in that shows the gap closing every week. Free first scan, no sign-up.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Devenira — AI-Powered Fitness Tracking',
-    description: 'Track calories with your camera, scan your body fat with AI, and visualize your transformation.',
+    title: 'Devenira — See Proof Your Cut Is Working',
+    description: 'AI body check-in that shows the gap closing every week. Built by someone who went from 120kg to 70kg.',
   },
   robots: {
     index: true,

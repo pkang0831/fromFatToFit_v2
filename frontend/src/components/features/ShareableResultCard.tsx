@@ -87,10 +87,17 @@ export function ShareableResultCard({
   }, [bodyFatPercent, weekNumber, delta]);
 
   const handleCopyLink = useCallback(async () => {
-    await navigator.clipboard.writeText(window.location.href);
+    const shareText = bodyFatPercent
+      ? `Week ${weekNumber || 1}: ${bodyFatPercent.toFixed(1)}% body fat — tracked with Devenira\nhttps://devenira.com/try`
+      : 'Check out my body transformation progress — Devenira\nhttps://devenira.com/try';
+    try {
+      await navigator.clipboard.writeText(shareText);
+    } catch {
+      // ignore clipboard errors
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, []);
+  }, [bodyFatPercent, weekNumber]);
 
   return (
     <div className="space-y-4">

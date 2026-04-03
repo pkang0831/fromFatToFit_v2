@@ -6,6 +6,7 @@ import { TransformationShowcaseSection } from '@/components/landing/Transformati
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
 import { WhyReturnSection } from '@/components/landing/WhyReturnSection';
 import { TrustSection } from '@/components/landing/TrustSection';
+import { FounderStorySection } from '@/components/landing/FounderStorySection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { PricingSection } from '@/components/landing/PricingSection';
 import { FAQSection } from '@/components/landing/FAQSection';
@@ -21,6 +22,7 @@ export default function LandingPage() {
       <div id="features"><FeaturesSection /></div>
       <WhyReturnSection />
       <TrustSection />
+      <FounderStorySection />
       <div id="testimonials"><TestimonialsSection /></div>
       <div id="pricing"><PricingSection /></div>
       <div id="faq"><FAQSection /></div>
