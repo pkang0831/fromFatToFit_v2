@@ -80,6 +80,11 @@ class Settings(BaseSettings):
     smtp_from_email: str = ""
     smtp_use_tls: bool = True
 
+    # Web Push VAPID keys (generate once via: python -c "from pywebpush import Vapid; v=Vapid(); v.generate_keys(); print(v.public_key, v.private_key)")
+    vapid_private_key: str = ""
+    vapid_public_key: str = ""
+    vapid_claims_email: str = "mailto:noreply@devenira.com"
+
     # Fashn human parser (SegFormer) — default pulls from Hugging Face Hub
     fashn_human_parser_model: str = "fashn-ai/fashn-human-parser"
     # Dev-only: if HTTPS to huggingface.co fails (corporate MITM / cert issues), set True.
