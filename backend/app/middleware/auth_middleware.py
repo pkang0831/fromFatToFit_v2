@@ -27,10 +27,17 @@ def _build_fallback_current_user(user, token: str):
         "onboarding_completed": bool(meta.get("onboarding_completed", False)),
     }
 
+_auth_client = None
+
 def _make_auth_client():
-    """Ephemeral client used only for auth.get_user() verification,
-    so the singleton PostgREST auth state is never polluted."""
-    return create_client(settings.supabase_url, settings.supabase_service_key)
+    """Reusable client used only for auth.get_user() verification.
+    We keep a module-level singleton because create_client() is expensive
+    (HTTP connection setup, JWT parsing) and auth.get_user() does not
+    mutate the client's PostgREST auth state."""
+    global _auth_client
+    if _auth_client is None:
+        _auth_client = create_client(settings.supabase_url, settings.supabase_service_key)
+    return _auth_client
 
 
 async def get_current_user(authorization: Optional[str] = Header(None)):

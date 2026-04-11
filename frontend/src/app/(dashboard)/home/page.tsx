@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowRight,
@@ -47,15 +47,20 @@ export default function HomePage() {
 
   const [summary, setSummary] = useState<HomeSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const summaryEverLoaded = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadHomeSummary() {
-      setLoading(true);
+      const showFullSkeleton = !summaryEverLoaded.current;
+      if (showFullSkeleton) setLoading(true);
       try {
         const res = await homeApi.getSummary(searchParams.get('from') || undefined);
-        if (!cancelled) setSummary(res.data);
+        if (!cancelled) {
+          setSummary(res.data);
+          summaryEverLoaded.current = true;
+        }
       } catch {
         if (!cancelled) setSummary(null);
       } finally {

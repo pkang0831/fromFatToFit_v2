@@ -53,7 +53,9 @@ export function TransformationShowcaseSection() {
                   alt={t(`landing.showcase_${stage.key}_alt`)}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
+                  sizes="(max-width: 768px) 90vw, 320px"
+                  loading="lazy"
+                  quality={60}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
               </div>

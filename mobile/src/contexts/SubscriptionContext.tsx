@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { InteractionManager } from 'react-native';
 import { paymentApi } from '../services/api';
 import { useAuth } from './AuthContext';
 
@@ -29,12 +30,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (user) {
       setIsPremium(user.premium_status || false);
-      loadUsageLimits();
-    } else {
-      setIsPremium(false);
-      setUsageLimits(null);
-      setLoading(false);
+      const handle = InteractionManager.runAfterInteractions(() => {
+        void loadUsageLimits();
+      });
+      return () => handle.cancel();
     }
+    setIsPremium(false);
+    setUsageLimits(null);
+    setLoading(false);
+    return undefined;
   }, [user]);
 
   const loadUsageLimits = async () => {

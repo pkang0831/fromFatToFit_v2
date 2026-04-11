@@ -6,22 +6,13 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/try');
-  const isDashboardPage = pathname.startsWith('/home') ||
-                        pathname.startsWith('/calories') ||
-                        pathname.startsWith('/food-camera') ||
-                        pathname.startsWith('/workouts') ||
-                        pathname.startsWith('/fasting') ||
-                        pathname.startsWith('/body-scan') ||
-                        pathname.startsWith('/beauty-scan') ||
-                        pathname.startsWith('/fashion') ||
-                        pathname.startsWith('/goal-planner') ||
-                        pathname.startsWith('/chat') ||
-                        pathname.startsWith('/profile') ||
-                        pathname.startsWith('/progress') ||
-                        pathname.startsWith('/upgrade') ||
-                        pathname.startsWith('/onboarding') ||
-                        pathname.startsWith('/mask-editor') ||
-                        pathname.startsWith('/body-editor');
+  const DASHBOARD_PREFIXES = [
+    '/home', '/calories', '/food-camera', '/workouts', '/fasting',
+    '/body-scan', '/beauty-scan', '/fashion', '/goal-planner', '/chat',
+    '/profile', '/progress', '/upgrade', '/onboarding',
+    '/mask-editor', '/body-editor', '/challenge', '/deadline',
+  ];
+  const isDashboardPage = DASHBOARD_PREFIXES.some((p) => pathname.startsWith(p));
 
   // Handle root path — show landing page to unauthenticated, redirect to dashboard for authenticated
   if (pathname === '/') {

@@ -55,21 +55,19 @@ export function Sidebar() {
   const { isPremium } = useSubscription();
   const { theme, colorTheme, toggleTheme, setColorTheme } = useTheme();
   const [credits, setCredits] = useState<number | null>(null);
-  const [extrasOpen, setExtrasOpen] = useState(() => {
-    return extraItems.some((item) => item.href === pathname);
-  });
-
-  useEffect(() => {
-    paymentApi.getCreditBalance()
-      .then(res => setCredits(res.data.total_credits))
-      .catch(() => {});
-  }, [pathname]);
+  const [extrasOpen, setExtrasOpen] = useState(false);
 
   useEffect(() => {
     if (extraItems.some((item) => item.href === pathname)) {
       setExtrasOpen(true);
     }
   }, [pathname]);
+
+  useEffect(() => {
+    paymentApi.getCreditBalance()
+      .then(res => setCredits(res.data.total_credits))
+      .catch(() => {});
+  }, []);
 
   const startTour = () => {
     resetAllTours();

@@ -240,7 +240,7 @@ async def get_usage_limits(current_user: dict = Depends(get_current_user)):
 async def get_credits(current_user: dict = Depends(get_current_user)):
     """Get user's credit balance"""
     try:
-        is_premium = await check_premium_status(current_user["id"])
+        is_premium = bool(current_user.get("premium_status", False))
         balance = await get_credit_balance(current_user["id"], is_premium)
         return CreditBalanceResponse(**balance)
     except Exception as e:

@@ -46,7 +46,9 @@ export function FounderStorySection() {
                   alt="Founder at 120kg"
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 45vw, 280px"
+                  sizes="(max-width: 768px) 45vw, 240px"
+                  loading="lazy"
+                  quality={60}
                 />
               </div>
               <div className="px-4 py-3 text-center border-t border-white/[0.06]">
@@ -62,7 +64,9 @@ export function FounderStorySection() {
                   alt="Founder at 70kg"
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 45vw, 280px"
+                  sizes="(max-width: 768px) 45vw, 240px"
+                  loading="lazy"
+                  quality={60}
                 />
               </div>
               <div className="px-4 py-3 text-center border-t border-primary/20">

@@ -49,7 +49,15 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchLimits();
+    if (!isAuthenticated) {
+      void fetchLimits();
+      return;
+    }
+    // Yield one frame so the shell / route can paint before usage limits compete for bandwidth.
+    const id = requestAnimationFrame(() => {
+      void fetchLimits();
+    });
+    return () => cancelAnimationFrame(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 

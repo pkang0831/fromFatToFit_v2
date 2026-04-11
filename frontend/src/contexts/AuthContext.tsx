@@ -91,12 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const refreshToken = localStorage.getItem('refresh_token');
         if (!accessToken) { clearAllTokens(); setLoading(false); return; }
 
-        try {
-          await syncSupabaseSession(accessToken, refreshToken);
-        } catch (_) {
-          // The backend token is still the source of truth for the immediate profile fetch.
-          // We only clear the session if the profile fetch itself fails.
-        }
+        // Profile fetch is the source of truth for first paint; Supabase sync can trail behind
+        // so we do not serialize it ahead of getProfile (that was adding a noticeable waterfall).
+        void syncSupabaseSession(accessToken, refreshToken).catch(() => {
+          /* noop — profile fetch below decides session validity */
+        });
 
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Auth check timeout')), 5000)
@@ -107,9 +106,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const liveToken = localStorage.getItem('access_token');
         if (liveToken && !document.cookie.includes('access_token=')) {
-          const refreshToken = localStorage.getItem('refresh_token');
+          const rt = localStorage.getItem('refresh_token');
           setAuthCookie('access_token', liveToken);
-          if (refreshToken) setAuthCookie('refresh_token', refreshToken);
+          if (rt) setAuthCookie('refresh_token', rt);
         }
       } catch (_: unknown) {
         clearAllTokens();

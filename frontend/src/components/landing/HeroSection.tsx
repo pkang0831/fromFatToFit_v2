@@ -127,8 +127,9 @@ export function HeroSection() {
                       alt="Founder before the transformation"
                       fill
                       className="object-cover"
-                      sizes="(max-width: 640px) 100vw, 50vw"
+                      sizes="(max-width: 640px) 90vw, 320px"
                       priority
+                      quality={60}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-4 text-left">
@@ -146,8 +147,9 @@ export function HeroSection() {
                       alt="Founder after the transformation"
                       fill
                       className="object-cover"
-                      sizes="(max-width: 640px) 100vw, 50vw"
+                      sizes="(max-width: 640px) 90vw, 320px"
                       priority
+                      quality={60}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-4 text-left">
@@ -174,7 +176,9 @@ export function HeroSection() {
                     alt="Founder portrait after the transformation"
                     fill
                     className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 30vw"
+                    sizes="(max-width: 1024px) 0px, 280px"
+                    loading="lazy"
+                    quality={60}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
                 </div>
