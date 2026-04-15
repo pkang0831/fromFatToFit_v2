@@ -3,7 +3,7 @@ const COOKIE_MAX_AGE = 60 * 60 * 48; // 48 hours
 
 export function setAuthCookie(name: string, value: string) {
   const secure = isProduction ? '; Secure' : '';
-  document.cookie = `${name}=${value}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
 }
 
 export function clearAuthCookie(name: string) {

@@ -1,85 +1,252 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  ArrowRight,
-  CalendarClock,
-  Camera,
-  Crown,
-  Sparkles,
-  Target,
-} from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/lib/hooks/useSubscription';
-import { homeApi } from '@/lib/api/services';
-import { Card, CardContent, Badge, Button } from '@/components/ui';
-import { StreakBadge } from '@/components/features/StreakBadge';
-import { SkeletonCard, SkeletonStats } from '@/components/ui/Skeleton';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { homeApi, weeklyCheckinsApi } from '@/lib/api/services';
 import { trackReengagementSession } from '@/lib/analytics';
-import type { HomeSummaryResponse } from '@/types/api';
+import { Card, CardContent, ProcessingOverlay } from '@/components/ui';
+import { SkeletonCard } from '@/components/ui/Skeleton';
+import type { HomeSummaryResponse, WeeklyCheckinAnalysisResponse } from '@/types/api';
+import { cn } from '@/lib/utils/cn';
+import { compressAndConvertToBase64 } from '@/lib/utils/image';
+import { formatApiError } from '@/lib/utils/apiError';
+import {
+  coerceDemoWeeklyScenario,
+  createDemoWeeklyAnalysis,
+  readWeeklyAnalysisOverride,
+  WEEKLY_ANALYSIS_OVERRIDE_STORAGE_KEY,
+  writeWeeklyAnalysisOverride,
+} from '@/lib/debug/weeklyAnalysisOverride';
 
-function buildRelativeLabel(value: string | null | undefined): string {
-  if (!value) return 'Not yet';
-  const days = Math.floor((Date.now() - new Date(value).getTime()) / (1000 * 60 * 60 * 24));
-  if (days <= 0) return 'Today';
-  if (days === 1) return '1 day ago';
-  return `${days} days ago`;
+const HologramBodyScanner = dynamic(
+  () =>
+    import('@/components/features/HologramBodyScanner').then((module) => ({
+      default: module.HologramBodyScanner,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[560px] rounded-[34px] border border-white/[0.06] bg-[#0e0d0a] dark:bg-[#0e0d0a]" />
+    ),
+  },
+);
+
+const HOME_SUMMARY_CACHE_PREFIX = 'home_summary_cache';
+const WEEKLY_DEMO_ENABLED = process.env.NEXT_PUBLIC_ENABLE_WEEKLY_DEMO === 'true';
+const WEEKLY_ANALYSIS_STEPS = [
+  { label: 'Uploading weekly photo…', duration: 1400 },
+  { label: 'Extracting visual observations…', duration: 5200 },
+  { label: 'Comparing with your last check-in…', duration: 2600 },
+  { label: 'Updating your hologram…', duration: 1400 },
+];
+
+function getHomeSummaryCacheKey(userId: string, source?: string) {
+  return `${HOME_SUMMARY_CACHE_PREFIX}:${userId}:${source ?? 'default'}`;
 }
 
-function formatDateLabel(value: string | null | undefined): string {
-  if (!value) return 'Not yet';
-  return new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+function readCachedHomeSummary(cacheKey: string): HomeSummaryResponse | null {
+  try {
+    const raw = sessionStorage.getItem(cacheKey);
+    return raw ? (JSON.parse(raw) as HomeSummaryResponse) : null;
+  } catch {
+    return null;
+  }
 }
 
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+function writeCachedHomeSummary(cacheKey: string, summary: HomeSummaryResponse) {
+  try {
+    sessionStorage.setItem(cacheKey, JSON.stringify(summary));
+  } catch {
+    /* noop */
+  }
+}
+
+function formatDateLabel(value?: string | null, locale: string = 'en') {
+  if (!value) return 'Not yet';
+  return new Date(value).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+}
+
+function formatSignedDelta(value?: number | null) {
+  if (value == null) return 'No baseline';
+  if (Math.abs(value) < 0.05) return '0.0';
+  return `${value > 0 ? '+' : ''}${value.toFixed(1)}`;
+}
+
+function formatConfidence(value?: number | null) {
+  if (value == null) return 'Not scored';
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatBodyFatValue(
+  current?: number | null,
+  target?: number | null,
+  targetLabel?: string,
+  trackingLabel: string = 'Tracking',
+) {
+  if (current != null) return `${current.toFixed(1)}%`;
+  if (target != null) return targetLabel ?? `${target.toFixed(1)}%`;
+  return trackingLabel;
+}
+
+function weeklyStatusLabel(t: (key: string, params?: Record<string, string | number>) => string, analysis: WeeklyCheckinAnalysisResponse | null) {
+  if (!analysis) return t('dashboardHome.awaitingFirstCheckin');
+  if (analysis.is_first_checkin) return t('dashboardHome.baselineRecorded');
+  switch (analysis.weekly_status) {
+    case 'improved':
+      return t('dashboardHome.statusImproved');
+    case 'regressed':
+      return t('dashboardHome.statusRegressed');
+    case 'low_confidence':
+      return t('dashboardHome.statusLowConfidence');
+    case 'stable':
+    default:
+      return t('dashboardHome.statusStable');
+  }
+}
+
+function weeklyHeadline(
+  t: (key: string, params?: Record<string, string | number>) => string,
+  analysis: WeeklyCheckinAnalysisResponse | null,
+  fallbackPromptState?: string,
+) {
+  if (!analysis) {
+    return '';
+  }
+
+  if (analysis.is_first_checkin) return t('dashboardHome.baselineRecorded');
+  switch (analysis.weekly_status) {
+    case 'improved':
+      return t('dashboardHome.improvedThisWeek');
+    case 'regressed':
+      return t('dashboardHome.needsReview');
+    case 'low_confidence':
+      return t('dashboardHome.lowConfidenceCheckin');
+    case 'stable':
+    default:
+      return t('dashboardHome.holdingSteady');
+  }
+}
+
+function weeklySummaryLines(
+  t: (key: string, params?: Record<string, string | number>) => string,
+  analysis: WeeklyCheckinAnalysisResponse | null,
+  summary: HomeSummaryResponse,
+  locale: string,
+) {
+  if (!analysis) {
+    return [
+      t('dashboardHome.noAnalysisLine1'),
+      summary.scan_summary.last_scan_date
+        ? t('dashboardHome.noAnalysisLine2WithDate', { date: formatDateLabel(summary.scan_summary.last_scan_date, locale) })
+        : t('dashboardHome.noAnalysisLine2NoDate'),
+    ];
+  }
+
+  if (analysis.weekly_status === 'low_confidence') {
+    return [
+      ...analysis.qualitative_summary.slice(0, 2),
+      t('dashboardHome.lowConfidenceLine', { confidence: formatConfidence(analysis.comparison_confidence) }),
+    ];
+  }
+
+  return analysis.qualitative_summary.slice(0, 3);
+}
+
+function buildWorkflowRows(
+  t: (key: string, params?: Record<string, string | number>) => string,
+  analysis: WeeklyCheckinAnalysisResponse | null,
+) {
+  if (!analysis) {
+    return [
+      { index: '01', label: t('dashboardHome.uploadPhoto'), value: t('common.next') },
+      { index: '02', label: t('dashboardHome.extractObservations'), value: t('dashboardHome.waiting') },
+      { index: '03', label: t('dashboardHome.compareChanges'), value: t('dashboardHome.afterUpload') },
+      { index: '04', label: t('dashboardHome.saveReport'), value: t('dashboardHome.finalStep') },
+    ];
+  }
+
+  return [
+    { index: '01', label: t('dashboardHome.uploadPhoto'), value: t('dashboardHome.done') },
+    { index: '02', label: t('dashboardHome.extractObservations'), value: t('dashboardHome.done') },
+    {
+      index: '03',
+      label: t('dashboardHome.compareChanges'),
+      value: analysis.is_first_checkin ? t('dashboardHome.baseline') : analysis.weekly_status === 'low_confidence' ? t('dashboardHome.statusLowConfidence') : t('dashboardHome.done'),
+    },
+    { index: '04', label: t('dashboardHome.saveReport'), value: t('dashboardHome.done') },
+  ];
 }
 
 export default function HomePage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useMemo(() => searchParams ?? new URLSearchParams(), [searchParams]);
   const { user } = useAuth();
-  const { isPremium } = useSubscription();
+  const { t, locale } = useLanguage();
+  const source = params.get('from') || undefined;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [summary, setSummary] = useState<HomeSummaryResponse | null>(null);
+  const [latestAnalysis, setLatestAnalysis] = useState<WeeklyCheckinAnalysisResponse | null>(null);
+  const [analysisOverride, setAnalysisOverride] = useState<WeeklyCheckinAnalysisResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const summaryEverLoaded = useRef(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user?.id) return;
     let cancelled = false;
+    const cacheKey = getHomeSummaryCacheKey(user.id, source);
+    const cachedSummary = readCachedHomeSummary(cacheKey);
+
+    if (cachedSummary) {
+      setSummary(cachedSummary);
+      setLatestAnalysis(cachedSummary.latest_weekly_checkin ?? null);
+      setDashboardError(null);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
 
     async function loadHomeSummary() {
-      const showFullSkeleton = !summaryEverLoaded.current;
-      if (showFullSkeleton) setLoading(true);
       try {
-        const res = await homeApi.getSummary(searchParams.get('from') || undefined);
+        const res = await homeApi.getSummary(source);
         if (!cancelled) {
           setSummary(res.data);
-          summaryEverLoaded.current = true;
+          setLatestAnalysis(res.data.latest_weekly_checkin ?? null);
+          setDashboardError(null);
+          writeCachedHomeSummary(cacheKey, res.data);
         }
       } catch {
-        if (!cancelled) setSummary(null);
+        if (!cancelled) {
+          if (!cachedSummary) {
+            setSummary(null);
+            setLatestAnalysis(null);
+          }
+          setDashboardError('Live dashboard data is temporarily unavailable. Showing the latest available view.');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
     void loadHomeSummary();
+
     return () => {
       cancelled = true;
     };
-  }, [searchParams]);
+  }, [source, user?.id]);
 
   useEffect(() => {
     if (loading || !summary) return;
 
     trackReengagementSession({
       surface: 'home',
-      source: searchParams.get('from') || undefined,
+      source: params.get('from') || undefined,
       entry_state: summary.entry_state,
       reentry_state: summary.reentry_state,
       surface_state: summary.surface_state,
@@ -90,12 +257,90 @@ export default function HomePage() {
       scan_count: summary.scan_summary.scan_count,
       challenge_active: summary.challenge_summary.is_active,
     });
-  }, [loading, searchParams, summary]);
+  }, [loading, params, summary]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (!WEEKLY_DEMO_ENABLED) {
+      writeWeeklyAnalysisOverride(null);
+      setAnalysisOverride(null);
+      return;
+    }
+
+    const scenario = coerceDemoWeeklyScenario(params.get('demoWeekly'));
+    if (scenario) {
+      const scenarioAnalysis = createDemoWeeklyAnalysis(scenario, summary);
+      writeWeeklyAnalysisOverride(scenarioAnalysis);
+      setAnalysisOverride(scenarioAnalysis);
+      return;
+    }
+
+    const customOverride = readWeeklyAnalysisOverride();
+    if (customOverride) {
+      setAnalysisOverride(customOverride);
+      return;
+    }
+
+    setAnalysisOverride(null);
+  }, [params, summary]);
+
+  const handlePickWeeklyPhoto = () => {
+    if (isAnalyzing) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleRetryDashboard = () => {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
+
+  const handleWeeklyPhotoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    setAnalysisError(null);
+    setIsAnalyzing(true);
+
+    try {
+      const image_base64 = await compressAndConvertToBase64(file);
+      const response = await weeklyCheckinsApi.analyze({
+        image_base64,
+        ownership_confirmed: true,
+      });
+
+      setLatestAnalysis(response.data);
+      setSummary((current) => {
+        if (!current) return current;
+        const nextSummary: HomeSummaryResponse = {
+          ...current,
+          latest_weekly_checkin: response.data,
+          progress_summary: {
+            ...current.progress_summary,
+            photo_count: Math.max(current.progress_summary.photo_count + 1, 1),
+            latest_photo_date: response.data.taken_at,
+            compare_ready: true,
+          },
+        };
+
+        if (user?.id) {
+          writeCachedHomeSummary(getHomeSummaryCacheKey(user.id, source), nextSummary);
+        }
+
+        return nextSummary;
+      });
+    } catch (error) {
+      setAnalysisError(formatApiError(error));
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <SkeletonStats count={3} />
+      <div className="space-y-4">
         <SkeletonCard />
         <SkeletonCard />
       </div>
@@ -104,183 +349,234 @@ export default function HomePage() {
 
   if (!summary) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6">
-            <h1 className="text-2xl font-bold text-text">Home</h1>
-            <p className="mt-2 text-sm text-text-secondary">
-              We could not load your next step right now. Try again in a moment.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="space-y-2 p-6">
+          <h1 className="text-2xl font-bold text-text dark:text-white">{t('dashboardHome.navDashboard')}</h1>
+          <p className="text-sm text-text-secondary dark:text-white/60">
+            {t('dashboardHome.dashboardUnavailableBody')}
+          </p>
+          <button
+            type="button"
+            onClick={handleRetryDashboard}
+            className="mt-4 inline-flex items-center rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-white/[0.08] dark:text-white"
+          >
+            Retry
+          </button>
+        </CardContent>
+      </Card>
     );
   }
 
-  const latestTransformation = summary.scan_summary.latest_transformation;
-  const progressHref = summary.progress_summary.compare_ready
-    ? '/progress?tab=photos&focus=compare&from=home_progress_card'
-    : '/progress?tab=photos&focus=upload&from=home_progress_card';
+  const effectiveAnalysis = analysisOverride ?? latestAnalysis;
+
+  const title = weeklyHeadline(t, effectiveAnalysis, summary.scan_summary.prompt_state);
+  const summaryLines = weeklySummaryLines(t, effectiveAnalysis, summary, locale);
+  const workflowRows = buildWorkflowRows(t, effectiveAnalysis);
+
+  const leftMetrics = [
+    {
+      label: t('dashboardHome.goalProximity'),
+      value: effectiveAnalysis ? `${effectiveAnalysis.derived_scores.goal_proximity_score.toFixed(1)}` : t('dashboardHome.notYet'),
+    },
+    {
+      label: t('dashboardHome.weeklyDelta'),
+      value: effectiveAnalysis
+        ? effectiveAnalysis.is_first_checkin
+          ? t('dashboardHome.baseline')
+          : formatSignedDelta(effectiveAnalysis.delta_from_previous?.goal_proximity_score)
+        : t('dashboardHome.noBaseline'),
+    },
+    {
+      label: t('dashboardHome.status'),
+      value: weeklyStatusLabel(t, effectiveAnalysis),
+    },
+    {
+      label: t('dashboardHome.confidence'),
+      value: effectiveAnalysis ? formatConfidence(effectiveAnalysis.comparison_confidence) : t('dashboardHome.waiting'),
+    },
+  ];
+
+  const fallbackRegionalCards: import('@/types/api').RegionVisualization[] = [
+    {
+      region: 'chest',
+      label: t('dashboardHome.bodyFat'),
+      value: formatBodyFatValue(
+        summary.goal_summary.current_bf,
+        summary.goal_summary.target_bf,
+        summary.goal_summary.target_bf != null ? t('dashboardHome.targetPercent', { value: summary.goal_summary.target_bf.toFixed(1) }) : undefined,
+        t('dashboardHome.goalTargetPending'),
+      ),
+      note:
+        summary.goal_summary.target_bf != null
+          ? t('dashboardHome.targetPercent', { value: summary.goal_summary.target_bf.toFixed(1) })
+          : t('dashboardHome.goalTargetPending'),
+      status: 'stable',
+      intensity: 0.42,
+    },
+    {
+      region: 'abdomen',
+      label: t('dashboardHome.remainingToGoal'),
+      value: summary.goal_summary.gap != null ? t('dashboardHome.remainingValue', { value: summary.goal_summary.gap.toFixed(1) }) : t('dashboardHome.setGoal'),
+      note:
+        summary.goal_summary.target_bf != null
+          ? t('dashboardHome.towardTarget', { value: summary.goal_summary.target_bf.toFixed(1) })
+          : t('dashboardHome.goalTargetPending'),
+      status: 'stable',
+      intensity: 0.46,
+    },
+    {
+      region: 'arms',
+      label: t('dashboardHome.progressPhoto'),
+      value: t('dashboardHome.savedCount', { count: summary.progress_summary.photo_count }),
+      note: summary.progress_summary.latest_photo_date
+        ? t('dashboardHome.lastAdded', { date: formatDateLabel(summary.progress_summary.latest_photo_date, locale) })
+        : t('dashboardHome.addReferencePhoto'),
+      status: summary.progress_summary.photo_count > 0 ? 'improved' : 'stable',
+      intensity: summary.progress_summary.photo_count > 0 ? 0.52 : 0.36,
+    },
+  ];
+
+  const regionalCards = effectiveAnalysis?.regional_visualization?.length
+    ? effectiveAnalysis.regional_visualization
+    : fallbackRegionalCards;
+  const hologramVisualization = effectiveAnalysis?.hologram_visualization;
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-text">
-            {getGreeting()}, <span className="gradient-text">{user?.full_name || 'there'}</span>
-          </h1>
-          <p className="text-text-secondary mt-1">Your home screen should tell you what to do next, not just what the app can do.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <StreakBadge />
-          {isPremium && (
-            <Badge variant="premium" className="text-base px-4 py-2">
-              <Crown className="h-4 w-4 mr-2" />
-              Pro
-            </Badge>
-          )}
-        </div>
-      </div>
+    <div className="space-y-5">
+      <section aria-label="Weekly body-check dashboard">
+        <h1 className="sr-only">Weekly body-check dashboard</h1>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleWeeklyPhotoSelected}
+        />
 
-      <Card variant="elevated" className="border border-primary/20 bg-gradient-to-r from-primary/[0.06] to-secondary/[0.04]">
-        <CardContent className="p-6 md:p-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <div className="space-y-4 max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                <CalendarClock className="h-3.5 w-3.5" />
-                Next action
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-text">{summary.primary_cta.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-text-secondary">{summary.primary_cta.description}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="info">Goal {summary.goal_summary.target_bf != null ? `${summary.goal_summary.target_bf.toFixed(1)}%` : 'not saved'}</Badge>
-                <Badge variant="default">Gap {summary.goal_summary.gap != null ? `${summary.goal_summary.gap.toFixed(1)}%` : 'unknown'}</Badge>
-                <Badge variant="success">Next check-in {summary.scan_summary.next_check_in_label}</Badge>
-              </div>
-            </div>
+        <Card className="overflow-hidden rounded-[34px] border-border/40 bg-white shadow-sm dark:border-white/[0.05] dark:bg-[#0b0a08]">
+          <CardContent className="relative p-0">
+            <div className="absolute inset-0 bg-[radial-gradient(720px_460px_at_72%_44%,rgba(204,190,150,0.06),transparent_48%),linear-gradient(180deg,rgba(255,255,255,0.012),transparent_22%,transparent_65%)] opacity-0 dark:opacity-100" />
+            <div className="grid gap-0 xl:grid-cols-[380px_minmax(0,1fr)]">
+              <aside className="relative z-10 flex flex-col border-b border-border/60 px-6 py-6 md:px-8 md:py-8 xl:min-h-[760px] xl:border-b-0 xl:border-r xl:border-border/60 dark:border-white/[0.06]">
+                <div className="space-y-6">
+                  {dashboardError ? (
+                    <p className="max-w-[18rem] text-sm leading-6 text-amber-700 dark:text-amber-300">
+                      {dashboardError}
+                    </p>
+                  ) : null}
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        'inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-medium',
+                        effectiveAnalysis?.weekly_status === 'improved'
+                          ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                          : effectiveAnalysis?.weekly_status === 'regressed'
+                            ? 'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                            : effectiveAnalysis?.weekly_status === 'low_confidence'
+                              ? 'border-orange-500/20 bg-orange-500/10 text-orange-700 dark:text-orange-300'
+                              : 'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300',
+                      )}
+                    >
+                      {weeklyStatusLabel(t, effectiveAnalysis)}
+                    </span>
+                    <span className="text-sm text-text-secondary dark:text-white/44">
+                      {effectiveAnalysis?.taken_at ? formatDateLabel(effectiveAnalysis.taken_at, locale) : t('dashboardHome.thisWeek')}
+                    </span>
+                  </div>
 
-            <div className="md:min-w-[220px]">
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-full justify-center"
-                onClick={() => router.push(summary.primary_cta.href)}
-              >
-                {summary.primary_cta.label}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <p className="mt-3 text-xs text-center text-text-light">
-                One clear next step. Everything else stays secondary.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                  <div className="space-y-3">
+                    {title ? (
+                      <h2 className="max-w-[14rem] text-[3rem] font-semibold leading-[0.9] tracking-[-0.07em] text-text dark:text-white">
+                        {title}
+                      </h2>
+                    ) : null}
+                    <div className="space-y-2">
+                      {summaryLines.map((line) => (
+                        <p key={line} className="max-w-[18rem] text-sm leading-6 text-text-secondary dark:text-white/58">
+                          {line}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card hover>
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-text-secondary">Current goal</p>
-                <h3 className="text-xl font-bold text-text mt-1">
-                  {summary.goal_summary.target_bf != null ? `${summary.goal_summary.target_bf.toFixed(1)}% target` : 'No saved goal yet'}
-                </h3>
-              </div>
-              <div className="p-3 rounded-xl bg-primary/10">
-                <Target className="h-5 w-5 text-primary" />
-              </div>
-            </div>
-            <div className="space-y-2 text-sm text-text-secondary">
-              <p>{summary.goal_summary.gap != null ? `${summary.goal_summary.gap.toFixed(1)}% left to close` : 'Gap-to-goal starts after you set a target and log a scan.'}</p>
-              <p>{summary.goal_summary.has_saved_plan ? `Plan saved ${buildRelativeLabel(summary.goal_summary.plan_updated_at)}` : 'No planner snapshot saved yet.'}</p>
-              {summary.goal_summary.selected_tier_calories != null && (
-                <p>{summary.goal_summary.selected_tier_calories} kcal/day selected in planner.</p>
-              )}
-            </div>
-            <Button variant="ghost" className="px-0" onClick={() => router.push('/goal-planner')}>
-              Open planner
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardContent>
-        </Card>
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={handlePickWeeklyPhoto}
+                      disabled={isAnalyzing}
+                      className="inline-flex min-h-[58px] items-center justify-center rounded-[20px] bg-[rgb(var(--color-primary))] px-6 text-base font-semibold text-[#17130e] transition-transform duration-200 hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-primary-light))] disabled:cursor-default disabled:opacity-60 disabled:hover:scale-100 dark:text-[#16110b]"
+                      aria-label="Upload weekly progress photo"
+                    >
+                      {isAnalyzing ? t('dashboardHome.analyzing') : effectiveAnalysis ? t('dashboardHome.uploadWeeklyPhoto') : t('dashboardHome.uploadFirstCheckinPhoto')}
+                    </button>
+                    {analysisError ? (
+                      <p className="max-w-[18rem] text-sm leading-6 text-red-600 dark:text-red-300">
+                        {analysisError}
+                      </p>
+                    ) : null}
+                    {WEEKLY_DEMO_ENABLED && analysisOverride ? (
+                      <p className="max-w-[18rem] text-xs leading-5 text-sky-700 dark:text-sky-300">
+                        Demo result override is active. Remove `demoWeekly` from the URL or clear the
+                        localStorage key {WEEKLY_ANALYSIS_OVERRIDE_STORAGE_KEY} to return to live analysis.
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
 
-        <Card hover>
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-text-secondary">Journey</p>
-                <h3 className="text-xl font-bold text-text mt-1">
-                  {latestTransformation ? 'Latest transformation saved' : 'No transformation saved yet'}
-                </h3>
-              </div>
-              <div className="p-3 rounded-xl bg-violet-500/10">
-                <Sparkles className="h-5 w-5 text-violet-500" />
-              </div>
-            </div>
-            <div className="space-y-2 text-sm text-text-secondary">
-              <p>{latestTransformation ? latestTransformation.result_summary : 'Run a transformation to create a future-body reference point.'}</p>
-              <p>{latestTransformation ? `Updated ${formatDateLabel(latestTransformation.date)}` : 'Nothing in journey history yet.'}</p>
-              <p>{summary.goal_summary.goal_image_url ? 'Goal image is saved to your profile.' : 'No saved goal image yet.'}</p>
-            </div>
-            <Button variant="ghost" className="px-0" onClick={() => router.push('/body-scan?tab=journey#transformation')}>
-              Open journey
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardContent>
-        </Card>
+                <div className="mt-10 grid gap-8 xl:mt-auto">
+                  <div className="grid gap-3 border-t border-border/60 pt-6 dark:border-white/[0.06]">
+                    {leftMetrics.map((item) => (
+                      <div key={item.label} className="flex items-baseline justify-between gap-4">
+                        <dt className="text-sm text-text-secondary dark:text-white/46">{item.label}</dt>
+                        <dd className="text-sm font-medium text-text dark:text-white">{item.value}</dd>
+                      </div>
+                    ))}
+                  </div>
 
-        <Card hover>
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-text-secondary">Progress proof</p>
-                <h3 className="text-xl font-bold text-text mt-1">
-                  {summary.progress_summary.photo_count > 0
-                    ? `${summary.progress_summary.photo_count} photo${summary.progress_summary.photo_count === 1 ? '' : 's'} logged`
-                    : 'No proof photos yet'}
-                </h3>
-              </div>
-              <div className="p-3 rounded-xl bg-emerald-500/10">
-                <Camera className="h-5 w-5 text-emerald-500" />
-              </div>
-            </div>
-            <div className="space-y-2 text-sm text-text-secondary">
-              <p>{summary.progress_summary.latest_photo_date ? `Last proof added ${buildRelativeLabel(summary.progress_summary.latest_photo_date)}` : 'Upload a progress photo when you want something more concrete than a scan result.'}</p>
-              <p>{summary.progress_summary.compare_ready ? 'You have enough photos for side-by-side comparison.' : 'You need two photos before comparison becomes useful.'}</p>
-              <p>{summary.scan_summary.scan_count ? `${summary.scan_summary.scan_count} scan data point${summary.scan_summary.scan_count === 1 ? '' : 's'} behind this journey.` : 'No scan history behind the proof yet.'}</p>
-            </div>
-            <Button variant="ghost" className="px-0" onClick={() => router.push(progressHref)}>
-              Open progress
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+                  <div className="grid gap-3 border-t border-border/60 pt-6 dark:border-white/[0.06]">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary dark:text-white/36">
+                      {t('dashboardHome.flow')}
+                    </p>
+                    <ol className="grid gap-3">
+                      {workflowRows.map((item) => (
+                        <li key={item.index} className="grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3">
+                          <span className="text-[11px] font-medium tracking-[0.08em] text-text-secondary dark:text-white/34">
+                            {item.index}
+                          </span>
+                          <span className="text-sm text-text dark:text-white">{item.label}</span>
+                          <span className="text-xs text-text-secondary dark:text-white/46">{item.value}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                </div>
+              </aside>
 
-      {!isPremium && (
-        <Card variant="elevated" className="bg-gradient-to-r from-primary/[0.06] to-secondary/[0.06] border border-primary/20">
-          <CardContent className="p-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex-1 text-center md:text-left">
-                <h3 className="text-2xl font-bold text-text mb-2 flex items-center justify-center md:justify-start">
-                  <Crown className="h-6 w-6 text-premium mr-2" />
-                  Unlimited Weekly Scans. No Credit Cost.
-                </h3>
-                <p className="text-text-secondary mb-4">
-                  Pro removes the friction from the weekly loop. The planner, proof, and scan habit work better when the check-in is easy to repeat.
-                </p>
+              <div className="relative z-10 px-4 py-4 md:px-6 md:py-6 xl:min-h-[760px] xl:px-8 xl:py-8">
+                <HologramBodyScanner
+                  className="h-full min-h-[560px] xl:min-h-[700px]"
+                  size={0.92}
+                  autoRotateSpeed={0.08}
+                  glowIntensity={hologramVisualization?.glow_intensity ?? 0.82}
+                  bodyClarity={hologramVisualization?.body_clarity ?? 0.74}
+                  pedestalProgress={hologramVisualization?.pedestal_progress ?? 0.32}
+                  scanlineSpeed={1}
+                  regionalCards={regionalCards}
+                />
+
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+                  <ProcessingOverlay
+                    active={isAnalyzing}
+                    steps={WEEKLY_ANALYSIS_STEPS}
+                    className="w-full max-w-[420px] bg-[#0c0b09]/94"
+                    dark
+                  />
+                </div>
               </div>
-              <Button variant="primary" size="lg" onClick={() => router.push('/upgrade')}>
-                <Crown className="h-5 w-5 mr-2" />
-                Go Pro
-              </Button>
             </div>
           </CardContent>
         </Card>
-      )}
+      </section>
     </div>
   );
 }

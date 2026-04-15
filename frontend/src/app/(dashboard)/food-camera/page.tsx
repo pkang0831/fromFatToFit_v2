@@ -214,10 +214,10 @@ export default function FoodCameraPage() {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {[
-                    { icon: Search, label: 'Identify Food', desc: 'AI detects what you ate' },
-                    { icon: PieChart, label: 'Full Macros', desc: 'Calories, protein, carbs, fat' },
-                    { icon: ThumbsUp, label: 'Eat or Skip?', desc: 'AI diet verdict' },
-                    { icon: Zap, label: 'Auto-Log', desc: 'Saves to your diary' },
+                    { icon: Search, label: t('food.featureIdentifyTitle'), desc: t('food.featureIdentifyDesc') },
+                    { icon: PieChart, label: t('food.featureMacrosTitle'), desc: t('food.featureMacrosDesc') },
+                    { icon: ThumbsUp, label: t('food.featureDecisionTitle'), desc: t('food.featureDecisionDesc') },
+                    { icon: Zap, label: t('food.featureAutoLogTitle'), desc: t('food.featureAutoLogDesc') },
                   ].map(({ icon: Icon, label, desc }) => (
                     <div key={label} className="p-3 rounded-xl border border-border bg-white/[0.02] text-center">
                       <Icon className="w-5 h-5 text-primary mx-auto mb-1.5" />
@@ -264,10 +264,10 @@ export default function FoodCameraPage() {
             <div className="mt-4 p-4 bg-error/10 border border-error rounded-lg">
               <p className="text-sm font-semibold text-error">
                 {errorState.kind === 'limit'
-                  ? 'Scan limit reached'
+                  ? t('food.scanLimitReached')
                   : errorState.kind === 'analysis'
-                    ? 'Could not detect food'
-                    : 'Food analysis failed'}
+                    ? t('food.couldNotDetectFood')
+                    : t('food.analysisFailed')}
               </p>
               <p className="mt-1 text-sm text-error">{errorState.message}</p>
               {!isPremium && errorState.kind === 'limit' && (

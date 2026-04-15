@@ -296,7 +296,7 @@ class BodyPhotoQualityResponse(BaseModel):
 
 
 class GuestScanResponse(BaseModel):
-    body_fat_percentage: float = Field(description="Rounded BF% (approximate). Create an account for exact measurement.")
+    body_fat_percentage: float = Field(description="Approximate BF% estimate. Create an account for richer trend tracking and more context.")
     confidence: str
     category: str
     insight: str

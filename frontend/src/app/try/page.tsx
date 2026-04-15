@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { guestApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { formatApiError } from '@/lib/utils/apiError';
+import { trackEvent } from '@/lib/analytics';
 import { BodyCaptureGuide } from '@/components/features/BodyCaptureGuide';
 import { BodyScanPoseGuide } from '@/components/features/BodyScanPoseGuide';
 import { IDEAL_BODY_SCAN_POSE_IMAGE } from '@/lib/constants/bodyScanGuide';
@@ -38,6 +39,7 @@ function ConfidenceColor(confidence: string) {
 export default function TryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [registerHref, setRegisterHref] = useState('/register?next=%2Fbody-scan%3Ftab%3Djourney');
+  const [loginHref, setLoginHref] = useState('/login?next=%2Fbody-scan%3Ftab%3Djourney');
   const [step, setStep] = useState<Step>('upload');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -54,18 +56,22 @@ export default function TryPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    const currentSearch = new URLSearchParams(window.location.search);
+    const source = currentSearch.get('source') || currentSearch.get('ref') || 'direct_try';
+    trackEvent('prelaunch_try_viewed', { source });
+
     const params = new URLSearchParams();
     params.set('next', '/body-scan?tab=journey');
 
-    const currentSearch = new URLSearchParams(window.location.search);
-    const source = currentSearch.get('source') || currentSearch.get('ref');
     const shareToken = currentSearch.get('share_token') || currentSearch.get('share');
     const sessionId = currentSearch.get('session_id');
     if (source) params.set('source', source);
     if (shareToken) params.set('share_token', shareToken);
     if (sessionId) params.set('session_id', sessionId);
 
-    setRegisterHref(`/register?${params.toString()}`);
+    const authQuery = params.toString();
+    setRegisterHref(`/register?${authQuery}`);
+    setLoginHref(`/login?${authQuery}`);
   }, []);
 
   const processTryFile = async (f: File, framing: PhotoFraming): Promise<boolean> => {
@@ -143,8 +149,8 @@ export default function TryPage() {
         <Link href="/" className="text-xl font-bold gradient-text">
           Devenira
         </Link>
-        <Link href="/login" className="text-sm text-white/40 hover:text-white/70 transition-colors">
-          Already have an account? Sign in
+        <Link href={loginHref} className="text-sm text-white/40 hover:text-white/70 transition-colors">
+          Already in the beta? Sign in
         </Link>
       </nav>
 
@@ -156,11 +162,14 @@ export default function TryPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.26em] text-primary/80">
+            Early-access beta
+          </p>
           <h1 className="text-3xl md:text-4xl font-bold mb-3">
-            See where you stand
+            Start your first body check-in
           </h1>
           <p className="text-white/40 text-lg">
-            Free body fat estimate. No sign-up needed.
+            Use the beta flow to create a baseline now. If it helps, save it and keep the weekly proof loop going.
           </p>
         </motion.div>
 
@@ -401,6 +410,7 @@ export default function TryPage() {
 
                   <Link
                     href={registerHref}
+                    onClick={() => trackEvent('prelaunch_register_cta_clicked', { location: 'try_result' })}
                     className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-primary text-white font-semibold rounded-xl text-lg transition-all hover:shadow-glow-cyan hover:-translate-y-0.5 btn-glow"
                   >
                     Create Free Account
@@ -408,7 +418,7 @@ export default function TryPage() {
                   </Link>
 
                   <p className="text-xs text-white/20 mt-4">
-                    Free plan includes 3 body scans in your first month. No credit card required.
+                    Save this result, unlock weekly tracking, and start building proof over time.
                   </p>
                 </div>
               </div>

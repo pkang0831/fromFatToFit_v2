@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,18 +8,9 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
 
 const FeatureTour = dynamic(
-  () => import('@/components/tour/FeatureTour').then((m) => ({ default: m.FeatureTour })),
-  { ssr: false }
+  () => import('@/components/tour/FeatureTour').then((module) => module.FeatureTour),
+  { ssr: false, loading: () => null },
 );
-
-function readHasAccessToken(): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    return Boolean(localStorage.getItem('access_token'));
-  } catch {
-    return false;
-  }
-}
 
 export default function DashboardLayout({
   children,
@@ -28,31 +19,16 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
-  const [likelySession] = useState(readHasAccessToken);
+  const hasLocalToken = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return Boolean(localStorage.getItem('access_token'));
+  }, []);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      const next = typeof window !== 'undefined' ? window.location.pathname : '';
-      const loginUrl = next && next !== '/login' ? `/login?next=${encodeURIComponent(next)}` : '/login';
-      router.replace(loginUrl);
+    if (!loading && !isAuthenticated && !hasLocalToken) {
+      router.push('/login');
     }
-  }, [isAuthenticated, loading, router]);
-
-  // Token in storage: show dashboard chrome immediately and load the main column while profile resolves.
-  if (loading && likelySession) {
-    return (
-      <div className="flex min-h-screen bg-background">
-        <Sidebar />
-        <main className="flex-1 overflow-x-hidden pb-20 lg:pb-0">
-          <div className="container mx-auto px-4 py-8 max-w-7xl flex min-h-[40vh] flex-col items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
-            <p className="mt-4 text-sm text-text-secondary">Loading your workspace…</p>
-          </div>
-        </main>
-        <MobileNav />
-      </div>
-    );
-  }
+  }, [hasLocalToken, isAuthenticated, loading, router]);
 
   if (loading) {
     return (
@@ -65,7 +41,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !hasLocalToken) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">

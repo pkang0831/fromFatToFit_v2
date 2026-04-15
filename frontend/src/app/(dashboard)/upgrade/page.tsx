@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Crown, Check, Sparkles, Zap } from 'lucide-react';
@@ -42,20 +42,23 @@ export default function UpgradePage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const params = useMemo(() => searchParams ?? new URLSearchParams(), [searchParams]);
   const [selectedPeriod, setSelectedPeriod] = useState<PricingPeriod>('yearly');
   const [isLoading, setIsLoading] = useState(false);
   const [packLoading, setPackLoading] = useState<number | null>(null);
   const [credits, setCredits] = useState<CreditBalance | null>(null);
+  const [creditLoadError, setCreditLoadError] = useState<string | null>(null);
   const handledPurchaseRef = useRef(false);
 
-  const loadCredits = async () => {
+  const loadCredits = useCallback(async () => {
     try {
+      setCreditLoadError(null);
       const res = await paymentApi.getCreditBalance();
       setCredits(res.data);
     } catch {
-      // noop
+      setCreditLoadError(t('upgrade.creditLoadFailedVisible'));
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     void loadCredits();
@@ -63,13 +66,13 @@ export default function UpgradePage() {
       surface: 'upgrade_page',
       is_premium: isPremium,
     });
-  }, [isPremium]);
+  }, [isPremium, loadCredits]);
 
   useEffect(() => {
     if (handledPurchaseRef.current) return;
 
-    const subscriptionSuccess = searchParams.get('success') === 'true';
-    const creditPackSuccess = searchParams.get('credits') === 'purchased';
+    const subscriptionSuccess = params.get('success') === 'true';
+    const creditPackSuccess = params.get('credits') === 'purchased';
 
     if (!subscriptionSuccess && !creditPackSuccess) return;
 
@@ -86,8 +89,8 @@ export default function UpgradePage() {
     });
 
     toast.success(subscriptionSuccess ? 'Pro is now active.' : 'Credits added to your account.');
-    router.replace(pathname);
-  }, [pathname, refreshLimits, router, searchParams]);
+    router.replace(pathname || '/upgrade');
+  }, [params, pathname, refreshLimits, router, loadCredits]);
 
   const pricing = {
     monthly: { price: 9.99, priceId: 'price_1T76GGCLiCRdyAkdUMiIPWdg', period: 'month' },
@@ -166,6 +169,17 @@ export default function UpgradePage() {
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {creditLoadError && (
+        <Card variant="outlined" className="border-error/30 bg-error/5">
+          <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-error">{creditLoadError}</p>
+            <Button variant="outline" size="sm" onClick={loadCredits}>
+              {t('common.retry')}
+            </Button>
           </CardContent>
         </Card>
       )}

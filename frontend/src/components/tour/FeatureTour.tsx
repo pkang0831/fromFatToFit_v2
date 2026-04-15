@@ -100,7 +100,7 @@ const PAGE_TOURS: Record<string, TourStep[]> = {
       target: '[data-tour="progress-chart"]',
       title: 'Goal Projection',
       description:
-        'Green line = actual weight. Dashed line = projected path to your goal. Set a target deficit (e.g. 500 kcal/day) to see your estimated goal date.',
+        'Use this as a direction check. Start with a planned 300 to 700 kcal daily deficit, and treat the chart as a rough estimate, not a guarantee.',
       placement: 'top',
     },
   ],

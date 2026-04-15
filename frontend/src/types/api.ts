@@ -140,6 +140,113 @@ export interface HomePrimaryCta {
   description: string;
 }
 
+export type WeeklyStatus = 'improved' | 'stable' | 'regressed' | 'low_confidence';
+export type RegionStatus = 'improved' | 'stable' | 'regressed';
+export type HighlightRegion = 'abdomen' | 'chest' | 'arms' | 'whole';
+
+export interface WeeklyCheckinCreateRequest {
+  image_base64: string;
+  notes?: string;
+  weight_kg?: number | null;
+  ownership_confirmed?: boolean;
+  prioritize_leanness?: number | null;
+  prioritize_definition?: number | null;
+}
+
+export interface ImageQualityObservation {
+  frontal_pose: number;
+  body_visibility: number;
+  lighting_consistency: number;
+  pose_consistency: number;
+  comparison_confidence: number;
+  quality_flags: string[];
+}
+
+export interface VisualObservations {
+  abdomen_softness: number;
+  lower_abdomen_protrusion: number;
+  ab_definition: number;
+  chest_definition: number;
+  arm_definition: number;
+  shoulder_roundness: number;
+  v_taper_visibility: number;
+  overall_visual_leanness: number;
+}
+
+export interface EstimatedBodyFatRange {
+  body_fat_percent_min: number;
+  body_fat_percent_max: number;
+  body_fat_confidence: number;
+}
+
+export interface RegionNotes {
+  abdomen: string;
+  chest: string;
+  arms: string;
+  shoulders: string;
+}
+
+export interface BodyObservation {
+  image_quality: ImageQualityObservation;
+  observations: VisualObservations;
+  estimated_ranges: EstimatedBodyFatRange;
+  qualitative_summary: string[];
+  region_notes: RegionNotes;
+}
+
+export interface DerivedScores {
+  leanness_score: number;
+  definition_score: number;
+  proportion_score: number;
+  goal_proximity_score: number;
+}
+
+export interface WeeklyDelta {
+  abdomen_softness: number;
+  lower_abdomen_protrusion: number;
+  ab_definition: number;
+  chest_definition: number;
+  arm_definition: number;
+  overall_visual_leanness: number;
+  goal_proximity_score: number;
+}
+
+export interface RegionVisualization {
+  region: HighlightRegion;
+  label: string;
+  value: string;
+  note: string;
+  status: RegionStatus;
+  intensity: number;
+}
+
+export interface HologramVisualization {
+  glow_intensity: number;
+  body_clarity: number;
+  pedestal_progress: number;
+}
+
+export interface WeeklyCheckinAnalysisResponse {
+  id: string;
+  progress_photo_id: string;
+  previous_checkin_id?: string | null;
+  created_at: string;
+  taken_at: string;
+  analysis_version: string;
+  image_quality: ImageQualityObservation;
+  observations: VisualObservations;
+  estimated_ranges: EstimatedBodyFatRange;
+  qualitative_summary: string[];
+  region_notes: RegionNotes;
+  derived_scores: DerivedScores;
+  delta_from_previous?: WeeklyDelta | null;
+  comparison_confidence: number;
+  weekly_status: WeeklyStatus;
+  is_first_checkin: boolean;
+  regional_visualization: RegionVisualization[];
+  hologram_visualization: HologramVisualization;
+}
+
 export interface HomeSummaryResponse {
   entry_state: HomeEntryState;
   reentry_state: HomeEntryState;
@@ -149,6 +256,7 @@ export interface HomeSummaryResponse {
   challenge_summary: HomeChallengeSummary;
   progress_summary: HomeProgressSummary;
   primary_cta: HomePrimaryCta;
+  latest_weekly_checkin?: WeeklyCheckinAnalysisResponse | null;
 }
 
 export interface ProgressPhoto {

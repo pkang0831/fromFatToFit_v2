@@ -1,3 +1,4 @@
+import asyncio
 from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -21,9 +22,14 @@ from ..schemas.home_schemas import (
     HomeSummaryResponse,
     HomeTransformationSummary,
 )
+from ..schemas.weekly_checkin_schemas import WeeklyCheckinAnalysisResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+async def _execute_supabase_query(builder):
+    return await asyncio.to_thread(builder.execute)
 
 
 def _build_test_home_summary() -> HomeSummaryResponse:
@@ -69,6 +75,36 @@ def _build_test_home_summary() -> HomeSummaryResponse:
             title="You have data, but no proof yet",
             description="Add a progress photo so the journey is not just estimates and future previews.",
         ),
+        latest_weekly_checkin=None,
+    )
+
+
+async def _load_latest_weekly_checkin(user_id: str) -> WeeklyCheckinAnalysisResponse | None:
+    try:
+        result = await _execute_supabase_query(
+            get_supabase()
+            .table("weekly_checkins")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("taken_at", desc=True)
+            .limit(1)
+        )
+    except Exception as exc:
+        message = str(exc).lower()
+        if "weekly_checkins" in message and ("relation" in message or "does not exist" in message):
+            logger.info("weekly_checkins table is not provisioned yet; home summary will omit weekly analysis")
+            return None
+        raise
+
+    if not result.data:
+        return None
+
+    row = result.data[0]
+    return WeeklyCheckinAnalysisResponse.model_validate(
+        {
+            **row,
+            "is_first_checkin": row.get("is_first_checkin", False),
+        }
     )
 
 
@@ -236,63 +272,67 @@ async def get_home_summary(
     if settings.test_login_stub_mode and user_id == settings.test_login_stub_user_id:
         return _build_test_home_summary()
 
-    supabase = get_supabase()
-
     try:
-        profile_result = (
-            supabase.table("user_profiles")
-            .select("target_body_fat_percentage, goal_image_url")
-            .eq("user_id", user_id)
-            .limit(1)
-            .execute()
+        (
+            profile_result,
+            saved_plan_result,
+            bodyfat_scans_result,
+            transformation_result,
+            progress_result,
+            challenge_result,
+            latest_weekly_checkin,
+        ) = await asyncio.gather(
+            _execute_supabase_query(
+                get_supabase()
+                .table("user_profiles")
+                .select("target_body_fat_percentage, goal_image_url")
+                .eq("user_id", user_id)
+                .limit(1)
+            ),
+            _execute_supabase_query(
+                get_supabase()
+                .table("saved_goal_plans")
+                .select("plan_data, updated_at")
+                .eq("user_id", user_id)
+                .limit(1)
+            ),
+            _execute_supabase_query(
+                get_supabase()
+                .table("body_scans")
+                .select("created_at, result_data, scan_type")
+                .eq("user_id", user_id)
+                .in_("scan_type", ["bodyfat", "percentile"])
+                .order("created_at", desc=False)
+            ),
+            _execute_supabase_query(
+                get_supabase()
+                .table("body_scans")
+                .select("id, scan_type, created_at, result_data, image_url")
+                .eq("user_id", user_id)
+                .eq("scan_type", "transformation")
+                .order("created_at", desc=True)
+                .limit(1)
+            ),
+            _execute_supabase_query(
+                get_supabase()
+                .table("progress_photos")
+                .select("taken_at")
+                .eq("user_id", user_id)
+                .order("taken_at", desc=True)
+            ),
+            _execute_supabase_query(
+                get_supabase()
+                .table("seven_day_challenges")
+                .select("id, status, started_at")
+                .eq("user_id", user_id)
+                .eq("status", "active")
+                .limit(1)
+            ),
+            _load_latest_weekly_checkin(user_id),
         )
         profile = profile_result.data[0] if profile_result.data else {}
-
-        saved_plan_result = (
-            supabase.table("saved_goal_plans")
-            .select("plan_data, updated_at")
-            .eq("user_id", user_id)
-            .limit(1)
-            .execute()
-        )
         saved_plan_row = saved_plan_result.data[0] if saved_plan_result.data else None
         saved_plan = saved_plan_row.get("plan_data") if saved_plan_row else None
-
-        bodyfat_scans_result = (
-            supabase.table("body_scans")
-            .select("created_at, result_data, scan_type")
-            .eq("user_id", user_id)
-            .in_("scan_type", ["bodyfat", "percentile"])
-            .order("created_at", desc=False)
-            .execute()
-        )
-
-        transformation_result = (
-            supabase.table("body_scans")
-            .select("id, scan_type, created_at, result_data, image_url")
-            .eq("user_id", user_id)
-            .eq("scan_type", "transformation")
-            .order("created_at", desc=True)
-            .limit(1)
-            .execute()
-        )
-
-        progress_result = (
-            supabase.table("progress_photos")
-            .select("taken_at")
-            .eq("user_id", user_id)
-            .order("taken_at", desc=True)
-            .execute()
-        )
-
-        challenge_result = (
-            supabase.table("seven_day_challenges")
-            .select("id, status, started_at")
-            .eq("user_id", user_id)
-            .eq("status", "active")
-            .limit(1)
-            .execute()
-        )
 
         current_bf = None
         last_scan_date = None
@@ -337,11 +377,11 @@ async def get_home_summary(
                 started_date = datetime.fromisoformat(started_at.replace("Z", "+00:00")).date()
                 challenge_day_index = max(1, min((date.today() - started_date).days + 1, 7))
 
-            checkins_result = (
-                supabase.table("seven_day_checkins")
+            checkins_result = await _execute_supabase_query(
+                get_supabase()
+                .table("seven_day_checkins")
                 .select("calendar_date")
                 .eq("challenge_id", challenge_row["id"])
-                .execute()
             )
             checked_in_today = any(
                 row.get("calendar_date") == date.today().isoformat()
@@ -413,6 +453,7 @@ async def get_home_summary(
                 compare_ready=len(progress_rows) >= 2,
             ),
             primary_cta=primary_cta,
+            latest_weekly_checkin=latest_weekly_checkin,
         )
     except HTTPException:
         raise

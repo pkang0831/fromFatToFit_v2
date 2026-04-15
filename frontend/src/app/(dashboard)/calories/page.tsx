@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { Camera, TrendingUp, Utensils, Clock, Plus, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { MealCard } from '@/components/features/MealCard';
 import { foodApi } from '@/lib/api/services';
-import { getTodayString, formatDateLong, formatLocalDateKR } from '@/lib/utils/date';
+import { getTodayString, formatDateLong, formatLocalDateKR, formatDate, parseLocalDate } from '@/lib/utils/date';
 import { useLanguage } from '@/contexts/LanguageContext';
 import dynamic from 'next/dynamic';
 import type { DailySummaryResponse, TrendResponse, RecentFoodItem } from '@/types/api';
@@ -37,12 +38,14 @@ export default function CaloriesPage() {
   const [trendData, setTrendData] = useState<TrendResponse | null>(null);
   const [recentFoods, setRecentFoods] = useState<RecentFoodItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedDays, setSelectedDays] = useState<7 | 30>(7);
   const [quickLogging, setQuickLogging] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const [dailyResponse, trendResponse, recentResponse] = await Promise.all([
         foodApi.getDailyFood(selectedDate),
         foodApi.getTrends(selectedDays),
@@ -53,6 +56,7 @@ export default function CaloriesPage() {
       setRecentFoods(recentResponse.data.recent_foods);
     } catch (error) {
       console.error('Failed to load calorie data:', error);
+      setLoadError(t('calories.loadFailedVisible'));
     } finally {
       setLoading(false);
     }
@@ -64,20 +68,19 @@ export default function CaloriesPage() {
   }, [selectedDate, selectedDays]);
 
   const handlePreviousDay = () => {
-    const date = new Date(selectedDate);
+    const date = parseLocalDate(selectedDate);
     date.setDate(date.getDate() - 1);
-    setSelectedDate(date.toISOString().split('T')[0]);
+    setSelectedDate(formatDate(date, 'yyyy-MM-dd'));
   };
 
   const handleNextDay = () => {
-    const date = new Date(selectedDate);
+    const date = parseLocalDate(selectedDate);
     date.setDate(date.getDate() + 1);
-    const today = new Date(getTodayString());
-    const nextDate = new Date(date.toISOString().split('T')[0]);
+    const nextDate = formatDate(date, 'yyyy-MM-dd');
     
     // Don't allow going beyond today
-    if (nextDate <= today) {
-      setSelectedDate(date.toISOString().split('T')[0]);
+    if (nextDate <= getTodayString()) {
+      setSelectedDate(nextDate);
     }
   };
 
@@ -108,7 +111,7 @@ export default function CaloriesPage() {
       await loadData();
     } catch (error) {
       console.error('Failed to quick log food:', error);
-      alert(t('calories.failedToLog'));
+      toast.error(t('calories.failedToLog'));
     } finally {
       setQuickLogging(null);
     }
@@ -201,6 +204,17 @@ export default function CaloriesPage() {
           </div>
         </CardContent>
       </Card>
+
+      {loadError && (
+        <Card variant="outlined" className="border-error/30 bg-error/5">
+          <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-error">{loadError}</p>
+            <Button variant="outline" size="sm" onClick={loadData}>
+              {t('common.retry')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Daily Summary */}
       {loading ? (

@@ -49,6 +49,8 @@ import type {
   ProgressPhoto,
   ProgressPhotoCompareResponse,
   ProofShareResponse,
+  WeeklyCheckinAnalysisResponse,
+  WeeklyCheckinCreateRequest,
 } from '@/types/api';
 
 // Guest API (no auth required)
@@ -228,6 +230,14 @@ export const homeApi = {
     }),
 };
 
+export const weeklyCheckinsApi = {
+  analyze: (data: WeeklyCheckinCreateRequest) =>
+    api.post<WeeklyCheckinAnalysisResponse>('/weekly-checkins/analyze', data),
+
+  getLatest: () =>
+    api.get<WeeklyCheckinAnalysisResponse>('/weekly-checkins/latest'),
+};
+
 export const analyticsApi = {
   captureRetentionEvent: (data: {
     event_name:
@@ -343,7 +353,6 @@ export const weightApi = {
       params: { 
         days_history: daysHistory,
         ...(targetDeficit !== undefined && { target_deficit: targetDeficit }),
-        _t: Date.now(),
       },
     }),
 };

@@ -1,13 +1,48 @@
+import asyncio
 import logging
-from typing import List, Dict, Any
+import time
+from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, date, timedelta
 from ..database import get_supabase
 from .calorie_calculator import CalorieCalculator
 
 logger = logging.getLogger(__name__)
 
+_calorie_balance_cache: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+_CALORIE_BALANCE_CACHE_TTL_SECONDS = 60
 
-async def get_food_trend_data(user_id: str, days: int = 7) -> List[Dict[str, Any]]:
+
+def _calorie_balance_cache_key(user_id: str, days: int) -> str:
+    return f"{user_id}:{days}"
+
+
+def _read_calorie_balance_cache(user_id: str, days: int) -> Optional[Dict[str, Any]]:
+    key = _calorie_balance_cache_key(user_id, days)
+    cached = _calorie_balance_cache.get(key)
+    if not cached:
+        return None
+    stored_at, response = cached
+    if time.time() - stored_at > _CALORIE_BALANCE_CACHE_TTL_SECONDS:
+        _calorie_balance_cache.pop(key, None)
+        return None
+    return response
+
+
+def _write_calorie_balance_cache(user_id: str, days: int, response: Dict[str, Any]) -> None:
+    _calorie_balance_cache[_calorie_balance_cache_key(user_id, days)] = (time.time(), response)
+
+
+def invalidate_calorie_balance_cache(user_id: str) -> None:
+    keys_to_delete = [key for key in _calorie_balance_cache if key.startswith(f"{user_id}:")]
+    for key in keys_to_delete:
+        _calorie_balance_cache.pop(key, None)
+
+
+async def get_food_trend_data(
+    user_id: str,
+    days: int = 7,
+    calorie_goal_override: float | None = None,
+) -> List[Dict[str, Any]]:
     """
     Get food/calorie trend data for specified number of days
     
@@ -28,9 +63,12 @@ async def get_food_trend_data(user_id: str, days: int = 7) -> List[Dict[str, Any
         # Get daily summaries
         result = supabase.table("daily_summaries").select("*").eq("user_id", user_id).gte('"date"', start_date.isoformat()).lte('"date"', end_date.isoformat()).order('"date"').execute()
         
-        # Get user's calorie goal
-        user_result = supabase.table("user_profiles").select("calorie_goal").eq("user_id", user_id).execute()
-        calorie_goal = user_result.data[0].get("calorie_goal") if user_result.data and len(user_result.data) > 0 else 2000
+        # Get user's calorie goal only when it was not already loaded by caller.
+        if calorie_goal_override is not None:
+            calorie_goal = calorie_goal_override
+        else:
+            user_result = supabase.table("user_profiles").select("calorie_goal").eq("user_id", user_id).execute()
+            calorie_goal = user_result.data[0].get("calorie_goal") if user_result.data and len(user_result.data) > 0 else 2000
         
         trend_data = []
         for day_data in result.data:
@@ -141,7 +179,11 @@ async def get_workout_trend_data(user_id: str, days: int = 30) -> List[Dict[str,
         raise
 
 
-async def get_calorie_balance_trend(user_id: str, days: int = 7) -> Dict[str, Any]:
+async def get_calorie_balance_trend(
+    user_id: str,
+    days: int = 7,
+    profile: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
     """
     Get calorie balance trend combining food intake, TDEE, workout burn, and deficit
     
@@ -164,27 +206,37 @@ async def get_calorie_balance_trend(user_id: str, days: int = 7) -> Dict[str, An
         Dictionary with trend data and summary statistics
     """
     try:
+        cached = _read_calorie_balance_cache(user_id, days)
+        if cached is not None:
+            return cached
+
         supabase = get_supabase()
         
-        # Get user profile with all necessary fields for TDEE calculation
-        user_profile = supabase.table("user_profiles").select(
-            "created_at, calorie_goal, weight_kg, height_cm, age, gender, activity_level"
-        ).eq("user_id", user_id).execute()
-        
-        if not user_profile.data or len(user_profile.data) == 0:
+        profile_data = profile
+
+        if not profile_data:
+            user_profile = supabase.table("user_profiles").select(
+                "created_at, calorie_goal, weight_kg, height_cm, age, gender, activity_level"
+            ).eq("user_id", user_id).execute()
+
+            if not user_profile.data or len(user_profile.data) == 0:
+                raise ValueError(f"User profile not found for user_id: {user_id}")
+
+            profile_data = user_profile.data[0]
+
+        if not profile_data:
             raise ValueError(f"User profile not found for user_id: {user_id}")
-        
-        profile = user_profile.data[0]
-        calorie_goal = profile.get("calorie_goal", 2000)
-        registration_date = datetime.fromisoformat(profile["created_at"]).date()
+
+        calorie_goal = profile_data.get("calorie_goal", 2000)
+        registration_date = datetime.fromisoformat(profile_data["created_at"]).date()
         today = date.today()
         
         # Calculate TDEE (daily baseline energy expenditure)
-        weight_kg = profile.get("weight_kg", 70.0)
-        height_cm = profile.get("height_cm", 170.0)
-        age = profile.get("age", 30)
-        gender = profile.get("gender", "male")
-        activity_level = profile.get("activity_level", "moderate")
+        weight_kg = profile_data.get("weight_kg", 70.0)
+        height_cm = profile_data.get("height_cm", 170.0)
+        age = profile_data.get("age", 30)
+        gender = profile_data.get("gender", "male")
+        activity_level = profile_data.get("activity_level", "moderate")
         
         tdee = CalorieCalculator.calculate_tdee(
             weight_kg=weight_kg,
@@ -194,8 +246,6 @@ async def get_calorie_balance_trend(user_id: str, days: int = 7) -> Dict[str, An
             activity_level=activity_level
         )
         
-        logger.info(f"User TDEE: {tdee} kcal/day (BMR + activity factor for {activity_level})")
-        
         # Calculate actual active days
         days_since_registration = (today - registration_date).days + 1  # +1 to include today
         
@@ -203,11 +253,11 @@ async def get_calorie_balance_trend(user_id: str, days: int = 7) -> Dict[str, An
         # If user is newer than requested period, use actual days since registration
         actual_days_for_average = min(days_since_registration, days)
         
-        logger.info(f"User registered: {registration_date}, Days since: {days_since_registration}, Using {actual_days_for_average} days for average")
-        
         # Get food and workout trends (still fetch full requested days for chart)
-        food_trend = await get_food_trend_data(user_id, days)
-        workout_trend = await get_workout_trend_data(user_id, days)
+        food_trend, workout_trend = await asyncio.gather(
+            get_food_trend_data(user_id, days, calorie_goal_override=calorie_goal),
+            get_workout_trend_data(user_id, days),
+        )
         
         # Create a map for quick lookup
         food_map = {item["date"]: item["calories"] for item in food_trend}
@@ -264,7 +314,7 @@ async def get_calorie_balance_trend(user_id: str, days: int = 7) -> Dict[str, An
         avg_burned = total_burned / actual_days_for_average if actual_days_for_average > 0 else 0
         avg_deficit = total_deficit / actual_days_for_average if actual_days_for_average > 0 else 0
         
-        return {
+        response = {
             "data": trend_data,
             "summary": {
                 "avg_consumed": round(avg_consumed, 1),
@@ -276,6 +326,8 @@ async def get_calorie_balance_trend(user_id: str, days: int = 7) -> Dict[str, An
                 "tdee": round(tdee, 1)
             }
         }
+        _write_calorie_balance_cache(user_id, days, response)
+        return response
         
     except Exception as e:
         logger.error(f"Error getting calorie balance trend: {e}")

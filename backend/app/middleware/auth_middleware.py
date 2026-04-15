@@ -18,12 +18,14 @@ def _build_fallback_current_user(user, token: str):
         "height_cm": None,
         "weight_kg": None,
         "target_weight_kg": None,
+        "target_body_fat_percentage": None,
         "age": None,
         "gender": None,
         "ethnicity": None,
         "activity_level": None,
         "calorie_goal": None,
         "stripe_customer_id": None,
+        "created_at": None,
         "onboarding_completed": bool(meta.get("onboarding_completed", False)),
     }
 
@@ -77,12 +79,14 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "height_cm": 180,
                 "weight_kg": 82,
                 "target_weight_kg": None,
+                "target_body_fat_percentage": None,
                 "age": 30,
                 "gender": "male",
                 "ethnicity": None,
                 "activity_level": "moderate",
                 "calorie_goal": None,
                 "stripe_customer_id": None,
+                "created_at": None,
                 "onboarding_completed": True,
             }
         
@@ -138,11 +142,13 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
                 "height_cm": profile.get("height_cm"),
                 "weight_kg": profile.get("weight_kg"),
                 "target_weight_kg": profile.get("target_weight_kg"),
+                "target_body_fat_percentage": profile.get("target_body_fat_percentage"),
                 "age": profile.get("age"),
                 "gender": profile.get("gender"),
                 "ethnicity": profile.get("ethnicity"),
                 "activity_level": profile.get("activity_level"),
                 "stripe_customer_id": profile.get("stripe_customer_id"),
+                "created_at": profile.get("created_at"),
                 "onboarding_completed": profile.get("onboarding_completed", has_required),
             }
         else:

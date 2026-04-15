@@ -7,3 +7,5 @@ export * from './ProgressBar';
 export * from './progress';
 export * from './ConfirmDialog';
 export * from './ProcessingOverlay';
+export * from './ecosystem-constellation';
+export * from './ecosystem-constellation-demo';

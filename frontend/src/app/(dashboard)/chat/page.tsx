@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { Send, Trash2, MessageCircle, Bot, User, Zap } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -24,6 +24,7 @@ export default function ChatPage() {
   const [messagesToday, setMessagesToday] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(15);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -31,35 +32,42 @@ export default function ChatPage() {
   const remaining = Math.max(0, dailyLimit - messagesToday);
 
   useEffect(() => {
-    loadHistory();
-    fetchStatus();
-  }, []);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const res = await chatApi.getStatus();
       setMessagesToday(res.data.messages_today);
       setDailyLimit(res.data.daily_limit);
     } catch {
-      // ignore
+      setError((prev) => prev ?? t('chat.failedToLoadStatus'));
     }
-  };
+  }, [t]);
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
       setIsLoadingHistory(true);
+      setLoadError(null);
       const res = await chatApi.getHistory(50);
       setMessages(res.data as ChatMessage[]);
     } catch {
-      // No history yet
+      setLoadError(t('chat.failedToLoad'));
     } finally {
       setIsLoadingHistory(false);
     }
+  }, [t]);
+
+  const handleRetryLoad = async () => {
+    setError(null);
+    setLoadError(null);
+    await Promise.allSettled([loadHistory(), fetchStatus()]);
   };
+
+  useEffect(() => {
+    void loadHistory();
+    void fetchStatus();
+  }, [fetchStatus, loadHistory]);
 
   const handleSend = async () => {
     const trimmed = input.trim();
@@ -174,6 +182,21 @@ export default function ChatPage() {
         {isLoadingHistory ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4">
+              <MessageCircle className="w-8 h-8 text-error" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t('common.error')}</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md mb-6">{loadError}</p>
+            <button
+              type="button"
+              onClick={handleRetryLoad}
+              className="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              {t('common.retry')}
+            </button>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">

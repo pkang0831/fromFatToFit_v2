@@ -8,15 +8,21 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
-  Area,
   ComposedChart
 } from 'recharts';
 import { weightApi } from '@/lib/api/services';
 import type { GoalProjectionResponse } from '@/types/api';
 import { useThemeColors } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
+
+const GOAL_PROJECTION_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type GoalProjectionCacheEntry = {
+  storedAt: number;
+  projection: GoalProjectionResponse;
+};
 
 interface GoalProjectionChartProps {
   daysHistory?: number;
@@ -33,16 +39,71 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const initialLoadDone = useRef(false);
+  const skipNextTargetFetch = useRef(false);
   const { primary, secondary } = useThemeColors();
+  const { user } = useAuth();
+
+  const getCacheKey = (deficit?: number) =>
+    `devenira.goalProjection.v1.${user?.id ?? 'anon'}.${daysHistory}.${deficit == null ? 'auto' : deficit}`;
+
+  const readCachedProjection = (deficit?: number) => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = window.sessionStorage.getItem(getCacheKey(deficit));
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as GoalProjectionCacheEntry;
+      if (!parsed?.storedAt || !parsed?.projection) return null;
+      if (Date.now() - parsed.storedAt > GOAL_PROJECTION_CACHE_TTL_MS) return null;
+      return parsed.projection;
+    } catch {
+      return null;
+    }
+  };
+
+  const writeCachedProjection = (projectionData: GoalProjectionResponse, deficit?: number) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const payload: GoalProjectionCacheEntry = {
+        storedAt: Date.now(),
+        projection: projectionData,
+      };
+      window.sessionStorage.setItem(getCacheKey(deficit), JSON.stringify(payload));
+    } catch {
+      // Cache is best-effort only.
+    }
+  };
+
+  const getSaneStartingDeficit = (value?: number) => {
+    if (typeof value !== 'number' || Number.isNaN(value)) return 500;
+    if (value >= 300 && value <= 700) return Math.round(value / 50) * 50;
+    return 500;
+  };
 
   useEffect(() => {
+    const cached = readCachedProjection();
+    if (cached) {
+      setProjection(cached);
+      setLoading(false);
+
+      const initial = getSaneStartingDeficit(cached.target_deficit ?? cached.avg_daily_deficit);
+      setDeficitInput(String(initial));
+      setTargetDeficit(initial);
+      skipNextTargetFetch.current = true;
+      initialLoadDone.current = true;
+      return;
+    }
+
     fetchProjection();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [daysHistory]);
+  }, [daysHistory, user?.id]);
 
   // Debounced re-fetch when targetDeficit changes (skip initial)
   useEffect(() => {
     if (!initialLoadDone.current) return;
+    if (skipNextTargetFetch.current) {
+      skipNextTargetFetch.current = false;
+      return;
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       fetchProjection(targetDeficit);
@@ -63,13 +124,13 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
       const response = await weightApi.getProjection(daysHistory, deficit);
       
       setProjection(response.data);
+      writeCachedProjection(response.data, deficit);
 
       if (!initialLoadDone.current) {
-        const initial = response.data.avg_daily_deficit > 0
-          ? Math.round(response.data.avg_daily_deficit)
-          : 500;
+        const initial = getSaneStartingDeficit(response.data.avg_daily_deficit);
         setDeficitInput(String(initial));
         setTargetDeficit(initial);
+        skipNextTargetFetch.current = true;
         initialLoadDone.current = true;
       }
     } catch (err: unknown) {
@@ -84,14 +145,14 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
   const handleDeficitChange = (value: string) => {
     setDeficitInput(value);
     const num = parseInt(value, 10);
-    if (!isNaN(num) && num >= 0 && num <= 5000) {
+    if (!isNaN(num) && num >= 200 && num <= 1200) {
       setTargetDeficit(num);
     }
   };
 
   const adjustDeficit = (delta: number) => {
     const current = targetDeficit ?? 500;
-    const next = Math.max(0, Math.min(5000, current + delta));
+    const next = Math.max(200, Math.min(1200, current + delta));
     setDeficitInput(String(next));
     setTargetDeficit(next);
   };
@@ -185,6 +246,8 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
     .map(([date, values]) => ({ date, ...values }));
 
   const hasActualProjection = projection.actual_projection_data.length > 0;
+  const actualPaceLooksNoisy = Math.abs(projection.avg_daily_deficit) > 1200;
+  const selectedDeficit = targetDeficit ?? getSaneStartingDeficit(projection.target_deficit ?? projection.avg_daily_deficit);
 
   const formatDate = (dateStr: string) => {
     // Parse date in local timezone to avoid timezone conversion issues
@@ -192,42 +255,66 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
     return `${month}/${day}`;
   };
 
+  const formatLongDate = (dateStr: string) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   const targetWeight = projection.target_weight;
+  const goalDateLabel = projection.estimated_goal_date ? formatLongDate(projection.estimated_goal_date) : null;
+  const summaryHeadline = projection.estimated_goal_date && targetWeight
+    ? `At ${selectedDeficit} kcal/day, you could reach ${targetWeight} kg around ${goalDateLabel}.`
+    : projection.message;
+  const summarySupport = actualPaceLooksNoisy
+    ? 'Recent logging pace looks unusually aggressive or noisy, so use this chart as direction only.'
+    : hasActualProjection
+      ? `Your recent pace from logged data is about ${projection.avg_daily_deficit.toFixed(0)} kcal/day.`
+      : 'This is a directional forecast, not a precise prescription.';
+  const chartMin = Math.min(
+    ...chartData.flatMap(point => [point.actual, point.movingAvg, point.projected, point.actualProjected].filter((v): v is number => typeof v === 'number'))
+  );
+  const chartMax = Math.max(
+    ...chartData.flatMap(point => [point.actual, point.movingAvg, point.projected, point.actualProjected].filter((v): v is number => typeof v === 'number'))
+  );
 
   return (
     <div className="space-y-6">
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/20 rounded-lg p-4">
-          <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Current Weight</p>
-          <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-300/80">Today</p>
+          <p className="mt-3 text-sm text-text-secondary">Current weight</p>
+          <p className="mt-1 text-3xl font-semibold text-blue-300">
             {projection.current_weight} kg
           </p>
           {projection.moving_avg_weight && (
-            <p className="text-xs text-blue-500 mt-1">
-              3-Day Avg: {projection.moving_avg_weight} kg
+            <p className="mt-2 text-sm text-text-secondary">
+              3-day trend: {projection.moving_avg_weight} kg
             </p>
           )}
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20 rounded-lg p-4">
-          <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium mb-1">Target Weight</p>
-          <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-300/80">Goal</p>
+          <p className="mt-3 text-sm text-text-secondary">Target weight</p>
+          <p className="mt-1 text-3xl font-semibold text-emerald-300">
             {targetWeight ? `${targetWeight} kg` : 'Not set'}
           </p>
           {targetWeight && (
-            <p className="text-xs text-emerald-500 mt-1">
-              Remaining: {Math.abs(projection.current_weight - targetWeight).toFixed(1)} kg
+            <p className="mt-2 text-sm text-text-secondary">
+              {Math.abs(projection.current_weight - targetWeight).toFixed(1)} kg remaining
             </p>
           )}
         </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/20 rounded-lg p-4">
-          <p className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">Target Deficit</p>
-          <div className="flex items-center gap-1 mt-1">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-300/80">Pace</p>
+          <p className="mt-3 text-sm text-text-secondary">Planned daily deficit</p>
+          <div className="mt-2 flex items-center gap-2">
             <button
               onClick={() => adjustDeficit(-100)}
-              className="w-7 h-7 rounded-md bg-purple-200 hover:bg-purple-300 text-purple-700 font-bold text-sm flex items-center justify-center transition-colors"
+              className="h-8 w-8 rounded-lg border border-white/10 bg-white/5 text-violet-200 transition-colors hover:bg-white/10"
             >
               -
             </button>
@@ -235,73 +322,110 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               type="number"
               value={deficitInput}
               onChange={(e) => handleDeficitChange(e.target.value)}
-              className="w-20 text-center text-lg font-bold text-secondary dark:text-secondary-light bg-surface border border-secondary/20 rounded-lg px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-secondary/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              min={0}
-              max={5000}
+              className="w-24 rounded-lg border border-white/10 bg-surface px-2 py-1 text-center text-xl font-semibold text-violet-200 focus:outline-none focus:ring-2 focus:ring-violet-400/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              min={200}
+              max={1200}
               step={50}
             />
             <button
               onClick={() => adjustDeficit(100)}
-              className="w-7 h-7 rounded-md bg-purple-200 hover:bg-purple-300 text-purple-700 font-bold text-sm flex items-center justify-center transition-colors"
+              className="h-8 w-8 rounded-lg border border-white/10 bg-white/5 text-violet-200 transition-colors hover:bg-white/10"
             >
               +
             </button>
-            <span className="text-xs text-purple-500 ml-0.5">kcal/day</span>
+            <span className="text-xs text-violet-300/70">kcal/day</span>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {[300, 500, 700].map((preset) => (
+              <button
+                key={preset}
+                onClick={() => {
+                  setDeficitInput(String(preset));
+                  setTargetDeficit(preset);
+                }}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  targetDeficit === preset
+                    ? 'bg-violet-500 text-white'
+                    : 'bg-white/5 text-violet-200 hover:bg-white/10'
+                }`}
+              >
+                {preset} kcal
+              </button>
+            ))}
           </div>
           {isRefreshing && (
-            <p className="text-xs text-purple-400 mt-1 animate-pulse">Updating projection...</p>
+            <p className="mt-2 text-xs text-violet-300/80 animate-pulse">Updating projection…</p>
           )}
-          <p className="text-xs text-purple-500 mt-1">
-            Actual: {projection.avg_daily_deficit.toFixed(0)} kcal/day
+          <p className="mt-2 text-sm text-text-secondary">
+            Your recent pace: {actualPaceLooksNoisy ? 'unusually aggressive / noisy' : `${projection.avg_daily_deficit.toFixed(0)} kcal/day`}
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20 rounded-lg p-4">
-          <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-1">Est. Goal Date</p>
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-orange-300/80">Estimate</p>
+          <p className="mt-3 text-sm text-text-secondary">Goal date</p>
           {projection.estimated_days_to_goal ? (
             <>
-              <p className="text-2xl font-bold text-orange-700">
+              <p className="mt-1 text-3xl font-semibold text-orange-300">
                 {projection.estimated_days_to_goal} days
               </p>
               {projection.estimated_goal_date && (
-                <p className="text-xs text-orange-500 mt-1">
-                  {(() => {
-                    const [year, month, day] = projection.estimated_goal_date.split('-').map(Number);
-                    const date = new Date(year, month - 1, day);
-                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                  })()}
+                <p className="mt-2 text-sm text-text-secondary">
+                  {goalDateLabel}
                 </p>
               )}
             </>
           ) : (
-            <p className="text-sm text-orange-600">Set a target weight to see your goal date</p>
+            <p className="mt-1 text-sm text-text-secondary">Set a target weight to estimate a goal date</p>
           )}
         </div>
       </div>
 
-      {/* Status Message */}
-      <div
-        className={`rounded-lg p-4 ${
-          projection.on_track
-            ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800'
-            : 'bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800'
-        }`}
-      >
-        <p
-          className={`font-medium ${
-            projection.on_track ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'
-          }`}
-        >
-          {projection.on_track ? '✓ ' : '⚠ '}
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary">Read this first</p>
+        <h3 className="mt-3 text-2xl font-semibold text-text">
+          {summaryHeadline}
+        </h3>
+        <p className="mt-3 text-sm text-text-secondary">
           {projection.message}
+        </p>
+        <p className="mt-2 text-sm text-text-secondary">
+          {summarySupport}
         </p>
       </div>
 
       {/* Chart */}
       <div className="bg-surface rounded-2xl p-6 border border-border">
-        <h3 className="text-lg font-semibold text-text mb-4">
-          Weight Trend & Goal Projection
-        </h3>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-text">
+              Daily weight path to goal
+            </h3>
+            <p className="mt-1 text-sm text-text-secondary">
+              Blue is your logged weight, gray is your 3-day trend, gold is your plan, red is your recent pace, and green is your target.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 text-xs text-text-secondary">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+              Logged weight
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-0.5 w-5 bg-[var(--color-secondary)]" />
+              3-day trend
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-0.5 w-5 border-t-2 border-dashed border-amber-400" />
+              Your plan
+            </span>
+            {hasActualProjection && (
+              <span className="inline-flex items-center gap-2">
+                <span className="h-0.5 w-5 border-t-2 border-dashed border-rose-400" />
+                Your recent pace
+              </span>
+            )}
+          </div>
+        </div>
         
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={chartData}>
@@ -313,12 +437,14 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               style={{ fontSize: '12px' }}
               axisLine={false}
               tickLine={false}
+              minTickGap={28}
             />
             <YAxis
               stroke="rgba(255,255,255,0.3)"
               style={{ fontSize: '12px' }}
               axisLine={false}
               tickLine={false}
+              domain={[Math.floor(chartMin - 2), Math.ceil(chartMax + 2)]}
               label={{ value: 'Weight (kg)', angle: -90, position: 'insideLeft', fill: 'rgba(255,255,255,0.3)' }}
             />
             <Tooltip
@@ -331,10 +457,10 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               }}
               formatter={(value: any, name: string) => {
                 const labelMap: Record<string, string> = {
-                  actual: 'Actual Weight',
-                  movingAvg: '3-Day Avg',
-                  projected: `Target Deficit (${deficitInput} kcal)`,
-                  actualProjected: `Current Pace (${projection.avg_daily_deficit.toFixed(0)} kcal)`,
+                  actual: 'Logged weight',
+                  movingAvg: '3-day trend',
+                  projected: `Your plan (${deficitInput} kcal/day)`,
+                  actualProjected: actualPaceLooksNoisy ? 'Your recent pace (noisy)' : `Your recent pace (${projection.avg_daily_deficit.toFixed(0)} kcal/day)`,
                 };
                 const label = labelMap[name] || name;
                 return [typeof value === 'number' ? `${value.toFixed(1)} kg` : value, label];
@@ -349,7 +475,6 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
                 });
               }}
             />
-            <Legend />
             
             {/* Target weight reference line */}
             {targetWeight && (
@@ -371,9 +496,10 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               type="monotone"
               dataKey="actual"
               stroke="#3b82f6"
-              strokeWidth={2}
-              dot={{ fill: '#3b82f6', r: 3 }}
-              name="Actual Weight"
+              strokeWidth={2.5}
+              dot={{ fill: '#3b82f6', r: 2 }}
+              activeDot={{ r: 4 }}
+              name="Logged weight"
               connectNulls
             />
             
@@ -382,9 +508,9 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               type="monotone"
               dataKey="movingAvg"
               stroke={secondary}
-              strokeWidth={2}
+              strokeWidth={2.5}
               dot={false}
-              name="3-Day Avg"
+              name="3-day trend"
               connectNulls
             />
             
@@ -393,10 +519,11 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
               type="monotone"
               dataKey="projected"
               stroke="#f59e0b"
-              strokeWidth={2}
+              strokeWidth={2.5}
               strokeDasharray="5 5"
-              dot={{ fill: '#f59e0b', r: 3 }}
-              name={`Target Deficit (${deficitInput} kcal)`}
+              dot={false}
+              activeDot={{ r: 4, fill: '#f59e0b' }}
+              name={`Your plan (${deficitInput} kcal/day)`}
               connectNulls
             />
             
@@ -408,8 +535,9 @@ const GoalProjectionChart: React.FC<GoalProjectionChartProps> = ({
                 stroke="#ef4444"
                 strokeWidth={2}
                 strokeDasharray="3 3"
-                dot={{ fill: '#ef4444', r: 2 }}
-                name={`Current Pace (${projection.avg_daily_deficit.toFixed(0)} kcal)`}
+                dot={false}
+                activeDot={{ r: 4, fill: '#ef4444' }}
+                name={actualPaceLooksNoisy ? 'Your recent pace (noisy)' : `Your recent pace (${projection.avg_daily_deficit.toFixed(0)} kcal/day)`}
                 connectNulls
               />
             )}

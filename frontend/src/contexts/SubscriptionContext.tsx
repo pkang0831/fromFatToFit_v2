@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { paymentApi } from '@/lib/api/services';
 import type { UsageLimitsResponse } from '@/types/api';
 import { useAuth } from './AuthContext';
@@ -22,10 +23,12 @@ interface SubscriptionContextType {
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const pathname = usePathname();
+  const { isAuthenticated, user } = useAuth();
   const [usageLimits, setUsageLimits] = useState<UsageLimitsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const shouldPrefetchLimits = pathname === '/body-scan' || pathname === '/food-camera' || pathname === '/upgrade';
 
   const fetchLimits = async () => {
     if (!isAuthenticated) {
@@ -50,16 +53,18 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      void fetchLimits();
+      setUsageLimits(null);
       return;
     }
-    // Yield one frame so the shell / route can paint before usage limits compete for bandwidth.
-    const id = requestAnimationFrame(() => {
-      void fetchLimits();
-    });
-    return () => cancelAnimationFrame(id);
+
+    if (!shouldPrefetchLimits) {
+      setLoading(false);
+      return;
+    }
+
+    fetchLimits();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, shouldPrefetchLimits]);
 
   const refreshLimits = async () => {
     await fetchLimits();
@@ -91,7 +96,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   };
 
   const value: SubscriptionContextType = {
-    isPremium: usageLimits?.is_premium ?? false,
+    isPremium: usageLimits?.is_premium ?? user?.premium_status ?? false,
     usageLimits,
     loading,
     error,

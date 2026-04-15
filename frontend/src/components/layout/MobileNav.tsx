@@ -4,44 +4,52 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
-  Home,
   Utensils,
   Dumbbell,
-  TrendingUp,
   MoreHorizontal,
   Camera,
   Timer,
-  Scan,
   MessageCircle,
-  User,
-  Target,
   X,
   Flame,
 } from 'lucide-react';
+import {
+  CheckInIcon,
+  DashboardIcon,
+  GoalsIcon,
+  ProfileIcon,
+  ProgressIcon,
+} from '@/components/ui/AppIcons';
 
 const mainItems = [
-  { href: '/home', label: 'Home', icon: Home },
-  { href: '/body-scan', label: 'Body Scan', icon: Scan },
-  { href: '/goal-planner', label: 'Goal Plan', icon: Target },
-  { href: '/chat', label: 'AI Coach', icon: MessageCircle },
-  { href: '/profile', label: 'Profile', icon: User },
+  { href: '/home', labelKey: 'dashboardHome.navDashboard', icon: DashboardIcon },
+  { href: '/body-scan', labelKey: 'dashboardHome.navCheckIn', icon: CheckInIcon },
+  { href: '/progress', labelKey: 'dashboardHome.navProgress', icon: ProgressIcon },
+  { href: '/goal-planner', labelKey: 'dashboardHome.navGoals', icon: GoalsIcon },
+  { href: '/profile', labelKey: 'dashboardHome.navProfile', icon: ProfileIcon },
 ];
 
 const moreItems = [
-  { href: '/challenge', label: '7-day loop', icon: Flame },
-  { href: '/progress', label: 'Progress', icon: TrendingUp },
-  { href: '/calories', label: 'Calories', icon: Utensils },
-  { href: '/food-camera', label: 'Food Camera', icon: Camera },
-  { href: '/workouts', label: 'Workouts', icon: Dumbbell },
-  { href: '/fasting', label: 'Fasting', icon: Timer },
+  { href: '/challenge', labelKey: 'nav.challengeSevenDay', icon: Flame },
+  { href: '/chat', labelKey: 'nav.chat', icon: MessageCircle },
+  { href: '/calories', labelKey: 'nav.calories', icon: Utensils },
+  { href: '/food-camera', labelKey: 'nav.foodCamera', icon: Camera },
+  { href: '/workouts', labelKey: 'nav.workouts', icon: Dumbbell },
+  { href: '/fasting', labelKey: 'nav.fasting', icon: Timer },
 ];
+
+function isRouteActive(pathname: string | null, href: string) {
+  return pathname === href || pathname?.startsWith(`${href}/`) === true;
+}
 
 export function MobileNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [showMore, setShowMore] = useState(false);
 
-  const isMoreActive = moreItems.some((item) => pathname === item.href);
+  const isMoreActive = moreItems.some((item) => isRouteActive(pathname, item.href));
 
   return (
     <>
@@ -52,14 +60,14 @@ export function MobileNav() {
       {showMore && (
         <div className="lg:hidden fixed bottom-[4.5rem] left-4 right-4 bg-surface border border-border rounded-2xl shadow-xl z-50 p-3">
           <div className="flex items-center justify-between mb-2 px-2">
-            <span className="text-sm font-semibold text-text">Extras</span>
+            <span className="text-sm font-semibold text-text">{t('dashboardHome.navMore')}</span>
             <button onClick={() => setShowMore(false)} className="p-1 rounded-lg hover:bg-surfaceAlt">
               <X className="h-4 w-4 text-text-light" />
             </button>
           </div>
           <div className="grid grid-cols-3 gap-1">
             {moreItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = isRouteActive(pathname, item.href);
               const Icon = item.icon;
               return (
                 <Link
@@ -74,7 +82,7 @@ export function MobileNav() {
                   )}
                 >
                   <Icon className="h-6 w-6" />
-                  <span className="text-xs mt-1.5 text-center leading-tight">{item.label}</span>
+                  <span className="text-xs mt-1.5 text-center leading-tight">{t(item.labelKey)}</span>
                 </Link>
               );
             })}
@@ -85,7 +93,7 @@ export function MobileNav() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface/80 backdrop-blur-xl border-t border-border z-50">
         <div className="flex items-center justify-around">
           {mainItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = isRouteActive(pathname, item.href);
             const Icon = item.icon;
             return (
               <Link
@@ -98,8 +106,8 @@ export function MobileNav() {
                     : 'text-text-light hover:text-text'
                 )}
               >
-                <Icon className="h-6 w-6" />
-                <span className="text-xs mt-1">{item.label}</span>
+                <Icon className="h-[22px] w-[22px]" />
+                <span className="text-xs mt-1">{t(item.labelKey)}</span>
               </Link>
             );
           })}
@@ -113,7 +121,7 @@ export function MobileNav() {
             )}
           >
             <MoreHorizontal className="h-6 w-6" />
-            <span className="text-xs mt-1">Extras</span>
+            <span className="text-xs mt-1">{t('dashboardHome.navMore')}</span>
           </button>
         </div>
       </nav>

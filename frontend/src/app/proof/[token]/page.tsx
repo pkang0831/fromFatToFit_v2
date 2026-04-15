@@ -21,7 +21,8 @@ function formatDate(date: string | null) {
 
 export default function PublicProofSharePage() {
   const params = useParams<{ token: string }>();
-  const token = Array.isArray(params.token) ? params.token[0] : params.token;
+  const tokenValue = params?.token;
+  const token = Array.isArray(tokenValue) ? tokenValue[0] : tokenValue;
   const [share, setShare] = useState<PublicProofShareResponse | null>(null);
   const [sessionId] = useState<string | null>(() => getRetentionSessionId());
   const [loading, setLoading] = useState(true);

@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     
     # AI Provider Selection
     ai_provider: str = "openai"
+    openai_body_checkin_model: str = "gpt-5-mini"
+    weekly_checkin_analysis_version: str = "v1"
 
     # Upload limits
     max_upload_size_mb: int = 10

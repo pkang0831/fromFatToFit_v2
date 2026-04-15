@@ -180,11 +180,12 @@ export default function ProfilePage() {
               {t('profile.memberSince', { date: user?.created_at ? formatDateLong(user.created_at) : 'N/A' })}
             </p>
             <div className="flex items-center gap-2">
-              <Link href="/profile/notifications">
-                <Button variant="outline" size="sm">
-                  <Bell className="h-4 w-4 mr-2" />
-                  {t('profile.notifications')}
-                </Button>
+              <Link
+                href="/profile/notifications"
+                className="inline-flex items-center rounded-lg border-2 border-primary/30 bg-transparent px-3.5 py-1.5 text-sm font-semibold text-primary transition-all duration-200 hover:bg-primary/10 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background"
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                {t('profile.notifications')}
               </Link>
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
@@ -449,7 +450,7 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-700 dark:text-gray-300">
-            This permanently deletes your Denevira account and app data. It also removes stored progress photo files from Denevira storage.
+            This permanently deletes your Devenira account and app data. It also removes stored progress photo files from Devenira storage.
           </p>
 
           <div>
@@ -517,7 +518,7 @@ export default function ProfilePage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-700 dark:text-gray-300">
-            This deletes your Denevira account immediately. If you still have active billing, cancel it first because this flow does not cancel Stripe or app-store subscriptions.
+            This deletes your Devenira account immediately. If you still have active billing, cancel it first because this flow does not cancel Stripe or app-store subscriptions.
           </p>
 
           {hasActiveBilling && subscriptionStatus?.billing_portal_available && (

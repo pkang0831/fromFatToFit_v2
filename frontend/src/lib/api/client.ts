@@ -26,11 +26,23 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
+function readAuthCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  if (!match) return null;
+
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
 api.interceptors.request.use(
   async (config) => {
     try {
       if (typeof window === 'undefined') return config;
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('access_token') || readAuthCookie('access_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

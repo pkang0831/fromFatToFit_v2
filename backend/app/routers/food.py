@@ -13,7 +13,7 @@ from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services.ai_vision_service import analyze_food_image
 from ..services.usage_limiter import check_usage_limit, increment_usage
-from ..services.analytics import get_food_trend_data, calculate_daily_summary
+from ..services.analytics import get_food_trend_data, calculate_daily_summary, invalidate_calorie_balance_cache
 from ..services.payment_service import check_premium_status
 from ..rate_limit import limiter
 
@@ -44,6 +44,7 @@ async def log_food(
         
         # Recalculate daily summary
         await calculate_daily_summary(current_user["id"], food_log.date)
+        invalidate_calorie_balance_cache(current_user["id"])
         
         created_log = result.data[0]
         return FoodLogResponse(**created_log)
@@ -245,6 +246,7 @@ async def update_food_log(
         
         # Recalculate daily summary for the date
         await calculate_daily_summary(current_user["id"], food_log.date)
+        invalidate_calorie_balance_cache(current_user["id"])
         
         updated_log = result.data[0]
         return FoodLogResponse(**updated_log)
@@ -278,6 +280,7 @@ async def delete_food_log(
         
         # Recalculate daily summary
         await calculate_daily_summary(current_user["id"], log_date)
+        invalidate_calorie_balance_cache(current_user["id"])
         
         return {"message": "Food log deleted successfully"}
         
@@ -365,6 +368,8 @@ Be accurate with common foods. Use USDA averages when possible. Only return the 
             result = supabase.table("food_logs").insert(log_data).execute()
             if result.data:
                 logged_items.append(result.data[0])
+
+        invalidate_calorie_balance_cache(user_id)
 
         return {
             "logged_count": len(logged_items),

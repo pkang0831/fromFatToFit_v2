@@ -24,10 +24,72 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TEST_LOGIN_STUB_ACCESS_TOKEN = 'test-access-token';
 const TEST_LOGIN_STUB_REFRESH_TOKEN = 'test-refresh-token';
+const USER_CACHE_KEY = 'auth_user_cache';
+
+function decodeJwtPayload(token: string): Record<string, any> | null {
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = atob(normalized);
+    const json = decodeURIComponent(
+      Array.from(decoded)
+        .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
+        .join('')
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function buildProvisionalUser(accessToken: string): User | null {
+  const payload = decodeJwtPayload(accessToken);
+  const id = payload?.sub ?? payload?.user_id ?? null;
+  const email = payload?.email ?? null;
+
+  if (!id || !email) return null;
+
+  return {
+    id,
+    email,
+    full_name:
+      (typeof payload?.user_metadata?.full_name === 'string' && payload.user_metadata.full_name) ||
+      (typeof payload?.user_metadata?.name === 'string' && payload.user_metadata.name) ||
+      undefined,
+    premium_status: false,
+    onboarding_completed: true,
+    created_at:
+      (typeof payload?.created_at === 'string' && payload.created_at) ||
+      new Date().toISOString(),
+  };
+}
+
+function readCachedUser(): User | null {
+  try {
+    const raw = localStorage.getItem(USER_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedUser(user: User | null) {
+  try {
+    if (user) {
+      localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(USER_CACHE_KEY);
+    }
+  } catch {
+    /* noop */
+  }
+}
 
 function clearAllTokens() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
+  localStorage.removeItem(USER_CACHE_KEY);
   clearAuthCookie('access_token');
   clearAuthCookie('refresh_token');
 }
@@ -77,6 +139,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
+      let restoredFromCache = false;
+      let cachedUser: User | null = null;
       try {
         if (typeof window === 'undefined') return;
         const path = window.location.pathname.replace(/\/$/, '') || '/';
@@ -91,29 +155,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const refreshToken = localStorage.getItem('refresh_token');
         if (!accessToken) { clearAllTokens(); setLoading(false); return; }
 
-        // Profile fetch is the source of truth for first paint; Supabase sync can trail behind
-        // so we do not serialize it ahead of getProfile (that was adding a noticeable waterfall).
-        void syncSupabaseSession(accessToken, refreshToken).catch(() => {
-          /* noop — profile fetch below decides session validity */
-        });
+        cachedUser = readCachedUser();
+        if (cachedUser) {
+          setUser(cachedUser);
+          restoredFromCache = true;
+          setLoading(false);
+        } else {
+          const provisionalUser = buildProvisionalUser(accessToken);
+          if (provisionalUser) {
+            setUser(provisionalUser);
+            writeCachedUser(provisionalUser);
+            restoredFromCache = true;
+            setLoading(false);
+          }
+        }
+
+        try {
+          await syncSupabaseSession(accessToken, refreshToken);
+        } catch (_) {
+          // The backend token is still the source of truth for the immediate profile fetch.
+          // We only clear the session if the profile fetch itself fails.
+        }
 
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+          setTimeout(() => reject(new Error('Auth check timeout')), 2500)
         );
 
         const response = await Promise.race([authApi.getProfile(), timeoutPromise]) as Awaited<ReturnType<typeof authApi.getProfile>>;
         setUser(response.data);
+        writeCachedUser(response.data);
 
         const liveToken = localStorage.getItem('access_token');
         if (liveToken && !document.cookie.includes('access_token=')) {
-          const rt = localStorage.getItem('refresh_token');
+          const refreshToken = localStorage.getItem('refresh_token');
           setAuthCookie('access_token', liveToken);
-          if (rt) setAuthCookie('refresh_token', rt);
+          if (refreshToken) setAuthCookie('refresh_token', refreshToken);
         }
       } catch (_: unknown) {
-        clearAllTokens();
+        if (cachedUser) {
+          setUser(cachedUser);
+          writeCachedUser(cachedUser);
+        } else {
+          setUser(null);
+          clearAllTokens();
+        }
       } finally {
-        setLoading(false);
+        if (!restoredFromCache) {
+          setLoading(false);
+        }
       }
     };
     initAuth();
@@ -145,6 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         /* noop */
       }
       setUser(userData);
+      writeCachedUser(userData);
       return userData;
     } catch (err) {
       const error = err as AxiosError<{ detail: string }>;
@@ -190,6 +280,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         /* noop */
       }
       setUser(userData);
+      writeCachedUser(userData);
     } catch (err) {
       const error = err as AxiosError<{ detail: string }>;
       const message = error.response?.data?.detail || 'Registration failed';
@@ -235,6 +326,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       const response = await authApi.updateProfile(data);
       setUser(response.data);
+      writeCachedUser(response.data);
     } catch (err) {
       const error = err as AxiosError<{ detail: string }>;
       const message = error.response?.data?.detail || 'Update failed';
@@ -247,6 +339,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authApi.getProfile();
       setUser(response.data);
+      writeCachedUser(response.data);
     } catch (_) { /* noop */ }
   };
 

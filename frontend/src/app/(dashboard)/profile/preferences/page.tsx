@@ -59,6 +59,7 @@ export default function FoodPreferencesPage() {
 
   const loadPreferences = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await foodDecisionApi.getPreferences();
       setPreferences(response.data);
@@ -162,8 +163,11 @@ export default function FoodPreferencesPage() {
         </div>
       )}
       {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300">
-          {error}
+        <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-300 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <span>{error}</span>
+          <Button variant="outline" size="sm" onClick={() => void loadPreferences()}>
+            {t('common.retry')}
+          </Button>
         </div>
       )}
 

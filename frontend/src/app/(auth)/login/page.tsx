@@ -13,6 +13,7 @@ function LoginPageContent() {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = searchParams ?? new URLSearchParams();
   const { login, error, loading } = useAuth();
   const [localError, setLocalError] = useState<string | null>(null);
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ function LoginPageContent() {
     setLocalError(null);
     try {
       const user = await login({ email: email.trim(), password });
-      const requestedNext = searchParams.get('next');
+      const requestedNext = params.get('next');
       const nextPath = requestedNext && requestedNext.startsWith('/') ? requestedNext : '/home';
       router.push(user.onboarding_completed ? nextPath : `/onboarding?next=${encodeURIComponent(nextPath)}`);
     } catch {

@@ -103,25 +103,25 @@ export default function ChallengePage() {
           <Zap className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-text">7-day loop</h1>
-          <p className="text-sm text-text-secondary">Minimum input. Immediate feedback. Identity over information.</p>
+          <h1 className="text-xl font-bold text-text">7-day reset</h1>
+          <p className="text-sm text-text-secondary">A short daily check-in sprint to rebuild momentum when you need structure for one week.</p>
         </div>
       </div>
 
       {!hasActive ? (
         <Card>
           <CardContent className="p-6 space-y-4 text-center">
-            <p className="text-sm text-text-secondary">
-              No active challenge. Generate a transformation, then start the loop from the result screen — or open Goal Planner and save a plan first.
-            </p>
-            <Link href="/body-scan">
+              <p className="text-sm text-text-secondary">
+                No active reset yet. Use this when you want seven days of light structure, not because it is the first thing every user must do.
+              </p>
+            <Link href="/home">
               <Button type="button" variant="primary" className="w-full">
-                Body scan &amp; journey <ChevronRight className="h-4 w-4 ml-1" />
+                Open dashboard <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </Link>
-            <Link href="/goal-planner">
+            <Link href="/progress">
               <Button type="button" variant="outline" className="w-full">
-                Goal Planner
+                Progress overview
               </Button>
             </Link>
           </CardContent>
@@ -135,7 +135,7 @@ export default function ChallengePage() {
                 <p className="text-sm text-text leading-relaxed border-l-2 border-primary pl-3">{identity_message}</p>
               )}
               <p className="text-sm text-text-secondary">
-                Day <span className="font-number font-semibold text-text">{day_index}</span> of 7 ·{' '}
+                    Day <span className="font-number font-semibold text-text">{day_index}</span> of 7 ·{' '}
                 {checkins.length} check-in{checkins.length === 1 ? '' : 's'} logged
               </p>
             </CardContent>

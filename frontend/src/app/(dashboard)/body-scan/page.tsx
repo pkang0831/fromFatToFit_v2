@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, ChangeEvent, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Scan, Crown, Sparkles, Coins, ArrowRight, Dumbbell, Camera } from 'lucide-react';
 import Image from 'next/image';
@@ -32,6 +32,7 @@ type ActiveTab = 'scan' | 'journey';
 export default function BodyScanPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useMemo(() => searchParams ?? new URLSearchParams(), [searchParams]);
   const { user } = useAuth();
   const { t } = useLanguage();
   const { isPremium, refreshLimits } = useSubscription();
@@ -74,13 +75,13 @@ export default function BodyScanPage() {
   const historyTrackedRef = useRef<{ journey: boolean }>({ journey: false });
   const reminderTrackedRef = useRef(false);
 
-  const reminderSource = searchParams.get('from') || undefined;
-  const reminderEventId = searchParams.get('reminder_event_id') || undefined;
+  const reminderSource = params.get('from') || undefined;
+  const reminderEventId = params.get('reminder_event_id') || undefined;
   const reminderReentryState = reminderSource === 'weekly_reminder'
-    ? coerceHomeEntryState(searchParams.get('reentry_state'), 'weekly_scan')
+    ? coerceHomeEntryState(params.get('reentry_state'), 'weekly_scan')
     : undefined;
   const reminderSurfaceState = reminderSource === 'weekly_reminder'
-    ? coerceHomeEntryState(searchParams.get('surface_state'))
+    ? coerceHomeEntryState(params.get('surface_state'))
     : undefined;
 
   const scanCost = isPremium ? 0 : 10;
@@ -106,7 +107,7 @@ export default function BodyScanPage() {
   useEffect(() => {
     const syncActiveTab = () => {
       const hash = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
-      const requestedTab = searchParams.get('tab') || hash;
+      const requestedTab = params.get('tab') || hash;
       if (requestedTab === 'journey' || requestedTab === 'transformation') {
         setActiveTab('journey');
       } else if (requestedTab === 'scan') {
@@ -120,7 +121,7 @@ export default function BodyScanPage() {
     const handleHashChange = () => syncActiveTab();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [searchParams]);
+  }, [params]);
 
   useEffect(() => {
     if (activeTab !== 'journey' || historyTrackedRef.current.journey) return;
@@ -133,7 +134,7 @@ export default function BodyScanPage() {
 
   useEffect(() => {
     if (reminderTrackedRef.current) return;
-    if (searchParams.get('from') !== 'weekly_reminder') return;
+    if (params.get('from') !== 'weekly_reminder') return;
     if (activeTab !== 'journey') return;
 
     reminderTrackedRef.current = true;
@@ -147,7 +148,7 @@ export default function BodyScanPage() {
       session_id: getRetentionSessionId() || undefined,
       target_tab: activeTab,
     });
-  }, [searchParams, activeTab, reminderEventId, reminderReentryState, reminderSurfaceState]);
+  }, [params, activeTab, reminderEventId, reminderReentryState, reminderSurfaceState]);
 
   useEffect(() => {
     if (!journeyResult) return;

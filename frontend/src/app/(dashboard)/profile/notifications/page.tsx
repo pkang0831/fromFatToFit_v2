@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { Mail, Smartphone, Save } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '@/components/ui';
@@ -41,20 +41,30 @@ export default function NotificationSettingsPage() {
   const [saved, setSaved] = useState(false);
   const pushConfigured = WEB_PUSH_PUBLIC_KEY.length > 0;
   const [reminderStatus, setReminderStatus] = useState<ReminderStatusResponse | null>(null);
+  const [loadError, setLoadError] = useState(false);
+
+  const loadPreferences = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const [prefsRes, statusRes] = await Promise.all([
+        notificationApi.getPreferences(),
+        notificationApi.getReminderStatus().catch(() => null),
+      ]);
+      setPrefs(prefsRes.data);
+      setReminderStatus(statusRes?.data ?? null);
+    } catch {
+      setLoadError(true);
+      setPrefs(null);
+      toast.error(t('notifications.loadFailed'));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
     setPushSupported('serviceWorker' in navigator && 'PushManager' in window && pushConfigured);
-
-    Promise.all([
-      notificationApi.getPreferences(),
-      notificationApi.getReminderStatus().catch(() => null),
-    ])
-      .then(([prefsRes, statusRes]) => {
-        setPrefs(prefsRes.data);
-        setReminderStatus(statusRes?.data ?? null);
-      })
-      .catch(() => { toast.error(t('notifications.loadFailed')); })
-      .finally(() => setLoading(false));
+    void loadPreferences();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(reg => {
@@ -64,7 +74,7 @@ export default function NotificationSettingsPage() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadPreferences]);
 
   const togglePush = async () => {
     if (!pushSupported) return;
@@ -134,13 +144,31 @@ export default function NotificationSettingsPage() {
     );
   }
 
-  if (!prefs) return null;
+  if (!prefs) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Card variant="outlined" className="border-error/30 bg-error/5">
+          <CardContent className="p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-error">{t('notifications.loadFailed')}</p>
+              <p className="text-sm text-text-secondary">
+                {loadError ? t('common.retry') : t('common.loading')}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => void loadPreferences()}>
+              {t('common.retry')}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const weeklyProofReminderActive = reminderStatus?.active && reminderStatus.channel === 'email';
   const weeklyProofReminderDesc = weeklyProofReminderActive
-    ? 'Get one real email reminder when your next proof upload or weekly check-in is due.'
-    : 'Weekly proof reminder email is off in this environment until the email channel is fully configured.';
-  const inactiveDesc = 'Not active in this release.';
+    ? t('notifications.weeklyProofReminderActive')
+    : t('notifications.weeklyProofReminderInactive');
+  const inactiveDesc = t('notifications.inactiveRelease');
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -159,7 +187,7 @@ export default function NotificationSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Push reminders are not the live reminder channel in this release.
+            {t('notifications.pushNotLiveChannel')}
           </p>
           <div className="flex items-center justify-between">
             <div>
@@ -167,7 +195,7 @@ export default function NotificationSettingsPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {pushConfigured
                   ? (pushSupported ? t('notifications.pushSupported') : t('notifications.pushNotSupported'))
-                  : 'Push notifications are not configured for this environment yet.'}
+                  : t('notifications.pushNotConfigured')}
               </p>
             </div>
             <button
@@ -179,7 +207,7 @@ export default function NotificationSettingsPage() {
             </button>
           </div>
 
-          <ToggleRow label="Weekly Body Scan Reminder" desc={inactiveDesc} checked={prefs.push_weekly_body_scan} onChange={() => toggle('push_weekly_body_scan')} disabled />
+          <ToggleRow label={t('notifications.weeklyBodyScanReminder')} desc={inactiveDesc} checked={prefs.push_weekly_body_scan} onChange={() => toggle('push_weekly_body_scan')} disabled />
           <ToggleRow label={t('notifications.mealReminder')} desc={inactiveDesc} checked={prefs.push_meal_reminder} onChange={() => toggle('push_meal_reminder')} disabled />
           <ToggleRow label={t('notifications.workoutReminder')} desc={inactiveDesc} checked={prefs.push_workout_reminder} onChange={() => toggle('push_workout_reminder')} disabled />
           <ToggleRow label={t('notifications.dailySummary')} desc={inactiveDesc} checked={prefs.push_daily_summary} onChange={() => toggle('push_daily_summary')} disabled />
@@ -229,7 +257,7 @@ export default function NotificationSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <ToggleRow
-            label="Weekly Proof Reminder"
+            label={t('notifications.weeklyProofReminder')}
             desc={weeklyProofReminderDesc}
             checked={prefs.email_weekly_summary}
             onChange={() => toggle('email_weekly_summary')}

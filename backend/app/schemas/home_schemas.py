@@ -3,6 +3,8 @@ from typing import Any, Dict, Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from .weekly_checkin_schemas import WeeklyCheckinAnalysisResponse
+
 
 PromptState = Literal["first_scan", "too_early", "ready", "overdue"]
 EntryState = Literal[
@@ -89,6 +91,7 @@ class HomeSummaryResponse(BaseModel):
     challenge_summary: HomeChallengeSummary
     progress_summary: HomeProgressSummary
     primary_cta: HomePrimaryCta
+    latest_weekly_checkin: Optional[WeeklyCheckinAnalysisResponse] = None
 
 
 class RetentionEventRequest(BaseModel):

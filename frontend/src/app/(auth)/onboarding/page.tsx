@@ -14,6 +14,7 @@ function OnboardingPageContent() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const searchParams = useSearchParams();
+  const params = searchParams ?? new URLSearchParams();
 
   const consentAlreadyGiven = !!(user as any)?.consent_terms_at;
   const profileAlreadyFilled = !!(user?.gender && user?.age && user?.height_cm);
@@ -108,7 +109,7 @@ function OnboardingPageContent() {
   };
 
   const finishOnboarding = () => {
-    const requestedNext = searchParams.get('next');
+    const requestedNext = params.get('next');
     const nextPath = requestedNext && requestedNext.startsWith('/') ? requestedNext : '/home';
     window.location.href = nextPath;
   };

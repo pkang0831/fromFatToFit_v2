@@ -10,7 +10,7 @@ from ..database import get_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services.openai_service import analyze_workout_form_video
 from ..services.usage_limiter import check_usage_limit
-from ..services.analytics import get_workout_trend_data
+from ..services.analytics import get_workout_trend_data, invalidate_calorie_balance_cache
 from ..services.payment_service import check_premium_status
 from ..rate_limit import limiter
 
@@ -137,6 +137,7 @@ async def log_workout(
         
         if not result.data:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create workout log")
+        invalidate_calorie_balance_cache(current_user["id"])
         
         created_log = result.data[0]
         return WorkoutLogResponse(**created_log)
@@ -275,6 +276,7 @@ async def delete_workout_log(
         result = supabase.table("workout_logs").delete().eq("id", log_id).eq("user_id", current_user["id"]).execute()
         if not result.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workout log not found")
+        invalidate_calorie_balance_cache(current_user["id"])
         return {"message": "Workout log deleted successfully"}
     except HTTPException:
         raise

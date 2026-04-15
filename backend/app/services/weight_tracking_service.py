@@ -3,6 +3,7 @@ Weight Tracking and Goal Projection Service
 Handles weight/body fat logging, moving averages, and goal projections
 """
 import logging
+import time
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import date, timedelta
 from decimal import Decimal
@@ -28,6 +29,47 @@ class WeightTrackingService:
     ADAPTATION_RATE = 0.10  # 10% metabolic adaptation after extended deficit
     ADAPTATION_THRESHOLD_DAYS = 28  # 4 weeks
     PREDICTION_VARIANCE = 0.15  # ±15% prediction variance for best/worst case
+    PROJECTION_CACHE_TTL_SECONDS = 60
+    _projection_cache: Dict[str, Tuple[float, GoalProjectionResponse]] = {}
+
+    @staticmethod
+    def _projection_cache_key(user_id: str, days_history: int, target_deficit: Optional[float]) -> str:
+        deficit_key = "auto" if target_deficit is None else f"{round(float(target_deficit), 2):.2f}"
+        return f"{user_id}:{days_history}:{deficit_key}"
+
+    @classmethod
+    def _read_cached_projection(
+        cls,
+        user_id: str,
+        days_history: int,
+        target_deficit: Optional[float],
+    ) -> Optional[GoalProjectionResponse]:
+        key = cls._projection_cache_key(user_id, days_history, target_deficit)
+        cached = cls._projection_cache.get(key)
+        if not cached:
+            return None
+        stored_at, response = cached
+        if time.time() - stored_at > cls.PROJECTION_CACHE_TTL_SECONDS:
+            cls._projection_cache.pop(key, None)
+            return None
+        return response
+
+    @classmethod
+    def _write_cached_projection(
+        cls,
+        user_id: str,
+        days_history: int,
+        target_deficit: Optional[float],
+        response: GoalProjectionResponse,
+    ) -> None:
+        key = cls._projection_cache_key(user_id, days_history, target_deficit)
+        cls._projection_cache[key] = (time.time(), response)
+
+    @classmethod
+    def _invalidate_projection_cache(cls, user_id: str) -> None:
+        keys_to_delete = [key for key in cls._projection_cache if key.startswith(f"{user_id}:")]
+        for key in keys_to_delete:
+            cls._projection_cache.pop(key, None)
     
     @staticmethod
     async def create_weight_log(user_id: str, log_data: WeightLogCreate) -> WeightLogResponse:
@@ -66,7 +108,7 @@ class WeightTrackingService:
             
             if not result.data:
                 raise ValueError("Failed to create weight log")
-            
+            WeightTrackingService._invalidate_projection_cache(user_id)
             return WeightLogResponse(**result.data[0])
             
         except Exception as e:
@@ -115,7 +157,7 @@ class WeightTrackingService:
             
             if not result.data:
                 raise ValueError("Weight log not found")
-            
+            WeightTrackingService._invalidate_projection_cache(user_id)
             return WeightLogResponse(**result.data[0])
             
         except Exception as e:
@@ -133,7 +175,7 @@ class WeightTrackingService:
                 .eq("id", log_id)\
                 .eq("user_id", user_id)\
                 .execute()
-            
+            WeightTrackingService._invalidate_projection_cache(user_id)
             return True
             
         except Exception as e:
@@ -159,7 +201,7 @@ class WeightTrackingService:
             
             if not result.data:
                 raise ValueError("User profile not found")
-            
+            WeightTrackingService._invalidate_projection_cache(user_id)
             return result.data[0]
             
         except Exception as e:
@@ -240,7 +282,12 @@ class WeightTrackingService:
         return 1.0 - adaptation_amount
     
     @staticmethod
-    async def get_goal_projection(user_id: str, days_history: int = 30, target_deficit: Optional[float] = None) -> GoalProjectionResponse:
+    async def get_goal_projection(
+        user_id: str,
+        days_history: int = 30,
+        target_deficit: Optional[float] = None,
+        profile_override: Optional[Dict[str, Any]] = None,
+    ) -> GoalProjectionResponse:
         """
         Calculate goal projection based on current trends
         
@@ -250,18 +297,49 @@ class WeightTrackingService:
         - Scientific formula: 1 kg body weight ≈ 7700 kcal
         """
         try:
+            started_at = time.perf_counter()
+            cached = WeightTrackingService._read_cached_projection(user_id, days_history, target_deficit)
+            if cached is not None:
+                elapsed_ms = (time.perf_counter() - started_at) * 1000
+                logger.info(
+                    "goal_projection_timing user=%s cache=hit total_ms=%.1f days_history=%s target_deficit=%s",
+                    user_id,
+                    elapsed_ms,
+                    days_history,
+                    target_deficit,
+                )
+                return cached
+
             supabase = get_supabase()
+            profile_fetch_started = time.perf_counter()
             
-            # Get user profile with goals
-            profile_result = supabase.table("user_profiles")\
-                .select("weight_kg, target_weight_kg, target_body_fat_percentage")\
-                .eq("user_id", user_id)\
-                .execute()
-            
-            if not profile_result.data:
-                raise ValueError("User profile not found")
-            
-            profile = profile_result.data[0]
+            profile = dict(profile_override or {})
+            required_profile_fields = (
+                "weight_kg",
+                "target_weight_kg",
+                "target_body_fat_percentage",
+                "calorie_goal",
+                "height_cm",
+                "age",
+                "gender",
+                "activity_level",
+                "created_at",
+            )
+
+            if any(field not in profile or profile.get(field) is None for field in required_profile_fields):
+                profile_result = supabase.table("user_profiles")\
+                    .select("weight_kg, target_weight_kg, target_body_fat_percentage, calorie_goal, height_cm, age, gender, activity_level, created_at")\
+                    .eq("user_id", user_id)\
+                    .execute()
+
+                if not profile_result.data:
+                    raise ValueError("User profile not found")
+
+                profile = {
+                    **profile_result.data[0],
+                    **{k: v for k, v in profile.items() if v is not None},
+                }
+            profile_fetch_ms = (time.perf_counter() - profile_fetch_started) * 1000
             current_weight = float(profile.get("weight_kg", 70.0))
             target_weight = profile.get("target_weight_kg")
             target_body_fat = profile.get("target_body_fat_percentage")
@@ -277,10 +355,9 @@ class WeightTrackingService:
                 .lte("date", end_date)\
                 .order("date", desc=False)\
                 .execute()
+            logs_fetch_ms = (time.perf_counter() - profile_fetch_started) * 1000 - profile_fetch_ms
             
             logs = logs_result.data
-            
-            logger.info(f"Fetched {len(logs)} weight logs from {start_date} to {end_date}")
             
             # Prepare historical data
             weight_data = [(date.fromisoformat(log["date"]), float(log["weight_kg"])) for log in logs]
@@ -350,7 +427,9 @@ class WeightTrackingService:
             
             # Get average daily deficit from analytics (last 7 days)
             from .analytics import get_calorie_balance_trend
-            calorie_trend = await get_calorie_balance_trend(user_id, days=7)
+            analytics_started = time.perf_counter()
+            calorie_trend = await get_calorie_balance_trend(user_id, days=7, profile=profile)
+            analytics_ms = (time.perf_counter() - analytics_started) * 1000
             avg_daily_deficit = calorie_trend["summary"]["avg_deficit"]
             
             # Use target_deficit for projection math if provided, otherwise use measured
@@ -368,11 +447,6 @@ class WeightTrackingService:
             # Calculate metabolic adaptation
             adaptation_factor = WeightTrackingService.calculate_metabolic_adaptation(days_in_deficit)
             
-            logger.info(
-                f"Projection parameters: energy_density={energy_density:.0f} kcal/kg, "
-                f"adaptation_factor={adaptation_factor:.2f}, days_in_deficit={days_in_deficit}"
-            )
-            
             # Build historical trend data
             historical_data = []
             for log in logs:
@@ -384,10 +458,6 @@ class WeightTrackingService:
                     moving_avg_weight=weight_ma.get(log_date, float(log["weight_kg"])),
                     moving_avg_body_fat=body_fat_ma.get(log_date) if log.get("body_fat_percentage") else None
                 ))
-            
-            logger.info(f"Built {len(historical_data)} historical data points")
-            for point in historical_data:
-                logger.info(f"  - {point.date}: {point.weight_kg} kg (MA: {point.moving_avg_weight})")
             
             # Calculate projection
             projection_data = []
@@ -435,11 +505,6 @@ class WeightTrackingService:
                     
                     # Use improved energy density (considers body fat %)
                     kg_per_day = adjusted_deficit / energy_density
-                    
-                    logger.info(
-                        f"Deficit-based prediction: raw_deficit={avg_daily_deficit:.1f}, "
-                        f"adjusted_deficit={adjusted_deficit:.1f}, kg_per_day={kg_per_day:.4f}"
-                    )
                     
                     if abs(kg_per_day) > 0.001:
                         if weight_difference < 0 and kg_per_day > 0:
@@ -490,7 +555,7 @@ class WeightTrackingService:
                         adjusted_deficit = projection_deficit * adaptation_factor
                         base_kg_per_day = -(adjusted_deficit / energy_density)  # Negative for weight loss
                     
-                    for i in range(1, projection_days + 1, 7):  # Weekly points
+                    for i in range(1, projection_days + 1):  # Daily points
                         projection_date = date.today() + timedelta(days=i)
                         
                         # Calculate progressive adaptation for future days
@@ -555,7 +620,7 @@ class WeightTrackingService:
                 weight_diff = target_weight_f - moving_avg_weight
                 max_proj_days = 180
                 
-                for i in range(1, max_proj_days + 1, 7):
+                for i in range(1, max_proj_days + 1):
                     proj_date = date.today() + timedelta(days=i)
                     future_days = days_in_deficit + i
                     future_adapt = WeightTrackingService.calculate_metabolic_adaptation(future_days)
@@ -579,7 +644,7 @@ class WeightTrackingService:
                     if goal_reached:
                         break
             
-            return GoalProjectionResponse(
+            response = GoalProjectionResponse(
                 current_weight=round(most_recent_weight, 1),
                 current_body_fat=round(most_recent_body_fat, 1) if most_recent_body_fat else None,
                 target_weight=round(target_weight, 1) if target_weight else None,
@@ -598,6 +663,19 @@ class WeightTrackingService:
                 on_track=on_track,
                 message=message
             )
+            total_ms = (time.perf_counter() - started_at) * 1000
+            logger.info(
+                "goal_projection_timing user=%s cache=miss total_ms=%.1f profile_ms=%.1f logs_ms=%.1f analytics_ms=%.1f points=%s actual_points=%s",
+                user_id,
+                total_ms,
+                profile_fetch_ms,
+                logs_fetch_ms,
+                analytics_ms,
+                len(projection_data),
+                len(actual_projection_data),
+            )
+            WeightTrackingService._write_cached_projection(user_id, days_history, target_deficit, response)
+            return response
             
         except Exception as e:
             logger.error(f"Error calculating goal projection: {e}")

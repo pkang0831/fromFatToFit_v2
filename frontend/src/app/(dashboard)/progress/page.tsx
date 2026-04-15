@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -26,7 +26,8 @@ export default function ProgressPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<Tab>(searchParams.get('tab') === 'photos' ? 'photos' : 'goals');
+  const params = useMemo(() => searchParams ?? new URLSearchParams(), [searchParams]);
+  const [activeTab, setActiveTab] = useState<Tab>(params.get('tab') === 'photos' ? 'photos' : 'goals');
   const [showWeightLogModal, setShowWeightLogModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -65,15 +66,16 @@ export default function ProgressPage() {
   const [shareWeekMarker, setShareWeekMarker] = useState('');
   const [creatingShare, setCreatingShare] = useState(false);
   const [revokingShareId, setRevokingShareId] = useState<string | null>(null);
+  const [shouldMountGoalChart, setShouldMountGoalChart] = useState(false);
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
 
-  const reminderSource = searchParams.get('from') || undefined;
-  const reminderEventId = searchParams.get('reminder_event_id') || undefined;
+  const reminderSource = params.get('from') || undefined;
+  const reminderEventId = params.get('reminder_event_id') || undefined;
   const reminderReentryState = reminderSource === 'weekly_reminder'
-    ? coerceHomeEntryState(searchParams.get('reentry_state'), 'weekly_scan')
+    ? coerceHomeEntryState(params.get('reentry_state'), 'weekly_scan')
     : undefined;
   const reminderLandingSurfaceState = reminderSource === 'weekly_reminder'
-    ? coerceHomeEntryState(searchParams.get('surface_state'))
+    ? coerceHomeEntryState(params.get('surface_state'))
     : undefined;
 
   const buildProofLoopAnalytics = useCallback((
@@ -138,10 +140,20 @@ export default function ProgressPage() {
     }
   }, []);
 
+  const scheduleNonCriticalTask = useCallback((task: () => void) => {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(task, { timeout: 1200 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = globalThis.setTimeout(task, 250);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, []);
+
   useEffect(() => {
-    const requestedTab = searchParams.get('tab') === 'photos' ? 'photos' : 'goals';
+    const requestedTab = params.get('tab') === 'photos' ? 'photos' : 'goals';
     setActiveTab(requestedTab);
-  }, [searchParams]);
+  }, [params]);
 
   const openUploadModal = useCallback((source: string) => {
     setShowUpload(true);
@@ -185,12 +197,36 @@ export default function ProgressPage() {
   };
 
   useEffect(() => {
-    if (activeTab === 'photos') {
-      void fetchPhotos();
-      void fetchHomeSummary();
-      void fetchProofShares();
-    }
-  }, [activeTab, fetchPhotos, fetchHomeSummary, fetchProofShares]);
+    if (activeTab !== 'photos') return;
+
+    let cancelled = false;
+    let cleanupDeferred: (() => void) | null = null;
+
+    void fetchPhotos().then(photoList => {
+      if (cancelled) return;
+
+      cleanupDeferred = scheduleNonCriticalTask(() => {
+        void fetchHomeSummary();
+
+        if (photoList.length > 0) {
+          void fetchProofShares();
+        }
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      cleanupDeferred?.();
+    };
+  }, [activeTab, fetchPhotos, fetchHomeSummary, fetchProofShares, scheduleNonCriticalTask]);
+
+  useEffect(() => {
+    if (activeTab !== 'goals' || shouldMountGoalChart) return;
+
+    return scheduleNonCriticalTask(() => {
+      setShouldMountGoalChart(true);
+    });
+  }, [activeTab, scheduleNonCriticalTask, shouldMountGoalChart]);
 
   useEffect(() => {
     if (historyTrackedRef.current[activeTab]) return;
@@ -203,7 +239,7 @@ export default function ProgressPage() {
 
   useEffect(() => {
     if (reminderTrackedRef.current) return;
-    if (searchParams.get('from') !== 'weekly_reminder') return;
+    if (params.get('from') !== 'weekly_reminder') return;
     if (activeTab !== 'photos') return;
 
     reminderTrackedRef.current = true;
@@ -215,26 +251,17 @@ export default function ProgressPage() {
         entry_state: reminderReentryState || 'weekly_scan',
       },
     ));
-  }, [activeTab, buildProofLoopAnalytics, reminderLandingSurfaceState, reminderReentryState, searchParams]);
-
-  useEffect(() => {
-    if (activeTab !== 'photos' || compareMode) return;
-    if (photos.length >= 2) {
-      void loadLatestCompare(photos);
-      return;
-    }
-    setCompareData(null);
-  }, [activeTab, compareMode, photos, loadLatestCompare]);
+  }, [activeTab, buildProofLoopAnalytics, reminderLandingSurfaceState, reminderReentryState, params]);
 
   useEffect(() => {
     if (activeTab !== 'photos') return;
 
-    const focus = searchParams.get('focus');
+    const focus = params.get('focus');
     if (!focus || focusAppliedRef.current === focus) return;
 
     if (focus === 'upload') {
       focusAppliedRef.current = focus;
-      openUploadModal(searchParams.get('from') || 'progress_focus_upload');
+      openUploadModal(params.get('from') || 'progress_focus_upload');
       return;
     }
 
@@ -242,7 +269,7 @@ export default function ProgressPage() {
       focusAppliedRef.current = focus;
       void loadLatestCompare(photos);
     }
-  }, [activeTab, searchParams, photos, openUploadModal, loadLatestCompare]);
+  }, [activeTab, params, photos, openUploadModal, loadLatestCompare]);
 
   useEffect(() => {
     if (!compareData) return;
@@ -373,11 +400,6 @@ export default function ProgressPage() {
   const exitCompareMode = () => {
     setCompareMode(false);
     setSelectedPhotos([]);
-    if (photos.length >= 2) {
-      void loadLatestCompare(photos);
-      return;
-    }
-    setCompareData(null);
   };
 
   const formatDate = (dateStr: string) => {
@@ -479,7 +501,7 @@ export default function ProgressPage() {
       return {
         label: 'Upload progress proof',
         description: 'Lock this week with a proof photo before the next scan replaces the feeling.',
-        onClick: () => openUploadModal(searchParams.get('from') || 'progress_empty_state'),
+        onClick: () => openUploadModal(params.get('from') || 'progress_empty_state'),
       };
     }
 
@@ -493,24 +515,24 @@ export default function ProgressPage() {
 
     if (homeSummary?.scan_summary.prompt_state === 'ready' || homeSummary?.scan_summary.prompt_state === 'overdue') {
       return {
-        label: 'Do weekly check-in',
+        label: 'Open weekly check-in',
         description: 'Your proof is in place. Refresh the next scan so the loop stays current.',
-        onClick: () => router.push('/body-scan?tab=scan'),
+        onClick: () => router.push('/home'),
       };
     }
 
     if (homeSummary?.scan_summary.latest_transformation) {
       return {
-        label: 'Open journey',
-        description: 'Compare the proof against the goal image before the next weekly check-in.',
-        onClick: () => router.push('/body-scan?tab=journey#transformation'),
+        label: 'Open latest report',
+        description: 'Review your latest weekly report and compare it against your proof photos.',
+        onClick: () => router.push('/home'),
       };
     }
 
     return {
-      label: 'Open planner',
-      description: 'Use the proof with a concrete goal so the next scan has context.',
-      onClick: () => router.push('/goal-planner'),
+      label: 'Open dashboard',
+      description: 'Go back to the main dashboard and continue the weekly proof loop from there.',
+      onClick: () => router.push('/home'),
     };
   })();
 
@@ -577,7 +599,7 @@ export default function ProgressPage() {
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
         >
-          📊 {t('progress.goals')}
+          📈 Weight trend
         </button>
         <button
           onClick={() => setActiveTab('photos')}
@@ -587,7 +609,7 @@ export default function ProgressPage() {
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
           }`}
         >
-          📸 {t('progress.photos')}
+          📸 Proof photos
         </button>
       </div>
 
@@ -600,13 +622,14 @@ export default function ProgressPage() {
               <div className="text-4xl">📊</div>
               <div>
                 <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 mb-2">
-                  {t('progress.movingAvgPrediction')}
+                  Read this as a trend, not a promise
                 </h3>
                 <p className="text-sm text-emerald-700 dark:text-emerald-400">
-                  {t('progress.movingAvgDesc')}
+                  This chart is only here to answer one question: are you generally moving in the right direction?
+                  It is not a prescription, and it should not start by throwing a random 2,500 kcal deficit at you.
                 </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-2">
-                  💡 {t('progress.weighTip')}
+                  💡 Start with a planned 300 to 700 kcal deficit unless you have a strong reason to go outside that range.
                 </p>
               </div>
             </div>
@@ -614,7 +637,11 @@ export default function ProgressPage() {
 
           {/* Goal Projection Chart */}
           <div data-tour="progress-chart">
-            <GoalProjectionChart key={refreshKey} daysHistory={30} />
+            {shouldMountGoalChart ? (
+              <GoalProjectionChart key={refreshKey} daysHistory={30} />
+            ) : (
+              <div className="h-[400px] bg-surfaceAlt animate-pulse rounded-lg" />
+            )}
           </div>
         </>
       )}

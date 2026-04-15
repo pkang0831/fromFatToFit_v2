@@ -1,5 +1,6 @@
 """Weight Tracking and Goal Projection Routes"""
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+import time
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from typing import List, Optional
 from ..middleware.auth_middleware import get_current_user
 from ..schemas.weight_schemas import (
@@ -91,14 +92,22 @@ async def update_goals(
 @limiter.limit("30/minute")
 async def get_goal_projection(
     request: Request,
+    response: Response,
     days_history: int = 30,
     target_deficit: Optional[float] = Query(None, description="User-specified target caloric deficit in kcal/day"),
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        return await WeightTrackingService.get_goal_projection(
-            user_id=current_user["id"], days_history=days_history, target_deficit=target_deficit
+        started_at = time.perf_counter()
+        result = await WeightTrackingService.get_goal_projection(
+            user_id=current_user["id"],
+            days_history=days_history,
+            target_deficit=target_deficit,
+            profile_override=current_user,
         )
+        elapsed_ms = (time.perf_counter() - started_at) * 1000
+        response.headers["Server-Timing"] = f'projection;dur={elapsed_ms:.1f}'
+        return result
     except Exception as e:
         logger.error(f"Error getting projection: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get goal projection")

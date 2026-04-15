@@ -21,6 +21,34 @@ const STEPS = [
   { label: 'Summary', icon: '7' },
 ];
 
+const GOAL_INTENTS = [
+  {
+    key: 'cut',
+    title: 'Cut body fat',
+    description: 'You want to get leaner, lighter, and closer to a visibly lower body-fat level.',
+  },
+  {
+    key: 'lean_bulk',
+    title: 'Build muscle',
+    description: 'You want a lean bulk, more size, or more strength without turning this into a dirty bulk.',
+  },
+  {
+    key: 'recomp',
+    title: 'Recomp',
+    description: 'You want to look tighter and more athletic while keeping your body weight roughly stable.',
+  },
+  {
+    key: 'event',
+    title: 'Look good for an event',
+    description: 'You have a vacation, wedding, or shoot in mind and want a practical short-term plan.',
+  },
+  {
+    key: 'maintain',
+    title: 'Maintain and tighten up',
+    description: 'You are not chasing a dramatic change. You just want cleaner habits and better shape.',
+  },
+] as const;
+
 export default function GoalPlannerPage() {
   useEffect(() => {
     trackRetentionEvent('history_viewed', {
@@ -35,6 +63,7 @@ export default function GoalPlannerPage() {
   const [loadingRemotePlan, setLoadingRemotePlan] = useState(false);
   const [remoteSavedAt, setRemoteSavedAt] = useState<string | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [goalIntent, setGoalIntent] = useState<(typeof GOAL_INTENTS)[number]['key']>('cut');
 
   // Step 0: Goals
   const [currentWeight, setCurrentWeight] = useState('');
@@ -74,6 +103,7 @@ export default function GoalPlannerPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const p = new URLSearchParams(window.location.search);
+    const intent = p.get('intent');
     const cbf = p.get('cbf');
     const tbf = p.get('tbf');
     const cw = p.get('cw');
@@ -88,6 +118,9 @@ export default function GoalPlannerPage() {
     if (hcm) setHeightCm(hcm);
     if (act) setActivityLevel(act);
     if (g === 'male' || g === 'female') setGender(g);
+    if (intent && GOAL_INTENTS.some((option) => option.key === intent)) {
+      setGoalIntent(intent as (typeof GOAL_INTENTS)[number]['key']);
+    }
   }, []);
 
   useEffect(() => {
@@ -424,7 +457,35 @@ export default function GoalPlannerPage() {
           {/* Step 0: Goals */}
           {step === 0 && (
             <div className="space-y-5">
-              <h2 className="text-lg font-semibold text-text">Set Your Goals</h2>
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-text">What do you want right now?</h2>
+                <p className="text-sm text-text-secondary">
+                  Before calories and macros, pick the kind of outcome you actually want. We&apos;ll use that to frame the plan.
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {GOAL_INTENTS.map((option) => {
+                  const isActive = goalIntent === option.key;
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      onClick={() => setGoalIntent(option.key)}
+                      className={`rounded-2xl border p-4 text-left transition-all ${
+                        isActive
+                          ? 'border-primary bg-primary/8 ring-2 ring-primary/20'
+                          : 'border-border bg-surfaceAlt hover:border-primary/30'
+                      }`}
+                    >
+                      <p className="text-sm font-semibold text-text">{option.title}</p>
+                      <p className="mt-2 text-sm leading-6 text-text-secondary">{option.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm text-text-secondary">
+                <strong className="text-text">Next:</strong> we&apos;ll ask for your current numbers so the plan is grounded in reality, not vibes.
+              </div>
               {profileLoaded && currentWeight && (
                 <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 text-sm text-primary">
                   Profile data loaded. Confirm your target body fat and adjust anything if needed.
@@ -493,7 +554,16 @@ export default function GoalPlannerPage() {
                 </div>
               </div>
               <Button onClick={handleGoalSubmit} disabled={loading} className="w-full">
-                {loading ? 'Calculating...' : 'Compare Calorie Tiers'} <ArrowRight className="h-4 w-4 ml-2" />
+                {loading
+                  ? 'Calculating...'
+                  : goalIntent === 'cut' || goalIntent === 'event'
+                    ? 'See cutting calorie options'
+                    : goalIntent === 'lean_bulk'
+                      ? 'See lean bulk calorie options'
+                      : goalIntent === 'recomp'
+                        ? 'See recomp calorie options'
+                        : 'See maintenance calorie options'}
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           )}

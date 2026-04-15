@@ -24,9 +24,19 @@ router = APIRouter()
 GUEST_SCAN_LIFETIME_LIMIT = 2
 
 
+def _request_ip(request: Request) -> str:
+    client = getattr(request, "client", None)
+    host = getattr(client, "host", None)
+    if not host:
+        return "unknown"
+    if isinstance(host, bytes):
+        return host.decode("utf-8", errors="ignore") or "unknown"
+    return host if isinstance(host, str) else str(host)
+
+
 def _build_fingerprint(request: Request) -> str:
     """Build a rough browser fingerprint from request headers."""
-    ip = request.client.host if request.client else "unknown"
+    ip = _request_ip(request)
     ua = request.headers.get("user-agent", "")
     lang = request.headers.get("accept-language", "")
     raw = f"{ip}|{ua}|{lang}"
@@ -34,7 +44,7 @@ def _build_fingerprint(request: Request) -> str:
 
 
 def _hash_ip(request: Request) -> str:
-    ip = request.client.host if request.client else "unknown"
+    ip = _request_ip(request)
     return hashlib.sha256(ip.encode()).hexdigest()
 
 
@@ -199,14 +209,14 @@ async def guest_body_scan(request: Request, scan_request: GuestScanRequest):
         confidence = analysis.get("confidence", "medium")
         category, insight = _bf_category_and_insight(bf, scan_request.gender)
 
-        # Return a rounded range instead of exact BF% to gate precision behind signup
+        # Keep the central estimate as a float while gating confidence behind the range.
         range_low = round(bf - 2.5)
         range_high = round(bf + 2.5)
 
         await _record_guest_scan(request)
 
         return GuestScanResponse(
-            body_fat_percentage=round(bf),
+            body_fat_percentage=float(bf),
             confidence=confidence,
             category=category,
             insight=insight,

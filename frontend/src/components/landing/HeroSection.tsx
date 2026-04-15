@@ -1,200 +1,180 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Shield, ArrowRight } from 'lucide-react';
+import { ArrowRight, Camera, ScanFace, Sparkles, Target } from 'lucide-react';
+
+import { EcosystemConstellationDemo } from '@/components/ui/ecosystem-constellation-demo';
 
 export function HeroSection() {
   const { t } = useLanguage();
 
   return (
-    <section className="relative overflow-hidden bg-[#0a0a0f] py-16 md:min-h-screen md:flex md:items-center md:justify-center">
+    <section className="relative overflow-hidden bg-[#06060b] py-16 md:min-h-screen md:flex md:items-center">
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(201,169,110,0.15) 0%, transparent 70%)' }}
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -20, 0] }}
+          className="absolute -top-36 right-0 h-[560px] w-[560px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 72%)' }}
+          animate={{ scale: [1, 1.2, 1], x: [0, 24, 0], y: [0, -24, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute -bottom-32 -left-32 h-[600px] w-[600px] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(168,139,122,0.12) 0%, transparent 70%)' }}
-          animate={{ scale: [1.2, 1, 1.2], x: [0, -20, 0], y: [0, 30, 0] }}
+          className="absolute -bottom-40 -left-28 h-[620px] w-[620px] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)' }}
+          animate={{ scale: [1.18, 1, 1.18], x: [0, -18, 0], y: [0, 26, 0] }}
           transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
         />
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.035]"
           style={{
             backgroundImage:
               'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
+            backgroundSize: '72px 72px',
           }}
         />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.06] px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm">
-            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-            {t('landing.badge')}
-          </span>
-        </motion.div>
-
-        <motion.h1
-          className="mb-6 text-4xl font-bold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.15 }}
-        >
-          {t('landing.heroTitle')}{' '}
-          <br className="hidden md:block" />
-          <span className="gradient-text">{t('landing.heroHighlight')}</span>
-        </motion.h1>
-
-        <motion.p
-          className="mx-auto mb-4 max-w-3xl text-lg leading-relaxed text-white/72 md:text-xl"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          {t('landing.heroDescription')}
-        </motion.p>
-
-        <motion.p
-          className="mb-4 text-sm font-medium text-primary/85"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          {t('landing.heroProof')}
-        </motion.p>
-
-        <motion.p
-          className="mb-10 text-sm text-white/58"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.45 }}
-        >
-          {t('landing.heroFounder')}
-        </motion.p>
-
-        <motion.div
-          className="flex flex-col items-center justify-center gap-4 sm:flex-row"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-        >
-          <Link
-            href="/try"
-            className="group relative flex items-center gap-2 rounded-xl bg-gradient-primary px-8 py-4 text-lg font-semibold text-white transition-all hover:-translate-y-0.5 hover:shadow-glow-cyan btn-glow"
-            data-testid="hero-cta"
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+        <div className="text-left">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            {t('landing.getStarted')}
-            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </motion.div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.05] px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm">
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+              {t('landing.badge')}
+            </span>
+          </motion.div>
+
+          <motion.h1
+            className="mt-8 text-4xl font-bold leading-[0.98] tracking-tight text-white md:text-6xl xl:text-7xl"
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+          >
+            Start with one clear goal.
+            <br className="hidden md:block" />
+            <span className="gradient-text">Build visual proof every week.</span>
+          </motion.h1>
+
+          <motion.p
+            className="mt-6 max-w-2xl text-lg leading-relaxed text-white/68 md:text-xl"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            Devenira should not feel like ten different apps. You set the direction,
+            take one body scan, then come back for proof instead of guesswork.
+          </motion.p>
+
+          <motion.div
+            className="mt-8 flex flex-wrap gap-3"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            {[
+              { label: 'Choose your goal', icon: Target },
+              { label: 'Scan your baseline', icon: ScanFace },
+              { label: 'Keep weekly proof', icon: Camera },
+            ].map(({ label, icon: Icon }) => (
+              <div
+                key={label}
+                className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm text-white/72"
+              >
+                <Icon className="h-4 w-4 text-primary" />
+                <span>{label}</span>
+              </div>
+            ))}
+          </motion.div>
+
+          <motion.div
+            className="mt-10 flex flex-col gap-4 sm:flex-row"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <Link
+              href="/goal-planner"
+              className="group relative inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 via-fuchsia-500 to-blue-500 px-8 py-4 text-lg font-semibold text-white transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_60px_rgba(139,92,246,0.3)]"
+              data-testid="hero-cta"
+            >
+              Start with your goal
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              href="/try"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/[0.1] bg-white/[0.04] px-8 py-4 text-lg font-semibold text-white/84 transition-all hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
+            >
+              Try the free scan
+            </Link>
+          </motion.div>
+
+          <motion.div
+            className="mt-10 grid gap-4 sm:grid-cols-3"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+          >
+            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Why it feels better</p>
+              <p className="mt-3 text-base font-semibold text-white">One place to start</p>
+              <p className="mt-2 text-sm leading-6 text-white/56">
+                We stop throwing random features at new users on the first screen.
+              </p>
+            </div>
+            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-primary/75">What you measure</p>
+              <p className="mt-3 text-base font-semibold text-white">Eyes first, numbers second</p>
+              <p className="mt-2 text-sm leading-6 text-white/56">
+                This product is for body-change proof, not for drowning in abstract stats.
+              </p>
+            </div>
+            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-primary/75">Real reason to return</p>
+              <p className="mt-3 text-base font-semibold text-white">Weekly proof loop</p>
+              <p className="mt-2 text-sm leading-6 text-white/56">
+                Come back when motivation is shaky and let the visual record speak first.
+              </p>
+            </div>
+          </motion.div>
+        </div>
 
         <motion.div
-          className="mx-auto mt-14 max-w-5xl"
-          initial={{ opacity: 0, y: 20 }}
+          className="relative"
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.75 }}
+          transition={{ duration: 0.9, delay: 0.2 }}
         >
-          <div className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
-            <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-4 md:p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div className="text-left">
-                  <p className="text-xs uppercase tracking-[0.24em] text-primary/80">{t('landing.heroStoryLabel')}</p>
-                  <p className="mt-1 text-sm text-white/45">{t('landing.heroStoryCaption')}</p>
-                </div>
-                <div className="hidden items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-xs text-white/50 md:flex">
-                  <Shield className="h-3.5 w-3.5 text-primary/70" />
-                  <span>{t('landing.heroStoryTrust')}</span>
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-black/30">
-                  <div className="relative aspect-[4/5]">
-                    <Image
-                      src="/founder/start.jpg"
-                      alt="Founder before the transformation"
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 90vw, 320px"
-                      priority
-                      quality={60}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-4 text-left">
-                      <p className="text-xs uppercase tracking-[0.22em] text-primary/90">{t('landing.heroStartLabel')}</p>
-                      <p className="mt-2 text-2xl font-bold text-white">{t('landing.heroStartStat')}</p>
-                      <p className="mt-2 text-sm text-white/72">{t('landing.heroStartBody')}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="overflow-hidden rounded-2xl border border-primary/20 bg-black/30">
-                  <div className="relative aspect-[4/5]">
-                    <Image
-                      src="/founder/final-body.jpg"
-                      alt="Founder after the transformation"
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 90vw, 320px"
-                      priority
-                      quality={60}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-4 text-left">
-                      <p className="text-xs uppercase tracking-[0.22em] text-primary/90">{t('landing.heroFinalLabel')}</p>
-                      <p className="mt-2 text-2xl font-bold text-white">{t('landing.heroFinalStat')}</p>
-                      <p className="mt-2 text-sm text-white/72">{t('landing.heroFinalBody')}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div className="absolute -inset-6 rounded-[36px] bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.18),transparent_68%)] blur-3xl" />
+          <div className="relative overflow-hidden rounded-[32px] border border-white/[0.08] bg-white/[0.03] p-3 shadow-[0_36px_120px_rgba(0,0,0,0.34)]">
+            <div className="pointer-events-none absolute left-8 top-8 z-10 rounded-full border border-white/[0.08] bg-black/40 px-3 py-1 text-xs uppercase tracking-[0.22em] text-white/68 backdrop-blur-md">
+              Your body-change loop
             </div>
 
-            <div className="rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 text-left lg:hidden">
-              <p className="text-xs uppercase tracking-[0.22em] text-primary/85">{t('landing.heroQuoteLabel')}</p>
-              <p className="mt-2 text-lg font-semibold text-white">{t('landing.heroQuote')}</p>
-              <p className="mt-3 text-sm leading-relaxed text-white/65">{t('landing.heroQuoteBody')}</p>
-            </div>
+            <EcosystemConstellationDemo />
 
-            <div className="hidden rounded-3xl border border-white/[0.08] bg-white/[0.02] p-4 md:p-5 lg:block">
-              <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-black/20">
-                <div className="relative aspect-[4/5]">
-                  <Image
-                    src="/founder/final-portrait.jpg"
-                    alt="Founder portrait after the transformation"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 1024px) 0px, 280px"
-                    loading="lazy"
-                    quality={60}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                </div>
+            <div className="absolute inset-x-6 bottom-6 z-10 grid gap-3 rounded-[28px] border border-white/[0.08] bg-black/42 p-4 backdrop-blur-xl md:grid-cols-3">
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-primary/80">Goal</p>
+                <p className="mt-1 text-sm font-medium text-white">Pick cut, bulk, recomp, or maintain.</p>
               </div>
-
-              <div className="mt-4 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4 text-left">
-                <p className="text-xs uppercase tracking-[0.22em] text-primary/85">{t('landing.heroQuoteLabel')}</p>
-                <p className="mt-2 text-lg font-semibold text-white">{t('landing.heroQuote')}</p>
-                <p className="mt-3 text-sm leading-relaxed text-white/65">{t('landing.heroQuoteBody')}</p>
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-primary/80">Baseline</p>
+                <p className="mt-1 text-sm font-medium text-white">Use one scan to anchor the starting point.</p>
               </div>
-
-              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/35">
-                <Shield className="h-3.5 w-3.5" />
-                <span>{t('landing.heroStoryTrust')}</span>
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-primary/80">Proof</p>
+                <p className="mt-1 text-sm font-medium text-white">Return weekly so progress is visible.</p>
               </div>
             </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-2 text-sm text-white/45">
+            <Sparkles className="h-4 w-4 text-primary/80" />
+            <span>Designed to feel like one clear product again, not a pile of tools.</span>
           </div>
         </motion.div>
       </div>

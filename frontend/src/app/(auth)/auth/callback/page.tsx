@@ -1,8 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { User } from '@/types/api';
 import { supabase } from '@/lib/supabase';
 import { setAuthCookie } from '@/lib/utils/cookie';
+
+const USER_CACHE_KEY = 'auth_user_cache';
+
+interface ProviderUserShape {
+  id: string;
+  email?: string | null;
+  created_at?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+}
 
 export default function AuthCallbackPage() {
   const [status, setStatus] = useState<'loading' | 'error'>('loading');
@@ -19,12 +29,12 @@ export default function AuthCallbackPage() {
         const hashRefresh = hashParams.get('refresh_token');
 
         if (hashAccess && hashRefresh) {
-          const { error: setErr } = await supabase.auth.setSession({
+          const { data: sessionData, error: setErr } = await supabase.auth.setSession({
             access_token: hashAccess,
             refresh_token: hashRefresh,
           });
           if (setErr) throw setErr;
-          storeTokensAndRedirect(hashAccess, hashRefresh);
+          storeTokensAndRedirect(hashAccess, hashRefresh, sessionData.session?.user ?? null);
           return;
         }
 
@@ -39,6 +49,7 @@ export default function AuthCallbackPage() {
             storeTokensAndRedirect(
               exchangeData.session.access_token,
               exchangeData.session.refresh_token,
+              exchangeData.session.user,
             );
             return;
           }
@@ -48,7 +59,11 @@ export default function AuthCallbackPage() {
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
         if (data.session) {
-          storeTokensAndRedirect(data.session.access_token, data.session.refresh_token);
+          storeTokensAndRedirect(
+            data.session.access_token,
+            data.session.refresh_token,
+            data.session.user,
+          );
           return;
         }
 
@@ -69,7 +84,7 @@ export default function AuthCallbackPage() {
     // Also listen for auth state change as a fallback
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        storeTokensAndRedirect(session.access_token, session.refresh_token);
+        storeTokensAndRedirect(session.access_token, session.refresh_token, session.user);
       }
     });
 
@@ -111,11 +126,65 @@ export default function AuthCallbackPage() {
   );
 }
 
-async function storeTokensAndRedirect(accessToken: string, refreshToken: string) {
+function buildBootstrapUser(
+  providerUser: ProviderUserShape | null | undefined,
+  accessToken: string,
+): User | null {
+  const payload = decodeJwtPayload(accessToken);
+  const id = providerUser?.id ?? payload?.sub ?? payload?.user_id ?? null;
+  const email = providerUser?.email ?? payload?.email ?? null;
+
+  if (!id || !email) return null;
+
+  const metadata = providerUser?.user_metadata ?? payload?.user_metadata ?? {};
+
+  return {
+    id,
+    email,
+    full_name:
+      (typeof metadata.full_name === 'string' && metadata.full_name) ||
+      (typeof metadata.name === 'string' && metadata.name) ||
+      undefined,
+    premium_status: false,
+    onboarding_completed: true,
+    created_at:
+      providerUser?.created_at ||
+      (typeof payload?.created_at === 'string' ? payload.created_at : undefined) ||
+      new Date().toISOString(),
+  };
+}
+
+function decodeJwtPayload(token: string): Record<string, any> | null {
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = atob(normalized);
+    const json = decodeURIComponent(
+      Array.from(decoded)
+        .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
+        .join(''),
+    );
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function storeTokensAndRedirect(
+  accessToken: string,
+  refreshToken: string,
+  providerUser?: ProviderUserShape | null,
+) {
   localStorage.setItem('access_token', accessToken);
   localStorage.setItem('refresh_token', refreshToken);
   setAuthCookie('access_token', accessToken);
   setAuthCookie('refresh_token', refreshToken);
+
+  const bootstrapUser = buildBootstrapUser(providerUser, accessToken);
+  if (bootstrapUser) {
+    localStorage.setItem(USER_CACHE_KEY, JSON.stringify(bootstrapUser));
+  }
 
   const searchParams = new URLSearchParams(window.location.search);
   const requestedNext = searchParams.get('next');
@@ -123,23 +192,5 @@ async function storeTokensAndRedirect(accessToken: string, refreshToken: string)
     ? requestedNext
     : null;
 
-  try {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-    const res = await fetch(`${API_URL}/auth/me`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (res.ok) {
-      const user = await res.json();
-      if (user.onboarding_completed) {
-        window.location.href = nextPath || '/home';
-        return;
-      }
-    }
-  } catch {
-    // Fall through to onboarding if check fails
-  }
-
-  window.location.href = nextPath
-    ? `/onboarding?next=${encodeURIComponent(nextPath)}`
-    : '/onboarding';
+  window.location.replace(nextPath || '/home');
 }

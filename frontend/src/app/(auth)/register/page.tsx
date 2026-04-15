@@ -15,6 +15,7 @@ function RegisterPageContent() {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = searchParams ?? new URLSearchParams();
   const { register, error, loading } = useAuth();
   const [localError, setLocalError] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
@@ -27,10 +28,10 @@ function RegisterPageContent() {
     sensitiveData: false,
     age: false,
   });
-  const nextPath = searchParams.get('next');
-  const attributionSource = searchParams.get('source') || searchParams.get('ref') || undefined;
-  const attributionToken = searchParams.get('share_token') || searchParams.get('share') || undefined;
-  const attributionSessionId = searchParams.get('session_id') || getRetentionSessionId() || undefined;
+  const nextPath = params.get('next');
+  const attributionSource = params.get('source') || params.get('ref') || undefined;
+  const attributionToken = params.get('share_token') || params.get('share') || undefined;
+  const attributionSessionId = params.get('session_id') || getRetentionSessionId() || undefined;
   const loginHref = nextPath && nextPath.startsWith('/')
     ? `/login?next=${encodeURIComponent(nextPath)}`
     : '/login';

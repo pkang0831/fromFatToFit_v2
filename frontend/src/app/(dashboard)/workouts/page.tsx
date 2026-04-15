@@ -46,10 +46,12 @@ export default function WorkoutsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [exerciseGifUrl, setExerciseGifUrl] = useState<string | null>(null);
   const [gifLoading, setGifLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const [exercisesRes, logsRes, trendsRes] = await Promise.all([
         workoutApi.getExerciseLibrary(),
         workoutApi.getWorkoutLogs(getTodayString()),
@@ -60,12 +62,13 @@ export default function WorkoutsPage() {
       setTrends(trendsRes.data);
     } catch (error) {
       console.error('Failed to load workout data:', error);
+      setLoadError(t('workout.loadFailedVisible'));
     } finally {
       setLoading(false);
       // Load recent workouts in background (don't block main loading)
       loadRecentWorkouts().catch(err => console.error('Failed to load recent workouts:', err));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadData();
@@ -285,6 +288,17 @@ export default function WorkoutsPage() {
           </Button>
         </div>
       </div>
+
+      {loadError && (
+        <Card variant="outlined" className="border-error/30 bg-error/5">
+          <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-error">{loadError}</p>
+            <Button variant="outline" size="sm" onClick={() => void loadData()}>
+              {t('common.retry')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Weekly Stats */}
       {trends && (

@@ -85,7 +85,7 @@ export function JourneyResult({ result, originalImage, onReset, journeyPrefill }
         ai_current_bf: result.current_bf,
         ai_target_bf: result.target_bf,
       });
-      toast.success('7-day loop started — one quick check-in per day.');
+      toast.success('7-day reset started — one quick check-in per day.');
       router.push('/challenge');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { detail?: string } } };
