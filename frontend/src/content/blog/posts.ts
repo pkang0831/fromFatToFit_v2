@@ -44,8 +44,8 @@ const posts: BlogPost[] = [
     date: '2026-04-15',
     readingTime: '8 min read',
     tags: ['Founder Story', 'Weight Loss', 'Transformation', 'Body Image'],
-    heroImage: '/founder/final-portrait.jpg',
-    heroAlt: 'Founder portrait after a major body transformation',
+    heroImage: '/founder/founder-story-hanok-20260119.jpg',
+    heroAlt: 'Founder standing outdoors in a composed hanok portrait after a major transformation',
     deck:
       'I did not build Devenira because I wanted another fitness app. I built it because the hardest part of losing 50kg was not starting. It was the long middle where the work was real, but the mirror still made it feel fake.',
     ctaTitle: 'Start with one body check-in.',
@@ -149,8 +149,8 @@ const posts: BlogPost[] = [
     date: '2026-04-16',
     readingTime: '6 min read',
     tags: ['Body Image', 'Progress Tracking', 'Weight Loss', 'Dieting'],
-    heroImage: '/founder/start.jpg',
-    heroAlt: 'Founder-style mirror image representing a weekly body check-in',
+    heroImage: '/founder/mirror-middle-checkin-20250716.jpg',
+    heroAlt: 'Founder mirror check-in image showing the honest middle stage of body change',
     deck:
       'If you see your body every day, the mirror is often the last place that will give you reassurance. That does not mean progress is not happening. It means the mirror is a terrible historian.',
     ctaTitle: 'Start with one body check-in.',
@@ -241,8 +241,8 @@ const posts: BlogPost[] = [
     date: '2026-04-17',
     readingTime: '6 min read',
     tags: ['Scale Weight', 'Fat Loss', 'Dieting', 'Weight Loss'],
-    heroImage: '/founder/start.jpg',
-    heroAlt: 'Mirror check-in image used to represent better tracking beyond the scale',
+    heroImage: '/founder/weighin-middle-progress-20240801.jpg',
+    heroAlt: 'Founder progress image representing the vulnerable middle of a weight-loss process',
     deck:
       'The scale is not useless. But one loud reading can trigger a lot of bad decisions if you let it become a verdict instead of a data point.',
     ctaTitle: 'Use better evidence than one weigh-in.',
@@ -349,8 +349,8 @@ const posts: BlogPost[] = [
     date: '2026-04-18',
     readingTime: '7 min read',
     tags: ['Transformation', 'Progress Photos', 'Body Composition', 'Fat Loss'],
-    heroImage: '/founder/final-body.jpg',
-    heroAlt: 'Founder physique image used to represent body transformation progress',
+    heroImage: '/founder/transformation-proof-20251119.jpg',
+    heroAlt: 'Founder physique image showing clear transformation proof beyond the scale',
     deck:
       'If you want to know whether your body is actually changing, you need a better system than checking the scale and the mirror every day. A simple weekly evidence loop works better.',
     ctaTitle: 'Track transformation with better evidence.',
