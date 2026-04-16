@@ -19,6 +19,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { Badge } from '@/components/ui';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import { useSubscription } from '@/lib/hooks/useSubscription';
 import { paymentApi } from '@/lib/api/services';
 import { TOUR_START_EVENT, resetAllTours } from '@/components/tour/FeatureTour';
@@ -150,7 +151,11 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-surface border-r border-border h-screen sticky top-0">
       <div className="p-6 border-b border-border">
-        <h1 className="text-[1.65rem] font-semibold tracking-[-0.03em] text-text dark:text-white">Devenira</h1>
+        <BrandLogo
+          size={44}
+          priority
+          labelClassName="text-[1.65rem] font-semibold tracking-[-0.03em] text-text dark:text-white"
+        />
         <div className="mt-2 flex items-center gap-2">
           {isPremium && (
             <Badge variant="premium" className="rounded-full px-2.5 py-0.5 text-[11px] shadow-none">
