@@ -7,29 +7,35 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  ScrollView,
+  ActivityIndicator,
   Image,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
-import { colors, typography, spacing, borderRadius } from '../theme';
+import { colors, typography, spacing, borderRadius, shadows } from '../theme';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { signIn } = useAuth();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !password) {
+      setErrorMessage('Enter your email and password to continue.');
       return;
     }
 
     setLoading(true);
+    setErrorMessage(null);
+
     try {
-      await signIn(email, password);
+      await signIn(trimmedEmail, password);
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Invalid email or password');
+      setErrorMessage(error?.message || 'We could not sign you in right now. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -40,51 +46,97 @@ export default function LoginScreen({ navigation }: any) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <Image source={require('../../assets/icon.png')} style={styles.logo} />
-        <Text style={styles.title}>Devenira</Text>
-        <Text style={styles.subtitle}>Track your journey to better health</Text>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.content}>
+          <View style={styles.hero}>
+            <Image source={require('../../assets/icon.png')} style={styles.logo} />
+            <Text style={styles.title}>Devenira</Text>
+            <Text style={styles.subtitle}>Pick up your weekly proof loop where you left off.</Text>
+            <View style={styles.badgeRow}>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Secure sign-in</Text>
+              </View>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Mobile sync</Text>
+              </View>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Weekly proof</Text>
+              </View>
+            </View>
+          </View>
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor={colors.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+          <View style={styles.card}>
+            {errorMessage && (
+              <View style={styles.errorCard}>
+                <Text style={styles.errorTitle}>Sign in needs attention</Text>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor={colors.textSecondary}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+            <View style={styles.form}>
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor={colors.textSecondary}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                returnKeyType="next"
+              />
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Text>
-          </TouchableOpacity>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={colors.textSecondary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete="password"
+                textContentType="password"
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
+              />
 
-          <TouchableOpacity
-            style={styles.linkButton}
-            onPress={() => navigation.navigate('Register')}
-          >
-            <Text style={styles.linkText}>
-              Don't have an account? <Text style={styles.linkTextBold}>Sign Up</Text>
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.9}
+              >
+                {loading ? (
+                  <View style={styles.buttonRow}>
+                    <ActivityIndicator color={colors.textOnPrimary} />
+                    <Text style={styles.buttonText}>Signing in...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.buttonText}>Sign In</Text>
+                )}
+              </TouchableOpacity>
+
+              <Text style={styles.helperText}>
+                Use the same account on mobile and web to keep your body scans and progress in sync.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() => navigation.navigate('Register')}
+                disabled={loading}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.linkText}>
+                  Don&apos;t have an account? <Text style={styles.linkTextBold}>Create one</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -94,10 +146,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
     flex: 1,
     justifyContent: 'center',
     padding: spacing.lg,
+  },
+  hero: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
   },
   title: {
     ...typography.h1,
@@ -111,46 +170,107 @@ const styles = StyleSheet.create({
     height: 84,
     marginBottom: spacing.lg,
     borderRadius: 24,
+    ...shadows.medium,
   },
   subtitle: {
     ...typography.body1,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: spacing.xl,
+    maxWidth: 300,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  badge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  badgeText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    ...shadows.medium,
+  },
+  errorCard: {
+    backgroundColor: `${colors.error}14`,
+    borderWidth: 1,
+    borderColor: `${colors.error}40`,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  errorTitle: {
+    ...typography.button,
+    color: colors.error,
+    marginBottom: spacing.xs,
+  },
+  errorText: {
+    ...typography.body2,
+    color: colors.text,
   },
   form: {
-    marginTop: spacing.xl,
+    marginTop: 0,
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: borderRadius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
     ...typography.body1,
   },
   button: {
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
-    padding: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
     alignItems: 'center',
     marginTop: spacing.md,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.7,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   buttonText: {
     ...typography.button,
     color: colors.textOnPrimary,
   },
-  linkButton: {
+  helperText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
     marginTop: spacing.lg,
+    lineHeight: 18,
+  },
+  linkButton: {
+    marginTop: spacing.md,
     alignItems: 'center',
   },
   linkText: {
     ...typography.body2,
     color: colors.textSecondary,
+    textAlign: 'center',
   },
   linkTextBold: {
     ...typography.button,

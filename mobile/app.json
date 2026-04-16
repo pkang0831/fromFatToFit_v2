@@ -43,12 +43,8 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera for food and body photo analysis."
         }
-      ]
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id"
-      }
-    }
+      ],
+      "expo-font"
+    ]
   }
 }

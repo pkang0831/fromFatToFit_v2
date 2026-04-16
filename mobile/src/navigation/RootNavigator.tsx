@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { ActivityIndicator, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import { colors } from '../theme';
+import { borderRadius, colors, spacing, typography } from '../theme';
 
 // Auth Screens
 import LoginScreen from '../screens/LoginScreen';
@@ -11,6 +12,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 
 // Main Screens
 import HomeScreen from '../screens/HomeScreen';
+import ProgressScreen from '../screens/ProgressScreen';
 import CalorieTrackerScreen from '../screens/CalorieTrackerScreen';
 import FoodCameraScreen from '../screens/FoodCameraScreen';
 import WorkoutScreen from '../screens/WorkoutScreen';
@@ -21,22 +23,65 @@ import BodyScanScreen from '../screens/BodyScanScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+function renderHeaderBackIcon(tintColor?: string) {
+  return (
+    <View style={{ marginLeft: spacing.sm }}>
+      <Ionicons name="chevron-back" size={24} color={tintColor ?? colors.text} />
+    </View>
+  );
+}
+
 function MainTabs() {
   return (
     <Tab.Navigator
-      lazy
-      screenOptions={{
+      screenOptions={({ route }) => ({
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarInactiveTintColor: colors.textLight,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.borderLight,
+          borderTopWidth: 1,
+          height: 86,
+          paddingBottom: spacing.md,
+          paddingTop: spacing.sm,
+          paddingHorizontal: spacing.sm,
+          position: 'absolute',
+          elevation: 0,
+        },
+        tabBarLabelStyle: {
+          ...typography.caption,
+          fontWeight: '700',
+          letterSpacing: 0.3,
+          marginTop: 2,
+        },
+        tabBarItemStyle: {
+          borderRadius: borderRadius.lg,
         },
         headerStyle: {
-          backgroundColor: colors.primary,
+          backgroundColor: colors.background,
+          shadowColor: 'transparent',
+          elevation: 0,
         },
-        headerTintColor: colors.textOnPrimary,
-      }}
+        headerTitleStyle: {
+          ...typography.h5,
+          color: colors.text,
+        },
+        headerTintColor: colors.text,
+        headerTitleAlign: 'left',
+        sceneStyle: {
+          backgroundColor: colors.background,
+        },
+        tabBarIcon: ({ color, size, focused }) => {
+          const iconMap: Record<string, keyof typeof Ionicons.glyphMap> = {
+            Home: focused ? 'home' : 'home-outline',
+            Progress: focused ? 'analytics' : 'analytics-outline',
+            Food: focused ? 'restaurant' : 'restaurant-outline',
+            Workout: focused ? 'barbell' : 'barbell-outline',
+            Profile: focused ? 'person-circle' : 'person-circle-outline',
+          };
+          return <Ionicons name={iconMap[route.name] ?? 'ellipse-outline'} size={size ?? 22} color={color} />;
+        },
+      })}
     >
       <Tab.Screen 
         name="Home" 
@@ -44,6 +89,14 @@ function MainTabs() {
         options={{
           tabBarLabel: 'Home',
           title: 'Dashboard',
+        }}
+      />
+      <Tab.Screen
+        name="Progress"
+        component={ProgressScreen}
+        options={{
+          tabBarLabel: 'Progress',
+          title: 'Progress',
         }}
       />
       <Tab.Screen 
@@ -79,9 +132,20 @@ function AuthStack() {
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.primary,
+          backgroundColor: colors.background,
+          shadowColor: 'transparent',
+          elevation: 0,
         },
-        headerTintColor: colors.textOnPrimary,
+        cardStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          ...typography.h6,
+          color: colors.text,
+        },
+        headerBackTitleVisible: false,
+        headerBackImage: ({ tintColor }) => renderHeaderBackIcon(tintColor),
       }}
     >
       <Stack.Screen 
@@ -103,7 +167,7 @@ export default function RootNavigator() {
 
   if (loading) {
     return (
-      <View style={styles.bootSplash} accessibilityLabel="Loading">
+      <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -120,7 +184,11 @@ export default function RootNavigator() {
             options={{ 
               presentation: 'modal',
               headerShown: true,
-              title: 'Analyze Food Photo'
+              title: 'Analyze Food Photo',
+              headerStyle: { backgroundColor: colors.background, shadowColor: 'transparent', elevation: 0 },
+              headerTintColor: colors.text,
+              headerTitleStyle: { ...typography.h6, color: colors.text },
+              headerBackImage: ({ tintColor }) => renderHeaderBackIcon(tintColor),
             }}
           />
           <Stack.Screen 
@@ -129,7 +197,11 @@ export default function RootNavigator() {
             options={{ 
               presentation: 'modal',
               headerShown: true,
-              title: 'Body Scan'
+              title: 'Body Scan',
+              headerStyle: { backgroundColor: colors.background, shadowColor: 'transparent', elevation: 0 },
+              headerTintColor: colors.text,
+              headerTitleStyle: { ...typography.h6, color: colors.text },
+              headerBackImage: ({ tintColor }) => renderHeaderBackIcon(tintColor),
             }}
           />
           <Stack.Screen 
@@ -138,7 +210,11 @@ export default function RootNavigator() {
             options={{ 
               presentation: 'modal',
               headerShown: true,
-              title: 'Upgrade to Premium'
+              title: 'Upgrade to Premium',
+              headerStyle: { backgroundColor: colors.background, shadowColor: 'transparent', elevation: 0 },
+              headerTintColor: colors.text,
+              headerTitleStyle: { ...typography.h6, color: colors.text },
+              headerBackImage: ({ tintColor }) => renderHeaderBackIcon(tintColor),
             }}
           />
         </>
@@ -148,12 +224,3 @@ export default function RootNavigator() {
     </Stack.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  bootSplash: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
-});

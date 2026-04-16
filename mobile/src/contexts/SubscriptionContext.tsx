@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { InteractionManager } from 'react-native';
 import { paymentApi } from '../services/api';
 import { useAuth } from './AuthContext';
 
@@ -15,7 +14,8 @@ interface SubscriptionContextType {
   isPremium: boolean;
   usageLimits: UsageLimits | null;
   loading: boolean;
-  refreshLimits: () => Promise<void>;
+  error: string | null;
+  refreshLimits: () => Promise<{ is_premium: boolean; limits: UsageLimits } | null>;
   checkFeatureAccess: (feature: keyof UsageLimits) => { allowed: boolean; remaining: number };
 }
 
@@ -26,38 +26,50 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [isPremium, setIsPremium] = useState(false);
   const [usageLimits, setUsageLimits] = useState<UsageLimits | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       setIsPremium(user.premium_status || false);
-      const handle = InteractionManager.runAfterInteractions(() => {
-        void loadUsageLimits();
-      });
-      return () => handle.cancel();
+      void loadUsageLimits();
+    } else {
+      setIsPremium(false);
+      setUsageLimits(null);
+      setError(null);
+      setLoading(false);
     }
-    setIsPremium(false);
-    setUsageLimits(null);
-    setLoading(false);
-    return undefined;
   }, [user]);
 
   const loadUsageLimits = async () => {
+    setLoading(true);
     try {
+      setError(null);
       const { data } = await paymentApi.getUsageLimits();
       setUsageLimits(data.limits);
       setIsPremium(data.is_premium);
+      return data;
     } catch (error) {
       console.error('Error loading usage limits:', error);
+      setError('Unable to load premium status. Pull to refresh or try again.');
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
   const refreshLimits = async () => {
-    await loadUsageLimits();
+    return loadUsageLimits();
   };
 
   const checkFeatureAccess = (feature: keyof UsageLimits) => {
+    if (isPremium) {
+      return { allowed: true, remaining: 999 };
+    }
+
+    if (loading) {
+      return { allowed: true, remaining: 0 };
+    }
+
     if (!usageLimits) {
       return { allowed: false, remaining: 0 };
     }
@@ -65,10 +77,6 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     const limit = usageLimits[feature];
     if (!limit) {
       return { allowed: false, remaining: 0 };
-    }
-
-    if (limit.is_premium) {
-      return { allowed: true, remaining: 999 };
     }
 
     const allowed = limit.remaining > 0;
@@ -81,6 +89,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         isPremium,
         usageLimits,
         loading,
+        error,
         refreshLimits,
         checkFeatureAccess,
       }}

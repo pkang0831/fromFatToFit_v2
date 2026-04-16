@@ -1,53 +1,42 @@
-// Brown & White color scheme with warm tones
 export const colors = {
-  // Primary colors
-  primary: '#8B4513',        // Saddle brown
-  primaryLight: '#A0522D',   // Sienna
-  primaryDark: '#654321',    // Dark brown
-  
-  // Secondary colors
-  secondary: '#D2691E',      // Chocolate
-  secondaryLight: '#DEB887', // Burlywood
-  
-  // Background colors
-  background: '#FAF9F6',     // Off-white (floral white)
-  surface: '#FFFFFF',        // White
-  surfaceAlt: '#F5F5DC',     // Beige
-  
-  // Text colors
-  text: '#3E2723',           // Dark brown (primary text)
-  textSecondary: '#6D4C41',  // Medium brown (secondary text)
-  textLight: '#8D6E63',      // Light brown
-  textOnPrimary: '#FFFFFF',  // White text on primary color
-  
-  // Accent colors
-  accent: '#DEB887',         // Burlywood
-  accentAlt: '#D2B48C',      // Tan
-  
-  // Status colors
-  success: '#8BC34A',        // Light green
-  warning: '#FFA726',        // Orange
-  error: '#D32F2F',          // Red
-  info: '#29B6F6',           // Light blue
-  
-  // UI elements
-  border: '#D7CCC8',         // Light brown
-  borderLight: '#EFEBE9',    // Very light brown
-  disabled: '#BCAAA4',       // Gray-brown
-  
-  // Premium badge
-  premium: '#FFD700',        // Gold
-  premiumDark: '#DAA520',    // Goldenrod
-  
-  // Shadows and overlays
-  shadow: 'rgba(62, 39, 35, 0.1)',
-  overlay: 'rgba(62, 39, 35, 0.5)',
-  
-  // Chart colors
-  chartPrimary: '#8B4513',
-  chartSecondary: '#D2691E',
-  chartTertiary: '#DEB887',
-  chartGrid: '#EFEBE9',
+  primary: '#E7CC98',
+  primaryLight: '#F3DFC0',
+  primaryDark: '#C7A86A',
+
+  secondary: '#79D7C2',
+  secondaryLight: '#B5F1E4',
+
+  background: '#090705',
+  surface: '#16120F',
+  surfaceAlt: '#211A15',
+
+  text: '#F7F0E4',
+  textSecondary: '#B7AA96',
+  textLight: '#8E816F',
+  textOnPrimary: '#18120C',
+
+  accent: '#D08D56',
+  accentAlt: '#8FBEA8',
+
+  success: '#69F18E',
+  warning: '#F4C66B',
+  error: '#FF6A6A',
+  info: '#58B5FF',
+
+  border: 'rgba(255, 238, 214, 0.12)',
+  borderLight: 'rgba(255, 238, 214, 0.07)',
+  disabled: '#625749',
+
+  premium: '#E4BE72',
+  premiumDark: '#BD8E46',
+
+  shadow: 'rgba(0, 0, 0, 0.42)',
+  overlay: 'rgba(6, 4, 3, 0.78)',
+
+  chartPrimary: '#79D7C2',
+  chartSecondary: '#E7CC98',
+  chartTertiary: '#D08D56',
+  chartGrid: 'rgba(255, 238, 214, 0.08)',
 };
 
 export default colors;

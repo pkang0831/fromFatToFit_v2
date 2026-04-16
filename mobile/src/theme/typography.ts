@@ -4,31 +4,36 @@ import colors from './colors';
 export const typography = {
   // Headings
   h1: {
-    fontSize: 32,
-    fontWeight: '700' as TextStyle['fontWeight'],
+    fontSize: 36,
+    fontWeight: '800' as TextStyle['fontWeight'],
     color: colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
+    lineHeight: 40,
   },
   h2: {
-    fontSize: 28,
-    fontWeight: '700' as TextStyle['fontWeight'],
+    fontSize: 30,
+    fontWeight: '800' as TextStyle['fontWeight'],
     color: colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.7,
+    lineHeight: 34,
   },
   h3: {
     fontSize: 24,
-    fontWeight: '600' as TextStyle['fontWeight'],
+    fontWeight: '700' as TextStyle['fontWeight'],
     color: colors.text,
+    lineHeight: 28,
   },
   h4: {
     fontSize: 20,
     fontWeight: '600' as TextStyle['fontWeight'],
     color: colors.text,
+    lineHeight: 24,
   },
   h5: {
     fontSize: 18,
     fontWeight: '600' as TextStyle['fontWeight'],
     color: colors.text,
+    lineHeight: 22,
   },
   h6: {
     fontSize: 16,
@@ -58,11 +63,11 @@ export const typography = {
     lineHeight: 16,
   },
   overline: {
-    fontSize: 10,
-    fontWeight: '500' as TextStyle['fontWeight'],
+    fontSize: 11,
+    fontWeight: '700' as TextStyle['fontWeight'],
     color: colors.textSecondary,
     textTransform: 'uppercase' as TextStyle['textTransform'],
-    letterSpacing: 1,
+    letterSpacing: 1.6,
   },
   
   // Buttons
@@ -79,8 +84,8 @@ export const typography = {
   
   // Numbers (for stats/metrics)
   number: {
-    fontSize: 36,
-    fontWeight: '700' as TextStyle['fontWeight'],
+    fontSize: 34,
+    fontWeight: '800' as TextStyle['fontWeight'],
     color: colors.primary,
   },
   numberSmall: {

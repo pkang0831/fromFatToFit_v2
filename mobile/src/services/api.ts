@@ -91,15 +91,58 @@ export const authApi = {
     api.put('/auth/profile', data),
 };
 
+export interface FoodLog {
+  id: string;
+  user_id: string;
+  date: string;
+  meal_type: string;
+  food_name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  serving_size?: string | null;
+  source: string;
+  image_url?: string | null;
+  created_at: string;
+}
+
+export interface FoodDailySummary {
+  date: string;
+  total_calories: number;
+  total_protein: number;
+  total_carbs: number;
+  total_fat: number;
+  calorie_goal?: number | null;
+  meals: FoodLog[];
+}
+
+export interface FoodPhotoAnalysis {
+  items: Array<{
+    name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    serving_size?: string | null;
+  }>;
+  total_calories: number;
+  total_protein: number;
+  total_carbs: number;
+  total_fat: number;
+  analysis_confidence: string;
+  usage_remaining: number;
+}
+
 export const foodApi = {
   logFood: (data: any) =>
     api.post('/food/log', data),
   
   analyzePhoto: (imageBase64: string) =>
-    api.post('/food/analyze-photo', { image_base64: imageBase64 }),
+    api.post<FoodPhotoAnalysis>('/food/analyze-photo', { image_base64: imageBase64 }),
   
   getDailyFood: (date: string) =>
-    api.get(`/food/daily/${date}`),
+    api.get<FoodDailySummary>(`/food/daily/${date}`),
   
   getTrends: (days: number = 7) =>
     api.get('/food/trends', { params: { days } }),
@@ -128,6 +171,76 @@ export const workoutApi = {
     api.delete(`/workout/log/${logId}`),
 };
 
+export interface WeightLog {
+  id: string;
+  user_id: string;
+  date: string;
+  weight_kg: number;
+  body_fat_percentage?: number | null;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface ProjectionPoint {
+  date: string;
+  projected_weight: number;
+  projected_body_fat?: number | null;
+  is_goal_reached: boolean;
+}
+
+export interface MovingAveragePoint {
+  date: string;
+  weight_kg: number;
+  body_fat_percentage?: number | null;
+  moving_avg_weight: number;
+  moving_avg_body_fat?: number | null;
+}
+
+export interface GoalProjectionResponse {
+  current_weight: number;
+  current_body_fat?: number | null;
+  target_weight?: number | null;
+  target_body_fat?: number | null;
+  moving_avg_weight: number;
+  moving_avg_body_fat?: number | null;
+  daily_weight_change: number;
+  daily_body_fat_change?: number | null;
+  avg_daily_deficit: number;
+  target_deficit?: number | null;
+  estimated_days_to_goal?: number | null;
+  estimated_goal_date?: string | null;
+  historical_data: MovingAveragePoint[];
+  projection_data: ProjectionPoint[];
+  actual_projection_data: ProjectionPoint[];
+  on_track: boolean;
+  message: string;
+}
+
+export const weightApi = {
+  getLogs: (days: number = 30) =>
+    api.get<WeightLog[]>('/weight/logs', { params: { days } }),
+
+  createLog: (payload: {
+    date: string;
+    weight_kg: number;
+    body_fat_percentage?: number;
+    notes?: string;
+  }) =>
+    api.post<WeightLog>('/weight/log', payload),
+
+  deleteLog: (logId: string) =>
+    api.delete(`/weight/log/${logId}`),
+
+  getProjection: (params?: { days_history?: number; target_deficit?: number | null }) =>
+    api.get<GoalProjectionResponse>('/weight/projection', { params }),
+
+  updateGoals: (payload: {
+    target_weight_kg?: number;
+    target_body_fat_percentage?: number;
+  }) =>
+    api.patch('/weight/goals', payload),
+};
+
 export const bodyApi = {
   estimateBodyFat: (data: any) =>
     api.post('/body/estimate-bodyfat', data),
@@ -140,6 +253,80 @@ export const bodyApi = {
   
   getScanHistory: () =>
     api.get('/body/scans/history'),
+};
+
+export interface HomeSummary {
+  primary_cta: {
+    state: string;
+    href: string;
+    label: string;
+    title: string;
+    description: string;
+  };
+  latest_weekly_checkin?: WeeklyCheckinAnalysis | null;
+  goal_summary: {
+    current_bf?: number | null;
+    target_bf?: number | null;
+    gap?: number | null;
+    has_saved_plan: boolean;
+  };
+  progress_summary: {
+    photo_count: number;
+    latest_photo_date?: string | null;
+    compare_ready: boolean;
+  };
+  scan_summary: {
+    scan_count: number;
+    prompt_state: string;
+    last_scan_date?: string | null;
+    next_check_in_label?: string | null;
+  };
+}
+
+export interface WeeklyCheckinAnalysis {
+  id: string;
+  taken_at: string;
+  weekly_status: 'improved' | 'stable' | 'regressed' | 'low_confidence';
+  comparison_confidence: number;
+  is_first_checkin: boolean;
+  qualitative_summary: string[];
+  regional_visualization: Array<{
+    region: string;
+    label: string;
+    value: string;
+    note: string;
+    status: string;
+    intensity: number;
+  }>;
+  derived_scores: {
+    goal_proximity_score: number;
+    leanness_score: number;
+    definition_score: number;
+    proportion_score: number;
+  };
+  estimated_ranges: {
+    body_fat_percent_min: number;
+    body_fat_percent_max: number;
+    body_fat_confidence: number;
+  };
+}
+
+export const homeApi = {
+  getSummary: () =>
+    api.get<HomeSummary>('/home/summary'),
+};
+
+export const weeklyCheckinsApi = {
+  getLatest: () =>
+    api.get<WeeklyCheckinAnalysis>('/weekly-checkins/latest'),
+
+  analyze: (payload: {
+    image_base64: string;
+    ownership_confirmed: boolean;
+    notes?: string;
+    weight_kg?: number;
+  }) =>
+    api.post<WeeklyCheckinAnalysis>('/weekly-checkins/analyze', payload),
 };
 
 export const paymentApi = {

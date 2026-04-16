@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/auth';
 import { authApi } from '../services/api';
@@ -23,13 +23,24 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ session: Session | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function buildFallbackProfile(session: Session): UserProfile {
+  const metadata = (session.user.user_metadata || {}) as Record<string, string | undefined>;
+
+  return {
+    id: session.user.id,
+    email: session.user.email || '',
+    full_name: metadata.full_name || metadata.name || undefined,
+    premium_status: false,
+  };
+}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -38,20 +49,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        loadUserProfile();
-      } else {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        if (session) {
+          void loadUserProfile(session);
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error('Error restoring session:', error);
+        setUser(null);
+        setSession(null);
         setLoading(false);
-      }
-    });
+      });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        loadUserProfile();
+        void loadUserProfile(session);
       } else {
         setUser(null);
         setLoading(false);
@@ -61,12 +80,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadUserProfile = async () => {
+  const loadUserProfile = async (sessionToUse: Session | null = session) => {
     try {
+      if (!sessionToUse) {
+        setUser(null);
+        return null;
+      }
+
       const { data } = await authApi.getProfile();
       setUser(data);
+      return data;
     } catch (error) {
       console.error('Error loading user profile:', error);
+      const status = (error as any)?.response?.status;
+
+      if (status === 401 || status === 403) {
+        setUser(null);
+        return null;
+      }
+
+      if (sessionToUse) {
+        const fallbackProfile = buildFallbackProfile(sessionToUse);
+        setUser(fallbackProfile);
+        return fallbackProfile;
+      }
+
+      setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -87,7 +127,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await AsyncStorage.setItem('refresh_token', data.session.refresh_token);
       }
 
-      await loadUserProfile();
+      setSession(data.session ?? null);
+      await loadUserProfile(data.session ?? null);
+      return;
     } catch (error) {
       console.error('Sign in error:', error);
       throw error;
@@ -114,7 +156,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await AsyncStorage.setItem('refresh_token', data.session.refresh_token);
       }
 
-      await loadUserProfile();
+      setSession(data.session ?? null);
+      if (data.session) {
+        await loadUserProfile(data.session);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+      return { session: data.session ?? null };
     } catch (error) {
       console.error('Sign up error:', error);
       throw error;
@@ -134,7 +183,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refreshProfile = async () => {
-    await loadUserProfile();
+    await loadUserProfile(session);
   };
 
   const updateProfile = async (data: Partial<UserProfile>) => {
