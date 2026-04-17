@@ -1816,6 +1816,385 @@ const posts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'exercise-isnt-shrinking-you-the-way-you-expected',
+    title: 'Exercise Is Not Shrinking You the Way You Expected',
+    description:
+      'If you are working out consistently and still not shrinking, the problem probably is not the workout. It is what the workout is actually doing.',
+    socialDescription:
+      'Exercise is not a shrinking machine. It is a body-composition machine. The scale catches up last.',
+    date: '2026-05-04',
+    readingTime: '5 min read',
+    tags: ['Exercise', 'Weight Loss', 'Body Composition', 'Fitness Myths'],
+    heroImage: '/founder/body-composition-proof-20251221.jpg',
+    heroAlt: 'Founder mid-training session during the middle phase of transformation',
+    deck:
+      'Exercise is not a shrinking machine. It is a body-composition machine, a metabolism-shaping machine, a stress-processing machine. What it is not, consistently, is a quick way to remove fat.',
+    ctaTitle: 'Separate training from shrinkage.',
+    ctaBody:
+      'The workout builds the engine. The plate decides what the engine runs on. Start with a weekly check-in that shows both, not just the scale.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'You have been showing up.',
+          'Four days a week. Sometimes five. The workouts feel hard. Your clothes feel about the same.',
+          'That is the part nobody warns you about.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Principle',
+        paragraphs: [
+          'Exercise is not a shrinking machine.',
+          'It is a body-composition machine, a metabolism-shaping machine, a stress-processing machine. It is many things. What it is not, consistently, is a quick way to remove fat.',
+          'A full hour of cardio burns less than people think. Maybe 300 to 500 calories, depending on intensity and your actual body mass. Most people eat that back in a single post-workout snack they did not register as a snack.',
+          'This is not a motivational problem. It is an arithmetic problem.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'The Mechanism',
+        intro: 'When you exercise seriously, three things happen at once.',
+        items: [
+          'You burn a modest amount of additional calories.',
+          'Your body retains more water in the recovering tissue.',
+          'Your appetite tends to quietly nudge up.',
+        ],
+        outro:
+          'The first is small. The second makes the scale lie for a few days. The third is the real reason most working-out-but-not-losing-weight stories exist. Your body tends to be very good at protecting its current weight. The workout asks it to change. Its first response is usually to give you more hunger so you can keep training. That is not sabotage. That is homeostasis.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'What This Means For You',
+        paragraphs: [
+          'It means the workout alone does not do the shrinking. The workout builds the engine. The plate decides what the engine runs on.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'If You Are Training Hard And Not Changing Shape',
+        items: [
+          'Keep training.',
+          'Stop expecting the scale to move because of the training.',
+          'Watch what your appetite does in the two hours after a session.',
+          'Make the post-workout window a structure, not a reward.',
+        ],
+        outro:
+          'The people who get leanest from exercise are not the ones who train hardest. They are the ones whose eating does not respond dramatically to the training.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Quieter Truth',
+        paragraphs: [
+          'Exercise reshapes you slowly, from the inside. Posture. Stamina. How your shoulders sit. How your gait looks. How quickly you recover from stairs.',
+          'If the mirror is not showing it yet, the mirror is behind. The work is there. You can feel it in the stairs.',
+          'The scale will catch up. It usually catches up last.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'the-unglamorous-middle-of-transformation',
+    title: 'The Unglamorous Middle of a Transformation',
+    description:
+      'Before-and-after photos make transformations look linear. The middle is where most people quit. This is what it actually looked like.',
+    socialDescription:
+      'The before photo is easy. The after photo is easy. The six months between them is where everybody quits.',
+    date: '2026-05-05',
+    readingTime: '6 min read',
+    tags: ['Founder Story', 'Transformation', 'Weight Loss', 'Consistency'],
+    heroImage: '/founder/patience-middle-checkin-20250731.jpg',
+    heroAlt: 'Founder during the middle phase of transformation, not before, not after',
+    deck:
+      'The before photo is easy. The after photo is easy. The six months between them is where everybody quits.',
+    ctaTitle: 'Stay inside the middle.',
+    ctaBody:
+      'The middle does not need motivation. It needs structure that keeps going while you are tired. Start with a weekly check-in you can stay inside without staring at the scale.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'The before photo is easy. The after photo is easy.',
+          'The six months between them is where everybody quits.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Photograph Problem',
+        paragraphs: [
+          'Transformation content is lying to you structurally.',
+          'Not intentionally. Just by format. Two images side by side. One blurry. One composed. The middle gets cropped out because the middle does not photograph well.',
+          'In the middle you look mostly the same. Slightly less bloated. Slightly more tired. Your face has started to change before your body does, which makes photos of yourself feel dishonest in both directions.',
+          'The photo I never posted was the one from July. I was down about 8 kg from my highest. My face looked thinner. My clothes fit worse than before because the fat had shifted but not left. I looked somehow worse than the beginning.',
+          'That is the middle.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What The Middle Actually Is',
+        paragraphs: [
+          'The middle is not a plateau.',
+          'It is the phase where the easy wins are over, the novelty is gone, and the real work has become boring. The first 5 kg often come off from water, better sleep, and accidental protein increases. The middle is when the body starts negotiating.',
+          'You stop losing visibly. You start noticing the diet. You start noticing your friends eating again. You start wondering whether this is actually going to work.',
+          'Everyone who transforms goes through it.',
+          'Most transformation content skips it, because it is not a story.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Did With It',
+        paragraphs: [
+          'I kept showing up in the boring way. I did not chase a new plan. I did not add a supplement. I did not cut further.',
+          'I logged weight. Some days up. Some days down. I let the graph tell me nothing for three weeks at a time.',
+          'I took photos I did not post. I wrote down the exact meals I could eat without thinking.',
+          'I let the middle be the middle.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What The Middle Taught Me',
+        paragraphs: [
+          'The middle is where the habit becomes structure. The body is not changing much, because the body is learning what the new normal is.',
+          'If you quit in the middle, you do not quit the diet. You quit the thing that was about to start working.',
+          'The after photo is produced by a boring middle. There is no shortcut past it. There are only people who got through it and people who restarted.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'is-it-bloat-or-is-it-fat',
+    title: 'Is It Bloat or Is It Fat',
+    description:
+      'A practical guide to distinguishing temporary bloat from real fat gain, so you stop reacting to noise as if it is signal.',
+    socialDescription:
+      'The body generally cannot synthesize 1.5 kg of fat in one day. Whatever you are panicking about is almost always water.',
+    date: '2026-05-06',
+    readingTime: '5 min read',
+    tags: ['Body Composition', 'Scale', 'Water Weight', 'Daily Fluctuation'],
+    heroImage: '/founder/water-weight-proof-20251031.jpg',
+    heroAlt: 'Founder image illustrating difference between water-weight fluctuation and real fat',
+    deck:
+      'This is one of the most useful questions anyone can ask. It is also one of the most mis-answered.',
+    ctaTitle: 'Wait before you react.',
+    ctaBody:
+      'Almost everything that makes the scale move quickly is not fat. A rolling average tells a truer story than today is number. Start with a weekly read that filters daily noise.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'This is one of the most useful questions anyone can ask.',
+          'It is also one of the most mis-answered.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: I Gained 1.5 kg Overnight. Is That Fat?',
+        paragraphs: [
+          'No.',
+          'The body generally cannot synthesize 1.5 kg of fat in one day. To store that much fat you would need to eat roughly 11,000 calories above maintenance in 24 hours. You would remember doing it.',
+          'What you are seeing is almost always water, glycogen, salt balance, bowel contents, or some combination of the four.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Then What Does Real Fat Gain Look Like On The Scale?',
+        paragraphs: [
+          'Slow. Quiet. Unglamorous.',
+          'Real fat gain usually looks like a gradual, unexplained drift of 0.5 to 1 kg over 2 to 4 weeks that does not reverse after a normal day. The daily noise is still there, but the trendline is moving in one direction.',
+          'If the scale is up today and back to baseline in three days, it was not fat.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: How Can I Tell Which Is Which In The Moment?',
+        paragraphs: [
+          'You usually cannot, in the moment. That is the point.',
+          'Waiting is the answer.',
+          'Fat does not appear overnight. Water does. Salt does. Carbs do. Periods do. Poor sleep does. Travel does. Stress does. Almost everything that makes the scale move quickly is not fat.',
+          'If the scale spikes, wait four days and weigh again under your usual conditions. If it is still up, and up for three consecutive measurements under usual conditions, then it is worth looking at.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: What About The Mirror?',
+        paragraphs: [
+          'The mirror is worse than the scale for this.',
+          'Bloat changes how you look dramatically in the mirror within hours. Fat changes how you look slowly over weeks. If you thought you looked smaller yesterday and larger today, you are looking at bloat.',
+          'A week of mirror-same is more meaningful than a week of mirror-changes.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Is It Ever Worth Panicking About One Day?',
+        paragraphs: [
+          'No.',
+          'There is no decision you make on a one-day spike that a patient decision three days later would not also catch. The cost of over-reacting is emotional, behavioral, and usually leads to a binge or a skipped meal that does more damage than the original blip.',
+          'The honest answer is: it is almost always bloat, and even when it is not, waiting does not cost you anything.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'a-plateau-is-a-data-point-not-a-failure',
+    title: 'A Plateau Is a Data Point, Not a Failure',
+    description:
+      'A plateau is the body telling you something specific. Most people read it as rejection and quit. That is not what it is saying.',
+    socialDescription:
+      'A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.',
+    date: '2026-05-07',
+    readingTime: '6 min read',
+    tags: ['Plateau', 'Consistency', 'Weight Loss', 'Dieting'],
+    heroImage: '/founder/plateau-middle-checkin-20250711.jpg',
+    heroAlt: 'Founder reflecting during a plateau phase',
+    deck:
+      'Most people read a plateau as their body firing them. It is not. A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.',
+    ctaTitle: 'Read the plateau instead of breaking it.',
+    ctaBody:
+      'Most plateaus break by fixing the thing that drifted, not by cutting more. Start with a weekly trendline that lets you see the shape instead of reacting to a single reading.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'Most people read a plateau as their body firing them.',
+          'It is not.',
+          'A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What A Plateau Actually Is',
+        paragraphs: [
+          'Three weeks of the same weight, under the same conditions, is a plateau. Less than that is noise.',
+          'Real plateaus happen for specific reasons and each one points to something. They are not random. They are not the body quitting on you.',
+          'A plateau is your body telling you that the current inputs and the current outputs have matched.',
+          'Whatever you are doing is now maintenance for this weight.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What The Plateau Is Saying',
+        paragraphs: [
+          'It depends on where you are.',
+          'Early plateau, first 3 kg in. The easy water and glycogen are gone. Your body is now asking you to actually be in a deficit to continue. Usually means you were not quite as in-deficit as you thought, and now it shows.',
+          'Middle plateau, 6 to 12 kg in. Your maintenance calories have dropped because you weigh less. A deficit that worked at the start is not a deficit anymore. The same plan has quietly become a maintenance plan.',
+          'Late plateau, near goal. Your body is close to the weight it will most naturally defend. Appetite may increase. NEAT can drop. Metabolism tends to compress. This plateau is loud and takes longer to break.',
+          'Each one is a different message. Each one has a different response.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'How To Respond',
+        intro: 'First, confirm it is actually a plateau. Three weeks of stable weight. Not three days. Then, not panic. Not cut more. Not add cardio. Instead:',
+        items: [
+          'Check your actual eating, not your perceived eating. Weigh a few meals. Count for three days.',
+          'Check your sleep. Poor sleep can stall weight loss cleanly.',
+          'Check your stress. Cortisol may retain water and mask fat loss for weeks.',
+          'Check your NEAT. Many people unconsciously move less as the diet continues.',
+        ],
+        outro:
+          'Most plateaus break without cutting calories. Most plateaus break by fixing the thing that drifted.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'What A Plateau Is Not',
+        paragraphs: [
+          'It is not punishment.',
+          'It is not a sign you should eat more drastically.',
+          'It is not a sign the plan does not work.',
+          'It is not permanent. A plateau is a report, not a verdict.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Longer Frame',
+        paragraphs: [
+          'Plateaus are part of the architecture of fat loss. Bodies do not lose weight linearly. They lose in steps and long plateaus. The plateau you are in right now is the ledge between the last step and the next step.',
+          'The people who break plateaus are almost always the ones who stopped trying to break them and just kept going.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'the-body-looks-different-from-behind',
+    title: 'The Body Looks Different From Behind',
+    description:
+      'Most people only look at themselves from the front. That is why progress feels invisible. The back view is where the body often changes first.',
+    socialDescription:
+      'I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.',
+    date: '2026-05-08',
+    readingTime: '6 min read',
+    tags: ['Mirror', 'Body Image', 'Progress Photos', 'Transformation'],
+    heroImage: '/founder/transformation-proof-20251119.jpg',
+    heroAlt: 'Founder viewed from behind, showing back and shoulder change over time',
+    deck:
+      'I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.',
+    ctaTitle: 'Give the back mirror a turn.',
+    ctaBody:
+      'If you only look at yourself from one angle, you miss every change that does not happen at that angle. Take one photo from behind every two weeks. Look at them in groups of four.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'I spent eight months watching the front of my body in a mirror and thinking nothing was happening.',
+          'Then my brother took a photo of me from behind at a wedding.',
+          'It was a different body.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Front Mirror Lies',
+        paragraphs: [
+          'The front mirror is the one you see every morning. It is the one in the bathroom, the one in the hallway, the one in every shop fitting room. You see your face. You see your chest. You see your abdomen.',
+          'You never see your back. You never see the slope from your hip to your ribs. You never see how your shoulders sit.',
+          'So you spent weeks looking at the same mirror and kept asking the same question. Am I smaller?',
+          'The mirror you were looking at could not answer that question.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'What The Back View Shows',
+        intro: 'The back view shows things the front never will.',
+        items: [
+          'The dip between your shoulder blades.',
+          'The slope from your waist out to your hip.',
+          'Whether your lats have any shape.',
+          'How your glute sits versus how your thigh sits.',
+          'Where fat loss is starting, or not starting.',
+        ],
+        outro:
+          'Most people carry fat differently on the front and the back. For many people — and often for women or East Asian builds — the back can change first. Shoulders sharpen. The line from ribcage to waist starts to show. The bra line loosens. The glute lifts slightly as the surrounding fat thins. None of this is visible in the front mirror.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Did',
+        paragraphs: [
+          'I started taking one photo from behind every two weeks. Same spot. Same shirt, or no shirt. Same lighting. No posing.',
+          'I did not look at them one by one. I looked at them in groups of four.',
+          'The four-photo comparison is where the real story is.',
+          'I noticed the back was the first thing that changed. My waistline showed up from behind before it showed up from the front. The shoulders got a line. The posture straightened, which made the whole silhouette look different.',
+          'The front mirror was still reporting nothing-happening for another six weeks.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why The Back May Change First',
+        paragraphs: [
+          'Different bodies carry fat differently. For many people the visceral fat and lower-belly fat are stubborn, so the front reports last. The back often has less of that buffer. Small changes can show up faster there.',
+          'The part I am more certain about is the measurement error. If you only ever look at yourself from one angle, you will miss every change that does not happen at that angle.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Practical Version',
+        paragraphs: [
+          'Take one photo from behind every two weeks. Same spot. Same lighting. Same clothing or lack of it. Save them in a hidden folder. Look at them in groups of four.',
+          'Do not look at them daily. Do not look at them if you are in a bad mood. Do not compare yourself to anyone else from behind.',
+          'Just give the back mirror a turn.',
+        ],
+      },
+    ],
+  },
 ];
 
 export function getAllBlogPosts() {
