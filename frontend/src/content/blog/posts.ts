@@ -1369,8 +1369,8 @@ const posts: BlogPost[] = [
     date: '2026-04-29',
     readingTime: '6 min read',
     tags: ['Sleep', 'Overcorrection', 'Dieting', 'Training Stress'],
-    heroImage: '/founder/sleep-reflective-20260106.jpg',
-    heroAlt: 'Founder reflective image used for an article about diet-related insomnia and overcorrection',
+    heroImage: '/founder/sleep-reflective-window-20241217.jpg',
+    heroAlt: 'Founder reflective image by a window used for an article about diet-related insomnia and overcorrection',
     deck:
       'If dieting and training hard left you exhausted but unable to sleep, the answer is probably not to become even stricter. Sometimes the plan is not impressive. It is just under-fueling a body asked to do too much.',
     ctaTitle: 'Do not romanticize a plan that is breaking signals.',
@@ -1536,8 +1536,8 @@ const posts: BlogPost[] = [
     date: '2026-05-01',
     readingTime: '6 min read',
     tags: ['Cheat Day', 'Binge Eating', 'Habits', 'Weight Loss'],
-    heroImage: '/founder/scale-rude-before-20240130.jpg',
-    heroAlt: 'Honest founder mirror image representing diet guilt and cheat-day overcorrection',
+    heroImage: '/founder/cheat-day-founder-20251221.jpg',
+    heroAlt: 'Founder portrait representing the emotional logic behind cheat-day overcorrection',
     deck:
       'One bad day usually does less damage than several bad days in a row. The problem is how quickly that technically true idea turns into behaviorally disastrous cheat-day logic.',
     ctaTitle: 'Use the truth to stay calm, not to get clever.',
