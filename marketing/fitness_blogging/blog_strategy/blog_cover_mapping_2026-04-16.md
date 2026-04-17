@@ -291,3 +291,58 @@ Apply this file in two passes:
 2. apply the same taxonomy to the next 8-12 posts before publishing them
 
 That will solve the “why do all the blog photos look the same?” problem before the archive grows larger.
+
+---
+
+## Checkpoint: Post 30 (recorded 2026-04-17, retroactive)
+
+Per `100_post_program_plan.md` Section 14, a photo-pool checkpoint was due at approved-post count 30. Current approved-post count: 29 in `posts.ts`, 36 in `marketing/devenira_prelaunch/` drafts. Checkpoint executed retroactively after batch 7 close.
+
+### Pool Audit
+
+- Total images in `frontend/public/founder/`: **22**
+- Used as heroImage in posts.ts: **18 unique**
+- Unused pool: **4 images**
+  - `/founder/final-body.jpg`
+  - `/founder/final-portrait.jpg`
+  - `/founder/sleep-reflective-20260106.jpg`
+  - `/founder/start.jpg`
+
+### Blocker
+
+Plan Section 14 step 2 requires new archive extraction when unused pool <15. Archive directory `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/` is not present in this worktree (only the three documentation .md files remain here). Raw archive either in a different location or not ported over with the prodrepo-main worktree.
+
+### Operational decision (non-blocking)
+
+Continue with the 22-image pool under strict 5-adjacent reuse rule, which is mathematically satisfiable (100 posts / 22 images ≈ 4.5 uses per image average; rule requires only that 5 consecutive posts use 5 different images).
+
+### Reuse Budget Status
+
+- `hunger-editorial-20260106.jpg`: 3 uses — approaching saturation for the hunger/appetite lane. Next appetite post must use alternate hero.
+- 10 images at 2 uses.
+- 8 images at 1 use.
+- 4 images at 0 uses.
+
+### Next Hero Assignments (prefer unused first)
+
+Priority order for batch 8–10:
+
+1. Use `/founder/sleep-reflective-20260106.jpg` for next recovery / rest-focused post.
+2. Use `/founder/start.jpg` for a "where-you-start" or beginner-oriented post.
+3. Use `/founder/final-body.jpg` for a milestone post (progress update #4 at approved-post ~60).
+4. Use `/founder/final-portrait.jpg` for a founder-story / worldview post adjacent to milestones.
+
+After the 4 unused are deployed, rotate least-used images (single-use pool) before any image gets a 3rd use.
+
+### Next Checkpoint
+
+- Approved-post 60 (per plan). If archive available by then, re-extract and grow pool. Otherwise, repeat this audit and adjust reuse budget.
+
+### Action Flagged to Founder
+
+If fresh photos are available to add to `frontend/public/founder/`, priority lanes needing new assets:
+
+- Hunger / appetite (`hunger-editorial` over-used)
+- Mirror / body image (current covers carry limited emotional range)
+- Exercise / training (no pure training-session asset distinct from milestone portraits)
+- Maintenance (only `long-game-founder-20251221.jpg` in the lane)
