@@ -2195,6 +2195,413 @@ const posts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'progress-update-3-past-the-messy-middle',
+    title: 'Progress Update 3: Past the Messy Middle',
+    description:
+      'The body after the messy middle. What changed, what did not, and what the past four months actually looked like from the inside.',
+    socialDescription:
+      'This is a check-in, not a before-and-after. Before-and-afters are for people who are finished. I am not finished. What I am is past the messy middle.',
+    date: '2026-05-09',
+    readingTime: '6 min read',
+    tags: ['Progress Update', 'Transformation', 'Founder Story', 'Weight Loss'],
+    heroImage: '/founder/progress-update-hanok-20260119.jpg',
+    heroAlt: 'Founder composed portrait after coming through the middle phase of transformation',
+    deck:
+      'Four months past the messy middle. Down roughly 15 kg from the highest. The head is still catching up to the body. This is what that actually feels like.',
+    ctaTitle: 'Refuse to renegotiate the plan every three weeks.',
+    ctaBody:
+      'The middle does not need motivation. It needs a weekly record you can stay inside without staring at the scale every day. Start with one weekly check-in.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'This is a check-in, not a before-and-after.',
+          'Before-and-afters are for people who are finished. I am not finished. What I am is past the messy middle.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What The Numbers Say',
+        paragraphs: [
+          'Down from the highest by roughly 15 kg since the last update.',
+          'Training four days a week. Not five. Not six. Four, for months, without negotiation.',
+          'Waist down two pant sizes. Shoulders about the same circumference but a noticeably different shape. Face calmer. Feet hurt less.',
+          'The scale is not the most honest record of the past four months. What changed more than the weight is what the weight feels like.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What The Middle Did To The Head',
+        paragraphs: [
+          'The middle is where the emotional story actually happens. I wrote about this in the last update, and it is still true.',
+          'The head adapts slower than the body.',
+          'I spent the entire middle phase still mentally carrying the old body. Every mirror trip was calibrated against a person who was not quite there anymore. Every shop trip still reached for the size that used to fit. Every compliment still felt early.',
+          'Getting through the middle did not fix that. What getting through the middle did was stop me from treating the body as the problem.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What The Middle Did To The Plan',
+        paragraphs: [
+          'I did not cut calories in the middle. I did not change my training. I did not add cardio. I did not try a new diet.',
+          'I stayed bored.',
+          'Looking back, staying bored was the skill. The middle keeps asking for novelty because novelty feels like progress when the scale is not moving. It is not progress. It is distraction.',
+          'I let the graph do nothing for three weeks at a time. Then nothing again. Then, quietly, it moved.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Happens Past The Middle',
+        paragraphs: [
+          'A few things change that nobody warns you about.',
+          'Clothes fit differently from the back before they fit differently from the front. Compliments start landing from people who saw you recently, not just people who have not seen you in a year. The appetite calms down in a way that feels almost suspicious. Meals you used to engineer now feel easy.',
+          'Also, you start noticing other people in the middle. Friends who are four months into something and wondering if it is working. That part is harder than I expected.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Still Has Not Changed',
+        paragraphs: [
+          'My relationship with the scale is better but not clean. My relationship with mirrors is calmer but still uneven. My hunger is less loud but not silent.',
+          'The body is further along than the head. I am told that is normal and it takes another six to twelve months past goal for the head to catch up.',
+          'I believe it. I am going to keep going.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'when-the-workout-becomes-therapy-not-punishment',
+    title: 'When the Workout Becomes Therapy, Not Punishment',
+    description:
+      'Most people train to make up for something. The workouts that change you are the ones that stopped being repayment.',
+    socialDescription:
+      'For most of my life, the workout was a receipt. That kind of training can still produce results. It cannot produce peace.',
+    date: '2026-05-10',
+    readingTime: '6 min read',
+    tags: ['Exercise', 'Mental Health', 'Body Image', 'Consistency'],
+    heroImage: '/founder/consistency-editorial-20251229.jpg',
+    heroAlt: 'Founder in a composed mid-session moment representing calmer training',
+    deck:
+      'For most of my life, the workout was a receipt. I overate on Saturday. I earned the treadmill on Monday. That kind of training can still produce results. It cannot produce peace.',
+    ctaTitle: 'Stop training as repayment.',
+    ctaBody:
+      'When the workout is repayment, you train more and change less. When the workout is maintenance of your nervous system, your body changes while you are not watching. Track both without coupling them.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'For most of my life, the workout was a receipt.',
+          'I overate on Saturday. I earned the treadmill on Monday. I felt bloated after dinner. I did twenty more minutes than I planned. Every session was a small repayment for a small crime.',
+          'That kind of training can still produce results. It cannot produce peace.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Punishment-Training Actually Costs You',
+        paragraphs: [
+          'When exercise is payment, three things happen that nobody talks about.',
+          'First, your rest days feel morally dangerous. You skip a session and your brain starts reading the skipped session as an unpaid debt. Then you overcompensate on the next session, or you undereat, or both.',
+          'Second, you start training more when you feel worse about yourself, not when your body is ready. So your hardest workouts end up happening on your worst sleep days, your most stressed weeks, your most underfed mornings. That is the arithmetic nobody fixes.',
+          'Third, you quietly start to dislike your body more, not less. Because every session is evidence of something you did wrong. Nothing in that loop teaches you to see yourself neutrally.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Switch',
+        paragraphs: [
+          'At some point in the middle of the diet, I stopped checking my weight right after training.',
+          'That sounds trivial. It was not.',
+          'Checking the scale post-workout is the most receipt-shaped thing you can do. It closes the loop between effort and reward. The body gives you water retention. The scale gives you a small increase. The mood tanks. The next session gets angrier.',
+          'I broke that loop by not weighing until the morning after. Some days the scale moved. Some days it did not. None of it was tied to how the session felt.',
+          'Within a few weeks, the training changed shape. I still did four days. I still did the same lifts. But the sessions stopped feeling like apology.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Therapy-Training Looks Like',
+        paragraphs: [
+          'It is boring. That is the honest answer.',
+          'The workouts became calmer. Not easier. Calmer.',
+          'I walked into sessions with no specific mood to regulate. I walked out of sessions without needing the scale to validate me. The sessions started working on the rest of the day, instead of the rest of the day working on the sessions.',
+          'Appetite calmed down. Sleep got better. Stress processed itself inside the gym instead of leaking into the evening.',
+          'Body changes came more steadily once I stopped using the body as collateral.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What This Is Not',
+        paragraphs: [
+          'This is not a claim that exercise is free of effort. It is not. The lifts were heavy. The intervals were hard. The recovery was real.',
+          'It is a claim that the emotional function of the session changes how the session lands.',
+          'When the workout is repayment, you train more and change less.',
+          'When the workout is maintenance of your nervous system, you train consistently and your body changes while you are not watching.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'hunger-in-maintenance-is-different-from-hunger-on-a-diet',
+    title: 'Hunger in Maintenance Is Different from Hunger on a Diet',
+    description:
+      'Maintenance hunger is not the same signal as dieting hunger. Most people misread it as regression. It is not.',
+    socialDescription:
+      'The hunger you feel on a diet and the hunger you feel in maintenance are physiologically different. Reading them the same way is one of the main reasons people regain within six months.',
+    date: '2026-05-11',
+    readingTime: '7 min read',
+    tags: ['Appetite', 'Maintenance', 'Dieting', 'Weight Loss'],
+    heroImage: '/founder/hunger-editorial-20260106.jpg',
+    heroAlt: 'Founder editorial image used for an article about hunger signals in maintenance',
+    deck:
+      'Maintenance hunger is not the same signal as dieting hunger. Reading them the same way is one of the main reasons people regain weight within six months of reaching their goal.',
+    ctaTitle: 'Read the shape of your hunger, not the volume.',
+    ctaBody:
+      'Waiting out the recalibration window is the actual skill of early maintenance. Log the shape of your hunger over weeks and stop treating maintenance like a failed diet.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'Most people treat hunger like it is one thing.',
+          'It is not.',
+          'The hunger you feel on a diet and the hunger you feel in maintenance are physiologically and behaviorally different. Reading them the same way is one of the main reasons people regain weight within six months of reaching their goal.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Two Different Hungers',
+        paragraphs: [
+          'Dieting hunger is loud, urgent, often food-specific, and frequently emotional. It tends to cluster around the times you are eating below maintenance. It can spike at night. It can ambush you after exercise. It often feels like the body complaining.',
+          'Maintenance hunger is quieter, more mechanical, and usually more rhythmic. It shows up on time. It responds to ordinary meals. It often does not come with cravings. If your meals are structured, maintenance hunger tends to stay in the background.',
+          'The confusing part is the transition. Most people come off a diet still hearing the louder hunger and assume they will always be hungry. They will not. But for most people, it takes a few weeks to months for the signal to recalibrate.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why The Signals Shift',
+        paragraphs: [
+          'When you lose a meaningful amount of weight, several hormonal systems recalibrate. Leptin, ghrelin, and other satiety and hunger signals adjust to the new weight. This recalibration is not instant. For many people, it often takes weeks to months.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'During That Window',
+        items: [
+          'Appetite cues may remain louder than the new caloric need actually justifies.',
+          'The body may still be defending the old weight for a while.',
+          'Food noise can stay high even after the deficit has ended.',
+        ],
+        outro:
+          'This is where people misread themselves. They interpret the residual dieting-hunger as evidence that maintenance is not working. They either over-restrict again (triggering the same louder hunger) or they overeat (because they assume they will always be this hungry, so why fight it). Both responses ignore the fact that the hunger signal itself is in transit.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'How To Tell Which Hunger You Are Reading',
+        paragraphs: [
+          'A rough heuristic, not a rule.',
+          'Dieting hunger tends to cluster around the times you are eating least, feel emotionally expensive, come with food-specific cravings, and be temporarily silenced by a small amount of food then return quickly.',
+          'Maintenance hunger tends to arrive on a predictable schedule, respond to normal-sized meals, leave you alone between meals, and not carry the same emotional weight.',
+          'If your hunger still feels like dieting hunger after you have moved to maintenance calories, you are probably in the recalibration window.',
+          'Waiting out the recalibration window is the actual skill of early maintenance.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Most People Do Wrong',
+        paragraphs: [
+          'They panic at weeks 3 to 8 of maintenance, when hunger is still loud.',
+          'They decide they are going to regain everything, so they either tighten the reins (returning to deficit, which resets the loud hunger) or abandon the plan entirely.',
+          'The people who hold maintenance are not the ones with less hunger. They are the ones who understand that the hunger signal is temporarily miscalibrated and does not require a plan change.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'What Helps',
+        intro: 'A handful of quiet things.',
+        items: [
+          'Keep meal structure consistent. Regular eating times reduce the noise.',
+          'Protein and fiber at most meals. They flatten the hunger curve.',
+          'Sleep. Poor sleep amplifies every hunger signal.',
+          'Time. This is the one nobody wants to hear.',
+        ],
+        outro:
+          'Three to four months into maintenance, for most people who hold the weight, hunger settles into something manageable.',
+      },
+    ],
+  },
+  {
+    slug: 'the-friend-who-never-diets-and-never-gains',
+    title: 'The Friend Who Never Diets and Never Gains',
+    description:
+      'The friend who never diets and never gains is not lucky in the way you think. What is actually going on is usually boring and almost always invisible.',
+    socialDescription:
+      'The friend who stays slim without trying is running a set of invisible habits that happen to balance. The interesting question is which of those habits is genuinely learnable for you.',
+    date: '2026-05-12',
+    readingTime: '6 min read',
+    tags: ['Body Composition', 'NEAT', 'Habits', 'Weight Stability'],
+    heroImage: '/founder/long-game-founder-20251221.jpg',
+    heroAlt: 'Founder image representing the boring long-game habits that actually keep bodies stable',
+    deck:
+      'Everyone has that friend. Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May. You do not, and you are furious about it.',
+    ctaTitle: 'Learn the invisible habits, not the conscious effort.',
+    ctaBody:
+      'You are comparing a diet to a personality. That comparison is rigged. Track the small patterns your naturally stable days already have, and build from there.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'Everyone has that friend.',
+          'Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May.',
+          'You do not, and you are furious about it.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Myth',
+        paragraphs: [
+          'The assumption is usually one of three things.',
+          'Genetics. Metabolism. Luck.',
+          'None of these are quite the story.',
+          'The friend who stays slim without trying is usually not doing nothing. They are doing a lot of small, invisible things that add up to a stable energy balance, and they are doing them without naming them as effort.',
+          'You are looking at the outcome and calling it magic because the process is not visible to you.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'What They Actually Do, Without Calling It Anything',
+        intro: 'Watch a naturally slim friend for a week. Not at meals. Between meals.',
+        items: [
+          'They stand more.',
+          'They fidget more.',
+          'They sleep a relatively consistent number of hours.',
+          'They eat the same kinds of things most days and do not dramatize food.',
+          'They stop eating when they are full and forget the rest of the plate without treating it as discipline.',
+          'They do not snack mindlessly while watching television. They do sometimes. But not the way you think.',
+        ],
+        outro:
+          'None of this looks like a diet. None of it looks like effort. Because to them, it is not effort. It is the default pattern they happen to have.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Boring Physiology Piece',
+        paragraphs: [
+          'There are a few physiological factors that genuinely differ between people.',
+          'NEAT, or non-exercise activity thermogenesis, varies significantly. Some people unconsciously move hundreds more calories a day than others. Fidgeting, posture shifts, walking around on phone calls, going up one flight of stairs for no reason. This is real, and it is mostly unconscious.',
+          'Satiety signaling also varies. Some people reach fullness faster and stay full longer. This is partly genetic, partly habitual.',
+          'Gut microbiome, hormonal differences, sleep architecture, and a half-dozen other factors can tilt the baseline.',
+          'All of these can make someone look like they are eating without consequence, when they are actually eating within a tighter range than they realize.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What This Means For You',
+        paragraphs: [
+          'Two things.',
+          'First, stop comparing your conscious effort to their unconscious default. You are comparing a diet to a personality. That comparison is rigged.',
+          'Second, some of what they do unconsciously is learnable. Not all of it. But more than people assume.',
+          'The stand-more, sleep-consistent, do-not-dramatize-food pattern can be installed. It takes a year, roughly. It does not look like weight loss. It looks like a different relationship with eating and moving.',
+          'People who reach their goal and hold it for five years are almost always the ones who installed that pattern, not the ones who dieted hardest.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Quiet Truth',
+        paragraphs: [
+          'The friend who stays slim without trying is the blueprint, not the insult.',
+          'They are not cheating. They are running a set of invisible habits that happen to balance. The interesting question is not why does my body not do that. The interesting question is which of those habits is genuinely learnable for me.',
+          'The answer is usually: more of them than you think.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'how-do-you-know-when-youve-reached-your-set-point',
+    title: 'How Do You Know When You Have Reached Your Set Point',
+    description:
+      'Questions and honest answers about what a set point actually is, how to know you are at one, and what it means if you want to go lower.',
+    socialDescription:
+      'The set point is not a fixed number handed to you at birth. It is not a verdict. It is information.',
+    date: '2026-05-13',
+    readingTime: '7 min read',
+    tags: ['Set Point', 'Maintenance', 'Weight Loss', 'Body Composition'],
+    heroImage: '/founder/scale-proof-20250919.jpg',
+    heroAlt: 'Founder image representing reading the body is steady state, not chasing a lower number',
+    deck:
+      'A set point is one of the more misused ideas in dieting conversations. It is useful when understood correctly. It becomes an excuse when it is not.',
+    ctaTitle: 'Read the set point as information, not verdict.',
+    ctaBody:
+      'If you are at your set point, the question is no longer am I losing. The question is am I staying. Those require different reads.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'A set point is one of the more misused ideas in dieting conversations.',
+          'It is useful when understood correctly. It becomes an excuse when it is not.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: What Is A Set Point, Actually?',
+        paragraphs: [
+          'A set point is the weight range your body most naturally defends, given your current habits, sleep, stress, training, and eating pattern.',
+          'It is not a fixed number handed to you at birth.',
+          'It is not immune to change.',
+          'It is a rolling equilibrium that shifts as your inputs shift. The word "set" makes it sound more permanent than it is.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'Q: How Do I Know I Have Reached Mine?',
+        intro: 'A few signals, in combination.',
+        items: [
+          'Your weight has been stable within roughly a 2 to 3 kg range for 8 to 12 weeks.',
+          'You have stopped actively dieting. You are eating in a way that feels sustainable, not restrictive.',
+          'Your hunger has normalized. It arrives on time, responds to normal meals, and does not dominate your day.',
+          'Your energy, sleep, and mood are reasonable. You are not running on fumes.',
+          'Small deviations (a heavier weekend, a lighter week of travel) do not send the weight permanently up or down.',
+        ],
+        outro:
+          'If most of those are true, the weight you are at is probably a set point for your current life.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Why Does It Feel Like I Cannot Lose More?',
+        paragraphs: [
+          'Because your maintenance calories have adjusted downward as you lost weight, your body is defending the current state, and your signals for hunger and fullness are tuned to this range.',
+          'To go lower, you would need to either create a new deficit below your current maintenance (which will temporarily raise hunger again) or change the inputs by adding muscle, improving sleep, or shifting activity (which can lower the defended weight over time).',
+          'Neither of these is free. Both are possible. The question is whether the cost is worth the change.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Is The Set Point Really Immovable?',
+        paragraphs: [
+          'No. But it is sticky.',
+          'Research on weight regulation suggests the body defends recent weights more strongly than older weights. If you hold a new weight for 12 to 24 months, that weight often becomes the new defended range.',
+          'This is why maintenance is the real skill. Not because reaching a lower number is the hard part. Because holding it long enough for your body to accept it is the hard part.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: If I Am At A Set Point, Should I Stop Trying To Lose More?',
+        paragraphs: [
+          'This is the question most people will not let themselves ask.',
+          'The honest answer is: sometimes yes.',
+          'If you are at a weight where your habits are sustainable, your health markers are reasonable, and your life functions well, the marginal benefit of another 3 to 5 kg down is often smaller than the cost of continuing to diet.',
+          'If you want to lose more for reasons that are yours, not reasons inherited from a magazine or a photo, that is a fine decision. But it is a decision, not an obligation.',
+          'The set point is not a verdict. It is information.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: What Should I Do Once I Know I Am At One?',
+        paragraphs: [
+          'Hold it with boring discipline for at least six months. Let the body accept this weight as the new normal.',
+          'Then decide if you want to change the inputs.',
+          'That sequence, in that order, is what separates people who lose and hold from people who lose and yo-yo.',
+        ],
+      },
+    ],
+  },
 ];
 
 export function getAllBlogPosts() {
