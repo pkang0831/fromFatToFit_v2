@@ -2602,6 +2602,419 @@ const posts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'the-scale-lies-differently-in-the-morning-than-in-the-evening',
+    title: 'The Scale Lies Differently in the Morning Than in the Evening',
+    description:
+      'Morning and evening weight are not the same reading. Treating them as one number is how people misread their week.',
+    socialDescription:
+      'The scale is honest at every time of day. It is just answering a different question each time.',
+    date: '2026-05-14',
+    readingTime: '5 min read',
+    tags: ['Scale', 'Daily Fluctuation', 'Weight Loss', 'Tracking'],
+    heroImage: '/founder/scale-rude-before-20240130.jpg',
+    heroAlt: 'Scale with an honest reading, illustrating the limits of a single daily number',
+    deck:
+      'Most people weigh themselves at one specific time and treat that number as the truth. It is not the truth. It is one sample.',
+    ctaTitle: 'Weigh the same way. Read the trend.',
+    ctaBody:
+      'One reading tells you almost nothing. Seven readings in the same conditions tell you the shape. Start with a weekly trendline instead of a daily verdict.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'Most people weigh themselves at one specific time and treat that number as the truth.',
+          'It is not the truth. It is one sample.',
+          'Morning weight and evening weight are almost always different, and they lie in different directions.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Morning Weight Actually Shows',
+        paragraphs: [
+          'Morning weight is the lowest you will weigh that day, under usual conditions. You are lightly dehydrated from overnight. You have emptied most of your bladder. You have not yet eaten or drunk much. Your body is in its most deflated state.',
+          'That is why people are told to weigh in the morning. It is the most stable reference point across days.',
+          'It is not, however, a complete picture. It is the bottom of your daily range.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Evening Weight Actually Shows',
+        paragraphs: [
+          'Evening weight is typically 0.8 to 1.8 kg higher than your morning number, for most adults.',
+          'That is food and drink in your stomach and intestines, plus salt-driven water retention from the day, plus glycogen stored from carbs you ate, plus whatever your body has not yet processed or excreted.',
+          'None of this is fat. All of it leaves by morning.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why The Gap Exists',
+        paragraphs: [
+          'Water retention shifts throughout the day. Food sits in your digestive tract for 6 to 30 hours. Salt intake peaks around dinner for most people. Carbs bind roughly 3 grams of water per gram of stored glycogen.',
+          'This is why a 1.5 kg swing from morning to evening is normal, and why a 0.5 kg swing is also normal, and why neither of them is a sign of anything.',
+          'It is also why weighing yourself at night for the first time is usually demoralizing. You are comparing an evening number to a morning number.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Real Lie',
+        paragraphs: [
+          'The lie is not the scale. The scale is just reporting water, food, and timing.',
+          'The lie is the assumption that any one reading is the weight.',
+          'People who weigh themselves evening-only panic about weight gain that is not weight gain. People who weigh themselves morning-only miss the signal when they have stayed up late eating salty food for a week and their morning weight finally starts creeping up.',
+          'The scale is honest at every time of day. It is just answering a different question each time.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What To Actually Do',
+        paragraphs: [
+          'Weigh at the same time. Same conditions. Same clothing or lack of clothing. Same scale.',
+          'Then do not compare today to yesterday. Compare this week is average to last week is average. The daily number is noise. The weekly trend is signal.',
+          'If you only weigh once a day, morning is the cleanest baseline.',
+          'If you weigh at multiple times, do not mix them in your head. Evening is a different measurement series. Compare evenings to evenings. Mornings to mornings.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'sleep-debt-ruins-a-week-of-dieting-in-three-nights',
+    title: 'Sleep Debt Ruins a Week of Dieting in Three Nights',
+    description:
+      'Three bad nights is enough to undo a week of careful eating. Sleep is not a recovery topic. It is a dieting topic.',
+    socialDescription:
+      'Three bad nights earlier in the week can crack an honest Friday. Look at your sleep before you look at your willpower.',
+    date: '2026-05-15',
+    readingTime: '6 min read',
+    tags: ['Sleep', 'Recovery', 'Dieting', 'Appetite'],
+    heroImage: '/founder/sleep-reflective-20260106.jpg',
+    heroAlt: 'Founder in a reflective moment representing the quiet cost of sleep debt on a diet',
+    deck:
+      'I had a clean Monday, Tuesday, and Wednesday of eating. By Saturday, the week looked like a disaster. Three bad nights of sleep were the reason.',
+    ctaTitle: 'Look at sleep before willpower.',
+    ctaBody:
+      'If the week cracks and you do not understand why, the sleep usually explains it. Track sleep alongside eating and the pattern becomes readable.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'I had a clean Monday, Tuesday, and Wednesday of eating.',
+          'By Saturday, the week looked like a disaster.',
+          'Three bad nights of sleep were the reason. Not the only reason. The main one.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Week That Fell Apart',
+        paragraphs: [
+          'I went to bed late Monday, worked until 2 a.m. Tuesday, then flew through a 4:30 a.m. alarm for a flight on Wednesday. Sleep for those three nights averaged maybe five hours.',
+          'The eating on those days was still within plan. I tracked it. The numbers were fine. The calories were honest. The protein was there.',
+          'Thursday morning I woke up ravenous in a way I had not felt in months. Thursday night I ate a second dinner I had not intended to eat. Friday I ate slightly more than planned. Saturday I overate, clearly and knowingly, and did not entirely understand why.',
+          'My weight did not move. My appetite moved.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Three Bad Nights Did',
+        paragraphs: [
+          'Short-sleep research is consistent on a few points. Under-sleeping for even two or three nights tends to push appetite-regulating signals in ways that make food feel louder. Satiety signaling drops. Hunger signaling rises. Cravings for high-calorie, high-carb, high-fat foods tend to increase. Decision-making around food gets worse, specifically around delaying gratification.',
+          'Some of this is physiological. Some of this is cognitive. It does not matter which bucket you put it in. The outcome is the same. Your body shows up on Thursday asking for more food than your plan accounts for, and your head shows up with less capacity to argue with it.',
+          'Three days of under-sleeping is not a recovery issue. It is a dieting issue.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Did Not Realize Until Later',
+        paragraphs: [
+          'I had assumed my Saturday binge was a discipline problem.',
+          'It was not.',
+          'It was my nervous system collecting an unpaid bill from three nights earlier.',
+          'The sleep debt arrived on a delay. By the time it hit my eating, I had already forgotten the nights that caused it. So I read my own behavior as character failure, which is the worst possible reading.',
+          'This happens to most people who work, travel, or have small kids. The bad nights happen Monday. The diet cracks Thursday. The person assumes they are weak.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Quiet Part',
+        paragraphs: [
+          'If you are eating honestly all week and still not losing weight, look at your sleep before you look at your food.',
+          'If you are eating honestly all week and having a binge you do not understand by Friday, look at your sleep even harder.',
+          'Sleep is the input that silently decides whether your plan works. No amount of meal prep fixes three bad nights.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Changed',
+        paragraphs: [
+          'Not sleep perfection. Nobody gets that.',
+          'What I changed was how I read my own behavior. When the week cracks and I do not understand why, I look at the week is sleep before I look at the week is willpower.',
+          'Nine times out of ten, the sleep explains it.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'the-quiet-role-vegetables-play-in-staying-full',
+    title: 'The Quiet Role Vegetables Play in Staying Full',
+    description:
+      'Protein gets all the attention. The food that quietly decides whether your diet feels tolerable is usually vegetables.',
+    socialDescription:
+      'A plate with vegetables is a plate with a different shape. You eat less of the dense stuff without deciding to.',
+    date: '2026-05-16',
+    readingTime: '6 min read',
+    tags: ['Food Structure', 'Vegetables', 'Satiety', 'Weight Loss'],
+    heroImage: '/founder/cheat-day-checkin-20250719.jpg',
+    heroAlt: 'Founder image representing a calm approach to plate composition and food structure',
+    deck:
+      'Protein gets all the press. Fats get the moral arguments. Carbs get the fear. Vegetables get a vague eat-more-of-them and then nothing. The food that quietly decides whether your diet feels tolerable is usually the vegetables.',
+    ctaTitle: 'Change the shape of the plate.',
+    ctaBody:
+      'If you can see your plate compositions across a week, the meals that held your appetite usually look obviously different from the meals that did not. Start with one weekly meal audit.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'Protein gets all the press.',
+          'Fats get the moral arguments. Carbs get the fear. Vegetables get a vague "eat more of them" and then nothing.',
+          'The food that quietly decides whether your diet feels tolerable is usually the vegetables.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Myth',
+        paragraphs: [
+          'Most diet conversation treats vegetables as an afterthought. Eat your greens. Add some spinach. Optional.',
+          'That framing is wrong for fat loss specifically.',
+          'On a diet, the thing that kills adherence is not missing calories. It is feeling hungry while your mouth also feels unused. Your stomach may not need more food. Your behavior does.',
+          'Vegetables are disproportionately good at solving that gap without adding meaningful calories.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'What Vegetables Actually Do',
+        intro: 'A few things at once.',
+        items: [
+          'They add volume without adding much energy. A large bowl of vegetables costs 50 to 150 calories. The same volume in rice, pasta, or bread costs 400 to 700.',
+          'They add fiber, which physically slows digestion and flattens the blood-sugar curve after a meal.',
+          'They add chewing time, which matters more than people think. The brain registers fullness partly from time spent eating, not only from calories.',
+          'They often displace more calorie-dense foods on the plate. Not because of willpower, but because the plate fills up.',
+        ],
+        outro:
+          'A plate with vegetables is a plate with a different shape. You eat less of the dense stuff without deciding to.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why Protein-Only Dieting Stalls',
+        paragraphs: [
+          'People who learn the protein rule and stop there usually hit the same wall.',
+          'Their meals are technically within calorie targets. Their protein is adequate. Their meals are also small, fast to eat, and leave them hungry two hours later. So the afternoon starts looking for snacks. The evening starts looking for relief.',
+          'A day of high protein and low volume often looks like sustained low-grade hunger that makes the plan hard to hold.',
+          'Adding a big vegetable component to the same meal changes that day. The protein is still there. The calories are still reasonable. But the meal is bigger, takes longer to eat, and silences appetite for the next few hours in a way protein alone does not.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Often Works',
+        paragraphs: [
+          'This is not a prescription. It is a pattern.',
+          'Most meals, on a fat-loss phase, land better when they contain a protein source, a starch or carb source appropriate to the calorie target, and a disproportionately large vegetable component. Disproportionate is the part people skip.',
+          'Not a side salad. Not a tablespoon of spinach. A real volume of vegetables, prepared in a way you will actually eat.',
+          'The exact vegetables matter less than people think. Fresh, frozen, roasted, steamed, raw, canned. Whatever form you will actually consume multiple times a week is the right form.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Quiet Truth',
+        paragraphs: [
+          'People who hold a diet for months almost always have a vegetable structure, even if they never call it that.',
+          'They do not think of themselves as vegetable-eaters. They just reliably have something green, orange, red, or leafy on most plates. Over the week, that structure does more work than any other single dietary rule.',
+          'The vegetables are quietly making the rest of the diet survivable.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'how-do-i-stop-a-binge-from-becoming-a-binge-week',
+    title: 'How Do I Stop a Binge From Becoming a Binge Week',
+    description:
+      'One binge does not wreck a diet. The week after a binge wrecks a diet. Here is how to contain it.',
+    socialDescription:
+      'One binge is a meal. A binge week is a choice. The choice happens in the 24 hours after.',
+    date: '2026-05-17',
+    readingTime: '6 min read',
+    tags: ['Binge', 'Cheat Day', 'Recovery', 'Dieting'],
+    heroImage: '/founder/diet-slip-checkin-20250725.jpg',
+    heroAlt: 'Founder image representing the morning after a binge, the moment of decision',
+    deck:
+      'One binge does not wreck a diet. The week after a binge wrecks a diet. This is the specific rescue plan.',
+    ctaTitle: 'Rescue the day after, not the day of.',
+    ctaBody:
+      'The damage is not the binge. The damage is the response. Log the binge without judgment, then return to the normal plan at the next meal.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'One binge does not wreck a diet.',
+          'The week after a binge wrecks a diet.',
+          'This is the specific rescue plan.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: What Actually Happened On Binge Day?',
+        paragraphs: [
+          'Probably 1,500 to 3,500 calories above your plan.',
+          'For most people, that adds roughly 0.2 to 0.5 kg of actual fat over the course of days, not overnight. The 1 to 2 kg you see on the scale the next morning is almost entirely water, salt, and food volume. It will leave within 3 to 5 days if you return to normal.',
+          'The binge itself is not the problem.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Why Does One Binge Turn Into A Week?',
+        paragraphs: [
+          'Because the morning after, people do one of three things, and all three make it worse.',
+          'They restrict hard. Skip breakfast, skip lunch, try to earn back the damage. This drops blood sugar, amplifies hunger, and makes a second binge likely by late afternoon.',
+          'They spiral emotionally. Decide they have failed, decide the diet is broken, decide to eat freely because they already blew it today. This is how a single bad meal becomes a bad day.',
+          'They throw out the plan. Cancel the week. Start over Monday. By Wednesday they have eaten off plan for five straight days because Monday keeps moving.',
+          'The damage is not the binge. The damage is the response.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'Q: What Do I Do The Morning After?',
+        items: [
+          'Eat breakfast. Your normal breakfast. Not a smaller one. Not a skipped one.',
+          'Drink water. A reasonable amount, not a punitive amount.',
+          'Do not weigh yourself for 3 to 5 days. The scale will lie upward and you will read the lie as confirmation of failure.',
+          'Return to your normal meal plan for lunch. Your normal dinner. Your normal snacks if you have them.',
+        ],
+        outro:
+          'Act as if yesterday was yesterday and today is today. Because that is literally what they are.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Do I Need To Cut Calories This Week?',
+        paragraphs: [
+          'No.',
+          'The binge is already absorbed into the week is total. Trying to compensate with an additional deficit usually backfires in one of two ways. Either the hunger resurfaces and triggers another binge, or the body tightens up water retention from the stress and the scale does not move anyway.',
+          'Your normal deficit, applied consistently, will absorb the binge within 7 to 14 days without any additional effort. The math is not the issue.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'Q: What If I Can Feel The Next Binge Coming?',
+        intro: 'That feeling is signal. It usually means one or more of these has drifted in the last 48 hours.',
+        items: [
+          'You have under-eaten the day before, trying to compensate.',
+          'You are under-slept.',
+          'You have had a high-stress day and the body is asking for relief.',
+          'You are more than 4 hours past a regular meal.',
+        ],
+        outro:
+          'Eat a real meal. Not a safe meal. A real one, with protein and volume. The craving usually drops by half within 30 to 60 minutes of actually eating. If it does not, that is worth noting. A craving that survives a real meal is telling you something is missing emotionally, not physiologically.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: When Should I Just Take A Maintenance Week?',
+        paragraphs: [
+          'If you have binged twice in the same seven days, or if the plan feels brittle for more than ten days, step up to maintenance calories for a week.',
+          'This is not quitting. This is the most common professional intervention for broken diet weeks. Maintenance for seven to ten days quiets the appetite, resets the head, and makes a return to deficit possible without another binge.',
+          'You will not lose weight that week. You will also not regain what you lost. You will be fine.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The One Sentence',
+        paragraphs: [
+          'One binge is a meal. A binge week is a choice. The choice happens in the 24 hours after.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'you-look-different-to-other-people-before-yourself',
+    title: 'You Look Different to Other People Before You Look Different to Yourself',
+    description:
+      'Other people see your body change before you do. The delay is not vanity. It is how self-perception actually works.',
+    socialDescription:
+      'You are the least well-positioned observer of your own transformation. Other people are running the opposite experiment.',
+    date: '2026-05-18',
+    readingTime: '6 min read',
+    tags: ['Mirror', 'Body Image', 'Transformation', 'Self Perception'],
+    heroImage: '/founder/mirror-middle-checkin-20250716.jpg',
+    heroAlt: 'Founder mid-transformation, looking at the body the way other people already do',
+    deck:
+      'People you have not seen in a few months will notice your body has changed. You will not have noticed yet. This is not modesty. It is not vanity. It is how your brain is built.',
+    ctaTitle: 'Trust the external evidence while the head catches up.',
+    ctaBody:
+      'When the internal map and the external evidence disagree, the evidence is more current than the map. Use photos in a consistent setup to flatten the mirror is daily noise.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'People you have not seen in a few months will notice your body has changed.',
+          'You will not have noticed yet.',
+          'This is not modesty. It is not vanity. It is how your brain is built.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Gap',
+        paragraphs: [
+          'Almost everyone who has lost meaningful weight has had the same disorienting moment.',
+          'An acquaintance says you look great, have you lost weight, and you feel simultaneously pleased and dishonest, because the mirror you saw that morning still looked like the old you. You received a compliment you cannot match to your own perception.',
+          'Then the same thing happens from a different person. Then a family member says it on a video call. Then a photo gets taken that looks like a stranger.',
+          'The outside world is seeing a body your head is still catching up to.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why They See It First',
+        paragraphs: [
+          'Self-perception of body size updates slowly. You are looking at yourself every morning, in the same mirror, at the same angle, in the same lighting, with the same hair. That continuous exposure is what makes change invisible to you. You are the least well-positioned observer of your own transformation.',
+          'Other people are running the opposite experiment. They saw you in July. They see you in November. The two readings are months apart with no in-between data. Their delta is the clearest signal in the room.',
+          'The people who see you less often get a clearer reading than you do.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'What This Means In Practice',
+        intro: 'Three practical things.',
+        items: [
+          'First, the compliment is not flattery. If someone you have not seen in three months says you look different, you look different. Outside observers are usually directionally correct even when they are polite about the magnitude.',
+          'Second, your mirror is the unreliable narrator in this story. Photos every two weeks, in the same spot, are more honest than daily mirror checks, because photos flatten the continuous exposure into comparable snapshots.',
+          'Third, the delay in your own perception is normal and expected. Expect the head to run about three to six months behind the body. This is often cited by people who work with post-weight-loss body image professionally, though the exact timing varies.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why The Delay Exists At All',
+        paragraphs: [
+          'Self-image seems to be anchored by something slower than visual input. Some combination of memory of a body, emotional relationship with that body, and habitual self-description continues to run after the body has moved on.',
+          'A person who spent five years being a specific size does not update that internal map in a week of scale changes. The internal map updates gradually, usually pulled forward by external evidence: compliments, photos, clothes fitting differently, a stranger asking a new question.',
+          'That is why the outside world is part of the recalibration. Not in a shallow way. In a functional way.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What To Do With This',
+        paragraphs: [
+          'Stop asking the mirror for validation it cannot yet give. The mirror is running on old data.',
+          'Start collecting external evidence without chasing it. Photos from a consistent setup. Comments people spontaneously offer, noted without fishing. Clothes that fit or do not fit. Your gait. Your stamina. Your resting heart rate.',
+          'When the internal map and the external evidence disagree, the evidence is more current than the map.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Uncomfortable Part',
+        paragraphs: [
+          'You will reach a point where other people treat you as a person with your new body, and you still feel like a person with your old body, and this gap will be strange. It may last months.',
+          'That is part of the work. It is not a sign you are not changing. It is a sign you have already changed and the self-image has not finished catching up.',
+          'Give it time.',
+        ],
+      },
+    ],
+  },
 ];
 
 export function getAllBlogPosts() {
