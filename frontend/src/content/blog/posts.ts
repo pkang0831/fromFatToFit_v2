@@ -3015,6 +3015,469 @@ const posts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'the-first-week-of-any-diet-is-the-most-misleading-one',
+    title: 'The First Week of Any Diet Is the Most Misleading One',
+    description:
+      'Week one numbers are not the diet working. They are water, glycogen, and novelty. The honest reading starts around week three.',
+    socialDescription:
+      'Week one is calibration. Week two is the first real read. Week three is when the diet starts telling the truth.',
+    date: '2026-05-19',
+    readingTime: '6 min read',
+    tags: ['Dieting', 'Weight Loss', 'Water Weight', 'Patience'],
+    heroImage: '/founder/start.jpg',
+    heroAlt: 'Founder at the earliest baseline of the transformation, the kind of starting point every diet actually has',
+    deck:
+      'The first week is where people decide whether the plan is working. That decision is almost always based on the wrong evidence.',
+    ctaTitle: 'Wait for week three.',
+    ctaBody:
+      'The real diet begins around day 15. A rolling average makes the glycogen drop and the honest data point co-exist without emotional whiplash.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'The first week is where people decide whether the plan is working.',
+          'That decision is almost always based on the wrong evidence.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Week One Usually Shows',
+        paragraphs: [
+          'A fast drop. 1.5 to 4 kg for many people, depending on starting weight and how dramatic the change in eating is.',
+          'This is why "lose 5 kg in a week" content sells. The number is real. The cause is not what people assume.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'What Week One Is Actually Measuring',
+        intro: 'Four things, roughly in this order of size.',
+        items: [
+          'Water. When you reduce calories, especially carbs, your body releases stored glycogen. Each gram of glycogen releases about 3 grams of bound water. A few hundred grams of glycogen lost over a week can translate into 1 to 2 kg of scale weight, none of it fat.',
+          'Salt balance. New eating patterns usually mean less processed food, which often means less sodium. Less sodium means less water retention. Another 0.5 to 1 kg of scale movement, none of it fat.',
+          'Bowel contents. A change in eating changes digestion speed. For many people, the first week temporarily empties out a backlog.',
+          'Fat loss. Actual fat loss in week one, for most people in a reasonable deficit, is 0.2 to 0.5 kg. That is the part of the first-week number that represents what the diet is actually trying to do.',
+        ],
+        outro:
+          'So a 3 kg drop in week one might be 0.3 kg fat and 2.7 kg water and digestive volume. The ratio reverses in week three.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why This Matters',
+        paragraphs: [
+          'Because week two looks like the diet stopped working, and it did not.',
+          'Week two usually shows 0.3 to 0.8 kg loss, sometimes nothing, sometimes a slight upward blip. People who were anchored to the 3 kg number in week one now read 0.3 kg as failure. They tighten the diet, eat less, add cardio, or quit.',
+          'None of these responses match what the body is actually doing. The body is now in a phase where water and glycogen have stabilized, so what moves is mostly fat, and fat moves slowly.',
+          'Week two is the first honest data point. Most people read it as bad news.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What The Early Weeks Really Are',
+        paragraphs: [
+          'Week one is calibration. Water, salt, glycogen reshuffle.',
+          'Week two is the first real read.',
+          'Week three is when the diet starts telling the truth. By week three, water effects have stabilized, the new eating pattern is more consistent, and the scale reflects actual body composition change.',
+          'The entire first week, while dramatic, is almost useless for evaluating whether the plan works.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'What To Actually Do With Week One',
+        items: [
+          'Expect a fast drop. Do not use it as evidence of anything except that your body changed its fluid balance.',
+          'Do not lock in a weekly loss target based on week one.',
+          'Do not expand the deficit when week two slows.',
+          'Do not celebrate as if the diet is done.',
+          'Do not weigh daily in week one and read each day as feedback. You are looking at fluid noise. You will be misled.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Longer Frame',
+        paragraphs: [
+          'Almost every serious transformation across research and coaching contexts follows the same pattern. Fast first week. Slow second week. Honest third week. The people who get to month three are the ones who knew week one was mostly water before it happened.',
+          'If the first week was dramatic, you are probably on a reasonable plan.',
+          'If the second week is slow, that is also the plan working.',
+          'The real diet begins around day 15.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'losing-weight-is-not-the-same-as-getting-leaner',
+    title: 'Losing Weight Is Not the Same as Getting Leaner',
+    description:
+      'You can lose weight and not get leaner. You can get leaner and not lose weight. The scale is telling you one thing, the mirror is telling you another.',
+    socialDescription:
+      'Getting leaner is a composition story told over months. Losing weight is a mass story told over weeks. Not the same number. Not the same clock.',
+    date: '2026-05-20',
+    readingTime: '6 min read',
+    tags: ['Body Composition', 'Scale', 'Recomposition', 'Weight Loss'],
+    heroImage: '/founder/body-composition-proof-20251221.jpg',
+    heroAlt: 'Founder image showing the difference between scale number and actual composition',
+    deck:
+      'At one point in the middle of my transformation, I weighed the same for eight weeks. My clothes stopped fitting anyway.',
+    ctaTitle: 'Track composition, not just mass.',
+    ctaBody:
+      'If you are only ever reading the scale, you are reading one chapter of a book. Weight, measurements, and photos in parallel answer different questions.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'At one point in the middle of my transformation, I weighed the same for eight weeks.',
+          'My clothes stopped fitting anyway.',
+          'Looser around the waist. Tighter around the shoulders. The same number. A different body.',
+          'I spent those eight weeks mostly frustrated because I did not yet understand what was happening.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Two Lines Do Not Always Move Together',
+        paragraphs: [
+          'Weight loss and getting leaner are two different processes. They usually overlap. They do not have to.',
+          'Weight is total mass. Water, bone, organ, muscle, fat, food in transit. It is one number.',
+          'Leanness is the ratio of fat to non-fat tissue. Specifically, it is usually about body fat percentage and how the fat distributes visually.',
+          'You can lose weight and get less lean (if you lose mostly muscle). You can stay the same weight and get more lean (if you lose fat and gain muscle). You can even gain weight and look visibly leaner, if the gain is muscle and the loss is fat.',
+          'The scale cannot tell these apart. It weighs everything.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why The Scale Misses This',
+        paragraphs: [
+          'The scale is measuring total mass. It does not care what the mass is made of.',
+          'If you lose 2 kg of fat and gain 1 kg of muscle, the scale moves 1 kg. You are a different body. The scale is telling you that one week barely happened.',
+          'This is why some people stop losing weight and notice their clothes still changing. Their composition is still shifting. The scale is just the wrong instrument for that week.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Did Not Notice For A While',
+        paragraphs: [
+          'During the eight-week plateau, I kept weighing daily and treating the flat number as the story.',
+          'I was also training consistently. Four days a week. Lifting. Eating roughly at maintenance.',
+          'What was actually happening was body recomposition. Slow fat loss. Slow muscle gain. The two canceling out on the scale.',
+          'By week nine, I did a body composition test and realized the fat mass had dropped by about 2.5 kg and the lean mass had risen. At the same scale number.',
+          'None of my daily weigh-ins had told me this. All my clothing had.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Matters For Most People',
+        paragraphs: [
+          'Unless you are an athlete, body composition matters more than weight. For most people, the actual goal is not weigh less. The actual goal is look and feel leaner. Those goals are related but not identical.',
+          'A 70 kg person at 25 percent body fat looks softer than a 72 kg person at 18 percent body fat. The heavier one is the leaner one.',
+          'People who only track scale weight for years sometimes end up at their target number and still feel soft, because they lost more muscle than fat on the way down. This is most common with severe cardio-only dieting.',
+          'People who track the combined picture, slowly, over months, tend to arrive at a body they actually wanted.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'How To Actually Track It',
+        intro: 'You do not need a lab.',
+        items: [
+          'Photos every two weeks, same spot, same lighting, same clothing. Looking at groups of four.',
+          'Tape measurements every two weeks. Waist, chest, hip, thigh, arm. This picks up composition changes the scale misses.',
+          'Clothing as evidence. Same jeans, same shirt, every two weeks. Fit tells the truth.',
+          'The scale once a week as a reference point, not the whole story.',
+        ],
+        outro:
+          'If you only use one of these, use photos. If you use two, use photos and measurements. The scale alone is the least useful of the four.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Line I Wish I Had Heard Earlier',
+        paragraphs: [
+          'Getting leaner is a composition story told over months.',
+          'Losing weight is a mass story told over weeks.',
+          'They are not the same number and they are not the same clock.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'why-people-gain-more-back-than-they-lost',
+    title: 'Why People Gain More Back Than They Lost',
+    description:
+      'The rebound is not lack of discipline. It is a predictable response to how most people diet. Here is what actually happens.',
+    socialDescription:
+      'The scariest version of a rebound is not the weight itself. It is the conclusion people draw from it.',
+    date: '2026-05-21',
+    readingTime: '7 min read',
+    tags: ['Maintenance', 'Rebound', 'Yo-Yo Dieting', 'Weight Loss'],
+    heroImage: '/founder/long-game-founder-20251221.jpg',
+    heroAlt: 'Founder image representing the long-game discipline that prevents rebound',
+    deck:
+      'Most people who lose significant weight gain more back than they lost within a few years. The usual explanation is laziness. That explanation is mostly wrong. Or at least, it skips the real mechanism.',
+    ctaTitle: 'Maintenance is the diet.',
+    ctaBody:
+      'The fix is rarely more willpower. The fix is treating the first year at the new weight as the real program. Start building evidence now.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'It is one of the worst-kept secrets in dieting.',
+          'Most people who lose a significant amount of weight gain more back than they lost within a few years.',
+          'The usual explanation is laziness, weakness, lack of discipline, slipping back into old habits.',
+          'That explanation is mostly wrong. Or at least, it skips the real mechanism.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Myth',
+        paragraphs: [
+          'The common story goes like this: you lost weight with willpower, then you ran out of willpower, then you regained. So the fix is more willpower.',
+          'This framing ignores what the body actually does during and after aggressive dieting.',
+          'It also ignores that rebound is not random. It is a predictable response to how most people diet. Knowing the mechanism is the first step to not being the next statistic.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Three Things Collide After A Diet Ends',
+        paragraphs: [
+          'First, maintenance calories drop. Your body, at a lower weight, simply requires fewer calories to maintain itself. A deficit that produced weight loss at 85 kg is a maintenance intake at 75 kg. If you return to your old eating pattern after losing weight, you are often eating a surplus without realizing it.',
+          'Second, appetite recalibrates upward. Signals that regulate hunger and fullness tend to shift during weight loss in ways that raise appetite above the new caloric need for a period after the diet ends. This window can last weeks to months. During that window, you are objectively hungrier than your body actually needs to eat.',
+          'Third, NEAT tends to drop. Non-exercise activity, the fidgeting, walking, standing, small movements across the day, often decreases during and after aggressive dieting. This is largely unconscious. You are not choosing to move less. Your body is running a quieter version of itself.',
+          'These three combine into a setup where eating normally at the new weight produces steady weight gain, while appetite is also telling you to eat a little more than normal.',
+          'The rebound is not a character failure. It is the three lines crossing at once.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why Rebound Often Exceeds The Loss',
+        paragraphs: [
+          'This is the part that makes people despair.',
+          'When the body regains, it often overshoots the previous weight. There are several proposed reasons. None are fully settled. A few plausible ones.',
+          'The signals that were defending the old weight do not shut off at the old weight. They may keep pushing past it until the body is certain it is safe.',
+          'Metabolic and fat-storage patterns can be altered after aggressive dieting, potentially making re-gained weight more likely to store as fat than rebuild as muscle.',
+          'Psychological rebound plays a role. After months of restriction, food often tastes and feels more intense. That intensity alone can push intake above what the body needs for a while.',
+          'The combined effect is that many people regain past their starting weight rather than just back to it.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'What This Is Not',
+        intro: 'This is not a reason to avoid losing weight. It is a reason to lose weight in a way that does not set up the rebound. Specifically:',
+        items: [
+          'Lose slower. More aggressive deficits produce more dramatic rebounds on average.',
+          'Do not diet by removing muscle. Train while you diet. Muscle changes the math on both ends.',
+          'Treat maintenance as a phase of the program, not a finish line. The first six to twelve months at the new weight is the hardest part, not an end state.',
+          'Expect the appetite signal to run louder than your caloric need for weeks. Plan for it instead of panicking over it.',
+        ],
+        outro:
+          'None of these are motivational slogans. They change the outcome.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Part People Miss',
+        paragraphs: [
+          'The scariest version of a rebound is not the weight itself. It is the conclusion people draw from it.',
+          'After regaining more than they lost, most people decide they are uniquely broken. They decide their body refuses to change. They decide the next diet must be harder, faster, more extreme.',
+          'Then they diet harder. Rebound worse. Regain more.',
+          'The pattern is visible in large population studies. The same people cycle through it for decades. Each cycle is worse than the last, because the compensations compound.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Actually Breaks The Pattern',
+        paragraphs: [
+          'A slower loss, followed by a long maintenance phase that is treated as the real skill.',
+          'Most people who hold weight off for more than five years did not diet harder than people who rebounded. They stayed in maintenance longer before loosening. They ate with structure during the vulnerable early-maintenance window. They accepted that appetite would be loud for a while and did not interpret that as failure.',
+          'The fix is rarely more willpower.',
+          'The fix is understanding that the diet-is-done-now-I-can-relax frame is the thing that creates the rebound.',
+          'Maintenance is the diet. The losing part was just the prequel.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'how-do-i-eat-normally-at-social-events',
+    title: 'How Do I Eat Normally at Social Events',
+    description:
+      'A practical Q&A on how to eat at dinners, parties, and events without overcompensating before or after. Most of the damage is not at the event.',
+    socialDescription:
+      'The under-eating before the dinner and the over-correcting after the dinner are the threat. The dinner itself is almost never the problem.',
+    date: '2026-05-22',
+    readingTime: '6 min read',
+    tags: ['Social Eating', 'Food Structure', 'Dieting', 'Restaurants'],
+    heroImage: '/founder/sleep-reflective-window-20241217.jpg',
+    heroAlt: 'Founder reflective image representing a calm approach to food outside the usual routine',
+    deck:
+      'Most people think a dinner out is where the diet breaks. Usually, the dinner is the smallest part of the problem. The damage happens before and after, not at it.',
+    ctaTitle: 'Eat normally around the event.',
+    ctaBody:
+      'Log the week, not the meal. If you can see the week in shape, one big dinner stops feeling like the center of gravity it was never really at.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'Most people think a dinner out is where the diet breaks.',
+          'Usually, the dinner is the smallest part of the problem.',
+          'The damage usually happens before and after the event, not at it.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Should I Eat Less During The Day To Save Up For Dinner?',
+        paragraphs: [
+          'No.',
+          'This is the single most common mistake around social eating. It is also the one that creates the biggest overshoot at the event.',
+          'When you undereat during the day, you arrive at the dinner hungry, under-fueled, and with your appetite cranked up. That is the worst possible state for making food choices around a large spread of calorie-dense options.',
+          'You will eat more, faster, and feel less full than if you had eaten normally during the day. You also risk drinking on an emptier stomach, which makes the whole thing worse.',
+          'Eat your normal meals that day. Protein at each of them. Normal breakfast. Normal lunch. Arrive at the dinner not-hungry, not-full.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Should I Eat A Protein Bar Before Going Out?',
+        paragraphs: [
+          'If the event is later than your usual dinner time, yes. A small, protein-forward snack 60 to 90 minutes before arriving changes the dynamic.',
+          'It is not about filling up. It is about not arriving starved.',
+        ],
+      },
+      {
+        type: 'list',
+        title: 'Q: What Should I Actually Do At The Event?',
+        intro: 'Three things, in rough order.',
+        items: [
+          'Eat slower than you normally would at home. Social eating is a marathon, not a sprint. You want your fullness signal to arrive while the food is still in front of you, not 30 minutes after.',
+          'Start with vegetables, salad, or protein. Not because carbs are bad. Because starting there moderates how hungry your blood sugar is by the time dessert shows up.',
+          'Drink water between drinks, if you are drinking. Alcohol suppresses hunger-regulation signals and tends to make the whole night feel less metered.',
+        ],
+        outro:
+          'That is most of it. There is no secret move.',
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: Should I Avoid Certain Foods?',
+        paragraphs: [
+          'Not categorically. The avoidance frame is usually what wrecks the event.',
+          'If you decide bread is forbidden and then eat bread, your brain often reads that as the diet is over, eat everything. If you decide bread is fine and you eat one piece, your brain reads it as I ate bread and stops there.',
+          'The foods that trigger a specific person vary. But the general rule is avoid the frame where one food equals failure. That frame is more dangerous than any of the foods.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: What About After The Event?',
+        paragraphs: [
+          'This is where most of the actual damage happens. Three patterns wreck the next week.',
+          'Pattern one: drastic morning-after restriction. Skipping breakfast, cutting calories hard, trying to cancel the dinner out. This almost always leads to a second overeat later that day.',
+          'Pattern two: giving up on the week. I already messed up Friday, so this weekend does not count. Most people turn one event into three days.',
+          'Pattern three: obsessive scale-checking. Weighing every morning post-event and panicking at water retention that takes three to five days to leave.',
+          'The next morning, eat your normal breakfast. Drink water. Do not weigh yourself for three to five days. Return to your plan at lunch as if the event was last week.',
+          'The event is absorbed into the week. The total does not change, and you do not need to do anything dramatic.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: How Often Can I Do Social Events Without Losing Progress?',
+        paragraphs: [
+          'More than most people think.',
+          'One event a week, handled with the above approach, usually has no meaningful effect on a fat-loss phase. Two events a week starts to compress the deficit. Three events a week is effectively a maintenance phase, which is fine if that is what you want that week.',
+          'The events themselves are not the threshold. The threshold is whether the days around them return to the plan.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Q: What If I Know My Next Event Is Going To Be Huge?',
+        paragraphs: [
+          'Treat that specific day as a planned high-calorie day. Eat normally before. Eat normally at breakfast and lunch. Go to the event. Eat what you want. Stop when done.',
+          'Do not diet for two days before to make room. Do not diet for three days after to compensate. Both responses generate more damage than the event itself.',
+          'One high day in a week of normal eating is absorbed. Six days of anxiety around one meal is not.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Quiet Summary',
+        paragraphs: [
+          'The dinner is not the threat.',
+          'The under-eating before the dinner and the over-correcting after the dinner are the threat.',
+          'Eat normally around the event. Eat normally at the event. Eat normally the day after.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'the-kind-of-person-who-stays-at-their-goal-weight',
+    title: 'The Kind of Person Who Stays at Their Goal Weight',
+    description:
+      'Most people who hold weight off for years share a few quiet traits. None of them are what motivational content says.',
+    socialDescription:
+      'The kind of person who holds weight off is not a more disciplined version of the person who loses it. It is a quieter version.',
+    date: '2026-05-23',
+    readingTime: '6 min read',
+    tags: ['Maintenance', 'Founder Story', 'Long Game', 'Weight Loss'],
+    heroImage: '/founder/final-portrait.jpg',
+    heroAlt: 'Founder portrait representing a calmer, post-transformation steady state',
+    deck:
+      'I have met people who held their weight off for five, ten, fifteen years. They do not look like the motivational content suggests. They seem, most of the time, a little bored.',
+    ctaTitle: 'Become the ordinary week.',
+    ctaBody:
+      'If your longest stretch of stable weight was 4 weeks, the goal is to build 52. The ordinary week is what separates losing weight from keeping it off.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'I have met people who held their weight off for five, ten, fifteen years.',
+          'They do not look like the motivational content suggests.',
+          'They do not post. They do not moralize food. They do not seem to be working that hard. They seem, most of the time, a little bored.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What They Do Not Look Like',
+        paragraphs: [
+          'They do not weigh themselves daily with emotional stakes. Some of them never weigh at all. A few weigh twice a month, in the morning, and note the number without reacting to it.',
+          'They do not talk about their diet at meals. They order what they want, eat until they are done, stop. They do not describe the calories at the table.',
+          'They do not train for six days a week as if their body is a punishment project. Most of them train three or four times a week, for years, without drama. The training is just part of the week. It is not heroic.',
+          'They do not look tired. They do not look deprived. They do not look like people who beat their bodies into submission. That is not the pattern.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What They Actually Look Like',
+        paragraphs: [
+          'A few things I have noticed, across different people with different body types.',
+          'They eat similar things most days. Not every day. Most days. Breakfast looks like breakfast. Lunch looks like lunch. The variance is at dinner, on weekends, or during travel. The base week has a shape.',
+          'They stopped chasing goal weight. They are at some weight that feels sustainable, and they treat that weight as my weight now, not as the current stop on the way to a lower number. The chase ended. That ending seems to matter more than anyone told me.',
+          'They have an emergency protocol. If they drift up 2 or 3 kg over a period, they tighten for a couple of weeks without drama and return to their baseline. The tightening is not a diet. It is a correction.',
+          'They do not dramatize food. Pizza is pizza. Salad is salad. Dessert is dessert. No food is a moral event.',
+          'They get enough sleep. Not perfect sleep. Enough.',
+          'They walk more than most people realize. Usually because of lifestyle, not program.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Noticed They Were Not Doing',
+        paragraphs: [
+          'They were not using willpower every day. The lives they had built did not require the kind of willpower most diets demand. The defaults were already close enough that the week worked on autopilot.',
+          'They were not running on inspiration. I never met a ten-year-maintainer who talked about their body with any urgency. The urgency phase was over a long time ago.',
+          'They were not waiting for a finish line. There was no finish line. The day I sat across from them looked basically like last Tuesday.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What This Means For The Middle Of A Transformation',
+        paragraphs: [
+          'If you are currently in the loss phase of something, the version of you that maintains will not look like the version of you that is losing.',
+          'The losing version is engaged, focused, slightly dramatic, thinking about food more than usual. The maintaining version is quieter. Closer to bored. Closer to default.',
+          'The transition is where most people quit. Because the engagement level that was helping you lose weight is not the engagement level that lets you maintain. Lowering the engagement feels like slacking. It is not. It is the job of maintenance.',
+          'The kind of person who holds weight off is not a more disciplined version of the person who loses it. It is a quieter version.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Am Trying To Become',
+        paragraphs: [
+          'I am not there yet. I am still too interested in my own body. Too aware of the graph. Too alert to the mirror.',
+          'But I know what the destination looks like now. It looks like someone I would not recognize as a fitness person, eating ordinary food with ordinary people, in an ordinary week.',
+          'That is the goal.',
+          'Not the photo. The ordinary week.',
+        ],
+      },
+    ],
+  },
 ];
 
 export function getAllBlogPosts() {
