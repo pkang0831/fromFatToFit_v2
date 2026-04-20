@@ -1079,7 +1079,7 @@ async def segment_body(
         return SegmentResponse(**result)
 
     except Exception as e:
-        if isinstance(e, (ValueError, IndexError, json.JSONDecodeError)):
+        if isinstance(e, (ValueError, IndexError, json.JSONDecodeError, RuntimeError)):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Body segmentation failed for this image. Try a clearer photo or a different click point.",
