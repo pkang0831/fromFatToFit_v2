@@ -500,6 +500,9 @@ export default function HomePage() {
                   </div>
 
                   <div className="space-y-3">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary dark:text-white/36">
+                      Next action
+                    </p>
                     <button
                       type="button"
                       onClick={handlePickWeeklyPhoto}
