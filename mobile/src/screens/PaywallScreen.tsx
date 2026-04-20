@@ -45,6 +45,8 @@ type PressureCard = {
   tone: 'warning' | 'neutral';
 };
 
+const DEFAULT_PREMIUM_PRICE_ID = 'price_1TGuQACIAtieotxAy7HsfRhq';
+
 export default function PaywallScreen({ navigation }: any) {
   const { isPremium, usageLimits, loading, error, refreshLimits } = useSubscription();
   const [restoring, setRestoring] = useState(false);
@@ -52,7 +54,7 @@ export default function PaywallScreen({ navigation }: any) {
   const [billingLoading, setBillingLoading] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
   const [billingPortalAvailable, setBillingPortalAvailable] = useState(false);
-  const premiumPriceId = process.env.EXPO_PUBLIC_STRIPE_PREMIUM_PRICE_ID || '';
+  const premiumPriceId = process.env.EXPO_PUBLIC_STRIPE_PREMIUM_PRICE_ID || DEFAULT_PREMIUM_PRICE_ID;
   const appReturnUrl = Linking.createURL('paywall');
 
   const featureRows = useMemo<FeatureRow[]>(() => {
