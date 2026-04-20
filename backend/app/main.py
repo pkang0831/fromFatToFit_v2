@@ -84,7 +84,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 "img-src 'self' data: blob: https:; "
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ajax.googleapis.com; "
                 "style-src 'self' 'unsafe-inline'; "
                 "connect-src 'self' https://*.supabase.co https://api.stripe.com https://api.openai.com https://api.replicate.com; "
                 "frame-src https://js.stripe.com;"

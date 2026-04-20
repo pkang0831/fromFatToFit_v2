@@ -5,7 +5,7 @@ import { WebView } from 'react-native-webview';
 import { colors, typography } from '../theme';
 
 const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/$/, '');
-const VIEWER_URL = `${API_URL}/assets/human-body-preview`;
+const VIEWER_URL = `${API_URL}/assets/human-body-preview?v=20260420cspfix`;
 
 interface HologramPreviewProps {
   style?: StyleProp<ViewStyle>;
@@ -67,6 +67,7 @@ export default function HologramPreview({ style }: HologramPreviewProps) {
         mixedContentMode="always"
         javaScriptEnabled
         domStorageEnabled
+        cacheEnabled={false}
         scrollEnabled={false}
         overScrollMode="never"
         bounces={false}

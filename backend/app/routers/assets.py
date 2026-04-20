@@ -223,5 +223,5 @@ async def get_human_body_preview() -> HTMLResponse:
   </body>
 </html>
         """.strip(),
-        headers={"Cache-Control": "public, max-age=300"},
+        headers={"Cache-Control": "no-store"},
     )
