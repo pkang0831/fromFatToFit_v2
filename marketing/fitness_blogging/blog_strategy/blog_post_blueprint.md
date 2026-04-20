@@ -48,3 +48,16 @@ Structure used for all owned-site drafts since post 1.
 ## CTA
 - Owned-site: one sentence mentioning Devenira app near the close.
 - Medium variant: omit or soften to URL only.
+
+## Pre-Flight Checklist (mandatory before marking `publish_ready`)
+
+Run `writer_pre_flight_class_checklist.md` before saving any draft. It catches:
+- claim-class undercalibration (Rule 2 corrective, introduced post-batch-13)
+- banned phrases
+- broken internal-link slugs
+- broken hero/inline image paths
+- 5-adjacent hero rule violations
+- image-pool saturation (Rule T2)
+- intra-batch hero/inline cross-role conflicts (Rule 8)
+
+The reviewer subagent assumes this checklist has been run. Skipping it generates avoidable revise verdicts.

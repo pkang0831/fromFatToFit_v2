@@ -1,28 +1,89 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
+  ActivityIndicator,
   Alert,
   Image,
-  ActivityIndicator,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { colors, typography, spacing, borderRadius } from '../theme';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import { borderRadius, colors, spacing, typography } from '../theme';
 import { weeklyCheckinsApi, WeeklyCheckinAnalysis } from '../services/api';
 
 export default function BodyScanScreen({ navigation }: any) {
+  const { checkFeatureAccess, isPremium } = useSubscription();
   const [asset, setAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<WeeklyCheckinAnalysis | null>(null);
+  const [latestResult, setLatestResult] = useState<WeeklyCheckinAnalysis | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [loadingLatest, setLoadingLatest] = useState(true);
+  const bodyScanAccess = checkFeatureAccess('body_fat_scan');
+  const accessBlocked = !isPremium && !bodyScanAccess.allowed;
+  const displayResult = result ?? latestResult;
+
+  useEffect(() => {
+    void loadLatestResult();
+  }, []);
+
+  const loadLatestResult = async () => {
+    setLoadingLatest(true);
+    try {
+      const { data } = await weeklyCheckinsApi.getLatest();
+      setLatestResult(data);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const detail = error?.response?.data?.detail;
+      if (
+        status === 404 ||
+        (typeof detail === 'string' && detail.toLowerCase().includes('no weekly check-ins'))
+      ) {
+        setLatestResult(null);
+      }
+    } finally {
+      setLoadingLatest(false);
+    }
+  };
 
   const regionalHighlights = useMemo(
-    () => (result?.regional_visualization ?? []).slice(0, 3),
-    [result]
+    () => (displayResult?.regional_visualization ?? []).slice(0, 4),
+    [displayResult],
   );
+  const statusTone =
+    displayResult?.weekly_status === 'improved'
+      ? colors.success
+      : displayResult?.weekly_status === 'regressed'
+        ? colors.error
+        : displayResult?.weekly_status === 'low_confidence'
+          ? colors.warning
+          : colors.primary;
+  const statusLabel =
+    displayResult == null
+      ? 'Awaiting proof'
+      : displayResult.is_first_checkin
+        ? 'Baseline saved'
+        : displayResult.weekly_status.replace('_', ' ');
+  const stageLabel = asset ? 'Photo ready' : 'Need photo';
+  const outputLabel = displayResult ? 'Proof saved' : asset ? 'Ready to analyze' : 'No result yet';
+  const confidenceLabel = displayResult ? `${Math.round(displayResult.comparison_confidence * 100)}%` : '--';
+  const frameLabel = asset ? (asset.assetId ? 'Library frame' : 'Fresh capture') : 'No frame yet';
+  const highlightsCountLabel = displayResult ? `${regionalHighlights.length}` : '--';
+  const captureGuide = 'Front-facing · Full body · Simple light';
+  const captureMetrics = displayResult
+    ? [
+        { key: 'stage', label: 'Stage', value: stageLabel, small: true },
+        { key: 'output', label: 'Output', value: outputLabel, small: true },
+        { key: 'confidence', label: 'Confidence', value: confidenceLabel, small: false },
+        { key: 'highlights', label: 'Highlights', value: highlightsCountLabel, small: false },
+      ]
+    : [
+        { key: 'stage', label: 'Stage', value: stageLabel, small: true },
+        { key: 'output', label: 'Output', value: outputLabel, small: true },
+      ];
 
   const selectFromLibrary = async () => {
     const response = await ImagePicker.launchImageLibraryAsync({
@@ -62,6 +123,11 @@ export default function BodyScanScreen({ navigation }: any) {
   };
 
   const analyzeWeeklyCheckin = async () => {
+    if (accessBlocked) {
+      navigation.navigate('Paywall');
+      return;
+    }
+
     if (!asset?.base64) {
       Alert.alert('No photo selected', 'Choose or capture a full-body image first.');
       return;
@@ -75,6 +141,7 @@ export default function BodyScanScreen({ navigation }: any) {
         ownership_confirmed: true,
       });
       setResult(data);
+      setLatestResult(data);
     } catch (error: any) {
       setAnalysisError(error?.response?.data?.detail ?? 'Please try again with a clearer full-body photo.');
     } finally {
@@ -84,122 +151,238 @@ export default function BodyScanScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Weekly check-in</Text>
-      <Text style={styles.subtitle}>
-        Capture one clean full-body photo. We compare it with your last check-in and turn it into a weekly proof update.
-      </Text>
-
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>What works best</Text>
-        <Text style={styles.summaryText}>Front-facing. Full body visible. Good natural light. No editing.</Text>
-        <View style={styles.summaryPills}>
-          <View style={styles.summaryPill}><Text style={styles.summaryPillText}>Front-facing</Text></View>
-          <View style={styles.summaryPill}><Text style={styles.summaryPillText}>Full body</Text></View>
-          <View style={styles.summaryPill}><Text style={styles.summaryPillText}>Weekly proof</Text></View>
+      <View style={styles.captureCard}>
+        <View style={styles.captureHeader}>
+          <View style={styles.captureHeaderCopy}>
+            <Text style={styles.captureEyebrow}>WEEKLY CHECK-IN</Text>
+            <Text style={styles.title}>Capture one clean proof.</Text>
+            <Text style={styles.subtitle}>
+              One clean frame against your last check-in, with a direction read you can use.
+            </Text>
+          </View>
         </View>
+        <View style={[styles.statusPill, styles.captureStatusPill, { backgroundColor: `${statusTone}16`, borderColor: `${statusTone}45` }]}>
+          <Text style={[styles.statusPillText, { color: statusTone }]}>{statusLabel}</Text>
+        </View>
+
+        <View style={styles.captureMetricGrid}>
+          {captureMetrics.map((item) => (
+            <View key={item.key} style={styles.captureMetricCard}>
+              <Text style={styles.captureMetricLabel}>{item.label}</Text>
+              <Text style={item.small ? styles.captureMetricValueSmall : styles.captureMetricValue}>
+                {item.value}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.captureGuideBar}>
+          <Text style={styles.captureGuideText}>{captureGuide}</Text>
+        </View>
+
+        {accessBlocked ? (
+          <View style={styles.limitCard}>
+            <Text style={styles.limitTitle}>Free weekly proof is capped right now.</Text>
+            <Text style={styles.limitText}>
+              You have used the free weekly check-ins for this cycle. Upgrade to keep proof open.
+            </Text>
+            <TouchableOpacity style={styles.limitButton} onPress={() => navigation.navigate('Paywall')}>
+              <Text style={styles.limitButtonText}>View Premium</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+          {analysisError ? (
+            <View style={styles.errorCard}>
+              <Text style={styles.errorLabel}>Could not analyze this check-in</Text>
+              <Text style={styles.errorText}>{analysisError}</Text>
+            </View>
+          ) : null}
+
+        <View style={styles.stageCard}>
+          <View style={styles.stageHeader}>
+            <View>
+              <Text style={styles.stageLabel}>CURRENT FRAME</Text>
+              <Text style={styles.stageHeaderTitle}>{asset ? frameLabel : 'Waiting for a clean frame'}</Text>
+            </View>
+            <View style={styles.stageStatusPill}>
+              <Text style={styles.stageStatusPillText}>{asset ? 'Ready' : 'Waiting'}</Text>
+            </View>
+          </View>
+          <View style={styles.stageMetaRow}>
+            <Text style={styles.stageMetaText}>{captureGuide}</Text>
+          </View>
+          {asset ? (
+            <Image source={{ uri: asset.uri }} style={styles.previewImage} />
+          ) : (
+            <View style={styles.placeholder}>
+              <Text style={styles.placeholderTitle}>No photo selected</Text>
+              <Text style={styles.placeholderText}>
+                Capture or import one clean full-body frame to start this week’s proof.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.actionsRow}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.primaryActionButton]}
+            onPress={capturePhoto}
+            disabled={loading}
+          >
+            <Text style={[styles.actionButtonText, styles.primaryActionButtonText]}>Take photo</Text>
+            <Text style={[styles.actionButtonHint, styles.primaryActionButtonHint]}>Use camera</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionButton} onPress={selectFromLibrary} disabled={loading}>
+            <Text style={styles.actionButtonText}>Choose photo</Text>
+            <Text style={styles.actionButtonHint}>From library</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.analyzeButton, (!asset || loading || accessBlocked) && styles.disabledButton]}
+          onPress={analyzeWeeklyCheckin}
+          disabled={!asset || loading || accessBlocked}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.textOnPrimary} />
+          ) : (
+            <>
+              <Text style={styles.analyzeButtonText}>
+                {accessBlocked ? 'Upgrade to keep weekly proof open' : 'Analyze weekly check-in'}
+              </Text>
+              <Text style={styles.analyzeButtonSubtext}>
+                {accessBlocked ? 'Open premium access' : 'Run this week’s proof read'}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
 
-      {asset ? (
-        <Image source={{ uri: asset.uri }} style={styles.previewImage} />
-      ) : (
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderTitle}>No photo selected</Text>
-          <Text style={styles.placeholderText}>
-            Tap the camera or pick a photo to start your weekly check-in.
-          </Text>
-        </View>
-      )}
-
-      <View style={styles.actions}>
-        <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={capturePhoto} disabled={loading}>
-          <Text style={[styles.buttonText, styles.primaryButtonText]}>Take photo</Text>
-          <Text style={styles.buttonSubtext}>Camera capture</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={selectFromLibrary} disabled={loading}>
-          <Text style={styles.buttonText}>Choose from library</Text>
-          <Text style={styles.buttonSubtext}>Import progress photo</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.analyzeButton, (!asset || loading) && styles.disabledButton]}
-        onPress={analyzeWeeklyCheckin}
-        disabled={!asset || loading}
-      >
-        {loading ? (
-          <ActivityIndicator color={colors.textOnPrimary} />
-        ) : (
-          <>
-            <Text style={styles.analyzeButtonText}>Analyze weekly check-in</Text>
-            <Text style={styles.analyzeButtonSubtext}>This uses the production weekly check-in pipeline</Text>
-          </>
-        )}
-      </TouchableOpacity>
-
-      {analysisError && (
-        <View style={styles.errorCard}>
-          <Text style={styles.errorLabel}>Could not analyze this check-in</Text>
-          <Text style={styles.errorText}>{analysisError}</Text>
-        </View>
-      )}
-
-      {result ? (
-        <View style={styles.resultCard}>
-          <View style={styles.resultHeader}>
+      <View style={styles.resultCard}>
+        <View style={styles.resultHeader}>
+          <View>
+            <Text style={styles.resultEyebrow}>LATEST RESULT</Text>
+            <Text style={styles.resultTitle}>
+              {displayResult ? 'This week’s proof read' : 'Your next proof read will land here.'}
+            </Text>
+          </View>
+          {displayResult ? (
             <View
               style={[
                 styles.statusBadge,
                 {
                   backgroundColor:
-                    result.weekly_status === 'improved'
+                    displayResult.weekly_status === 'improved'
                       ? `${colors.success}22`
-                      : result.weekly_status === 'regressed'
+                      : displayResult.weekly_status === 'regressed'
                         ? `${colors.error}22`
                         : `${colors.primary}22`,
                   borderColor:
-                    result.weekly_status === 'improved'
+                    displayResult.weekly_status === 'improved'
                       ? colors.success
-                      : result.weekly_status === 'regressed'
+                      : displayResult.weekly_status === 'regressed'
                         ? colors.error
                         : colors.primary,
                 },
               ]}
             >
-              <Text style={styles.statusBadgeText}>{result.weekly_status.replace('_', ' ')}</Text>
+              <Text style={styles.statusBadgeText}>{displayResult.weekly_status.replace('_', ' ')}</Text>
             </View>
-            <Text style={styles.resultMeta}>
-              {Math.round(result.comparison_confidence * 100)}% confidence
-            </Text>
-          </View>
-
-          <Text style={styles.resultTitle}>
-            Goal proximity {result.derived_scores.goal_proximity_score.toFixed(1)}
-          </Text>
-          {result.qualitative_summary.slice(0, 3).map((line) => (
-            <Text key={line} style={styles.resultLine}>
-              {line}
-            </Text>
-          ))}
-
-          <View style={styles.highlightList}>
-            {regionalHighlights.map((item) => (
-              <View key={`${item.region}-${item.label}`} style={styles.highlightCard}>
-                <Text style={styles.highlightLabel}>{item.label}</Text>
-                <Text style={styles.highlightValue}>{item.value}</Text>
-                <Text style={styles.highlightNote}>{item.note}</Text>
-              </View>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={styles.progressButton}
-            onPress={() => navigation.navigate('MainTabs', { screen: 'Progress' })}
-          >
-            <Text style={styles.progressButtonText}>View progress</Text>
-          </TouchableOpacity>
+          ) : null}
         </View>
-      ) : null}
+
+        {loadingLatest && !displayResult ? (
+          <View style={styles.emptyResult}>
+            <ActivityIndicator color={colors.primary} />
+            <Text style={styles.emptyResultTitle}>Loading latest proof</Text>
+            <Text style={styles.emptyResultText}>
+              Pulling in your last saved weekly check-in so this screen reflects the real account state.
+            </Text>
+          </View>
+        ) : displayResult ? (
+          <>
+            <View style={styles.resultSummaryCard}>
+              <View style={styles.resultSummaryHeader}>
+              <Text style={styles.resultSummaryLabel}>PROOF READ</Text>
+                <View style={styles.resultSummaryPill}>
+                  <Text style={styles.resultSummaryPillText}>
+                    {Math.round(displayResult.comparison_confidence * 100)}% confidence
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.resultSummary}>
+                {displayResult.qualitative_summary[0] ??
+                  'A fresh weekly summary will appear here after you run the analysis.'}
+              </Text>
+
+              <View style={styles.resultMetricStrip}>
+                <View style={styles.resultMetricChip}>
+                  <Text style={styles.resultMetricChipLabel}>Goal proximity</Text>
+                  <Text style={styles.resultMetricChipValue}>
+                    {displayResult.derived_scores.goal_proximity_score.toFixed(1)}
+                  </Text>
+                </View>
+                <View style={styles.resultMetricChip}>
+                  <Text style={styles.resultMetricChipLabel}>Body fat</Text>
+                  <Text style={styles.resultMetricChipValueSmall}>
+                    {displayResult.estimated_ranges.body_fat_percent_min}–{displayResult.estimated_ranges.body_fat_percent_max}%
+                  </Text>
+                </View>
+                <View style={styles.resultMetricChip}>
+                  <Text style={styles.resultMetricChipLabel}>Confidence</Text>
+                  <Text style={styles.resultMetricChipValue}>{Math.round(displayResult.comparison_confidence * 100)}%</Text>
+                </View>
+                <View style={styles.resultMetricChip}>
+                  <Text style={styles.resultMetricChipLabel}>Highlights</Text>
+                  <Text style={styles.resultMetricChipValue}>{regionalHighlights.length}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.subsectionHeader}>
+              <Text style={styles.subsectionLabel}>REGIONAL NOTES</Text>
+              {regionalHighlights.length > 0 ? (
+                <Text style={styles.subsectionMeta}>{regionalHighlights.length} regions</Text>
+              ) : null}
+            </View>
+            <View style={styles.highlightGrid}>
+              {regionalHighlights.map((item) => (
+                <View key={`${item.region}-${item.label}`} style={styles.highlightCard}>
+                  <Text style={styles.highlightLabel}>{item.label}</Text>
+                  <Text style={styles.highlightValue}>{item.value}</Text>
+                  <Text style={styles.highlightNote}>{item.note}</Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.subsectionHeader}>
+              <Text style={styles.subsectionLabel}>NEXT STEP</Text>
+            </View>
+            <View style={styles.resultActionRow}>
+              <TouchableOpacity
+                style={styles.progressButton}
+                onPress={() => navigation.navigate('MainTabs', { screen: 'Progress' })}
+              >
+                <Text style={styles.progressButtonText}>View progress</Text>
+                <Text style={styles.progressButtonHint}>Open the full trend</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryResultButton} onPress={() => setAsset(null)}>
+                <Text style={styles.secondaryResultButtonText}>New photo</Text>
+                <Text style={styles.secondaryResultButtonHint}>Start another read</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          <View style={styles.emptyResult}>
+            <Text style={styles.emptyResultTitle}>No weekly proof yet</Text>
+            <Text style={styles.emptyResultText}>
+              Once you analyze a full-body photo, your weekly status, confidence, and highlight regions will show up here.
+            </Text>
+          </View>
+        )}
+      </View>
     </ScrollView>
   );
 }
@@ -211,111 +394,256 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
+    paddingBottom: spacing.xxl,
+    gap: spacing.md,
   },
-  title: {
-    ...typography.h2,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    ...typography.body1,
-    color: colors.textSecondary,
-    marginBottom: spacing.xl,
-  },
-  placeholder: {
+  captureCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.borderLight,
-    padding: spacing.xl,
+    padding: spacing.md,
+  },
+  captureHeader: {
+    gap: spacing.xs,
+  },
+  captureHeaderCopy: {
+    flex: 1,
+  },
+  captureEyebrow: {
+    ...typography.overline,
+    color: colors.primary,
+    marginBottom: spacing.sm,
+  },
+  title: {
+    ...typography.h3,
+    marginBottom: spacing.xs,
+    lineHeight: 34,
+  },
+  subtitle: {
+    ...typography.body2,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    lineHeight: 18,
+  },
+  statusPill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.round,
+    borderWidth: 1,
+    backgroundColor: colors.surfaceAlt,
+  },
+  statusPillText: {
+    ...typography.caption,
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  captureStatusPill: {
+    alignSelf: 'flex-start',
+    marginBottom: spacing.xs,
+  },
+  captureMetricGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  captureMetricCard: {
+    width: '48%',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm,
+  },
+  captureMetricLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  captureMetricValue: {
+    ...typography.h4,
+    color: colors.text,
+  },
+  captureMetricValueSmall: {
+    ...typography.button,
+    color: colors.text,
+  },
+  captureMetricHint: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  captureGuideBar: {
+    borderRadius: borderRadius.round,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  captureGuideText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  limitCard: {
+    backgroundColor: `${colors.warning}14`,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: `${colors.warning}38`,
+  },
+  limitTitle: {
+    ...typography.button,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  limitText: {
+    ...typography.body2,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  limitButton: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.md,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.round,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  limitButtonText: {
+    ...typography.buttonSmall,
+    color: colors.textOnPrimary,
+  },
+  errorCard: {
+    backgroundColor: `${colors.error}12`,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: `${colors.error}30`,
+  },
+  errorLabel: {
+    ...typography.caption,
+    color: colors.error,
+    marginBottom: spacing.xs,
+    fontWeight: '700',
+  },
+  errorText: {
+    ...typography.body2,
+    color: colors.textSecondary,
+  },
+  stageCard: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm + 2,
+  },
+  stageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  stageLabel: {
+    ...typography.overline,
+    color: colors.primary,
+    marginBottom: 2,
+  },
+  stageHeaderTitle: {
+    ...typography.button,
+    color: colors.text,
+  },
+  stageStatusPill: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.round,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  stageStatusPillText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  stageMetaRow: {
+    marginBottom: spacing.sm,
+  },
+  stageMetaText: {
+    ...typography.caption,
+    color: colors.textLight,
+  },
+  placeholder: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    padding: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 260,
-    marginBottom: spacing.lg,
+    minHeight: 168,
+    backgroundColor: colors.surface,
   },
   placeholderTitle: {
-    ...typography.h4,
+    ...typography.h5,
     marginBottom: spacing.sm,
   },
   placeholderText: {
     ...typography.body2,
     color: colors.textSecondary,
     textAlign: 'center',
+    lineHeight: 18,
   },
   previewImage: {
     width: '100%',
-    height: 420,
-    borderRadius: borderRadius.xl,
-    marginBottom: spacing.lg,
-  },
-  actions: {
-    gap: spacing.md,
-  },
-  button: {
-    backgroundColor: colors.surface,
-    padding: spacing.lg,
+    height: 276,
     borderRadius: borderRadius.lg,
-    alignItems: 'flex-start',
-    marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
   },
-  primaryButton: {
+  actionsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: colors.surfaceAlt,
+    padding: spacing.sm + 2,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  primaryActionButton: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  buttonText: {
-    ...typography.h5,
+  actionButtonText: {
+    ...typography.button,
     color: colors.text,
     marginBottom: spacing.xs,
   },
-  primaryButtonText: {
+  primaryActionButtonText: {
     color: colors.textOnPrimary,
   },
-  buttonSubtext: {
+  actionButtonHint: {
     ...typography.caption,
     color: colors.textSecondary,
   },
-  summaryCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  summaryLabel: {
-    ...typography.overline,
-    color: colors.accent,
-    marginBottom: spacing.sm,
-  },
-  summaryText: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  summaryPills: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  summaryPill: {
-    borderRadius: borderRadius.round,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.surfaceAlt,
-  },
-  summaryPillText: {
-    ...typography.caption,
-    color: colors.text,
-    fontWeight: '600',
+  primaryActionButtonHint: {
+    color: colors.textOnPrimary,
   },
   analyzeButton: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.primary,
     borderRadius: borderRadius.xl,
-    padding: spacing.lg,
+    padding: spacing.sm + 2,
     alignItems: 'center',
-    marginTop: spacing.sm,
-    marginBottom: spacing.xl,
+    marginTop: spacing.xs,
   },
   disabledButton: {
     opacity: 0.5,
@@ -334,32 +662,23 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.borderLight,
-    padding: spacing.lg,
-    marginBottom: spacing.xl,
-  },
-  errorCard: {
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: borderRadius.lg,
     padding: spacing.md,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
-  errorLabel: {
-    ...typography.caption,
-    color: colors.error,
-    marginBottom: spacing.xs,
-    fontWeight: '700',
-  },
-  errorText: {
-    ...typography.body2,
-    color: colors.textSecondary,
   },
   resultHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  resultEyebrow: {
+    ...typography.overline,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
+  resultTitle: {
+    ...typography.h4,
+    color: colors.text,
   },
   statusBadge: {
     borderWidth: 1,
@@ -373,26 +692,101 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'capitalize',
   },
-  resultMeta: {
+  resultSummary: {
     ...typography.caption,
     color: colors.textSecondary,
+    lineHeight: 17,
   },
-  resultTitle: {
-    ...typography.h4,
-    marginBottom: spacing.md,
-  },
-  resultLine: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
-  },
-  highlightList: {
-    gap: spacing.md,
-    marginTop: spacing.md,
-  },
-  highlightCard: {
+  resultSummaryCard: {
     backgroundColor: colors.surfaceAlt,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm + 2,
+    marginBottom: spacing.xs,
+    gap: spacing.xs,
+  },
+  resultSummaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  resultSummaryLabel: {
+    ...typography.overline,
+    color: colors.primary,
+  },
+  resultSummaryPill: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.round,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  resultSummaryPillText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  resultMetricStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  resultMetricChip: {
+    width: '48%',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs + 6,
+  },
+  resultMetricChipLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  resultMetricChipValue: {
+    ...typography.button,
+    color: colors.text,
+  },
+  resultMetricChipValueSmall: {
+    ...typography.caption,
+    color: colors.text,
+    fontWeight: '700',
+  },
+  subsectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  subsectionLabel: {
+    ...typography.overline,
+    color: colors.primary,
+  },
+  subsectionMeta: {
+    ...typography.caption,
+    color: colors.textLight,
+  },
+  highlightGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  highlightCard: {
+    width: '48%',
+    minWidth: 140,
+    flexGrow: 1,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: spacing.md,
   },
   highlightLabel: {
@@ -402,22 +796,68 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   highlightValue: {
-    ...typography.h5,
+    ...typography.h6,
+    color: colors.text,
     marginBottom: spacing.xs,
   },
   highlightNote: {
     ...typography.body2,
     color: colors.textSecondary,
+    lineHeight: 18,
   },
   progressButton: {
+    flex: 1.15,
     backgroundColor: colors.primary,
     borderRadius: borderRadius.xl,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm + 2,
     alignItems: 'center',
-    marginTop: spacing.lg,
   },
   progressButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
+  },
+  progressButtonHint: {
+    ...typography.caption,
+    color: colors.textOnPrimary,
+    marginTop: spacing.xs,
+    opacity: 0.88,
+  },
+  resultActionRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  secondaryResultButton: {
+    flex: 1,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.sm + 2,
+    alignItems: 'center',
+  },
+  secondaryResultButtonText: {
+    ...typography.button,
+    color: colors.text,
+  },
+  secondaryResultButtonHint: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  emptyResult: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+  },
+  emptyResultTitle: {
+    ...typography.h5,
+    marginBottom: spacing.sm,
+  },
+  emptyResultText: {
+    ...typography.body2,
+    color: colors.textSecondary,
   },
 });

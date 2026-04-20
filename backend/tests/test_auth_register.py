@@ -154,6 +154,52 @@ def test_register_drops_unverified_proof_share_attribution():
     assert log_event.await_args.args[3]["session_id"] is None
 
 
+def test_register_sessionless_confirmation_flow_returns_pending_response_and_still_persists_profile():
+    from app.routers.auth import register
+    from app.schemas.auth_schemas import UserRegister
+
+    auth_client = MagicMock()
+    auth_client.auth.sign_up.return_value = SimpleNamespace(
+        user=SimpleNamespace(id="user-pending", email="pending@example.com"),
+        session=None,
+    )
+
+    db = MagicMock()
+    query = MagicMock()
+    query.select.return_value = query
+    query.eq.return_value = query
+    query.limit.return_value = query
+    query.execute.return_value = MagicMock(data=[])
+    db.table.return_value = query
+
+    with (
+        patch("app.routers.auth.get_supabase_auth", return_value=auth_client),
+        patch("app.routers.auth.get_supabase", return_value=db),
+        patch("app.routers.auth._insert_user_profile_resilient") as insert_profile,
+        patch("app.routers.auth.log_retention_event", AsyncMock()) as log_event,
+    ):
+        response = _run(register(
+            Request({"type": "http", "method": "POST", "path": "/auth/register", "headers": []}),
+            UserRegister(
+                email="pending@example.com",
+                password="password123",
+                full_name="Pending User",
+                gender="female",
+                age=31,
+                height_cm=168,
+                consent_terms=True,
+                consent_privacy=True,
+                consent_sensitive_data=True,
+                consent_age_verification=True,
+            ),
+        ))
+
+    assert response.message == "Check your email for confirmation link"
+    assert response.user.id == "user-pending"
+    insert_profile.assert_called_once()
+    log_event.assert_awaited_once()
+
+
 def test_test_login_bootstraps_user_when_sign_in_returns_no_session():
     from app.routers.auth import test_login
     from app.config import settings
@@ -176,6 +222,8 @@ def test_test_login_bootstraps_user_when_sign_in_returns_no_session():
 
     with (
         patch.object(settings, "enable_test_login", True),
+        patch.object(settings, "supabase_url", "https://example.supabase.co"),
+        patch.object(settings, "supabase_service_key", "sb_secret_test"),
         patch.object(settings, "test_login_email", "e2e@devenira.test"),
         patch.object(settings, "test_login_password", "DeneviraE2E123!"),
         patch("app.routers.auth.create_client", return_value=auth_client),
@@ -215,6 +263,8 @@ def test_test_login_repairs_existing_user_when_session_is_still_missing():
 
     with (
         patch.object(settings, "enable_test_login", True),
+        patch.object(settings, "supabase_url", "https://example.supabase.co"),
+        patch.object(settings, "supabase_service_key", "sb_secret_test"),
         patch.object(settings, "test_login_email", "e2e@devenira.test"),
         patch.object(settings, "test_login_password", "DeneviraE2E123!"),
         patch("app.routers.auth.create_client", return_value=auth_client),
@@ -250,6 +300,8 @@ def test_test_login_returns_tokens_even_if_profile_bootstrap_fails():
 
     with (
         patch.object(settings, "enable_test_login", True),
+        patch.object(settings, "supabase_url", "https://example.supabase.co"),
+        patch.object(settings, "supabase_service_key", "sb_secret_test"),
         patch.object(settings, "test_login_email", "e2e@devenira.test"),
         patch.object(settings, "test_login_password", "DeneviraE2E123!"),
         patch("app.routers.auth.create_client", return_value=auth_client),

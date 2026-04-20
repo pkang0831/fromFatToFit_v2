@@ -11,8 +11,8 @@ from math import floor
 from email.message import EmailMessage
 from email.utils import make_msgid, parseaddr
 from urllib.parse import quote
-from uuid import uuid4
-from ..database import get_supabase
+from uuid import UUID, uuid4
+from ..database import get_supabase, get_user_supabase
 from ..config import settings
 from .proof_loop_handoff import (
     WEEKLY_REMINDER_SOURCE,
@@ -209,8 +209,12 @@ async def update_notification_preferences(user_id: str, updates: Dict[str, Any])
     return await get_notification_preferences(user_id)
 
 
-async def save_push_subscription(user_id: str, subscription: Dict[str, Any]) -> Dict[str, Any]:
-    supabase = get_supabase()
+async def save_push_subscription(
+    user_id: str,
+    subscription: Dict[str, Any],
+    access_token: str | None = None,
+) -> Dict[str, Any]:
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
     endpoint = subscription.get("endpoint", "")
 
     existing = supabase.table("push_subscriptions").select("id").eq("user_id", user_id).eq("endpoint", endpoint).execute()
@@ -234,8 +238,12 @@ async def save_push_subscription(user_id: str, subscription: Dict[str, Any]) -> 
     return {"status": "subscribed"}
 
 
-async def remove_push_subscription(user_id: str, endpoint: str) -> Dict[str, Any]:
-    supabase = get_supabase()
+async def remove_push_subscription(
+    user_id: str,
+    endpoint: str,
+    access_token: str | None = None,
+) -> Dict[str, Any]:
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
     supabase.table("push_subscriptions").update({
         "active": False,
         "updated_at": _utcnow().isoformat(),
@@ -244,8 +252,8 @@ async def remove_push_subscription(user_id: str, endpoint: str) -> Dict[str, Any
     return {"status": "unsubscribed"}
 
 
-async def get_push_subscriptions(user_id: str) -> List[Dict[str, Any]]:
-    supabase = get_supabase()
+async def get_push_subscriptions(user_id: str, access_token: str | None = None) -> List[Dict[str, Any]]:
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
     result = supabase.table("push_subscriptions").select("*").eq("user_id", user_id).eq("active", True).execute()
     return result.data or []
 
@@ -402,6 +410,118 @@ def get_weekly_proof_reminder_status() -> Dict[str, Any]:
         "reason": None,
         "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
     }
+
+
+def _get_weekly_proof_profile(user_id: str) -> Dict[str, Any]:
+    supabase = get_supabase()
+    result = (
+        supabase.table("user_profiles")
+        .select("*")
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else {"user_id": user_id, "email": "", "onboarding_completed": False}
+
+
+async def get_weekly_proof_reminder_status_for_user(user_id: str) -> Dict[str, Any]:
+    system_status = get_weekly_proof_reminder_status()
+    prefs = await get_notification_preferences(user_id)
+    profile = _get_weekly_proof_profile(user_id)
+
+    response: Dict[str, Any] = {
+        **system_status,
+        "system_active": system_status["active"],
+        "eligible": False,
+        "effective_active": False,
+        "effective_reason": system_status["reason"] if not system_status["active"] else None,
+        "eligibility_reason": None,
+        "preferences_enabled": bool(prefs.get("email_weekly_summary", True)),
+        "onboarding_completed": bool(profile.get("onboarding_completed", True)),
+        "email_present": bool(profile.get("email")),
+        "entry_state": None,
+        "surface_state": None,
+        "scan_count": 0,
+        "proof_photo_count": 0,
+        "next_path": None,
+        "last_event_status": None,
+        "last_event_at": None,
+    }
+
+    user_reason: str | None = None
+
+    if profile.get("deleted_at") or profile.get("blocked_at") or profile.get("disabled_at"):
+        user_reason = "account_inactive"
+    elif not response["email_present"]:
+        user_reason = "email_missing"
+    elif not response["onboarding_completed"]:
+        user_reason = "onboarding_incomplete"
+    elif not response["preferences_enabled"]:
+        user_reason = "preferences_disabled"
+    else:
+        try:
+            summary = await _get_home_summary_for_user(user_id)
+        except Exception as exc:
+            logger.error("Failed to load home summary for weekly reminder status %s: %s", user_id, exc)
+            user_reason = "summary_unavailable"
+        else:
+            entry_state = getattr(summary, "entry_state", None)
+            response["entry_state"] = entry_state
+
+            if entry_state not in WEEKLY_PROOF_ELIGIBLE_STATES:
+                user_reason = "not_ready_for_weekly_proof"
+            else:
+                scan_summary = getattr(summary, "scan_summary", None)
+                scan_count = int(getattr(scan_summary, "scan_count", 0) or 0)
+                response["scan_count"] = scan_count
+
+                if scan_count <= 0:
+                    user_reason = "no_scan_data"
+                else:
+                    progress_summary = getattr(summary, "progress_summary", None)
+                    proof_photo_count = int(getattr(progress_summary, "photo_count", 0) or 0)
+                    response["proof_photo_count"] = proof_photo_count
+
+                    surface_state = resolve_surface_state(
+                        source=WEEKLY_REMINDER_SOURCE,
+                        reentry_state=entry_state,
+                        proof_photo_count=proof_photo_count,
+                        enabled=settings.weekly_scan_upload_first_handoff_enabled,
+                    )
+                    response["surface_state"] = surface_state
+                    response["next_path"] = build_weekly_proof_reminder_path(
+                        entry_state,
+                        progress_photo_count=proof_photo_count,
+                    )
+
+                    last_event = _get_latest_weekly_reminder_event(user_id)
+                    last_status = ((last_event or {}).get("status") or "").lower() or None
+                    last_touch = (
+                        _parse_iso_datetime((last_event or {}).get("sent_at"))
+                        or _parse_iso_datetime((last_event or {}).get("created_at"))
+                    )
+                    response["last_event_status"] = last_status
+                    response["last_event_at"] = last_touch.isoformat() if last_touch else None
+
+                    if last_status in WEEKLY_PROOF_NON_DELIVERABLE_STATUSES:
+                        user_reason = "deliverability_blocked"
+                    elif (
+                        last_status in WEEKLY_PROOF_COOLDOWN_STATUSES
+                        and last_touch
+                        and _utcnow() - last_touch < timedelta(hours=settings.weekly_proof_reminder_cooldown_hours)
+                    ):
+                        user_reason = "cooldown_active"
+                    else:
+                        response["eligible"] = True
+
+    response["eligibility_reason"] = user_reason
+    response["effective_active"] = bool(system_status["active"] and response["eligible"])
+    response["effective_reason"] = (
+        system_status["reason"]
+        if not system_status["active"]
+        else user_reason
+    )
+    return response
 
 
 def build_weekly_proof_reminder_path(
@@ -684,7 +804,17 @@ def _update_reminder_event(reminder_event_id: str, updates: Dict[str, Any]) -> N
     supabase.table("reminder_events").update(payload).eq("id", reminder_event_id).execute()
 
 
+def _is_valid_uuid(value: str) -> bool:
+    try:
+        UUID(str(value))
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
 def _get_reminder_event(reminder_event_id: str) -> Dict[str, Any] | None:
+    if not _is_valid_uuid(reminder_event_id):
+        return None
     supabase = get_supabase()
     result = (
         supabase.table("reminder_events")
@@ -1224,31 +1354,32 @@ async def run_weekly_proof_reminder_scheduler() -> None:
 async def mark_weekly_proof_reminder_opened(reminder_event_id: str, next_path: str | None) -> str:
     safe_path = _sanitize_frontend_path(next_path)
     event = _get_reminder_event(reminder_event_id)
+    if not event:
+        raise LookupError("Reminder link is invalid or expired")
     surface_state = extract_query_param(safe_path, "surface_state")
     reentry_state = extract_query_param(safe_path, "reentry_state")
-    if event:
-        opened_at = _utcnow().isoformat()
-        _update_reminder_event(
-            reminder_event_id,
-            {
-                "status": "clicked",
-                "opened_at": event.get("opened_at") or opened_at,
-                "clicked_at": event.get("clicked_at") or opened_at,
-            },
-        )
-        await log_retention_event(
-            event["user_id"],
-            "notification_opened",
-            "weekly_proof_reminder_email",
-            {
-                "channel": event.get("channel", WEEKLY_PROOF_REMINDER_CHANNEL),
-                "entry_state": event.get("entry_state"),
-                "reentry_state": reentry_state or event.get("entry_state"),
-                "surface_state": surface_state or event.get("entry_state"),
-                "reminder_event_id": reminder_event_id,
-                "source": WEEKLY_REMINDER_SOURCE,
-            },
-        )
+    opened_at = _utcnow().isoformat()
+    _update_reminder_event(
+        reminder_event_id,
+        {
+            "status": "clicked",
+            "opened_at": event.get("opened_at") or opened_at,
+            "clicked_at": event.get("clicked_at") or opened_at,
+        },
+    )
+    await log_retention_event(
+        event["user_id"],
+        "notification_opened",
+        "weekly_proof_reminder_email",
+        {
+            "channel": event.get("channel", WEEKLY_PROOF_REMINDER_CHANNEL),
+            "entry_state": event.get("entry_state"),
+            "reentry_state": reentry_state or event.get("entry_state"),
+            "surface_state": surface_state or event.get("entry_state"),
+            "reminder_event_id": reminder_event_id,
+            "source": WEEKLY_REMINDER_SOURCE,
+        },
+    )
     annotated_path = append_query_params_to_path(
         safe_path,
         {"reminder_event_id": reminder_event_id},

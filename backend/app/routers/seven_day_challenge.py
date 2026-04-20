@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 import logging
 
-from ..database import get_supabase
+from ..database import get_user_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..rate_limit import limiter
 
@@ -69,7 +69,7 @@ async def start_seven_day_challenge(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
     try:
         supabase.table("seven_day_challenges").update({"status": "ended"}).eq(
             "user_id", user_id
@@ -101,7 +101,7 @@ async def get_seven_day_challenge(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
     try:
         ch = (
             supabase.table("seven_day_challenges")
@@ -172,7 +172,7 @@ async def checkin_seven_day(
 ):
     user_id = current_user["id"]
     today = date.today()
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
     try:
         ch = (
             supabase.table("seven_day_challenges")

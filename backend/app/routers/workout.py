@@ -6,7 +6,7 @@ from ..schemas.workout_schemas import (
     ExerciseLibraryItem, WorkoutLogCreate, WorkoutLogResponse,
     FormAnalysisRequest, FormAnalysisResponse, WorkoutTrendResponse
 )
-from ..database import get_supabase
+from ..database import get_supabase, get_user_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services.openai_service import analyze_workout_form_video
 from ..services.usage_limiter import check_usage_limit
@@ -47,20 +47,28 @@ async def calculate_workout_calories(
     user_id: str,
     exercise_id: str,
     sets: List,
-    duration_minutes: Optional[int]
+    duration_minutes: Optional[int],
+    access_token: str | None = None,
 ) -> float:
     """Calculate calories burned for a workout"""
     try:
-        supabase = get_supabase()
+        supabase = get_user_supabase(access_token) if access_token else get_supabase()
         
         # Get user profile
-        profile_result = supabase.table("user_profiles").select("weight_kg").eq("user_id", user_id).single().execute()
-        
-        if not profile_result.data or not profile_result.data.get('weight_kg'):
+        profile_result = (
+            supabase.table("user_profiles")
+            .select("weight_kg")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+
+        profile_row = profile_result.data[0] if profile_result.data else {}
+        if not profile_row or not profile_row.get("weight_kg"):
             weight_kg = 70.0  # Default weight
             logger.info(f"Using default weight 70kg for user {user_id}")
         else:
-            weight_kg = float(profile_result.data['weight_kg'])
+            weight_kg = float(profile_row["weight_kg"])
             logger.info(f"Using user weight: {weight_kg}kg")
         
         # Get exercise info
@@ -114,14 +122,16 @@ async def log_workout(
 ):
     """Log a workout session with automatic calorie calculation"""
     try:
-        supabase = get_supabase()
+        access_token = current_user.get("access_token")
+        supabase = get_user_supabase(access_token) if access_token else get_supabase()
         
         # Calculate calories burned
         calories_burned = await calculate_workout_calories(
             user_id=current_user["id"],
             exercise_id=workout_log.exercise_id,
             sets=[s.model_dump() for s in workout_log.sets],
-            duration_minutes=workout_log.duration_minutes
+            duration_minutes=workout_log.duration_minutes,
+            access_token=access_token,
         )
         
         log_data = {
@@ -158,7 +168,8 @@ async def get_workout_logs(
 ):
     """Get all workout logs for a specific date"""
     try:
-        supabase = get_supabase()
+        access_token = current_user.get("access_token")
+        supabase = get_user_supabase(access_token) if access_token else get_supabase()
         
         result = supabase.table("workout_logs").select("*").eq("user_id", current_user["id"]).eq("date", target_date.isoformat()).order("created_at").execute()
         
@@ -179,7 +190,8 @@ async def get_workout_logs_range(
 ):
     """Get all workout logs for a date range (bulk query - 10x faster than individual calls)"""
     try:
-        supabase = get_supabase()
+        access_token = current_user.get("access_token")
+        supabase = get_user_supabase(access_token) if access_token else get_supabase()
         
         result = supabase.table("workout_logs").select("*").eq(
             "user_id", current_user["id"]
@@ -272,7 +284,8 @@ async def delete_workout_log(
 ):
     """Delete a workout log entry"""
     try:
-        supabase = get_supabase()
+        access_token = current_user.get("access_token")
+        supabase = get_user_supabase(access_token) if access_token else get_supabase()
         result = supabase.table("workout_logs").delete().eq("id", log_id).eq("user_id", current_user["id"]).execute()
         if not result.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workout log not found")

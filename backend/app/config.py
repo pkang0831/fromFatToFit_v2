@@ -65,6 +65,7 @@ class Settings(BaseSettings):
     max_upload_size_mb: int = 10
     progress_photo_storage_bucket: str = "progress-photos-private"
     progress_photo_signed_url_ttl_seconds: int = 3600
+    food_db_path: str = ""
 
     # Weekly proof reminder
     enable_weekly_proof_reminders: bool = False
@@ -121,6 +122,19 @@ class Settings(BaseSettings):
     @property
     def test_login_stub_mode(self) -> bool:
         return self.enable_test_login and (not self.supabase_url or not self.supabase_service_key)
+
+    @staticmethod
+    def _supabase_key_kind(value: str) -> str:
+        token = (value or "").strip()
+        if not token:
+            return "missing"
+        if token.startswith("sb_secret_"):
+            return "sb_secret"
+        if token.startswith("sb_publishable_"):
+            return "sb_publishable"
+        if token.startswith("eyJ"):
+            return "jwt"
+        return "other"
     
     def validate_required(self):
         missing = []
@@ -128,10 +142,14 @@ class Settings(BaseSettings):
             missing.append("SUPABASE_URL")
         if not self.supabase_service_key:
             missing.append("SUPABASE_SERVICE_KEY")
+        elif self._supabase_key_kind(self.supabase_service_key) == "sb_publishable":
+            missing.append("SUPABASE_SERVICE_KEY (must be a service-role key, not sb_publishable)")
         if not self.supabase_anon_key:
             missing.append("SUPABASE_ANON_KEY")
-        if not self.openai_api_key:
+        if self.enable_ai_features and self.ai_provider == "openai" and not self.openai_api_key:
             missing.append("OPENAI_API_KEY")
+        if self.enable_payments and not self.stripe_secret_key:
+            missing.append("STRIPE_SECRET_KEY")
         if self.is_production:
             if not self.stripe_secret_key or self.stripe_secret_key.startswith("sk_test_"):
                 missing.append("STRIPE_SECRET_KEY (live key required in production)")

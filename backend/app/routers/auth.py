@@ -4,11 +4,12 @@ import logging
 from datetime import datetime, timezone
 from ..schemas.auth_schemas import (
     UserRegister, UserLogin, TokenResponse, UserResponse,
-    PasswordReset, PasswordUpdate, AccountDeletionResponse
+    PasswordReset, PasswordUpdate, AccountDeletionResponse,
+    PendingRegistrationResponse, PendingRegistrationUser,
 )
 from ..schemas.body_schemas import UserProfileUpdate
 from supabase import create_client, ClientOptions
-from ..database import get_supabase, get_supabase_auth
+from ..database import get_supabase, get_supabase_auth, get_user_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..config import settings
 from ..rate_limit import limiter
@@ -54,6 +55,17 @@ def _insert_user_profile_resilient(supabase, profile_data: dict) -> None:
     supabase.table("user_profiles").insert(legacy_payload).execute()
 
 
+def _looks_like_jwt(token: str | None) -> bool:
+    return bool(token and token.count(".") == 2)
+
+
+def _get_profile_db_for_session(session):
+    access_token = getattr(session, "access_token", None)
+    if _looks_like_jwt(access_token):
+        return get_user_supabase(access_token)
+    return get_supabase()
+
+
 def _sanitize_registration_attribution(db, user_data: UserRegister) -> tuple[str | None, str | None, str | None]:
     source = (user_data.attribution_source or "").strip() or None
     token = (user_data.attribution_token or "").strip() or None
@@ -96,6 +108,14 @@ def _find_auth_user_by_email(auth_client, email: str):
     return None
 
 
+def _safe_profile_created_at(value) -> datetime:
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str) and value:
+        return datetime.fromisoformat(value)
+    return datetime.utcnow()
+
+
 def _build_token_response(user, session, profile: dict) -> TokenResponse:
     has_required = all([profile.get("gender"), profile.get("age"), profile.get("height_cm")])
     return TokenResponse(
@@ -117,7 +137,7 @@ def _build_token_response(user, session, profile: dict) -> TokenResponse:
             calorie_goal=profile.get("calorie_goal"),
             premium_status=profile.get("premium_status", False),
             onboarding_completed=profile.get("onboarding_completed", has_required),
-            created_at=datetime.fromisoformat(profile.get("created_at", datetime.utcnow().isoformat()))
+            created_at=_safe_profile_created_at(profile.get("created_at"))
         )
     )
 
@@ -148,7 +168,7 @@ def _build_test_login_stub_response() -> TokenResponse:
     )
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=TokenResponse | PendingRegistrationResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def register(request: Request, user_data: UserRegister):
     """Register a new user"""
@@ -187,11 +207,7 @@ async def register(request: Request, user_data: UserRegister):
         
         user = auth_response.user
         session = auth_response.session
-        
-        if not session:
-            return {"message": "Check your email for confirmation link", "user": {"id": str(user.id), "email": user.email}}
-        
-        # Create user profile
+
         has_required = all([user_data.gender, user_data.age, user_data.height_cm])
         consent_timestamp = datetime.now(timezone.utc).isoformat()
         profile_data = {
@@ -213,7 +229,7 @@ async def register(request: Request, user_data: UserRegister):
             "consent_age_verified_at": consent_timestamp,
             "consent_version": "2026-02-26",
         }
-        db = get_supabase()
+        db = _get_profile_db_for_session(session)
         _insert_user_profile_resilient(db, profile_data)
         attribution_source, attribution_token, attribution_session_id = _sanitize_registration_attribution(db, user_data)
 
@@ -227,6 +243,12 @@ async def register(request: Request, user_data: UserRegister):
                 "session_id": attribution_session_id,
             },
         )
+
+        if not session:
+            return PendingRegistrationResponse(
+                message="Check your email for confirmation link",
+                user=PendingRegistrationUser(id=str(user.id), email=user.email),
+            )
 
         return TokenResponse(
             access_token=session.access_token,
@@ -333,7 +355,6 @@ async def test_login():
         auth_client = create_client(settings.supabase_url, settings.supabase_service_key)
         email = settings.test_login_email.strip().lower()
         password = settings.test_login_password
-        db = get_supabase()
 
         def _sign_in():
             return auth_client.auth.sign_in_with_password({
@@ -391,6 +412,7 @@ async def test_login():
 
         user = auth_response.user
         session = auth_response.session
+        db = _get_profile_db_for_session(session)
         now = datetime.now(timezone.utc).isoformat()
         profile = {
             "user_id": user.id,
@@ -443,7 +465,7 @@ async def test_login():
 async def logout(current_user: dict = Depends(get_current_user)):
     """Logout current user"""
     try:
-        supabase = get_supabase_auth()
+        supabase = get_user_supabase(current_user["access_token"])
         supabase.auth.sign_out()
         return {"message": "Logged out successfully"}
     except Exception as e:
@@ -472,7 +494,7 @@ async def get_current_user_profile(current_user: dict = Depends(get_current_user
             calorie_goal=current_user.get("calorie_goal"),
             premium_status=current_user.get("premium_status", False),
             onboarding_completed=current_user.get("onboarding_completed", False),
-            created_at=datetime.fromisoformat(current_user.get("created_at", datetime.utcnow().isoformat()))
+            created_at=_safe_profile_created_at(current_user.get("created_at"))
         )
     except Exception as e:
         logger.error(f"Error getting user profile: {e}")
@@ -506,6 +528,11 @@ async def update_profile(
         
         # Update profile
         db.table("user_profiles").update(update_data).eq("user_id", current_user["id"]).execute()
+        from ..services.analytics import invalidate_calorie_balance_cache
+        from ..services.weight_tracking_service import WeightTrackingService
+
+        invalidate_calorie_balance_cache(current_user["id"])
+        WeightTrackingService._invalidate_projection_cache(current_user["id"])
         
         # Get updated profile
         result = db.table("user_profiles").select("*").eq("user_id", current_user["id"]).execute()
@@ -526,7 +553,7 @@ async def update_profile(
             calorie_goal=profile.get("calorie_goal"),
             premium_status=profile.get("premium_status", False),
             onboarding_completed=profile.get("onboarding_completed", has_required),
-            created_at=datetime.fromisoformat(profile.get("created_at", datetime.utcnow().isoformat()))
+            created_at=_safe_profile_created_at(profile.get("created_at"))
         )
         
     except Exception as e:

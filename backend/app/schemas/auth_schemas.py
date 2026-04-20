@@ -37,6 +37,16 @@ class TokenResponse(BaseModel):
     user: "UserResponse"
 
 
+class PendingRegistrationUser(BaseModel):
+    id: str
+    email: str
+
+
+class PendingRegistrationResponse(BaseModel):
+    message: str
+    user: PendingRegistrationUser
+
+
 class UserResponse(BaseModel):
     id: str
     email: str

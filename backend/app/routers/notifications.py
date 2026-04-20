@@ -6,7 +6,7 @@ from ..middleware.auth_middleware import get_current_user
 from ..services.notification_service import (
     get_notification_preferences, update_notification_preferences,
     save_push_subscription, remove_push_subscription,
-    get_weekly_proof_reminder_status, mark_weekly_proof_reminder_opened,
+    get_weekly_proof_reminder_status_for_user, mark_weekly_proof_reminder_opened,
     process_resend_webhook, unsubscribe_weekly_proof_reminder,
 )
 from ..rate_limit import limiter
@@ -29,7 +29,7 @@ async def get_preferences(request: Request, current_user: dict = Depends(get_cur
 @router.get("/reminder-status")
 @limiter.limit("30/minute")
 async def get_reminder_status(request: Request, current_user: dict = Depends(get_current_user)):
-    return get_weekly_proof_reminder_status()
+    return await get_weekly_proof_reminder_status_for_user(current_user["id"])
 
 
 @router.put("/preferences")
@@ -47,7 +47,11 @@ async def update_preferences(request: Request, updates: Dict[str, Any], current_
 @limiter.limit("10/minute")
 async def subscribe_push(request: Request, subscription: Dict[str, Any], current_user: dict = Depends(get_current_user)):
     try:
-        result = await save_push_subscription(current_user["id"], subscription)
+        result = await save_push_subscription(
+            current_user["id"],
+            subscription,
+            access_token=current_user.get("access_token"),
+        )
         return result
     except Exception as e:
         logger.error(f"Error subscribing to push: {e}")
@@ -59,7 +63,11 @@ async def subscribe_push(request: Request, subscription: Dict[str, Any], current
 async def unsubscribe_push(request: Request, data: Dict[str, str], current_user: dict = Depends(get_current_user)):
     try:
         endpoint = data.get("endpoint", "")
-        result = await remove_push_subscription(current_user["id"], endpoint)
+        result = await remove_push_subscription(
+            current_user["id"],
+            endpoint,
+            access_token=current_user.get("access_token"),
+        )
         return result
     except Exception as e:
         logger.error(f"Error unsubscribing from push: {e}")
@@ -72,6 +80,8 @@ async def open_weekly_proof_reminder(request: Request, reminder_event_id: str, n
     try:
         redirect_url = await mark_weekly_proof_reminder_opened(reminder_event_id, next)
         return RedirectResponse(url=redirect_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+    except LookupError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reminder link is no longer valid")
     except Exception as e:
         logger.error(f"Error opening reminder {reminder_event_id}: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to open reminder link")

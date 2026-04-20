@@ -13,7 +13,7 @@ import asyncio
 
 from .config import settings
 from .rate_limit import limiter
-from .routers import auth, food, workout, body, payments, dashboard, food_database, food_decision, weight, notifications, chat, beauty, fashion, guest, goal_planner, seven_day_challenge, streaks, progress_photos, proof_shares, fasting, home, retention_analytics, weekly_checkins
+from .routers import auth, food, workout, body, payments, dashboard, food_database, food_decision, weight, notifications, chat, beauty, fashion, guest, goal_planner, seven_day_challenge, streaks, progress_photos, proof_shares, fasting, home, retention_analytics, weekly_checkins, assets
 from .services.notification_service import (
     get_weekly_proof_reminder_status,
     run_weekly_proof_reminder_scheduler,
@@ -155,6 +155,7 @@ app.include_router(guest.router, prefix="/api/guest", tags=["Guest (No Auth)"])
 app.include_router(goal_planner.router, prefix="/api/goal-plan", tags=["Goal Planner"])
 app.include_router(seven_day_challenge.router, prefix="/api/challenge", tags=["7-Day Challenge"])
 app.include_router(home.router, prefix="/api/home", tags=["Home"])
+app.include_router(assets.router, prefix="/api", tags=["Assets"])
 app.include_router(retention_analytics.router, prefix="/api/analytics", tags=["Retention Analytics"])
 app.include_router(streaks.router, tags=["Streaks"])
 app.include_router(progress_photos.router, tags=["Progress Photos"])

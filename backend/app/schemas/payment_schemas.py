@@ -17,6 +17,7 @@ class CheckoutSessionResponse(BaseModel):
 class VerifyPurchaseRequest(BaseModel):
     receipt_token: str = Field(..., description="RevenueCat receipt token")
     platform: str = Field(..., description="ios or android")
+    app_user_id: Optional[str] = Field(default=None, description="RevenueCat app user ID when available")
 
 
 class SubscriptionResponse(BaseModel):

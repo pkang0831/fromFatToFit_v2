@@ -27,9 +27,10 @@ from ..services.food_recommendation_service import FoodRecommendationService
 from ..services.food_database_service import get_food_database
 from ..services import openai_service
 from ..middleware.auth_middleware import get_current_user
-from ..database import get_supabase
+from ..database import get_supabase, get_user_supabase
 from ..services.payment_service import check_premium_status
 from ..services.usage_limiter import check_usage_limit, increment_usage
+from ..services.service_availability import ai_service_unavailable, is_openai_unavailable
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +114,11 @@ async def should_i_eat(
     4. Generate AI advice and alternatives
     """
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         is_premium = await check_premium_status(current_user["id"])
 
         try:
@@ -194,10 +199,9 @@ async def should_i_eat(
         raise
     except Exception as e:
         logger.exception(f"Error in should_i_eat endpoint: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="We couldn't analyze this photo right now. Please try again with a clearer food photo.",
-        )
+        if is_openai_unavailable(e):
+            raise ai_service_unavailable("Food decision analysis is temporarily unavailable because the AI service is not configured.")
+        raise HTTPException(status_code=500, detail="We couldn't analyze this photo right now. Please try again with a clearer food photo.")
 
 
 @router.post("/recommend", response_model=RecommendationResponse)
@@ -215,7 +219,11 @@ async def recommend_foods(
     - AI-generated explanations for each recommendation
     """
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         food_db = get_food_database()
         
         recommendation_service = FoodRecommendationService(
@@ -256,7 +264,11 @@ async def get_preferences(
     Get user's food preferences
     """
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         
         result = supabase.table('user_food_preferences').select('*').eq(
             'user_id', current_user['id']
@@ -293,7 +305,11 @@ async def update_preferences(
     Update user's food preferences (upsert)
     """
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         
         # Build update data (only include non-None values)
         update_data = {
@@ -315,11 +331,16 @@ async def update_preferences(
         if pref_request.prefer_high_protein is not None:
             update_data['prefer_high_protein'] = pref_request.prefer_high_protein
         
-        # Upsert (insert or update)
-        result = supabase.table('user_food_preferences').upsert(
-            update_data,
-            on_conflict='user_id'
-        ).execute()
+        existing = supabase.table('user_food_preferences').select('user_id').eq(
+            'user_id', current_user['id']
+        ).limit(1).execute()
+
+        if existing.data:
+            supabase.table('user_food_preferences').update(update_data).eq(
+                'user_id', current_user['id']
+            ).execute()
+        else:
+            supabase.table('user_food_preferences').insert(update_data).execute()
         
         # Invalidate cache after update
         from ..services.preference_cache import invalidate_user_cache

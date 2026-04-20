@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from datetime import datetime, timezone, timedelta
 from app.dependencies import get_current_user
-from app.database import get_supabase
+from app.database import get_user_supabase
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ async def get_presets():
 @router.get("/current")
 async def get_current_fast(current_user: dict = Depends(get_current_user)):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
 
     result = supabase.table("fasting_sessions").select("*").eq(
         "user_id", user_id
@@ -60,7 +60,7 @@ async def start_fast(
     current_user: dict = Depends(get_current_user)
 ):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
 
     active = supabase.table("fasting_sessions").select("id").eq(
         "user_id", user_id
@@ -79,7 +79,11 @@ async def start_fast(
         "started_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    result = supabase.table("fasting_sessions").insert(session_data).execute()
+    try:
+        result = supabase.table("fasting_sessions").insert(session_data).execute()
+    except Exception as e:
+        logger.error(f"start fast: {e}")
+        raise HTTPException(status_code=500, detail="Failed to start fast")
 
     return {"message": f"Started {protocol} fast ({hours}h)", "session": result.data[0] if result.data else session_data}
 
@@ -90,7 +94,7 @@ async def end_fast(
     notes: str = Body("", embed=True),
 ):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
 
     active = supabase.table("fasting_sessions").select("*").eq(
         "user_id", user_id
@@ -112,7 +116,11 @@ async def end_fast(
         "notes": notes,
     }
 
-    supabase.table("fasting_sessions").update(update_data).eq("id", session["id"]).execute()
+    try:
+        supabase.table("fasting_sessions").update(update_data).eq("id", session["id"]).execute()
+    except Exception as e:
+        logger.error(f"end fast: {e}")
+        raise HTTPException(status_code=500, detail="Failed to end fast")
 
     return {
         "message": f"Fast ended after {round(actual_hours, 1)}h" + (" - Goal reached!" if completed else ""),
@@ -127,7 +135,7 @@ async def get_fasting_history(
     current_user: dict = Depends(get_current_user)
 ):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
 
     since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
 

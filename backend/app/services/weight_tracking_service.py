@@ -5,9 +5,9 @@ Handles weight/body fat logging, moving averages, and goal projections
 import logging
 import time
 from typing import List, Dict, Any, Optional, Tuple
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
-from ..database import get_supabase
+from ..database import get_supabase, get_user_supabase
 from ..schemas.weight_schemas import (
     WeightLogCreate,
     WeightLogUpdate,
@@ -19,6 +19,23 @@ from ..schemas.weight_schemas import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _coerce_float(value: Any, default: float | None = None) -> float | None:
+    try:
+        if value is None:
+            raise ValueError("missing")
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_created_at(value: Any) -> str:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, str) and value.strip():
+        return value
+    return datetime.utcnow().isoformat()
 
 
 class WeightTrackingService:
@@ -72,10 +89,14 @@ class WeightTrackingService:
             cls._projection_cache.pop(key, None)
     
     @staticmethod
-    async def create_weight_log(user_id: str, log_data: WeightLogCreate) -> WeightLogResponse:
+    async def create_weight_log(
+        user_id: str,
+        log_data: WeightLogCreate,
+        access_token: Optional[str] = None,
+    ) -> WeightLogResponse:
         """Create or update a weight log entry"""
         try:
-            supabase = get_supabase()
+            supabase = get_user_supabase(access_token) if access_token else get_supabase()
             
             log_dict = {
                 "user_id": user_id,
@@ -116,10 +137,14 @@ class WeightTrackingService:
             raise
     
     @staticmethod
-    async def get_weight_logs(user_id: str, days: int = 30) -> List[WeightLogResponse]:
+    async def get_weight_logs(
+        user_id: str,
+        days: int = 30,
+        access_token: Optional[str] = None,
+    ) -> List[WeightLogResponse]:
         """Get weight logs for specified number of days"""
         try:
-            supabase = get_supabase()
+            supabase = get_user_supabase(access_token) if access_token else get_supabase()
             
             start_date = (date.today() - timedelta(days=days)).isoformat()
             
@@ -137,10 +162,15 @@ class WeightTrackingService:
             raise
     
     @staticmethod
-    async def update_weight_log(user_id: str, log_id: str, update_data: WeightLogUpdate) -> WeightLogResponse:
+    async def update_weight_log(
+        user_id: str,
+        log_id: str,
+        update_data: WeightLogUpdate,
+        access_token: Optional[str] = None,
+    ) -> WeightLogResponse:
         """Update an existing weight log"""
         try:
-            supabase = get_supabase()
+            supabase = get_user_supabase(access_token) if access_token else get_supabase()
             
             update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
             
@@ -165,10 +195,14 @@ class WeightTrackingService:
             raise
     
     @staticmethod
-    async def delete_weight_log(user_id: str, log_id: str) -> bool:
+    async def delete_weight_log(
+        user_id: str,
+        log_id: str,
+        access_token: Optional[str] = None,
+    ) -> bool:
         """Delete a weight log"""
         try:
-            supabase = get_supabase()
+            supabase = get_user_supabase(access_token) if access_token else get_supabase()
             
             result = supabase.table("weight_logs")\
                 .delete()\
@@ -183,10 +217,14 @@ class WeightTrackingService:
             raise
     
     @staticmethod
-    async def update_goals(user_id: str, goals: GoalUpdate) -> Dict[str, Any]:
+    async def update_goals(
+        user_id: str,
+        goals: GoalUpdate,
+        access_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Update user's weight and body fat goals"""
         try:
-            supabase = get_supabase()
+            supabase = get_user_supabase(access_token) if access_token else get_supabase()
             
             update_dict = {}
             if goals.target_weight_kg is not None:
@@ -198,9 +236,20 @@ class WeightTrackingService:
                 .update(update_dict)\
                 .eq("user_id", user_id)\
                 .execute()
-            
+
             if not result.data:
-                raise ValueError("User profile not found")
+                refreshed = supabase.table("user_profiles")\
+                    .select("*")\
+                    .eq("user_id", user_id)\
+                    .limit(1)\
+                    .execute()
+                if refreshed.data:
+                    result = refreshed
+                else:
+                    insert_payload = {"user_id": user_id, **update_dict}
+                    result = supabase.table("user_profiles").insert(insert_payload).execute()
+                    if not result.data:
+                        raise ValueError("User profile not found")
             WeightTrackingService._invalidate_projection_cache(user_id)
             return result.data[0]
             
@@ -287,6 +336,7 @@ class WeightTrackingService:
         days_history: int = 30,
         target_deficit: Optional[float] = None,
         profile_override: Optional[Dict[str, Any]] = None,
+        access_token: Optional[str] = None,
     ) -> GoalProjectionResponse:
         """
         Calculate goal projection based on current trends
@@ -310,7 +360,7 @@ class WeightTrackingService:
                 )
                 return cached
 
-            supabase = get_supabase()
+            supabase = get_user_supabase(access_token) if access_token else get_supabase()
             profile_fetch_started = time.perf_counter()
             
             profile = dict(profile_override or {})
@@ -332,17 +382,27 @@ class WeightTrackingService:
                     .eq("user_id", user_id)\
                     .execute()
 
-                if not profile_result.data:
-                    raise ValueError("User profile not found")
-
-                profile = {
-                    **profile_result.data[0],
-                    **{k: v for k, v in profile.items() if v is not None},
-                }
+                if profile_result.data:
+                    profile = {
+                        **profile_result.data[0],
+                        **{k: v for k, v in profile.items() if v is not None},
+                    }
             profile_fetch_ms = (time.perf_counter() - profile_fetch_started) * 1000
-            current_weight = float(profile.get("weight_kg", 70.0))
-            target_weight = profile.get("target_weight_kg")
-            target_body_fat = profile.get("target_body_fat_percentage")
+            current_weight = _coerce_float(profile.get("weight_kg"), 70.0) or 70.0
+            target_weight = _coerce_float(profile.get("target_weight_kg"))
+            target_body_fat = _coerce_float(profile.get("target_body_fat_percentage"))
+            profile = {
+                **profile,
+                "weight_kg": current_weight,
+                "target_weight_kg": target_weight,
+                "target_body_fat_percentage": target_body_fat,
+                "calorie_goal": _coerce_float(profile.get("calorie_goal"), 2000.0) or 2000.0,
+                "height_cm": _coerce_float(profile.get("height_cm"), 170.0) or 170.0,
+                "age": int(_coerce_float(profile.get("age"), 30.0) or 30.0),
+                "gender": str(profile.get("gender") or "male"),
+                "activity_level": str(profile.get("activity_level") or "moderate"),
+                "created_at": _coerce_created_at(profile.get("created_at")),
+            }
             
             # Get weight logs (include today)
             start_date = (date.today() - timedelta(days=days_history)).isoformat()

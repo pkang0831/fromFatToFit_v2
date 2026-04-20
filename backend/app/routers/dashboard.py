@@ -13,7 +13,10 @@ router = APIRouter()
 @limiter.limit("60/minute")
 async def get_dashboard(request: Request, current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
     try:
-        dashboard_data = await get_dashboard_stats(current_user["id"])
+        dashboard_data = await get_dashboard_stats(
+            current_user["id"],
+            access_token=current_user.get("access_token"),
+        )
         return {
             "user": {
                 "name": current_user.get("full_name", "User"),
@@ -40,23 +43,29 @@ async def get_quick_stats(request: Request, current_user: dict = Depends(get_cur
         from datetime import date, timedelta
         from ..services.analytics import calculate_daily_summary
         from ..services.calorie_calculator import CalorieCalculator
-        from ..database import get_supabase
+        from ..database import get_supabase, get_user_supabase
 
         today = date.today()
-        supabase = get_supabase()
-        daily_summary = await calculate_daily_summary(current_user["id"], today)
+        access_token = current_user.get("access_token")
+        supabase = get_user_supabase(access_token) if access_token else get_supabase()
+        daily_summary = await calculate_daily_summary(
+            current_user["id"],
+            today,
+            access_token=access_token,
+        )
 
         profile_result = supabase.table("user_profiles").select(
             "weight_kg, height_cm, age, gender, activity_level"
-        ).eq("user_id", current_user["id"]).single().execute()
+        ).eq("user_id", current_user["id"]).limit(1).execute()
 
-        tdee = 0.0
-        if profile_result.data:
-            p = profile_result.data
-            tdee = CalorieCalculator.calculate_tdee(
-                p.get('weight_kg') or 70.0, p.get('height_cm') or 170.0,
-                p.get('age') or 30, p.get('gender') or 'male', p.get('activity_level') or 'moderate'
-            )
+        profile_data = profile_result.data[0] if profile_result.data else {}
+        tdee = CalorieCalculator.calculate_tdee(
+            profile_data.get('weight_kg') or current_user.get('weight_kg') or 70.0,
+            profile_data.get('height_cm') or current_user.get('height_cm') or 170.0,
+            profile_data.get('age') or current_user.get('age') or 30,
+            profile_data.get('gender') or current_user.get('gender') or 'male',
+            profile_data.get('activity_level') or current_user.get('activity_level') or 'moderate',
+        )
 
         workout_calories_result = supabase.table("workout_logs").select(
             "calories_burned"
@@ -100,7 +109,11 @@ async def get_calorie_balance_trend_endpoint(
     request: Request, days: int = 7, current_user: dict = Depends(get_current_user)
 ) -> Dict[str, Any]:
     try:
-        trend_data = await get_calorie_balance_trend(current_user["id"], days)
+        trend_data = await get_calorie_balance_trend(
+            current_user["id"],
+            days,
+            profile=current_user,
+        )
         return trend_data
     except Exception as e:
         logger.error(f"Error getting calorie balance trend: {e}")

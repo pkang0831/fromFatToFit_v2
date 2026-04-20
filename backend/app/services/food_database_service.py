@@ -3,11 +3,18 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from functools import lru_cache
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 
-# Path to food database
-FOOD_DB_PATH = Path(__file__).parent.parent.parent / "data" / "foods.json"
+DEFAULT_FOOD_DB_PATH = Path(__file__).parent.parent.parent / "data" / "foods.json"
+
+
+def _food_db_path() -> Path:
+    override = (settings.food_db_path or "").strip()
+    if override:
+        return Path(override).expanduser()
+    return DEFAULT_FOOD_DB_PATH
 
 
 class FoodDatabaseService:
@@ -22,11 +29,16 @@ class FoodDatabaseService:
     def load_database(self):
         """Load food database from JSON file"""
         try:
-            if not FOOD_DB_PATH.exists():
-                logger.error(f"Food database not found at {FOOD_DB_PATH}")
+            food_db_path = _food_db_path()
+            if not food_db_path.exists():
+                logger.error(
+                    "Food database not found at %s. Set FOOD_DB_PATH in backend/.env "
+                    "or add backend/data/foods.json.",
+                    food_db_path,
+                )
                 return
             
-            with open(FOOD_DB_PATH, 'r', encoding='utf-8') as f:
+            with open(food_db_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
             self.foods = data.get('foods', [])

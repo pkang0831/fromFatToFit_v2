@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from datetime import datetime, timezone
 from app.dependencies import get_current_user
-from app.database import get_supabase
+from app.database import get_supabase, get_user_supabase
 from app.config import settings
 from app.services.progress_photo_storage import (
     build_progress_photo_url,
@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/progress-photos", tags=["progress-photos"])
 
 
+def _storage_kwargs(access_token: str | None) -> dict:
+    return {"access_token": access_token} if access_token else {}
+
+
 def _legacy_image_url(image_base64: str | None) -> str | None:
     if not image_base64:
         return None
@@ -24,6 +28,7 @@ def _serialize_progress_photo(
     row: dict,
     *,
     include_legacy_base64: bool = False,
+    access_token: str | None = None,
 ) -> dict:
     serialized = dict(row)
     storage_key = serialized.get("storage_key")
@@ -31,7 +36,11 @@ def _serialize_progress_photo(
     legacy_base64 = serialized.get("image_base64")
 
     if storage_key:
-        serialized["image_url"] = build_progress_photo_url(storage_key, storage_bucket)
+        serialized["image_url"] = build_progress_photo_url(
+            storage_key,
+            storage_bucket,
+            access_token=access_token,
+        )
         serialized.pop("image_base64", None)
     else:
         serialized["image_url"] = _legacy_image_url(legacy_base64)
@@ -51,8 +60,15 @@ async def upload_progress_photo(
 ):
     """Upload a progress photo with optional metadata."""
     user_id = current_user["id"]
-    supabase = get_supabase()
-    storage = upload_progress_image(user_id, image_base64)
+    access_token = current_user.get("access_token")
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
+    try:
+        storage = upload_progress_image(user_id, image_base64, **_storage_kwargs(access_token))
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning("Progress photo storage upload failed for %s", user_id, exc_info=True)
+        raise HTTPException(status_code=503, detail="Progress photo storage is unavailable") from exc
 
     photo_data = {
         "user_id": user_id,
@@ -69,26 +85,35 @@ async def upload_progress_photo(
         result = supabase.table("progress_photos").insert(photo_data).execute()
     except Exception:
         try:
-            delete_progress_image(storage["storage_key"], storage["storage_bucket"])
+            delete_progress_image(
+                storage["storage_key"],
+                storage["storage_bucket"],
+                **_storage_kwargs(access_token),
+            )
         except Exception:
             logger.warning("Failed to clean up uploaded progress photo after DB insert error", exc_info=True)
         raise
 
     if not result.data:
         try:
-            delete_progress_image(storage["storage_key"], storage["storage_bucket"])
+            delete_progress_image(
+                storage["storage_key"],
+                storage["storage_bucket"],
+                **_storage_kwargs(access_token),
+            )
         except Exception:
             logger.warning("Failed to clean up uploaded progress photo after empty DB insert result", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to save photo")
 
-    return _serialize_progress_photo(result.data[0])
+    return _serialize_progress_photo(result.data[0], access_token=access_token)
 
 
 @router.get("")
 async def get_progress_photos(current_user: dict = Depends(get_current_user)):
     """Get all progress photos, newest first."""
     user_id = current_user["id"]
-    supabase = get_supabase()
+    access_token = current_user.get("access_token")
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
 
     result = (
         supabase.table("progress_photos")
@@ -98,7 +123,7 @@ async def get_progress_photos(current_user: dict = Depends(get_current_user)):
         .execute()
     )
 
-    return [_serialize_progress_photo(row) for row in (result.data or [])]
+    return [_serialize_progress_photo(row, access_token=access_token) for row in (result.data or [])]
 
 
 @router.get("/{photo_id}")
@@ -107,7 +132,8 @@ async def get_progress_photo(
 ):
     """Get a single progress photo with image data."""
     user_id = current_user["id"]
-    supabase = get_supabase()
+    access_token = current_user.get("access_token")
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
 
     result = (
         supabase.table("progress_photos")
@@ -120,7 +146,11 @@ async def get_progress_photo(
     if not result.data:
         raise HTTPException(status_code=404, detail="Photo not found")
 
-    return _serialize_progress_photo(result.data[0], include_legacy_base64=True)
+    return _serialize_progress_photo(
+        result.data[0],
+        include_legacy_base64=True,
+        access_token=access_token,
+    )
 
 
 @router.delete("/{photo_id}")
@@ -129,7 +159,8 @@ async def delete_progress_photo(
 ):
     """Delete a progress photo."""
     user_id = current_user["id"]
-    supabase = get_supabase()
+    access_token = current_user.get("access_token")
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
 
     result = (
         supabase.table("progress_photos")
@@ -151,6 +182,7 @@ async def delete_progress_photo(
         delete_progress_image(
             photo["storage_key"],
             photo.get("storage_bucket") or settings.progress_photo_storage_bucket,
+            **_storage_kwargs(access_token),
         )
 
     supabase.table("progress_photos").delete().eq("id", photo_id).eq("user_id", user_id).execute()
@@ -166,7 +198,8 @@ async def compare_photos(
 ):
     """Get two photos for side-by-side comparison."""
     user_id = current_user["id"]
-    supabase = get_supabase()
+    access_token = current_user.get("access_token")
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
 
     result = (
         supabase.table("progress_photos")
@@ -180,8 +213,16 @@ async def compare_photos(
         raise HTTPException(status_code=404, detail="One or both photos not found")
 
     photos = sorted(result.data, key=lambda x: x["taken_at"])
-    before = _serialize_progress_photo(photos[0], include_legacy_base64=True)
-    after = _serialize_progress_photo(photos[1], include_legacy_base64=True)
+    before = _serialize_progress_photo(
+        photos[0],
+        include_legacy_base64=True,
+        access_token=access_token,
+    )
+    after = _serialize_progress_photo(
+        photos[1],
+        include_legacy_base64=True,
+        access_token=access_token,
+    )
 
     days_between = None
     try:

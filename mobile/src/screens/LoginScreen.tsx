@@ -11,15 +11,17 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { colors, typography, spacing, borderRadius, shadows } from '../theme';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
@@ -29,7 +31,7 @@ export default function LoginScreen({ navigation }: any) {
       return;
     }
 
-    setLoading(true);
+    setEmailLoading(true);
     setErrorMessage(null);
 
     try {
@@ -37,7 +39,20 @@ export default function LoginScreen({ navigation }: any) {
     } catch (error: any) {
       setErrorMessage(error?.message || 'We could not sign you in right now. Please try again.');
     } finally {
-      setLoading(false);
+      setEmailLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setErrorMessage(null);
+
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      setErrorMessage(error?.message || 'Google sign-in did not finish. Please try again.');
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -52,20 +67,13 @@ export default function LoginScreen({ navigation }: any) {
       >
         <View style={styles.content}>
           <View style={styles.hero}>
+            <Text style={styles.eyebrow}>DEVENIRA</Text>
             <Image source={require('../../assets/icon.png')} style={styles.logo} />
-            <Text style={styles.title}>Devenira</Text>
-            <Text style={styles.subtitle}>Pick up your weekly proof loop where you left off.</Text>
-            <View style={styles.badgeRow}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>Secure sign-in</Text>
-              </View>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>Mobile sync</Text>
-              </View>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>Weekly proof</Text>
-              </View>
-            </View>
+            <Text style={styles.title}>Continue your weekly proof loop.</Text>
+            <Text style={styles.subtitle}>
+              Google first, email as fallback. Use the same account you use on web so your scans,
+              progress, and premium access stay in one place.
+            </Text>
           </View>
 
           <View style={styles.card}>
@@ -76,7 +84,42 @@ export default function LoginScreen({ navigation }: any) {
               </View>
             )}
 
-            <View style={styles.form}>
+            <View style={styles.oauthBlock}>
+              <Text style={styles.blockEyebrow}>RECOMMENDED</Text>
+              <TouchableOpacity
+                style={[styles.googleButton, googleLoading && styles.buttonDisabled]}
+                onPress={handleGoogleLogin}
+                disabled={googleLoading || emailLoading}
+                activeOpacity={0.92}
+              >
+                {googleLoading ? (
+                  <View style={styles.buttonRow}>
+                    <ActivityIndicator color={colors.text} />
+                    <Text style={styles.googleButtonText}>Opening Google…</Text>
+                  </View>
+                ) : (
+                  <View style={styles.googleButtonContent}>
+                    <View style={styles.googleIconWrap}>
+                      <Ionicons name="logo-google" size={18} color={colors.textOnPrimary} />
+                    </View>
+                    <View style={styles.googleCopy}>
+                      <Text style={styles.googleButtonText}>Continue with Google</Text>
+                      <Text style={styles.googleButtonHint}>Fastest way back into your proof history</Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={18} color={colors.text} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR USE EMAIL</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <View style={styles.formCard}>
+              <Text style={styles.blockEyebrow}>EMAIL FALLBACK</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -104,33 +147,33 @@ export default function LoginScreen({ navigation }: any) {
               />
 
               <TouchableOpacity
-                style={[styles.button, loading && styles.buttonDisabled]}
+                style={[styles.button, (emailLoading || googleLoading) && styles.buttonDisabled]}
                 onPress={handleLogin}
-                disabled={loading}
+                disabled={emailLoading || googleLoading}
                 activeOpacity={0.9}
               >
-                {loading ? (
+                {emailLoading ? (
                   <View style={styles.buttonRow}>
                     <ActivityIndicator color={colors.textOnPrimary} />
                     <Text style={styles.buttonText}>Signing in...</Text>
                   </View>
                 ) : (
-                  <Text style={styles.buttonText}>Sign In</Text>
+                  <Text style={styles.buttonText}>Sign In with Email</Text>
                 )}
               </TouchableOpacity>
 
               <Text style={styles.helperText}>
-                Use the same account on mobile and web to keep your body scans and progress in sync.
+                Best for existing password accounts or if Google is unavailable on this device.
               </Text>
 
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() => navigation.navigate('Register')}
-                disabled={loading}
+                disabled={emailLoading || googleLoading}
                 activeOpacity={0.85}
               >
                 <Text style={styles.linkText}>
-                  Don&apos;t have an account? <Text style={styles.linkTextBold}>Create one</Text>
+                  Don&apos;t have an account yet? <Text style={styles.linkTextBold}>Create one</Text>
                 </Text>
               </TouchableOpacity>
             </View>
@@ -158,45 +201,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
-  title: {
-    ...typography.h1,
-    color: colors.primary,
-    textAlign: 'center',
+  eyebrow: {
+    ...typography.overline,
+    color: colors.primaryLight,
     marginBottom: spacing.sm,
   },
   logo: {
-    alignSelf: 'center',
-    width: 84,
-    height: 84,
+    width: 72,
+    height: 72,
     marginBottom: spacing.lg,
-    borderRadius: 24,
-    ...shadows.medium,
+    borderRadius: 20,
+  },
+  title: {
+    ...typography.h2,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+    maxWidth: 320,
   },
   subtitle: {
     ...typography.body1,
     color: colors.textSecondary,
     textAlign: 'center',
-    maxWidth: 300,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-  },
-  badge: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: borderRadius.round,
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  badgeText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '600',
+    maxWidth: 340,
   },
   card: {
     backgroundColor: colors.surface,
@@ -223,8 +250,68 @@ const styles = StyleSheet.create({
     ...typography.body2,
     color: colors.text,
   },
-  form: {
-    marginTop: 0,
+  oauthBlock: {
+    gap: spacing.md,
+  },
+  blockEyebrow: {
+    ...typography.overline,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
+  },
+  googleButton: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  googleButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  googleIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleCopy: {
+    flex: 1,
+  },
+  googleButtonText: {
+    ...typography.button,
+    color: colors.text,
+  },
+  googleButtonHint: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginVertical: spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    ...typography.overline,
+    color: colors.textLight,
+  },
+  formCard: {
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    backgroundColor: colors.background,
+    padding: spacing.md,
   },
   input: {
     backgroundColor: colors.surfaceAlt,
@@ -235,6 +322,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     marginBottom: spacing.sm,
     ...typography.body1,
+    color: colors.text,
   },
   button: {
     backgroundColor: colors.primary,
@@ -260,20 +348,18 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: spacing.lg,
-    lineHeight: 18,
+    marginTop: spacing.md,
   },
   linkButton: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
     alignItems: 'center',
   },
   linkText: {
     ...typography.body2,
     color: colors.textSecondary,
-    textAlign: 'center',
   },
   linkTextBold: {
-    ...typography.button,
     color: colors.primary,
+    fontWeight: '700',
   },
 });

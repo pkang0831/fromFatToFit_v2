@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from PIL import Image, UnidentifiedImageError
 
 from ..config import settings
-from ..database import get_supabase
+from ..database import get_supabase, get_user_supabase
 
 logger = logging.getLogger(__name__)
 
@@ -55,11 +55,19 @@ def _decode_progress_photo(image_base64: str) -> tuple[bytes, str, str]:
     return image_bytes, mime_type, extension
 
 
-def upload_progress_image(user_id: str, image_base64: str) -> dict[str, str]:
+def upload_progress_image(
+    user_id: str,
+    image_base64: str,
+    access_token: str | None = None,
+) -> dict[str, str]:
     image_bytes, mime_type, extension = _decode_progress_photo(image_base64)
     storage_key = f"{user_id}/{uuid4()}.{extension}"
 
-    supabase = get_supabase()
+    supabase = (
+        get_user_supabase(access_token)
+        if access_token
+        else get_supabase()
+    )
     bucket = supabase.storage.from_(settings.progress_photo_storage_bucket)
     bucket.upload(storage_key, image_bytes, {"content-type": mime_type})
 
@@ -69,12 +77,20 @@ def upload_progress_image(user_id: str, image_base64: str) -> dict[str, str]:
     }
 
 
-def build_progress_photo_url(storage_key: str, storage_bucket: str | None = None) -> str:
+def build_progress_photo_url(
+    storage_key: str,
+    storage_bucket: str | None = None,
+    access_token: str | None = None,
+) -> str:
     if not storage_key:
         raise ValueError("storage_key is required")
 
     bucket_name = storage_bucket or settings.progress_photo_storage_bucket
-    supabase = get_supabase()
+    supabase = (
+        get_user_supabase(access_token)
+        if access_token
+        else get_supabase()
+    )
     signed = supabase.storage.from_(bucket_name).create_signed_url(
         storage_key,
         settings.progress_photo_signed_url_ttl_seconds,
@@ -86,12 +102,20 @@ def build_progress_photo_url(storage_key: str, storage_bucket: str | None = None
     return url
 
 
-def delete_progress_image(storage_key: str, storage_bucket: str | None = None) -> None:
+def delete_progress_image(
+    storage_key: str,
+    storage_bucket: str | None = None,
+    access_token: str | None = None,
+) -> None:
     if not storage_key:
         return
 
     bucket_name = storage_bucket or settings.progress_photo_storage_bucket
-    supabase = get_supabase()
+    supabase = (
+        get_user_supabase(access_token)
+        if access_token
+        else get_supabase()
+    )
     try:
         supabase.storage.from_(bucket_name).remove([storage_key])
     except Exception as exc:

@@ -178,7 +178,7 @@ async def _is_first_month(user_id: str) -> bool:
     """Check if user signed up within the last FIRST_MONTH_DAYS days."""
     try:
         supabase = get_supabase()
-        result = supabase.table("user_profiles").select("created_at").eq("id", user_id).execute()
+        result = supabase.table("user_profiles").select("created_at").eq("user_id", user_id).execute()
         if not result.data:
             return False
         created_str = result.data[0].get("created_at")
@@ -307,16 +307,21 @@ async def get_all_usage_limits(user_id: str, is_premium: bool = False) -> Dict[s
         
         supabase = get_supabase()
         result = supabase.table("usage_limits").select("*").eq("user_id", user_id).execute()
+        is_first_month = await _is_first_month(user_id)
         
         usage_data = {}
         for feature_type, limit in USAGE_LIMITS.items():
             current = next((item for item in result.data if item["feature_type"] == feature_type), None)
             current_count = current["count"] if current else 0
+            effective_limit = limit
+            boosted_limit = FIRST_MONTH_USAGE_LIMITS.get(feature_type, limit)
+            if boosted_limit > limit and is_first_month:
+                effective_limit = boosted_limit
             
             usage_data[feature_type] = {
                 "current_count": current_count,
-                "limit": limit,
-                "remaining": max(0, limit - current_count),
+                "limit": effective_limit,
+                "remaining": max(0, effective_limit - current_count),
                 "is_premium": False
             }
         

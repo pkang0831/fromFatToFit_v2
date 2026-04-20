@@ -11,6 +11,7 @@ from ..middleware.auth_middleware import get_current_user
 from ..services.rag_chat_service import generate_answer, save_message, get_chat_history, clear_chat_history
 from ..database import get_supabase
 from ..services.payment_service import check_premium_status
+from ..services.service_availability import ai_service_unavailable, is_openai_unavailable
 from ..rate_limit import limiter
 
 router = APIRouter()
@@ -102,9 +103,11 @@ async def send_message(
             chat_history=chat_history,
         )
     except Exception as e:
+        if is_openai_unavailable(e):
+            raise ai_service_unavailable("Chat coaching is temporarily unavailable because the AI service is not configured.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate response: {str(e)}"
+            detail="Failed to generate response"
         )
 
     await save_message(user_id, "user", chat_request.message)

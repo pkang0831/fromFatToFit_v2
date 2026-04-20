@@ -11,6 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format, parseISO } from 'date-fns';
 import { LineChart } from 'react-native-chart-kit';
 
@@ -22,6 +24,7 @@ import {
   weightApi,
 } from '../services/api';
 import { borderRadius, colors, shadows, spacing, typography } from '../theme';
+import { getLocalDateString } from '../utils/date';
 
 const CHART_WIDTH = Dimensions.get('window').width - spacing.md * 2 - spacing.lg * 2;
 
@@ -35,7 +38,7 @@ function formatDateLabel(value: string) {
 
 function formatGoalDate(value?: string | null) {
   if (!value) {
-    return 'Adjust your plan';
+    return 'Save a goal';
   }
 
   try {
@@ -56,6 +59,8 @@ function buildLabels(points: string[]) {
 }
 
 export default function ProgressScreen({ navigation }: any) {
+  const tabBarHeight = useBottomTabBarHeight();
+  const insets = useSafeAreaInsets();
   const [summary, setSummary] = useState<HomeSummary | null>(null);
   const [quickStats, setQuickStats] = useState<any>(null);
   const [projection, setProjection] = useState<GoalProjectionResponse | null>(null);
@@ -68,10 +73,26 @@ export default function ProgressScreen({ navigation }: any) {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    void loadProgress();
+    void loadOverview();
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      void loadProjectionOnly();
+    }
   }, [targetDeficit]);
 
-  const loadProgress = async () => {
+  const loadProjectionOnly = async () => {
+    try {
+      const { data } = await weightApi.getProjection({ days_history: 30, target_deficit: targetDeficit });
+      setProjection(data);
+      setLoadError(null);
+    } catch (error) {
+      setLoadError((current) => current ?? 'Some progress data is unavailable right now. Showing what we have.');
+    }
+  };
+
+  const loadOverview = async () => {
     setLoadError(null);
     try {
       const [summaryResult, quickStatsResult, projectionResult] = await Promise.allSettled([
@@ -80,23 +101,9 @@ export default function ProgressScreen({ navigation }: any) {
         weightApi.getProjection({ days_history: 30, target_deficit: targetDeficit }),
       ]);
 
-      if (summaryResult.status === 'fulfilled') {
-        setSummary(summaryResult.value.data);
-      } else {
-        setSummary(null);
-      }
-
-      if (quickStatsResult.status === 'fulfilled') {
-        setQuickStats(quickStatsResult.value.data);
-      } else {
-        setQuickStats(null);
-      }
-
-      if (projectionResult.status === 'fulfilled') {
-        setProjection(projectionResult.value.data);
-      } else {
-        setProjection(null);
-      }
+      setSummary(summaryResult.status === 'fulfilled' ? summaryResult.value.data : null);
+      setQuickStats(quickStatsResult.status === 'fulfilled' ? quickStatsResult.value.data : null);
+      setProjection(projectionResult.status === 'fulfilled' ? projectionResult.value.data : null);
 
       if (
         summaryResult.status === 'rejected' &&
@@ -112,7 +119,6 @@ export default function ProgressScreen({ navigation }: any) {
         setLoadError('Some progress data is unavailable right now. Showing what we have.');
       }
     } catch (error: any) {
-      console.error('Error loading progress:', error);
       setLoadError(error?.response?.data?.detail ?? 'Please try again in a moment.');
     } finally {
       setLoading(false);
@@ -122,7 +128,7 @@ export default function ProgressScreen({ navigation }: any) {
 
   const onRefresh = () => {
     setRefreshing(true);
-    void loadProgress();
+    void loadOverview();
   };
 
   const saveWeightEntry = async () => {
@@ -147,19 +153,22 @@ export default function ProgressScreen({ navigation }: any) {
     setSavingWeight(true);
     try {
       await weightApi.createLog({
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalDateString(),
         weight_kg: parsedWeight,
         body_fat_percentage: parsedBodyFat,
       });
       setWeightInput('');
       setBodyFatInput('');
-      await loadProgress();
+      await loadOverview();
     } catch (error: any) {
       Alert.alert('Could not save entry', error?.response?.data?.detail ?? 'Please try again.');
     } finally {
       setSavingWeight(false);
     }
   };
+
+  const hasActualProjection = (projection?.actual_projection_data?.length ?? 0) > 0;
+  const actualPaceLooksNoisy = Math.abs(projection?.avg_daily_deficit ?? 0) > 1200;
 
   const chartModel = useMemo(() => {
     if (!projection) {
@@ -168,31 +177,63 @@ export default function ProgressScreen({ navigation }: any) {
 
     const historical = projection.historical_data.slice(-10);
     const future = projection.projection_data.slice(0, 21);
+    const actualFuture = projection.actual_projection_data.slice(0, 21);
     const points = [...historical.map((point) => point.date), ...future.map((point) => point.date)];
-    const currentPath = [
+    const loggedPath = historical.map((point) => point.weight_kg);
+    const trendPath = historical.map((point) => point.moving_avg_weight);
+    const plannedPath = [
       ...historical.map((point) => point.moving_avg_weight),
       ...future.map((point) => point.projected_weight),
     ];
+    const recentPacePath = hasActualProjection
+      ? [
+          ...historical.map((point) => point.moving_avg_weight),
+          ...actualFuture.map((point) => point.projected_weight),
+        ]
+      : [];
     const targetLine = points.map(() => projection.target_weight ?? projection.current_weight);
 
     return {
       labels: buildLabels(points),
       datasets: [
         {
-          data: currentPath,
-          color: () => colors.chartPrimary,
-          strokeWidth: 3,
+          data: loggedPath,
+          color: () => '#4A86F7',
+          strokeWidth: 2.4,
         },
         {
+          data: trendPath,
+          color: () => 'rgba(194, 171, 143, 0.95)',
+          strokeWidth: 2.4,
+          withDots: false,
+        },
+        {
+          data: plannedPath,
+          color: () => '#F1B033',
+          strokeWidth: 3,
+          strokeDashArray: [6, 4],
+          withDots: false,
+        },
+        ...(hasActualProjection
+          ? [
+              {
+                data: recentPacePath,
+                color: () => '#F05D71',
+                strokeWidth: 2,
+                strokeDashArray: [3, 4],
+                withDots: false,
+              },
+            ]
+          : []),
+        {
           data: targetLine,
-          color: () => colors.secondary,
+          color: () => '#4ED0B3',
           strokeWidth: 2,
           withDots: false,
         },
       ],
-      legend: ['Your path', 'Target'],
     };
-  }, [projection]);
+  }, [hasActualProjection, projection]);
 
   const weeklyStatus = summary?.latest_weekly_checkin?.weekly_status ?? null;
   const weeklyTone =
@@ -207,12 +248,80 @@ export default function ProgressScreen({ navigation }: any) {
     weeklyStatus === 'improved'
       ? 'Looking better this week'
       : weeklyStatus === 'regressed'
-        ? 'Weekly check-in needs review'
+        ? 'Review this week closely'
         : weeklyStatus === 'low_confidence'
-          ? 'Weekly check-in needs a cleaner photo'
+          ? 'Cleaner photo needed'
           : summary?.latest_weekly_checkin
-            ? 'Weekly check-in is stable'
-            : 'No weekly check-in yet';
+            ? 'Holding steady'
+            : 'Start your first proof';
+  const goalMetaLabel = projection?.target_weight != null ? `Target ${projection.target_weight.toFixed(1)} kg` : 'Need target';
+  const paceMetaLabel = hasActualProjection
+    ? `Recent pace ${projection?.avg_daily_deficit?.toFixed(0) ?? 0} kcal/day`
+    : 'Planned pace only';
+  const chartSupportLine = actualPaceLooksNoisy
+    ? 'Recent pace looks noisy, so read this as direction instead of precision.'
+    : hasActualProjection
+      ? 'Gold is your plan. Red is the pace suggested by recent logs.'
+      : 'Gold is the plan. Save more entries to unlock a recent-pace comparison.';
+
+  const proofMetrics = [
+    {
+      key: 'current',
+      label: 'Current',
+      value: projection?.current_weight != null ? `${projection.current_weight.toFixed(1)} kg` : '--',
+      hint: projection?.moving_avg_weight != null ? `3-day trend ${projection.moving_avg_weight.toFixed(1)} kg` : 'No trend yet',
+    },
+    {
+      key: 'target',
+      label: 'Target',
+      value: projection?.target_weight != null ? `${projection.target_weight.toFixed(1)} kg` : '--',
+      hint:
+        projection?.target_weight != null
+          ? summary?.goal_summary.gap != null
+            ? `${summary.goal_summary.gap.toFixed(1)}% body-fat gap`
+            : 'Active target'
+          : 'Save a goal',
+    },
+    {
+      key: 'deficit',
+      label: 'Deficit',
+      value: `${targetDeficit}`,
+      hint: 'kcal / day',
+    },
+    {
+      key: 'date',
+      label: 'Goal date',
+      value: projection?.estimated_days_to_goal != null ? `${projection.estimated_days_to_goal} days` : '--',
+      hint: formatGoalDate(projection?.estimated_goal_date),
+    },
+  ];
+
+  const snapshotMetrics = [
+    {
+      key: 'calories',
+      label: 'Calories',
+      value: `${Math.round(quickStats?.today_calories ?? 0)}`,
+      hint: 'today',
+    },
+    {
+      key: 'protein',
+      label: 'Protein',
+      value: `${Math.round(quickStats?.today_protein ?? 0)}g`,
+      hint: 'anchor',
+    },
+    {
+      key: 'workouts',
+      label: 'Workouts',
+      value: `${quickStats?.workouts_this_week ?? 0}`,
+      hint: 'this week',
+    },
+    {
+      key: 'proof',
+      label: 'Proof',
+      value: summary?.latest_weekly_checkin ? weeklyLabel : 'Pending',
+      hint: summary?.scan_summary.next_check_in_label ?? 'next check-in',
+    },
+  ];
 
   if (loading) {
     return (
@@ -227,13 +336,13 @@ export default function ProgressScreen({ navigation }: any) {
       <ScrollView
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm, paddingBottom: spacing.xxl + tabBarHeight }]}
       >
         <View style={styles.errorCard}>
           <Text style={styles.errorEyebrow}>Progress unavailable</Text>
           <Text style={styles.errorTitle}>We couldn’t load your progress yet.</Text>
           <Text style={styles.errorBody}>
-            Pull to retry. Once the data loads, you’ll see your weekly proof, goal path, and a place to log today’s weight.
+            Pull to retry. Once the data loads, you’ll see your weekly proof, path to goal, and today’s log here.
           </Text>
           <View style={styles.errorActions}>
             <TouchableOpacity style={styles.errorPrimaryAction} onPress={onRefresh}>
@@ -252,47 +361,70 @@ export default function ProgressScreen({ navigation }: any) {
     <ScrollView
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm, paddingBottom: spacing.xxl + tabBarHeight }]}
     >
-      {loadError && (
+      {loadError ? (
         <View style={styles.inlineBanner}>
           <Text style={styles.inlineBannerTitle}>Partial load</Text>
           <Text style={styles.inlineBannerBody}>{loadError}</Text>
         </View>
-      )}
+      ) : null}
 
-      <View style={styles.heroCard}>
-        <Text style={styles.eyebrow}>WEEKLY PROOF</Text>
-        <Text style={styles.heroTitle}>
-          {projection?.target_weight
-            ? `At ${targetDeficit} kcal/day, you could reach ${projection.target_weight.toFixed(1)} kg around ${formatGoalDate(projection.estimated_goal_date)}.`
-            : 'Add a target weight to see a realistic path to goal.'}
-        </Text>
-        <Text style={styles.heroBody}>
-          {projection?.message ?? 'We use your recent trend and your planned calorie deficit to estimate a clear next step.'}
-        </Text>
-      </View>
-
-      <View style={styles.metricRow}>
-        <View style={[styles.metricCard, styles.metricCardBlue]}>
-          <Text style={styles.metricLabel}>Current weight</Text>
-          <Text style={styles.metricValue}>{projection?.current_weight?.toFixed(1) ?? '--'} kg</Text>
-          <Text style={styles.metricSubtext}>3-day trend: {projection?.moving_avg_weight?.toFixed(1) ?? '--'} kg</Text>
+      <View style={styles.proofHeroCard}>
+        <View style={styles.proofHeroTopRow}>
+          <Text style={styles.eyebrow}>WEEKLY PROOF</Text>
+          <View style={[styles.statusPill, { borderColor: weeklyTone, backgroundColor: `${weeklyTone}22` }]}>
+            <Text style={[styles.statusPillText, { color: weeklyTone }]}>{weeklyLabel}</Text>
+          </View>
         </View>
-        <View style={[styles.metricCard, styles.metricCardGreen]}>
-          <Text style={styles.metricLabel}>Target weight</Text>
-          <Text style={styles.metricValue}>{projection?.target_weight?.toFixed(1) ?? '--'} kg</Text>
-          <Text style={styles.metricSubtext}>
-            {summary?.goal_summary.gap != null ? `${summary.goal_summary.gap.toFixed(1)}% body-fat gap` : 'Target from saved plan'}
-          </Text>
-        </View>
-      </View>
 
-      <View style={styles.metricRow}>
-        <View style={[styles.metricCard, styles.metricCardPurple]}>
-          <Text style={styles.metricLabel}>Planned daily deficit</Text>
-          <Text style={styles.metricValue}>{targetDeficit}</Text>
-          <Text style={styles.metricSubtext}>kcal/day</Text>
+        <View style={styles.proofHeroTop}>
+          <View style={styles.proofHeroCopy}>
+            <Text style={styles.heroTitle}>
+              {projection?.target_weight
+                ? `At ${targetDeficit} kcal/day, you could reach ${projection.target_weight.toFixed(1)} kg around ${formatGoalDate(projection.estimated_goal_date)}.`
+                : 'Save a target weight to turn this into a real path to goal.'}
+            </Text>
+            <Text style={styles.heroBody}>
+              {projection?.message ??
+                'We use your recent weight trend and planned deficit to keep the direction honest.'}
+            </Text>
+            <Text style={styles.heroSupport}>
+              {actualPaceLooksNoisy
+                ? 'Recent logging pace looks unusually aggressive or noisy, so use this chart as direction only.'
+                : hasActualProjection
+                  ? `Your recent pace from logged data is about ${projection?.avg_daily_deficit?.toFixed(0) ?? 0} kcal/day.`
+                  : 'This is a directional forecast, not a precise prescription.'}
+            </Text>
+          </View>
+
+          <View style={styles.heroSignalCard}>
+            <Text style={styles.heroSignalEyebrow}>READ THIS FIRST</Text>
+            <View style={styles.heroSignalContent}>
+              <Text style={styles.heroSignalTitle}>{goalMetaLabel}</Text>
+              <Text style={styles.heroSignalBody}>{paceMetaLabel}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.proofHeroMetrics}>
+          {proofMetrics.map((item) => (
+            <View key={item.key} style={styles.proofHeroMetric}>
+              <Text style={styles.proofHeroMetricLabel}>{item.label}</Text>
+              <Text style={styles.proofHeroMetricValue}>{item.value}</Text>
+              <Text style={styles.proofHeroMetricHint}>{item.hint}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.heroControlsCard}>
+          <View style={styles.heroControlsHeader}>
+            <View>
+              <Text style={styles.heroControlsEyebrow}>PACE SCENARIO</Text>
+                <Text style={styles.heroControlsTitle}>Read one planned deficit.</Text>
+              </View>
+            <Text style={styles.heroControlsHint}>Plan line</Text>
+            </View>
           <View style={styles.choiceRow}>
             {[300, 500, 700].map((choice) => (
               <TouchableOpacity
@@ -301,39 +433,35 @@ export default function ProgressScreen({ navigation }: any) {
                 onPress={() => setTargetDeficit(choice)}
               >
                 <Text style={[styles.choicePillText, choice === targetDeficit && styles.choicePillTextActive]}>
-                  {choice}
+                  {choice} kcal
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
-        <View style={[styles.metricCard, styles.metricCardAmber]}>
-          <Text style={styles.metricLabel}>Goal date</Text>
-          <Text style={styles.metricValue}>
-            {projection?.estimated_days_to_goal != null ? `${projection.estimated_days_to_goal} days` : '--'}
-          </Text>
-          <Text style={styles.metricSubtext}>{formatGoalDate(projection?.estimated_goal_date)}</Text>
-        </View>
-      </View>
 
-      <View style={[styles.statusCard, { borderColor: `${weeklyTone}55` }]}>
-        <Text style={[styles.statusHeadline, { color: weeklyTone }]}>{weeklyLabel}</Text>
-        <Text style={styles.statusBody}>
-          {summary?.latest_weekly_checkin?.qualitative_summary?.[0] ??
-            'Weekly proof keeps the trend honest. Add a front-facing check-in photo when you are ready.'}
-        </Text>
-        <TouchableOpacity style={styles.statusAction} onPress={() => navigation.navigate('BodyScan')}>
-          <Text style={styles.statusActionText}>
-            {summary?.latest_weekly_checkin ? "Upload this week's photo" : 'Start first weekly check-in'}
-          </Text>
+        <TouchableOpacity style={styles.heroAction} onPress={() => navigation.navigate('BodyScan')}>
+          <Text style={styles.heroActionText}>{summary?.latest_weekly_checkin ? 'Review latest proof' : 'Start weekly check-in'}</Text>
+          <Text style={styles.heroActionHint}>One weekly photo keeps this forecast honest.</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.chartCard}>
-        <Text style={styles.chartTitle}>Daily path to goal</Text>
-        <Text style={styles.chartSubtitle}>
-          One clean line is your current path. The green line is your goal weight.
-        </Text>
+        <View style={styles.chartHeader}>
+          <View style={styles.chartHeaderCopy}>
+            <Text style={styles.chartEyebrow}>PATH TO GOAL</Text>
+            <Text style={styles.chartTitle}>Daily weight path to goal.</Text>
+            <Text style={styles.chartSubtitle}>{chartSupportLine}</Text>
+          </View>
+          <View style={styles.chartMetaColumn}>
+            <View style={styles.chartMetaPill}>
+              <Text style={styles.chartMetaText}>21 day read</Text>
+            </View>
+            <View style={styles.chartMetaPillSecondary}>
+              <Text style={styles.chartMetaTextSecondary}>{hasActualProjection ? 'Plan + recent pace' : 'Plan only'}</Text>
+            </View>
+          </View>
+        </View>
         {chartModel ? (
           <>
             <LineChart
@@ -345,7 +473,6 @@ export default function ProgressScreen({ navigation }: any) {
               withOuterLines={false}
               withVerticalLines={false}
               fromZero={false}
-              bezier
               yAxisSuffix="kg"
               chartConfig={{
                 backgroundGradientFrom: colors.surface,
@@ -363,13 +490,33 @@ export default function ProgressScreen({ navigation }: any) {
               }}
               style={styles.chart}
             />
+            <View style={styles.chartSupportInline}>
+              <Text style={styles.chartSupportInlineLabel}>Read</Text>
+              <Text style={styles.chartSupportInlineText}>
+                Blue logged, gray trend, gold plan, red recent pace, green target.
+              </Text>
+            </View>
             <View style={styles.chartLegend}>
               <View style={styles.legendItem}>
-                <View style={[styles.legendSwatch, { backgroundColor: colors.chartPrimary }]} />
-                <Text style={styles.legendText}>Your path</Text>
+                <View style={[styles.legendSwatch, { backgroundColor: '#4A86F7' }]} />
+                <Text style={styles.legendText}>Logged weight</Text>
               </View>
               <View style={styles.legendItem}>
-                <View style={[styles.legendSwatch, { backgroundColor: colors.secondary }]} />
+                <View style={[styles.legendSwatch, { backgroundColor: 'rgba(194, 171, 143, 0.95)' }]} />
+                <Text style={styles.legendText}>3-day trend</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendSwatch, { backgroundColor: '#F1B033' }]} />
+                <Text style={styles.legendText}>Your plan</Text>
+              </View>
+              {hasActualProjection ? (
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendSwatch, { backgroundColor: '#F05D71' }]} />
+                  <Text style={styles.legendText}>Your recent pace</Text>
+                </View>
+              ) : null}
+              <View style={styles.legendItem}>
+                <View style={[styles.legendSwatch, { backgroundColor: '#4ED0B3' }]} />
                 <Text style={styles.legendText}>Target</Text>
               </View>
             </View>
@@ -384,9 +531,39 @@ export default function ProgressScreen({ navigation }: any) {
         )}
       </View>
 
+      <View style={styles.snapshotCard}>
+        <View style={styles.sectionLeadRow}>
+          <View>
+            <Text style={styles.snapshotEyebrow}>TODAY SNAPSHOT</Text>
+            <Text style={styles.snapshotTitle}>Stay close to the basics.</Text>
+          </View>
+          <View style={styles.sectionLeadPill}>
+            <Text style={styles.sectionLeadPillText}>Daily read</Text>
+          </View>
+        </View>
+        <Text style={styles.snapshotSubtitle}>Food, protein, workouts, and proof in one quick read.</Text>
+        <View style={styles.snapshotGrid}>
+          {snapshotMetrics.map((item) => (
+            <View key={item.key} style={styles.snapshotMetric}>
+              <Text style={styles.snapshotLabel}>{item.label}</Text>
+              <Text style={styles.snapshotValue}>{item.value}</Text>
+              <Text style={styles.snapshotHint}>{item.hint}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
       <View style={styles.logCard}>
-        <Text style={styles.logTitle}>Log today’s weight</Text>
-        <Text style={styles.logSubtitle}>One clean entry keeps the projection grounded in reality.</Text>
+        <View style={styles.sectionLeadRow}>
+          <View>
+            <Text style={styles.logEyebrow}>LOG TODAY</Text>
+            <Text style={styles.logTitle}>Keep the projection grounded.</Text>
+          </View>
+          <View style={styles.sectionLeadPill}>
+            <Text style={styles.sectionLeadPillText}>One clean entry</Text>
+          </View>
+        </View>
+        <Text style={styles.logSubtitle}>Morning weigh-in, same scale, optional body fat.</Text>
         <View style={styles.inputRow}>
           <TextInput
             style={[styles.input, styles.inputPrimary]}
@@ -413,21 +590,6 @@ export default function ProgressScreen({ navigation }: any) {
           <Text style={styles.logButtonText}>{savingWeight ? 'Saving...' : 'Save today’s entry'}</Text>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.footerStats}>
-        <View style={styles.footerStat}>
-          <Text style={styles.footerLabel}>Calories today</Text>
-          <Text style={styles.footerValue}>{Math.round(quickStats?.today_calories ?? 0)}</Text>
-        </View>
-        <View style={styles.footerStat}>
-          <Text style={styles.footerLabel}>Protein</Text>
-          <Text style={styles.footerValue}>{Math.round(quickStats?.today_protein ?? 0)}g</Text>
-        </View>
-        <View style={styles.footerStat}>
-          <Text style={styles.footerLabel}>Workouts</Text>
-          <Text style={styles.footerValue}>{quickStats?.workouts_this_week ?? 0}</Text>
-        </View>
-      </View>
     </ScrollView>
   );
 }
@@ -440,7 +602,7 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.md,
     paddingBottom: spacing.xxl,
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   loadingContainer: {
     flex: 1,
@@ -449,7 +611,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   inlineBanner: {
-    marginBottom: spacing.md,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
@@ -517,79 +678,161 @@ const styles = StyleSheet.create({
     ...typography.button,
     color: colors.text,
   },
-  heroCard: {
+  proofHeroCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.borderLight,
-    padding: spacing.lg,
+    padding: spacing.md + 2,
     ...shadows.medium,
+  },
+  proofHeroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  proofHeroTop: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  proofHeroCopy: {
+    flex: 1,
+    gap: spacing.xs,
   },
   eyebrow: {
     ...typography.overline,
-    color: colors.accent,
-    marginBottom: spacing.sm,
+    color: colors.textLight,
   },
   heroTitle: {
-    ...typography.h2,
-    marginBottom: spacing.sm,
+    ...typography.h3,
+    color: colors.text,
   },
   heroBody: {
-    ...typography.body1,
+    ...typography.body2,
     color: colors.textSecondary,
+    lineHeight: 19,
   },
-  metricRow: {
+  heroSupport: {
+    ...typography.caption,
+    color: colors.textLight,
+    lineHeight: 18,
+  },
+  heroSignalCard: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm + 2,
+    gap: spacing.sm,
+  },
+  heroSignalContent: {
     flexDirection: 'row',
     gap: spacing.md,
+    alignItems: 'flex-start',
   },
-  metricCard: {
+  heroSignalEyebrow: {
+    ...typography.overline,
+    color: colors.textLight,
+  },
+  heroSignalTitle: {
+    ...typography.h6,
+    color: colors.text,
     flex: 1,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
+  },
+  heroSignalBody: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    lineHeight: 18,
+    flex: 1,
+  },
+  statusPill: {
+    alignSelf: 'flex-start',
     borderWidth: 1,
-    overflow: 'hidden',
+    borderRadius: borderRadius.round,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
-  metricCardBlue: {
-    backgroundColor: 'rgba(54, 80, 128, 0.18)',
-    borderColor: 'rgba(143, 180, 217, 0.18)',
+  statusPillText: {
+    ...typography.caption,
+    fontWeight: '700',
   },
-  metricCardGreen: {
-    backgroundColor: 'rgba(54, 121, 88, 0.18)',
-    borderColor: 'rgba(105, 241, 142, 0.18)',
+  proofHeroMetrics: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
-  metricCardPurple: {
-    backgroundColor: 'rgba(111, 83, 177, 0.18)',
-    borderColor: 'rgba(166, 127, 255, 0.18)',
+  proofHeroMetric: {
+    width: '46.5%',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.sm + 2,
   },
-  metricCardAmber: {
-    backgroundColor: 'rgba(171, 102, 36, 0.18)',
-    borderColor: 'rgba(212, 178, 118, 0.18)',
-  },
-  metricLabel: {
+  proofHeroMetricLabel: {
     ...typography.caption,
     color: colors.textSecondary,
     marginBottom: spacing.xs,
+    textTransform: 'uppercase',
   },
-  metricValue: {
-    ...typography.h2,
+  proofHeroMetricValue: {
+    ...typography.h4,
+    color: colors.text,
     marginBottom: spacing.xs,
   },
-  metricSubtext: {
+  proofHeroMetricHint: {
+    ...typography.caption,
+    color: colors.textLight,
+  },
+  heroControlsCard: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm + 2,
+  },
+  heroControlsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  heroControlsEyebrow: {
+    ...typography.overline,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
+  },
+  heroControlsTitle: {
     ...typography.body2,
-    color: colors.textSecondary,
+    color: colors.text,
+    lineHeight: 19,
+  },
+  heroControlsHint: {
+    ...typography.caption,
+    color: colors.textLight,
+    textAlign: 'right',
+    maxWidth: 72,
   },
   choiceRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
-    marginTop: spacing.md,
   },
   choicePill: {
+    borderRadius: borderRadius.round,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: borderRadius.round,
+    backgroundColor: colors.surfaceAlt,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
   },
   choicePillActive: {
     backgroundColor: colors.primary,
@@ -602,67 +845,120 @@ const styles = StyleSheet.create({
   choicePillTextActive: {
     color: colors.textOnPrimary,
   },
-  statusCard: {
-    backgroundColor: colors.surface,
+  heroAction: {
+    marginTop: spacing.sm,
+    backgroundColor: colors.primary,
     borderRadius: borderRadius.xl,
-    borderWidth: 1,
-    padding: spacing.lg,
+    paddingVertical: spacing.sm + 2,
+    alignItems: 'center',
   },
-  statusHeadline: {
-    ...typography.h4,
-    marginBottom: spacing.sm,
+  heroActionText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
   },
-  statusBody: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  statusAction: {
-    alignSelf: 'flex-start',
-    borderRadius: borderRadius.round,
-    backgroundColor: colors.surfaceAlt,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  statusActionText: {
-    ...typography.buttonSmall,
-    color: colors.text,
+  heroActionHint: {
+    ...typography.caption,
+    color: `${colors.textOnPrimary}CC`,
+    marginTop: spacing.xs,
   },
   chartCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.borderLight,
-    padding: spacing.lg,
-    ...shadows.medium,
+    padding: spacing.md,
+    ...shadows.small,
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  chartHeaderCopy: {
+    flex: 1,
+  },
+  chartEyebrow: {
+    ...typography.overline,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
   },
   chartTitle: {
-    ...typography.h3,
+    ...typography.h4,
     marginBottom: spacing.xs,
   },
   chartSubtitle: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginBottom: spacing.md,
+    lineHeight: 20,
+  },
+  chartMetaColumn: {
+    alignItems: 'flex-end',
+    gap: spacing.xs,
+  },
+  chartMetaPill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  chartMetaText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  chartMetaPillSecondary: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: borderRadius.round,
+    backgroundColor: `${colors.primary}12`,
+    borderWidth: 1,
+    borderColor: `${colors.primary}24`,
+  },
+  chartMetaTextSecondary: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: '700',
   },
   chart: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
     borderRadius: borderRadius.lg,
-    marginLeft: -spacing.sm,
+  },
+  chartSupportInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  chartSupportInlineLabel: {
+    ...typography.caption,
+    color: colors.text,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  chartSupportInlineText: {
+    ...typography.caption,
+    color: colors.text,
+    flex: 1,
   },
   chartLegend: {
     flexDirection: 'row',
-    gap: spacing.lg,
-    marginTop: spacing.md,
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   legendSwatch: {
-    width: 12,
-    height: 12,
-    borderRadius: 999,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   legendText: {
     ...typography.caption,
@@ -671,8 +967,9 @@ const styles = StyleSheet.create({
   emptyChart: {
     backgroundColor: colors.surfaceAlt,
     borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
   },
   emptyChartTitle: {
     ...typography.h5,
@@ -681,47 +978,124 @@ const styles = StyleSheet.create({
   emptyChartBody: {
     ...typography.body2,
     color: colors.textSecondary,
-    textAlign: 'center',
+  },
+  snapshotCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    padding: spacing.md,
+    ...shadows.small,
+  },
+  sectionLeadRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  sectionLeadPill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  sectionLeadPillText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  snapshotEyebrow: {
+    ...typography.overline,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
+  },
+  snapshotTitle: {
+    ...typography.h4,
+  },
+  snapshotSubtitle: {
+    ...typography.body2,
+    color: colors.textSecondary,
+    lineHeight: 18,
+    marginBottom: spacing.sm,
+  },
+  snapshotGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  snapshotMetric: {
+    width: '48%',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+  },
+  snapshotLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+  },
+  snapshotValue: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  snapshotHint: {
+    ...typography.caption,
+    color: colors.textLight,
   },
   logCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.borderLight,
-    padding: spacing.lg,
+    padding: spacing.md,
+    ...shadows.small,
+  },
+  logEyebrow: {
+    ...typography.overline,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
   },
   logTitle: {
     ...typography.h4,
-    marginBottom: spacing.xs,
   },
   logSubtitle: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginBottom: spacing.md,
+    lineHeight: 18,
+    marginBottom: spacing.sm,
   },
   inputRow: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   input: {
+    ...typography.body1,
     flex: 1,
-    backgroundColor: colors.surfaceAlt,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     color: colors.text,
   },
   inputPrimary: {
-    flex: 1.2,
+    flex: 1.25,
   },
   logButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.secondary,
     borderRadius: borderRadius.xl,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm + 2,
     alignItems: 'center',
-    marginTop: spacing.md,
   },
   logButtonDisabled: {
     opacity: 0.6,
@@ -729,25 +1103,5 @@ const styles = StyleSheet.create({
   logButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
-  },
-  footerStats: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  footerStat: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
-  footerLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-  },
-  footerValue: {
-    ...typography.h4,
   },
 });

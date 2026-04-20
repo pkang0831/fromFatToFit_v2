@@ -189,6 +189,77 @@ def test_weekly_proof_status_requires_provider_readiness():
     assert status["reason"] == "provider_not_ready"
 
 
+def test_weekly_proof_user_status_reports_eligible_user():
+    from app.services.notification_service import get_weekly_proof_reminder_status_for_user
+
+    with (
+        patch(
+            "app.services.notification_service.get_weekly_proof_reminder_status",
+            return_value={"active": True, "channel": "email", "reason": None, "cooldown_hours": 72},
+        ),
+        patch(
+            "app.services.notification_service.get_notification_preferences",
+            AsyncMock(return_value={"email_weekly_summary": True}),
+        ),
+        patch(
+            "app.services.notification_service._get_weekly_proof_profile",
+            return_value={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
+        ),
+        patch(
+            "app.services.notification_service._get_home_summary_for_user",
+            AsyncMock(return_value=_summary("progress_proof", scan_count=2, photo_count=1)),
+        ),
+        patch("app.services.notification_service._get_latest_weekly_reminder_event", return_value=None),
+    ):
+        status = _run(get_weekly_proof_reminder_status_for_user("user-1"))
+
+    assert status["system_active"] is True
+    assert status["active"] is True
+    assert status["eligible"] is True
+    assert status["effective_active"] is True
+    assert status["effective_reason"] is None
+    assert status["eligibility_reason"] is None
+    assert status["preferences_enabled"] is True
+    assert status["onboarding_completed"] is True
+    assert status["email_present"] is True
+    assert status["entry_state"] == "progress_proof"
+    assert status["scan_count"] == 2
+    assert status["proof_photo_count"] == 1
+    assert status["next_path"].startswith("/progress")
+    assert status["reason"] is None
+
+
+def test_weekly_proof_user_status_reports_preferences_disabled():
+    from app.services.notification_service import get_weekly_proof_reminder_status_for_user
+
+    with (
+        patch(
+            "app.services.notification_service.get_weekly_proof_reminder_status",
+            return_value={"active": True, "channel": "email", "reason": None, "cooldown_hours": 72},
+        ),
+        patch(
+            "app.services.notification_service.get_notification_preferences",
+            AsyncMock(return_value={"email_weekly_summary": False}),
+        ),
+        patch(
+            "app.services.notification_service._get_weekly_proof_profile",
+            return_value={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
+        ),
+    ):
+        status = _run(get_weekly_proof_reminder_status_for_user("user-1"))
+
+    assert status["system_active"] is True
+    assert status["active"] is True
+    assert status["eligible"] is False
+    assert status["effective_active"] is False
+    assert status["effective_reason"] == "preferences_disabled"
+    assert status["eligibility_reason"] == "preferences_disabled"
+    assert status["preferences_enabled"] is False
+    assert status["onboarding_completed"] is True
+    assert status["email_present"] is True
+    assert status["reason"] is None
+
+
 def test_evaluate_weekly_proof_reminder_candidates_filters_ineligible_users():
     from app.services.notification_service import evaluate_weekly_proof_reminder_candidates
 

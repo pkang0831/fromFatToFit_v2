@@ -23,7 +23,11 @@ async def create_weight_log(
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        return await WeightTrackingService.create_weight_log(user_id=current_user["id"], log_data=log_data)
+        return await WeightTrackingService.create_weight_log(
+            user_id=current_user["id"],
+            log_data=log_data,
+            access_token=current_user.get("access_token"),
+        )
     except Exception as e:
         logger.error(f"Error creating weight log: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create weight log")
@@ -37,7 +41,11 @@ async def get_weight_logs(
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        return await WeightTrackingService.get_weight_logs(user_id=current_user["id"], days=days)
+        return await WeightTrackingService.get_weight_logs(
+            user_id=current_user["id"],
+            days=days,
+            access_token=current_user.get("access_token"),
+        )
     except Exception as e:
         logger.error(f"Error getting weight logs: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get weight logs")
@@ -52,7 +60,12 @@ async def update_weight_log(
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        return await WeightTrackingService.update_weight_log(user_id=current_user["id"], log_id=log_id, update_data=update_data)
+        return await WeightTrackingService.update_weight_log(
+            user_id=current_user["id"],
+            log_id=log_id,
+            update_data=update_data,
+            access_token=current_user.get("access_token"),
+        )
     except ValueError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Weight log not found")
     except Exception as e:
@@ -68,7 +81,11 @@ async def delete_weight_log(
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        await WeightTrackingService.delete_weight_log(user_id=current_user["id"], log_id=log_id)
+        await WeightTrackingService.delete_weight_log(
+            user_id=current_user["id"],
+            log_id=log_id,
+            access_token=current_user.get("access_token"),
+        )
     except Exception as e:
         logger.error(f"Error deleting weight log: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete weight log")
@@ -82,7 +99,11 @@ async def update_goals(
     current_user: dict = Depends(get_current_user)
 ):
     try:
-        return await WeightTrackingService.update_goals(user_id=current_user["id"], goals=goals)
+        return await WeightTrackingService.update_goals(
+            user_id=current_user["id"],
+            goals=goals,
+            access_token=current_user.get("access_token"),
+        )
     except Exception as e:
         logger.error(f"Error updating goals: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update goals")
@@ -104,6 +125,7 @@ async def get_goal_projection(
             days_history=days_history,
             target_deficit=target_deficit,
             profile_override=current_user,
+            access_token=current_user.get("access_token"),
         )
         elapsed_ms = (time.perf_counter() - started_at) * 1000
         response.headers["Server-Timing"] = f'projection;dur={elapsed_ms:.1f}'

@@ -37,6 +37,8 @@ Knowledge Context:
 
 
 def _get_openai_client() -> openai.OpenAI:
+    if not settings.openai_api_key:
+        raise RuntimeError("OPENAI_API_KEY is not configured")
     return openai.OpenAI(api_key=settings.openai_api_key)
 
 

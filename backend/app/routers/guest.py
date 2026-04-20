@@ -2,6 +2,7 @@
 
 import hashlib
 import time
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, status
 from starlette.requests import Request
@@ -17,6 +18,7 @@ from ..rate_limit import limiter
 from ..database import get_supabase
 from ..services.body_photo_quality import analyze_body_photo_quality
 from .body import estimate_body_fat_with_fallback, _require_safe_body_photo
+from ..services.service_availability import body_model_service_unavailable, is_hf_or_body_model_unavailable, is_openai_unavailable
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -83,7 +85,7 @@ async def _record_guest_scan(request: Request) -> None:
             row = result.data[0]
             supabase.table("guest_scan_usage").update({
                 "scan_count": row["scan_count"] + 1,
-                "last_scan_at": "now()",
+                "last_scan_at": datetime.now(timezone.utc).isoformat(),
             }).eq("id", row["id"]).execute()
         else:
             supabase.table("guest_scan_usage").insert({
@@ -169,6 +171,8 @@ async def guest_validate_photo(request: Request, body: BodyPhotoQualityRequest):
     except Exception as e:
         # This path is server errors only. Photo *quality* failures return HTTP 200 with ok=false + messages.
         logger.error(f"Guest validate-photo error: {e}", exc_info=True)
+        if is_hf_or_body_model_unavailable(e):
+            raise body_model_service_unavailable("Photo validation is temporarily unavailable because body-analysis models are not available on this server.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=(
@@ -233,6 +237,8 @@ async def guest_body_scan(request: Request, scan_request: GuestScanRequest):
         )
     except Exception as e:
         logger.error(f"Guest body scan error: {e}")
+        if is_hf_or_body_model_unavailable(e) or is_openai_unavailable(e):
+            raise body_model_service_unavailable("Guest body scan is temporarily unavailable because required AI models are not available on this server.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Body scan failed. Please try again.",

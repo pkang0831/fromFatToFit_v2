@@ -19,6 +19,7 @@ from ..services.payment_service import (
 )
 from ..services.retention_event_service import log_retention_event
 from ..services.usage_limiter import get_all_usage_limits, get_credit_balance
+from ..services.service_availability import is_stripe_unavailable, payment_service_unavailable
 from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
@@ -45,10 +46,9 @@ async def create_checkout(
         
     except Exception as e:
         logger.error(f"Error creating checkout session: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create checkout session"
-        )
+        if is_stripe_unavailable(e):
+            raise payment_service_unavailable("Payments are temporarily unavailable on this server.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create checkout session")
 
 
 @router.post("/webhook")
@@ -84,8 +84,14 @@ async def verify_purchase(
     try:
         verification = await verify_revenuecat_purchase(
             request.receipt_token,
-            request.platform
+            request.platform,
+            request.app_user_id,
         )
+        if verification.get("status") == "verification_error":
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Purchase verification is temporarily unavailable. Please try again.",
+            )
 
         provider = "revenuecat_ios" if request.platform == "ios" else "revenuecat_android"
         subscription_id = f"revenuecat:{request.platform}:{current_user['id']}:{verification.get('entitlement_id', 'premium_access')}"
@@ -124,6 +130,8 @@ async def verify_purchase(
             "entitlement_source": diagnostics.get("entitlement_source", "none"),
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error verifying purchase: {e}")
         raise HTTPException(
@@ -210,6 +218,8 @@ async def create_billing_portal(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"Error creating billing portal session: {e}")
+        if is_stripe_unavailable(e):
+            raise payment_service_unavailable("Billing portal is temporarily unavailable on this server.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create billing portal session"
@@ -271,7 +281,6 @@ async def buy_credits(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error(f"Error buying credits: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create credit purchase session"
-        )
+        if is_stripe_unavailable(e):
+            raise payment_service_unavailable("Credit purchases are temporarily unavailable on this server.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create credit purchase session")

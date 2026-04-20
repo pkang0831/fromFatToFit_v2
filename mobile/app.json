@@ -2,6 +2,7 @@
   "expo": {
     "name": "Devenira",
     "slug": "health-wellness",
+    "scheme": "devenira",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -31,7 +32,9 @@
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -45,6 +48,12 @@
         }
       ],
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a5dd263c-4acc-4696-8df3-03d497e999d6"
+      }
+    },
+    "owner": "pkang0831"
   }
 }

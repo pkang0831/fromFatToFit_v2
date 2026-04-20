@@ -9,12 +9,13 @@ from ..schemas.food_schemas import (
     FoodLogCreate, FoodLogResponse, FoodAnalysisRequest, FoodAnalysisResponse,
     DailySummaryResponse, TrendResponse
 )
-from ..database import get_supabase
+from ..database import get_supabase, get_user_supabase
 from ..middleware.auth_middleware import get_current_user
 from ..services.ai_vision_service import analyze_food_image
 from ..services.usage_limiter import check_usage_limit, increment_usage
 from ..services.analytics import get_food_trend_data, calculate_daily_summary, invalidate_calorie_balance_cache
 from ..services.payment_service import check_premium_status
+from ..services.service_availability import ai_service_unavailable, is_openai_unavailable
 from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,11 @@ async def log_food(
 ):
     """Log a food entry manually"""
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         
         log_data = {
             "user_id": current_user["id"],
@@ -43,7 +48,11 @@ async def log_food(
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create food log")
         
         # Recalculate daily summary
-        await calculate_daily_summary(current_user["id"], food_log.date)
+        await calculate_daily_summary(
+            current_user["id"],
+            food_log.date,
+            access_token=current_user.get("access_token"),
+        )
         invalidate_calorie_balance_cache(current_user["id"])
         
         created_log = result.data[0]
@@ -53,7 +62,7 @@ async def log_food(
         raise
     except Exception as e:
         logger.error(f"Error logging food: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to log food")
 
 
 @router.post("/analyze-photo", response_model=FoodAnalysisResponse)
@@ -102,6 +111,8 @@ async def analyze_food_photo(
         raise
     except Exception as e:
         logger.error(f"Error analyzing food photo: {e}")
+        if is_openai_unavailable(e):
+            raise ai_service_unavailable("Food analysis is temporarily unavailable because the AI service is not configured.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Food analysis failed")
 
 
@@ -112,7 +123,11 @@ async def get_daily_food(
 ):
     """Get all food logs and summary for a specific date"""
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         
         # Get food logs
         result = supabase.table("food_logs").select("*").eq("user_id", current_user["id"]).eq("date", target_date.isoformat()).order("created_at").execute()
@@ -137,7 +152,7 @@ async def get_daily_food(
         
     except Exception as e:
         logger.error(f"Error getting daily food: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to load daily food")
 
 
 @router.get("/trends", response_model=TrendResponse)
@@ -159,7 +174,7 @@ async def get_food_trends(
         
     except Exception as e:
         logger.error(f"Error getting food trends: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to load food trends")
 
 
 @router.get("/recent")
@@ -170,7 +185,11 @@ async def get_recent_foods(
 ):
     """Get recent unique food items for quick logging"""
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         from datetime import timedelta
         
         # Calculate date range
@@ -214,7 +233,7 @@ async def get_recent_foods(
         
     except Exception as e:
         logger.error(f"Error getting recent foods: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to load recent foods")
 
 
 @router.put("/log/{log_id}", response_model=FoodLogResponse)
@@ -225,13 +244,18 @@ async def update_food_log(
 ):
     """Update a food log entry"""
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         
         # Verify the log exists and belongs to the user
         existing_log = supabase.table("food_logs").select("*").eq("id", log_id).eq("user_id", current_user["id"]).execute()
         
         if not existing_log.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Food log not found")
+        original_date = date.fromisoformat(existing_log.data[0]["date"])
         
         # Update the log
         update_data = {
@@ -245,7 +269,17 @@ async def update_food_log(
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update food log")
         
         # Recalculate daily summary for the date
-        await calculate_daily_summary(current_user["id"], food_log.date)
+        await calculate_daily_summary(
+            current_user["id"],
+            food_log.date,
+            access_token=current_user.get("access_token"),
+        )
+        if original_date != food_log.date:
+            await calculate_daily_summary(
+                current_user["id"],
+                original_date,
+                access_token=current_user.get("access_token"),
+            )
         invalidate_calorie_balance_cache(current_user["id"])
         
         updated_log = result.data[0]
@@ -255,7 +289,7 @@ async def update_food_log(
         raise
     except Exception as e:
         logger.error(f"Error updating food log: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update food log")
 
 
 @router.delete("/log/{log_id}")
@@ -265,7 +299,11 @@ async def delete_food_log(
 ):
     """Delete a food log entry"""
     try:
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         
         # Get the log to find its date
         log_result = supabase.table("food_logs").select("date").eq("id", log_id).eq("user_id", current_user["id"]).execute()
@@ -279,7 +317,11 @@ async def delete_food_log(
         supabase.table("food_logs").delete().eq("id", log_id).eq("user_id", current_user["id"]).execute()
         
         # Recalculate daily summary
-        await calculate_daily_summary(current_user["id"], log_date)
+        await calculate_daily_summary(
+            current_user["id"],
+            log_date,
+            access_token=current_user.get("access_token"),
+        )
         invalidate_calorie_balance_cache(current_user["id"])
         
         return {"message": "Food log deleted successfully"}
@@ -288,7 +330,7 @@ async def delete_food_log(
         raise
     except Exception as e:
         logger.error(f"Error deleting food log: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete food log")
 
 
 @router.post("/log-natural")
@@ -301,7 +343,7 @@ async def log_natural_language(
     current_user: dict = Depends(get_current_user),
 ):
     """Parse natural language food description and log multiple items."""
-    from ..services.openai_service import client as openai_client
+    from ..services.openai_service import _get_client
 
     prompt = f"""Parse this food description into individual food items with nutritional estimates.
 Text: "{text}"
@@ -322,7 +364,7 @@ Format:
 Be accurate with common foods. Use USDA averages when possible. Only return the JSON array, no other text."""
 
     try:
-        response = openai_client.chat.completions.create(
+        response = _get_client().chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
@@ -347,8 +389,13 @@ Be accurate with common foods. Use USDA averages when possible. Only return the 
         if not isinstance(food_items, list):
             food_items = [food_items]
 
-        supabase = get_supabase()
+        supabase = (
+            get_user_supabase(current_user["access_token"])
+            if current_user.get("access_token")
+            else get_supabase()
+        )
         log_date = date_str or str(date.today())
+        parsed_log_date = date.fromisoformat(log_date)
         user_id = current_user["id"]
         logged_items = []
 
@@ -363,12 +410,18 @@ Be accurate with common foods. Use USDA averages when possible. Only return the 
                 "carbs": round(float(item.get("carbs", 0)), 1),
                 "fat": round(float(item.get("fat", 0)), 1),
                 "serving_size": item.get("serving_size", "1 serving"),
-                "source": "ai_natural",
+                "source": "ai",
             }
             result = supabase.table("food_logs").insert(log_data).execute()
             if result.data:
                 logged_items.append(result.data[0])
 
+        if logged_items:
+            await calculate_daily_summary(
+                user_id,
+                parsed_log_date,
+                access_token=current_user.get("access_token"),
+            )
         invalidate_calorie_balance_cache(user_id)
 
         return {
@@ -385,6 +438,6 @@ Be accurate with common foods. Use USDA averages when possible. Only return the 
         raise
     except Exception as e:
         logger.error(f"Natural language food logging error: {e}")
-        raise HTTPException(
-            status_code=500, detail="Failed to process food description"
-        )
+        if is_openai_unavailable(e):
+            raise ai_service_unavailable("Natural-language food logging is temporarily unavailable because the AI service is not configured.")
+        raise HTTPException(status_code=500, detail="Failed to process food description")

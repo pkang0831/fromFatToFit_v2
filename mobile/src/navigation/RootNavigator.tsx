@@ -37,16 +37,25 @@ function MainTabs() {
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textLight,
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.borderLight,
           borderTopWidth: 1,
-          height: 86,
+          height: 82,
           paddingBottom: spacing.md,
           paddingTop: spacing.sm,
           paddingHorizontal: spacing.sm,
           position: 'absolute',
+          left: spacing.md,
+          right: spacing.md,
+          bottom: spacing.md,
+          borderRadius: borderRadius.xl,
           elevation: 0,
+          shadowColor: '#000',
+          shadowOpacity: 0.16,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 8 },
         },
         tabBarLabelStyle: {
           ...typography.caption,
@@ -57,17 +66,6 @@ function MainTabs() {
         tabBarItemStyle: {
           borderRadius: borderRadius.lg,
         },
-        headerStyle: {
-          backgroundColor: colors.background,
-          shadowColor: 'transparent',
-          elevation: 0,
-        },
-        headerTitleStyle: {
-          ...typography.h5,
-          color: colors.text,
-        },
-        headerTintColor: colors.text,
-        headerTitleAlign: 'left',
         sceneStyle: {
           backgroundColor: colors.background,
         },
@@ -87,8 +85,7 @@ function MainTabs() {
         name="Home" 
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Home',
-          title: 'Dashboard',
+          tabBarLabel: 'Dashboard',
         }}
       />
       <Tab.Screen
@@ -96,15 +93,13 @@ function MainTabs() {
         component={ProgressScreen}
         options={{
           tabBarLabel: 'Progress',
-          title: 'Progress',
         }}
       />
       <Tab.Screen 
         name="Food" 
         component={CalorieTrackerScreen}
         options={{
-          tabBarLabel: 'Food',
-          title: 'Calorie Tracker',
+          tabBarLabel: 'Calories',
         }}
       />
       <Tab.Screen 
@@ -112,7 +107,6 @@ function MainTabs() {
         component={WorkoutScreen}
         options={{
           tabBarLabel: 'Workout',
-          title: 'Workouts',
         }}
       />
       <Tab.Screen 
@@ -120,7 +114,6 @@ function MainTabs() {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          title: 'Profile',
         }}
       />
     </Tab.Navigator>
@@ -184,7 +177,7 @@ export default function RootNavigator() {
             options={{ 
               presentation: 'modal',
               headerShown: true,
-              title: 'Analyze Food Photo',
+              title: '',
               headerStyle: { backgroundColor: colors.background, shadowColor: 'transparent', elevation: 0 },
               headerTintColor: colors.text,
               headerTitleStyle: { ...typography.h6, color: colors.text },
@@ -197,7 +190,7 @@ export default function RootNavigator() {
             options={{ 
               presentation: 'modal',
               headerShown: true,
-              title: 'Body Scan',
+              title: '',
               headerStyle: { backgroundColor: colors.background, shadowColor: 'transparent', elevation: 0 },
               headerTintColor: colors.text,
               headerTitleStyle: { ...typography.h6, color: colors.text },
@@ -210,7 +203,7 @@ export default function RootNavigator() {
             options={{ 
               presentation: 'modal',
               headerShown: true,
-              title: 'Upgrade to Premium',
+              title: '',
               headerStyle: { backgroundColor: colors.background, shadowColor: 'transparent', elevation: 0 },
               headerTintColor: colors.text,
               headerTitleStyle: { ...typography.h6, color: colors.text },

@@ -1,16 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { colors, typography, spacing, borderRadius, shadows } from '../theme';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { workoutApi } from '../services/api';
+import { borderRadius, colors, shadows, spacing, typography } from '../theme';
+import { getLocalDateString } from '../utils/date';
 
 type ExerciseLibraryItem = {
   id: string;
@@ -43,9 +46,21 @@ type SetDraft = {
   weight: string;
 };
 
-const getToday = () => new Date().toISOString().split('T')[0];
+const getToday = () => getLocalDateString();
+
+const formatWorkoutTime = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Saved today';
+
+  return date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
 
 export default function WorkoutScreen() {
+  const tabBarHeight = useBottomTabBarHeight();
+  const insets = useSafeAreaInsets();
   const [library, setLibrary] = useState<ExerciseLibraryItem[]>([]);
   const [logs, setLogs] = useState<WorkoutLog[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState('');
@@ -59,7 +74,7 @@ export default function WorkoutScreen() {
   const [logsError, setLogsError] = useState<string | null>(null);
 
   const selectedExercise = useMemo(
-    () => library.find(item => item.id === selectedExerciseId) ?? null,
+    () => library.find((item) => item.id === selectedExerciseId) ?? null,
     [library, selectedExerciseId],
   );
 
@@ -83,17 +98,15 @@ export default function WorkoutScreen() {
       if (libraryRes.status === 'fulfilled') {
         const items = (libraryRes.value.data ?? []) as ExerciseLibraryItem[];
         setLibrary(items);
-        setSelectedExerciseId(prev => prev || items[0]?.id || '');
+        setSelectedExerciseId((prev) => prev || items[0]?.id || '');
       } else {
-        console.error('Failed to load exercise library:', libraryRes.reason);
         setLibrary([]);
-        setLibraryError('We could not load the exercise library. Retry to see the log form.');
+        setLibraryError('We could not load the exercise library. Retry to rebuild the workout form.');
       }
 
       if (logsRes.status === 'fulfilled') {
         setLogs((logsRes.value.data ?? []) as WorkoutLog[]);
       } else {
-        console.error('Failed to load workout logs:', logsRes.reason);
         setLogs([]);
         setLogsError('We could not load today’s workout history right now.');
       }
@@ -123,11 +136,11 @@ export default function WorkoutScreen() {
   );
 
   const updateSet = (index: number, key: 'reps' | 'weight', value: string) => {
-    setSets(prev => prev.map((set, i) => (i === index ? { ...set, [key]: value } : set)));
+    setSets((prev) => prev.map((set, i) => (i === index ? { ...set, [key]: value } : set)));
   };
 
   const addSet = () => {
-    setSets(prev => [
+    setSets((prev) => [
       ...prev,
       {
         set_number: prev.length + 1,
@@ -138,7 +151,7 @@ export default function WorkoutScreen() {
   };
 
   const removeSet = (index: number) => {
-    setSets(prev => {
+    setSets((prev) => {
       if (prev.length === 1) return prev;
       const filtered = prev.filter((_, i) => i !== index);
       return filtered.map((set, idx) => ({ ...set, set_number: idx + 1 }));
@@ -158,12 +171,12 @@ export default function WorkoutScreen() {
     }
 
     const builtSets = sets
-      .map(set => ({
+      .map((set) => ({
         set_number: set.set_number,
         reps: Number.parseInt(set.reps, 10),
         weight: set.weight ? Number.parseFloat(set.weight) : undefined,
       }))
-      .filter(set => Number.isFinite(set.reps) && set.reps > 0);
+      .filter((set) => Number.isFinite(set.reps) && set.reps > 0);
 
     if (builtSets.length === 0) {
       setLogsError('Add at least one set with reps before saving.');
@@ -186,7 +199,6 @@ export default function WorkoutScreen() {
       resetForm();
       await loadWorkoutData({ refreshing: true });
     } catch (error) {
-      console.error('Failed to log workout:', error);
       setLogsError('We could not save that workout. Try again with the same details.');
     } finally {
       setSaving(false);
@@ -194,6 +206,7 @@ export default function WorkoutScreen() {
   };
 
   const topExercises = library.slice(0, 8);
+  const helperPills = ['Log what you hit', 'One lift at a time', 'Today over history'];
 
   if (loading) {
     return (
@@ -207,39 +220,59 @@ export default function WorkoutScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={(
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm, paddingBottom: spacing.xxl + tabBarHeight }]}
+      refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={() => void loadWorkoutData({ refreshing: true })}
           tintColor={colors.primary}
         />
-      )}
+      }
     >
       <View style={styles.heroCard}>
-        <Text style={styles.heroEyebrow}>Today</Text>
-        <Text style={styles.title}>Workout tracker</Text>
-        <Text style={styles.subtitle}>
-          Log a set, keep the exercise library visible, and see today’s session totals without hunting through menus.
-        </Text>
-
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryValue}>{logs.length}</Text>
-            <Text style={styles.summaryLabel}>sessions</Text>
+        <View style={styles.heroHeader}>
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroEyebrow}>WORKOUT</Text>
+            <Text style={styles.heroTitle}>Keep the session honest.</Text>
+            <Text style={styles.heroBody}>
+              Pick one lift, log the sets you actually did, and keep today’s effort visible without overbuilding the form.
+            </Text>
           </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryValue}>{totalSets}</Text>
-            <Text style={styles.summaryLabel}>sets</Text>
-          </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryValue}>{Math.round(totalCaloriesBurned)}</Text>
-            <Text style={styles.summaryLabel}>kcal</Text>
+          <View style={styles.heroPill}>
+            <Text style={styles.heroPillText}>{logs.length} sessions</Text>
           </View>
         </View>
-        <Text style={styles.summaryHint}>
-          {totalDuration > 0 ? `${totalDuration} total minutes logged` : 'No workout time logged yet'}
-        </Text>
+
+        <View style={styles.metricGrid}>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Sets</Text>
+            <Text style={styles.metricValue}>{totalSets}</Text>
+            <Text style={styles.metricHint}>logged today</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Minutes</Text>
+            <Text style={styles.metricValue}>{totalDuration}</Text>
+            <Text style={styles.metricHint}>training time</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Burn</Text>
+            <Text style={styles.metricValue}>{Math.round(totalCaloriesBurned)}</Text>
+            <Text style={styles.metricHint}>estimated kcal</Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Exercise</Text>
+            <Text style={styles.metricValueSmall}>{selectedExercise?.name ?? 'Choose one'}</Text>
+            <Text style={styles.metricHint}>current focus</Text>
+          </View>
+        </View>
+
+        <View style={styles.heroPillRow}>
+          {helperPills.map((pill) => (
+            <View key={pill} style={styles.heroInfoPill}>
+              <Text style={styles.heroInfoPillText}>{pill}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       {libraryError ? (
@@ -254,30 +287,33 @@ export default function WorkoutScreen() {
 
       {logsError ? (
         <View style={styles.warningCard}>
-          <Text style={styles.warningTitle}>Workout history could not load</Text>
+          <Text style={styles.warningTitle}>Workout history needs attention</Text>
           <Text style={styles.warningText}>{logsError}</Text>
         </View>
       ) : null}
 
-      <View style={styles.formCard}>
-        <Text style={styles.sectionTitle}>Log a workout</Text>
-        <Text style={styles.sectionSubtitle}>Pick an exercise, add your sets, and save the session.</Text>
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionEyebrow}>EXERCISE</Text>
+        <Text style={styles.sectionTitle}>Choose the movement.</Text>
+        <Text style={styles.sectionBody}>Keep the selection fast. You can always switch before saving.</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.exerciseStrip}>
-          {topExercises.length > 0 ? topExercises.map(item => {
-            const active = item.id === selectedExerciseId;
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={[styles.exerciseChip, active && styles.exerciseChipActive]}
-                onPress={() => setSelectedExerciseId(item.id)}
-              >
-                <Text style={[styles.exerciseChipTitle, active && styles.exerciseChipTitleActive]}>{item.name}</Text>
-                <Text style={[styles.exerciseChipMeta, active && styles.exerciseChipMetaActive]}>{item.category}</Text>
-              </TouchableOpacity>
-            );
-          }) : (
-            <Text style={styles.emptyText}>No exercises loaded yet.</Text>
+          {topExercises.length > 0 ? (
+            topExercises.map((item) => {
+              const active = item.id === selectedExerciseId;
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.exerciseChip, active && styles.exerciseChipActive]}
+                  onPress={() => setSelectedExerciseId(item.id)}
+                >
+                  <Text style={[styles.exerciseChipTitle, active && styles.exerciseChipTitleActive]}>{item.name}</Text>
+                  <Text style={[styles.exerciseChipMeta, active && styles.exerciseChipMetaActive]}>{item.category}</Text>
+                </TouchableOpacity>
+              );
+            })
+          ) : (
+            <Text style={styles.libraryEmptyText}>No exercises loaded yet.</Text>
           )}
         </ScrollView>
 
@@ -290,134 +326,140 @@ export default function WorkoutScreen() {
               </View>
             </View>
             <Text style={styles.exerciseDetailMeta}>
-              {selectedExercise.difficulty ?? 'intermediate'} · {selectedExercise.category}
+              {(selectedExercise.difficulty ?? 'intermediate').toUpperCase()} · {selectedExercise.category}
             </Text>
             <Text style={styles.exerciseInstruction}>{selectedExercise.form_instructions}</Text>
             <Text style={styles.exerciseMuscles}>
-              {selectedExercise.muscle_groups?.length ? selectedExercise.muscle_groups.join(' · ') : 'No muscle groups listed'}
+              {selectedExercise.muscle_groups?.length
+                ? selectedExercise.muscle_groups.join(' · ')
+                : 'No muscle groups listed'}
             </Text>
           </View>
         ) : (
           <View style={styles.emptySelection}>
             <Text style={styles.emptySelectionTitle}>Choose an exercise to begin</Text>
-            <Text style={styles.emptySelectionText}>
-              The workout log needs an exercise before it can be saved.
-            </Text>
+            <Text style={styles.emptySelectionText}>The workout log needs one movement before it can be saved.</Text>
           </View>
         )}
+      </View>
 
-        <View style={styles.formSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionSubheading}>Sets</Text>
-            <TouchableOpacity onPress={addSet}>
-              <Text style={styles.inlineAction}>+ Add set</Text>
-            </TouchableOpacity>
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionEyebrow}>LOG SESSION</Text>
+            <Text style={styles.sectionTitle}>Add your sets.</Text>
           </View>
-
-          {sets.map((set, index) => (
-            <View key={`${set.set_number}-${index}`} style={styles.setRow}>
-              <View style={styles.setLabelWrap}>
-                <Text style={styles.setLabel}>Set {set.set_number}</Text>
-                {sets.length > 1 ? (
-                  <TouchableOpacity onPress={() => removeSet(index)}>
-                    <Text style={styles.inlineDanger}>Remove</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-              <View style={styles.setInputs}>
-                <TextInput
-                  style={[styles.input, styles.flexInput]}
-                  placeholder="Reps"
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="numeric"
-                  value={set.reps}
-                  onChangeText={value => updateSet(index, 'reps', value)}
-                />
-                <TextInput
-                  style={[styles.input, styles.flexInput]}
-                  placeholder="Weight"
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="numeric"
-                  value={set.weight}
-                  onChangeText={value => updateSet(index, 'weight', value)}
-                />
-              </View>
-            </View>
-          ))}
+          <TouchableOpacity onPress={addSet} style={styles.inlineButton}>
+            <Text style={styles.inlineButtonText}>+ Add set</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.formSection}>
-          <Text style={styles.sectionSubheading}>Session details</Text>
-          <View style={styles.setInputs}>
-            <TextInput
-              style={[styles.input, styles.flexInput]}
-              placeholder="Duration (min)"
-              placeholderTextColor={colors.textSecondary}
-              keyboardType="numeric"
-              value={durationMinutes}
-              onChangeText={setDurationMinutes}
-            />
-            <TextInput
-              style={[styles.input, styles.flexInput]}
-              placeholder="Notes"
-              placeholderTextColor={colors.textSecondary}
-              value={notes}
-              onChangeText={setNotes}
-            />
+        <Text style={styles.sectionBody}>Save the reps and weight you actually hit. Leave the rest simple.</Text>
+
+        {sets.map((set, index) => (
+          <View key={`${set.set_number}-${index}`} style={styles.setCard}>
+            <View style={styles.setHeader}>
+              <Text style={styles.setTitle}>Set {set.set_number}</Text>
+              {sets.length > 1 ? (
+                <TouchableOpacity onPress={() => removeSet(index)}>
+                  <Text style={styles.removeText}>Remove</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            <View style={styles.setInputs}>
+              <TextInput
+                style={[styles.input, styles.flexInput]}
+                placeholder="Reps"
+                placeholderTextColor={colors.textSecondary}
+                keyboardType="numeric"
+                value={set.reps}
+                onChangeText={(value) => updateSet(index, 'reps', value)}
+              />
+              <TextInput
+                style={[styles.input, styles.flexInput]}
+                placeholder="Weight"
+                placeholderTextColor={colors.textSecondary}
+                keyboardType="numeric"
+                value={set.weight}
+                onChangeText={(value) => updateSet(index, 'weight', value)}
+              />
+            </View>
           </View>
+        ))}
+
+        <View style={styles.metaRow}>
+          <TextInput
+            style={[styles.input, styles.flexInput]}
+            placeholder="Minutes"
+            placeholderTextColor={colors.textSecondary}
+            keyboardType="numeric"
+            value={durationMinutes}
+            onChangeText={setDurationMinutes}
+          />
+          <TextInput
+            style={[styles.input, styles.flexInput]}
+            placeholder="Notes"
+            placeholderTextColor={colors.textSecondary}
+            value={notes}
+            onChangeText={setNotes}
+          />
         </View>
 
         <TouchableOpacity
-          style={[styles.primaryButton, saving && styles.disabledButton]}
-          onPress={handleSaveWorkout}
-          disabled={saving || !selectedExercise}
+          style={[styles.primaryButton, saving && styles.buttonDisabled]}
+          onPress={() => void handleSaveWorkout()}
+          disabled={saving}
         >
           {saving ? (
             <ActivityIndicator color={colors.textOnPrimary} />
           ) : (
-            <Text style={styles.primaryButtonText}>Log workout</Text>
+            <>
+              <Text style={styles.primaryButtonText}>Save workout</Text>
+              <Text style={styles.primaryButtonHint}>Add it to today</Text>
+            </>
           )}
         </TouchableOpacity>
       </View>
 
-      <View style={styles.listSection}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today’s workouts</Text>
-          <Text style={styles.sectionMeta}>{logs.length} logged</Text>
-        </View>
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionEyebrow}>TODAY</Text>
+        <Text style={styles.sectionTitle}>Session history.</Text>
+        <Text style={styles.sectionBody}>This is your clean record for the day, not a giant training diary.</Text>
 
-        {logs.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No workouts logged yet</Text>
-            <Text style={styles.emptyText}>
-              Pick an exercise above and add your first set to make the screen feel alive.
-            </Text>
-          </View>
-        ) : (
-          logs.map(log => (
+        {logs.length > 0 ? (
+          logs.map((log) => (
             <View key={log.id} style={styles.logCard}>
               <View style={styles.logHeader}>
-                <Text style={styles.logTitle}>{log.exercise_name}</Text>
-                {log.calories_burned != null ? (
-                  <Text style={styles.logCalories}>{Math.round(log.calories_burned)} cal</Text>
-                ) : null}
+                <View>
+                  <Text style={styles.logTitle}>{log.exercise_name}</Text>
+                  <Text style={styles.logMeta}>{formatWorkoutTime(log.created_at)}</Text>
+                </View>
+                <Text style={styles.logKcal}>{Math.round(log.calories_burned ?? 0)} kcal</Text>
               </View>
-              <Text style={styles.logMeta}>
-                {log.duration_minutes ? `${log.duration_minutes} min` : 'Duration not set'}
-                {log.sets?.length ? ` · ${log.sets.length} set${log.sets.length === 1 ? '' : 's'}` : ''}
-              </Text>
-              <View style={styles.setSummary}>
-                {log.sets.map(set => (
-                  <View key={`${log.id}-${set.set_number}`} style={styles.setPill}>
-                    <Text style={styles.setPillText}>
-                      Set {set.set_number}: {set.reps} reps{set.weight != null ? ` · ${set.weight}kg` : ''}
+
+              <View style={styles.logStatRow}>
+                <Text style={styles.logStat}>{log.sets.length} sets</Text>
+                <Text style={styles.logStat}>{log.duration_minutes ?? 0} min</Text>
+              </View>
+
+              <View style={styles.logSetWrap}>
+                {log.sets.map((set) => (
+                  <View key={`${log.id}-${set.set_number}`} style={styles.logSetChip}>
+                    <Text style={styles.logSetText}>
+                      S{set.set_number} · {set.reps} reps{set.weight ? ` · ${set.weight} kg` : ''}
                     </Text>
                   </View>
                 ))}
               </View>
-              {log.notes ? <Text style={styles.logNotes}>{log.notes}</Text> : null}
+
+              {log.notes ? <Text style={styles.logNote}>{log.notes}</Text> : null}
             </View>
           ))
+        ) : (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>No workout logged yet.</Text>
+            <Text style={styles.emptyText}>Choose one exercise, add a few sets, and keep today’s session visible.</Text>
+          </View>
         )}
       </View>
     </ScrollView>
@@ -431,7 +473,8 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xl,
+    gap: spacing.lg,
   },
   loadingContainer: {
     flex: 1,
@@ -445,142 +488,194 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   heroCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.xl,
+    ...shadows.medium,
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    alignItems: 'flex-start',
+  },
+  heroCopy: {
+    flex: 1,
+  },
+  heroEyebrow: {
+    ...typography.overline,
+    color: colors.primary,
+    marginBottom: spacing.sm,
+  },
+  heroTitle: {
+    ...typography.h2,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  heroBody: {
+    ...typography.body1,
+    color: colors.textSecondary,
+    lineHeight: 22,
+  },
+  heroPill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.round,
     backgroundColor: colors.surfaceAlt,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-    ...shadows.medium,
   },
-  heroEyebrow: {
+  heroPillText: {
     ...typography.caption,
-    color: colors.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 1.1,
-  },
-  title: {
-    ...typography.h2,
-    color: colors.text,
-    marginTop: spacing.xs,
-  },
-  subtitle: {
-    ...typography.body1,
     color: colors.textSecondary,
-    marginTop: spacing.sm,
+    fontWeight: '700',
   },
-  summaryRow: {
+  metricGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
     marginTop: spacing.lg,
   },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
+  metricCard: {
+    width: '48%',
+    backgroundColor: colors.surfaceAlt,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: spacing.md,
   },
-  summaryValue: {
-    ...typography.number,
-    fontSize: 24,
-    color: colors.primary,
-    textAlign: 'center',
-  },
-  summaryLabel: {
-    ...typography.body2,
+  metricLabel: {
+    ...typography.caption,
     color: colors.textSecondary,
-    textAlign: 'center',
     textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: spacing.xs,
   },
-  summaryHint: {
-    ...typography.body2,
+  metricValue: {
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: 4,
+  },
+  metricValueSmall: {
+    ...typography.button,
+    color: colors.text,
+    marginBottom: 4,
+  },
+  metricHint: {
+    ...typography.caption,
     color: colors.textSecondary,
-    marginTop: spacing.sm,
   },
-  errorCard: {
-    backgroundColor: colors.surfaceAlt,
-    borderColor: `${colors.error}30`,
-    borderWidth: 1,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
+  heroPillRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
     marginTop: spacing.lg,
   },
+  heroInfoPill: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.round,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  heroInfoPillText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  errorCard: {
+    backgroundColor: `${colors.error}12`,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: `${colors.error}40`,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
   errorTitle: {
-    ...typography.h5,
-    color: colors.error,
+    ...typography.button,
+    color: colors.text,
   },
   errorText: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  retryButton: {
-    alignSelf: 'flex-start',
-    marginTop: spacing.md,
-    backgroundColor: colors.error,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-  },
-  retryButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
+    lineHeight: 20,
   },
   warningCard: {
-    backgroundColor: colors.surfaceAlt,
-    borderColor: `${colors.warning}30`,
-    borderWidth: 1,
+    backgroundColor: `${colors.primary}12`,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: `${colors.primary}35`,
     padding: spacing.lg,
-    marginTop: spacing.lg,
+    gap: spacing.xs,
   },
   warningTitle: {
-    ...typography.h5,
+    ...typography.button,
+    color: colors.text,
   },
   warningText: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginTop: spacing.xs,
+    lineHeight: 20,
   },
-  formCard: {
-    backgroundColor: colors.surfaceAlt,
+  retryButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  retryButtonText: {
+    ...typography.button,
+    color: colors.text,
+  },
+  sectionCard: {
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.lg,
-    marginTop: spacing.lg,
     ...shadows.small,
   },
-  sectionTitle: {
-    ...typography.h4,
+  sectionEyebrow: {
+    ...typography.overline,
+    color: colors.primary,
+    marginBottom: spacing.sm,
   },
-  sectionSubtitle: {
+  sectionTitle: {
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  sectionBody: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginTop: spacing.xs,
+    lineHeight: 20,
     marginBottom: spacing.md,
   },
   exerciseStrip: {
     gap: spacing.sm,
-    paddingBottom: spacing.sm,
   },
   exerciseChip: {
-    width: 160,
-    backgroundColor: colors.surface,
-    borderColor: colors.borderLight,
-    borderWidth: 1,
+    width: 138,
+    backgroundColor: colors.surfaceAlt,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: spacing.md,
   },
   exerciseChipActive: {
-    backgroundColor: `${colors.primary}14`,
-    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}16`,
+    borderColor: `${colors.primary}55`,
   },
   exerciseChipTitle: {
-    ...typography.body1,
-    fontWeight: '700',
+    ...typography.button,
     color: colors.text,
+    marginBottom: 4,
   },
   exerciseChipTitleActive: {
     color: colors.primary,
@@ -588,165 +683,161 @@ const styles = StyleSheet.create({
   exerciseChipMeta: {
     ...typography.caption,
     color: colors.textSecondary,
-    marginTop: 2,
-    textTransform: 'capitalize',
   },
   exerciseChipMetaActive: {
     color: colors.primary,
   },
   exerciseDetail: {
-    backgroundColor: colors.surface,
+    marginTop: spacing.md,
+    backgroundColor: colors.surfaceAlt,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.border,
     padding: spacing.md,
-    marginTop: spacing.md,
     gap: spacing.xs,
   },
   exerciseDetailHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: spacing.md,
     alignItems: 'center',
-    gap: spacing.sm,
   },
   exerciseDetailTitle: {
-    ...typography.h5,
+    ...typography.button,
+    color: colors.text,
     flex: 1,
   },
   exerciseTag: {
-    backgroundColor: `${colors.primary}12`,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingVertical: 6,
+    borderRadius: borderRadius.round,
+    backgroundColor: `${colors.primary}16`,
   },
   exerciseTagText: {
     ...typography.caption,
     color: colors.primary,
-    textTransform: 'capitalize',
+    fontWeight: '700',
   },
   exerciseDetailMeta: {
-    ...typography.body2,
+    ...typography.caption,
     color: colors.textSecondary,
   },
   exerciseInstruction: {
     ...typography.body2,
     color: colors.text,
+    lineHeight: 20,
   },
   exerciseMuscles: {
     ...typography.caption,
     color: colors.textSecondary,
   },
   emptySelection: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: `${colors.warning}30`,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
     marginTop: spacing.md,
-  },
-  emptySelectionTitle: {
-    ...typography.body1,
-    fontWeight: '700',
-  },
-  emptySelectionText: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  formSection: {
-    marginTop: spacing.lg,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  sectionSubheading: {
-    ...typography.body1,
-    fontWeight: '700',
-  },
-  inlineAction: {
-    ...typography.body2,
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  inlineDanger: {
-    ...typography.caption,
-    color: colors.error,
-    fontWeight: '700',
-  },
-  setRow: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  setLabelWrap: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  setLabel: {
-    ...typography.body1,
-    fontWeight: '700',
-  },
-  setInputs: {
-    flexDirection: 'column',
-    gap: spacing.sm,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    ...typography.body1,
-    color: colors.text,
-  },
-  flexInput: {
-    flex: 1,
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    marginTop: spacing.lg,
-  },
-  primaryButtonText: {
-    ...typography.button,
-    color: colors.textOnPrimary,
-  },
-  disabledButton: {
-    opacity: 0.7,
-  },
-  listSection: {
-    marginTop: spacing.lg,
-  },
-  sectionMeta: {
-    ...typography.caption,
-    color: colors.textSecondary,
-  },
-  emptyState: {
     backgroundColor: colors.surfaceAlt,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.lg,
   },
-  emptyTitle: {
-    ...typography.h5,
+  emptySelectionTitle: {
+    ...typography.button,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
-  emptyText: {
+  emptySelectionText: {
     ...typography.body2,
     color: colors.textSecondary,
-    textAlign: 'center',
+    lineHeight: 20,
+  },
+  libraryEmptyText: {
+    ...typography.body2,
+    color: colors.textSecondary,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  inlineButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  inlineButtonText: {
+    ...typography.caption,
+    color: colors.text,
+    fontWeight: '700',
+  },
+  setCard: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  setHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  setTitle: {
+    ...typography.button,
+    color: colors.text,
+  },
+  removeText: {
+    ...typography.caption,
+    color: colors.error,
+    fontWeight: '700',
+  },
+  setInputs: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  input: {
+    ...typography.body1,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  flexInput: {
+    flex: 1,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  primaryButton: {
+    marginTop: spacing.md,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    ...typography.button,
+    color: colors.textOnPrimary,
+  },
+  primaryButtonHint: {
+    ...typography.caption,
+    color: colors.textOnPrimary,
     marginTop: spacing.xs,
+    opacity: 0.88,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   logCard: {
     backgroundColor: colors.surfaceAlt,
@@ -754,50 +845,74 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-    marginBottom: spacing.sm,
-    ...shadows.small,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
   logHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: spacing.md,
     alignItems: 'center',
-    gap: spacing.sm,
   },
   logTitle: {
-    ...typography.body1,
-    fontWeight: '700',
-    flex: 1,
-  },
-  logCalories: {
-    ...typography.body2,
-    color: colors.primary,
-    fontWeight: '700',
+    ...typography.button,
+    color: colors.text,
   },
   logMeta: {
-    ...typography.body2,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  setSummary: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-  },
-  setPill: {
-    backgroundColor: `${colors.primary}10`,
-    borderRadius: 999,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-  },
-  setPillText: {
     ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  logKcal: {
+    ...typography.body2,
     color: colors.primary,
   },
-  logNotes: {
+  logStatRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  logStat: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  logSetWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  logSetChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.round,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  logSetText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  logNote: {
+    ...typography.body2,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  emptyCard: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    marginTop: spacing.sm,
+  },
+  emptyTitle: {
+    ...typography.button,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  emptyText: {
     ...typography.body2,
     color: colors.textSecondary,
-    marginTop: spacing.sm,
-    fontStyle: 'italic',
+    lineHeight: 20,
   },
 });

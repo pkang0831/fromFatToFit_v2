@@ -19,7 +19,10 @@ from ..schemas.weekly_checkin_schemas import (
 from ..services.body_image_moderation import enforce_body_image_moderation
 from ..services.body_photo_quality import analyze_body_photo_quality
 from ..services.openai_body_checkin_service import analyze_weekly_checkin_image
+from ..services.payment_service import check_premium_status
 from ..services.progress_photo_storage import delete_progress_image, upload_progress_image
+from ..services.service_availability import body_model_service_unavailable, is_hf_or_body_model_unavailable, is_openai_unavailable
+from ..services.usage_limiter import UsageLimitExceeded, check_usage_limit, increment_usage
 from ..services.weekly_checkin_scoring import (
     build_hologram_visualization,
     build_regional_visualization,
@@ -137,6 +140,12 @@ async def get_latest_weekly_checkin(current_user: dict = Depends(get_current_use
     try:
         latest = await _load_previous_checkin(current_user["id"])
     except Exception as exc:
+        message = str(exc).lower()
+        if "weekly_checkins" in message and ("relation" in message or "does not exist" in message):
+            raise HTTPException(
+                status_code=503,
+                detail="Weekly check-in storage is not provisioned yet. Apply backend/supabase_weekly_checkins.sql first.",
+            ) from exc
         logger.error("Failed to load latest weekly check-in: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to load weekly check-in") from exc
 
@@ -154,8 +163,19 @@ async def analyze_weekly_checkin(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
+    is_premium = False
 
     try:
+        is_premium = await check_premium_status(user_id)
+        if not is_premium:
+            try:
+                await check_usage_limit(user_id, "body_fat_scan", is_premium)
+            except UsageLimitExceeded as exc:
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail="Weekly check-in free limit reached. Upgrade to premium to continue.",
+                ) from exc
+
         await _ensure_safe_weekly_photo(
             body.image_base64,
             user_id=user_id,
@@ -246,6 +266,8 @@ async def analyze_weekly_checkin(
             )
             if not insert_result.data:
                 raise HTTPException(status_code=500, detail="Failed to save weekly check-in analysis")
+            if not is_premium:
+                await increment_usage(user_id, "body_fat_scan")
             return _build_response(insert_result.data[0])
         except Exception:
             if photo_row:
@@ -269,5 +291,7 @@ async def analyze_weekly_checkin(
                 status_code=503,
                 detail="Weekly check-in storage is not provisioned yet. Apply backend/supabase_weekly_checkins.sql first.",
             ) from exc
+        if is_hf_or_body_model_unavailable(exc) or is_openai_unavailable(exc):
+            raise body_model_service_unavailable("Weekly check-in analysis is temporarily unavailable because required AI models are not available on this server.")
         logger.error("Weekly check-in analysis failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Weekly check-in analysis failed") from exc

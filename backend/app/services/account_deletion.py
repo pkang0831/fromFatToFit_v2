@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 
 from ..config import settings
 from ..database import get_supabase
+from .service_availability import admin_service_unavailable, is_admin_auth_unavailable
 from .payment_service import get_subscription_diagnostics
 
 logger = logging.getLogger(__name__)
@@ -92,6 +93,10 @@ async def delete_user_account(current_user: dict) -> dict[str, Any]:
         raise
     except Exception as exc:
         logger.error("Failed to delete account for user %s: %s", user_id, exc, exc_info=True)
+        if is_admin_auth_unavailable(exc):
+            raise admin_service_unavailable(
+                "Account deletion is unavailable in this environment because admin Supabase credentials are not configured."
+            ) from exc
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete account",

@@ -1,8 +1,14 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { Session } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as Linking from 'expo-linking';
+import * as QueryParams from 'expo-auth-session/build/QueryParams';
+import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../services/auth';
 import { authApi } from '../services/api';
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface UserProfile {
   id: string;
@@ -23,6 +29,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ session: Session | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -30,6 +37,11 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const OAUTH_REDIRECT_URL = makeRedirectUri({
+  scheme: 'devenira',
+  path: 'auth/callback',
+});
 
 function buildFallbackProfile(session: Session): UserProfile {
   const metadata = (session.user.user_metadata || {}) as Record<string, string | undefined>;
@@ -42,18 +54,69 @@ function buildFallbackProfile(session: Session): UserProfile {
   };
 }
 
+async function persistLegacyTokens(nextSession: Session | null) {
+  if (!nextSession) {
+    await AsyncStorage.multiRemove(['access_token', 'refresh_token']);
+    return;
+  }
+
+  await AsyncStorage.setItem('access_token', nextSession.access_token);
+  await AsyncStorage.setItem('refresh_token', nextSession.refresh_token);
+}
+
+async function createSessionFromUrl(url: string) {
+  const { params, errorCode } = QueryParams.getQueryParams(url);
+
+  if (errorCode) {
+    throw new Error(errorCode);
+  }
+
+  const nestedUrl = typeof params.url === 'string' ? params.url : undefined;
+  if (nestedUrl && nestedUrl !== url) {
+    const decodedNestedUrl = decodeURIComponent(nestedUrl);
+    return createSessionFromUrl(decodedNestedUrl);
+  }
+
+  const accessToken = typeof params.access_token === 'string' ? params.access_token : undefined;
+  const refreshToken = typeof params.refresh_token === 'string' ? params.refresh_token : undefined;
+  const authCode = typeof params.code === 'string' ? params.code : undefined;
+
+  if (accessToken && refreshToken) {
+    const { data, error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    if (error) throw error;
+
+    await persistLegacyTokens(data.session);
+    return data.session;
+  }
+
+  if (authCode) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+
+    if (error) throw error;
+
+    await persistLegacyTokens(data.session);
+    return data.session;
+  }
+
+  return null;
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {
         setSession(session);
         if (session) {
+          void persistLegacyTokens(session);
           void loadUserProfile(session);
         } else {
           setLoading(false);
@@ -66,18 +129,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
       });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        void loadUserProfile(session);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      void persistLegacyTokens(nextSession);
+
+      if (nextSession) {
+        void loadUserProfile(nextSession);
       } else {
         setUser(null);
         setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    const urlSubscription = Linking.addEventListener('url', ({ url }) => {
+      void createSessionFromUrl(url).catch((error) => {
+        console.error('OAuth deep link failed:', error);
+      });
+    });
+
+    void Linking.getInitialURL().then((url) => {
+      if (!url) return;
+      return createSessionFromUrl(url).catch((error) => {
+        console.error('Initial OAuth deep link failed:', error);
+      });
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      urlSubscription.remove();
+    };
   }, []);
 
   const loadUserProfile = async (sessionToUse: Session | null = session) => {
@@ -92,12 +174,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return data;
     } catch (error) {
       console.error('Error loading user profile:', error);
-      const status = (error as any)?.response?.status;
-
-      if (status === 401 || status === 403) {
-        setUser(null);
-        return null;
-      }
 
       if (sessionToUse) {
         const fallbackProfile = buildFallbackProfile(sessionToUse);
@@ -121,17 +197,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      // Store tokens
       if (data.session) {
-        await AsyncStorage.setItem('access_token', data.session.access_token);
-        await AsyncStorage.setItem('refresh_token', data.session.refresh_token);
+        await persistLegacyTokens(data.session);
       }
 
       setSession(data.session ?? null);
       await loadUserProfile(data.session ?? null);
-      return;
     } catch (error) {
       console.error('Sign in error:', error);
+      throw error;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: OAUTH_REDIRECT_URL,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) throw error;
+      if (!data?.url) throw new Error('Google sign-in could not be started.');
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, OAUTH_REDIRECT_URL);
+
+      if (result.type === 'success' && result.url) {
+        await createSessionFromUrl(result.url);
+        return;
+      }
+
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        throw new Error('Google sign-in was canceled.');
+      }
+
+      throw new Error('Google sign-in could not be completed.');
+    } catch (error) {
+      console.error('Google sign in error:', error);
       throw error;
     }
   };
@@ -150,10 +254,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      // Store tokens
       if (data.session) {
-        await AsyncStorage.setItem('access_token', data.session.access_token);
-        await AsyncStorage.setItem('refresh_token', data.session.refresh_token);
+        await persistLegacyTokens(data.session);
       }
 
       setSession(data.session ?? null);
@@ -172,7 +274,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await Promise.allSettled([authApi.logout(), supabase.auth.signOut()]);
       await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user']);
       setUser(null);
       setSession(null);
@@ -203,6 +305,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         session,
         loading,
         signIn,
+        signInWithGoogle,
         signUp,
         signOut,
         refreshProfile,

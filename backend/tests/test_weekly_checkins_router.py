@@ -2,6 +2,9 @@ import asyncio
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
+import pytest
+from fastapi import HTTPException
+
 from app.schemas.weekly_checkin_schemas import (
     BodyObservation,
     EstimatedBodyFatRange,
@@ -188,8 +191,13 @@ def test_analyze_weekly_checkin_saves_first_report():
         overall_visual_leanness=4.9,
     )
 
+    check_usage_limit = AsyncMock(return_value={"remaining": 1})
+
     with (
         patch("app.routers.weekly_checkins.get_supabase", return_value=supabase),
+        patch("app.routers.weekly_checkins.check_premium_status", new=AsyncMock(return_value=False)),
+        patch("app.routers.weekly_checkins.check_usage_limit", new=check_usage_limit),
+        patch("app.routers.weekly_checkins.increment_usage", new=AsyncMock()) as increment_usage,
         patch("app.routers.weekly_checkins._ensure_safe_weekly_photo", new=AsyncMock()),
         patch("app.routers.weekly_checkins.analyze_weekly_checkin_image", new=AsyncMock(return_value=observation)),
         patch(
@@ -210,6 +218,8 @@ def test_analyze_weekly_checkin_saves_first_report():
     assert response.progress_photo_id.startswith("progress_photos-")
     assert len(supabase.tables["progress_photos"]) == 1
     assert len(supabase.tables["weekly_checkins"]) == 1
+    check_usage_limit.assert_awaited_once_with("user-1", "body_fat_scan", False)
+    increment_usage.assert_awaited_once_with("user-1", "body_fat_scan")
 
 
 def test_analyze_weekly_checkin_compares_against_previous_report():
@@ -273,9 +283,13 @@ def test_analyze_weekly_checkin_compares_against_previous_report():
         overall_visual_leanness=5.3,
         comparison_confidence=0.82,
     )
+    check_usage_limit = AsyncMock()
 
     with (
         patch("app.routers.weekly_checkins.get_supabase", return_value=supabase),
+        patch("app.routers.weekly_checkins.check_premium_status", new=AsyncMock(return_value=True)),
+        patch("app.routers.weekly_checkins.check_usage_limit", new=check_usage_limit),
+        patch("app.routers.weekly_checkins.increment_usage", new=AsyncMock()) as increment_usage,
         patch("app.routers.weekly_checkins._ensure_safe_weekly_photo", new=AsyncMock()),
         patch("app.routers.weekly_checkins.analyze_weekly_checkin_image", new=AsyncMock(return_value=current_observation)),
         patch(
@@ -296,3 +310,47 @@ def test_analyze_weekly_checkin_compares_against_previous_report():
     assert response.delta_from_previous is not None
     assert response.delta_from_previous.goal_proximity_score > 0
     assert response.weekly_status == "improved"
+    check_usage_limit.assert_not_awaited()
+    increment_usage.assert_not_awaited()
+
+
+def test_analyze_weekly_checkin_blocks_free_users_when_limit_is_exhausted():
+    from app.routers.weekly_checkins import analyze_weekly_checkin
+    from app.services.usage_limiter import UsageLimitExceeded
+
+    handler = getattr(analyze_weekly_checkin, "__wrapped__", analyze_weekly_checkin)
+    supabase = _FakeSupabase(
+        {
+            "user_profiles": [{"user_id": "user-1", "target_body_fat_percentage": 12.0}],
+            "saved_goal_plans": [],
+            "progress_photos": [],
+            "weekly_checkins": [],
+        }
+    )
+    check_usage_limit = AsyncMock(side_effect=UsageLimitExceeded("body_fat_scan exhausted"))
+
+    with (
+        patch("app.routers.weekly_checkins.get_supabase", return_value=supabase),
+        patch("app.routers.weekly_checkins.check_premium_status", new=AsyncMock(return_value=False)),
+        patch("app.routers.weekly_checkins.check_usage_limit", new=check_usage_limit),
+        patch("app.routers.weekly_checkins.increment_usage", new=AsyncMock()) as increment_usage,
+        patch("app.routers.weekly_checkins._ensure_safe_weekly_photo", new=AsyncMock()) as ensure_safe_photo,
+        patch("app.routers.weekly_checkins.upload_progress_image") as upload_progress_image,
+    ):
+        with pytest.raises(HTTPException) as exc:
+            _run(
+                handler(
+                    request=None,
+                    body=WeeklyCheckinCreateRequest(image_base64="ZmFrZQ==", ownership_confirmed=True),
+                    current_user={"id": "user-1"},
+                )
+            )
+
+    assert exc.value.status_code == 402
+    assert "Weekly check-in free limit reached" in exc.value.detail
+    check_usage_limit.assert_awaited_once_with("user-1", "body_fat_scan", False)
+    ensure_safe_photo.assert_not_awaited()
+    upload_progress_image.assert_not_called()
+    increment_usage.assert_not_awaited()
+    assert supabase.tables["progress_photos"] == []
+    assert supabase.tables["weekly_checkins"] == []

@@ -10,7 +10,7 @@ import logging
 
 from ..middleware.auth_middleware import get_current_user
 from ..rate_limit import limiter
-from ..database import get_supabase
+from ..database import get_supabase, get_user_supabase
 from ..schemas.goal_plan_schemas import (
     TierRequest, TierComparisonResponse,
     MacroRequest, MacroResponse,
@@ -209,7 +209,7 @@ async def save_goal_plan(
     """Upsert the user's full goal planner snapshot to `saved_goal_plans`."""
     user_id = current_user["id"]
     now = datetime.now(timezone.utc).isoformat()
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
     try:
         existing = (
             supabase.table("saved_goal_plans")
@@ -243,7 +243,7 @@ async def get_saved_goal_plan(
 ):
     """Return the user's saved planner JSON, or 404 if none."""
     user_id = current_user["id"]
-    supabase = get_supabase()
+    supabase = get_user_supabase(current_user["access_token"])
     try:
         result = (
             supabase.table("saved_goal_plans")

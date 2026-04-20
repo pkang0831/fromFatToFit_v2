@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse, Response
 
 from app.dependencies import get_current_user
-from ..database import get_supabase
+from ..database import get_supabase, get_user_supabase
 from ..schemas.proof_share_schemas import (
     CreateProofShareRequest,
     ProofShareResponse,
@@ -17,6 +17,7 @@ from ..schemas.proof_share_schemas import (
 )
 from ..services.progress_photo_storage import build_progress_photo_url
 from ..services.retention_event_service import log_retention_event
+from ..services.service_availability import is_proof_share_storage_unavailable, proof_share_service_unavailable
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/proof-shares", tags=["proof-shares"])
@@ -164,73 +165,82 @@ async def create_proof_share(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    access_token = current_user.get("access_token")
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
 
-    photo_result = (
-        supabase.table("progress_photos")
-        .select("id, taken_at, weight_kg, body_fat_pct")
-        .eq("id", body.progress_photo_id)
-        .eq("user_id", user_id)
-        .limit(1)
-        .execute()
-    )
-    if not photo_result.data:
-        raise HTTPException(status_code=404, detail="Progress photo not found")
+    try:
+        photo_result = (
+            supabase.table("progress_photos")
+            .select("id, taken_at, weight_kg, body_fat_pct")
+            .eq("id", body.progress_photo_id)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        if not photo_result.data:
+            raise HTTPException(status_code=404, detail="Progress photo not found")
 
-    existing = (
-        supabase.table("proof_shares")
-        .select("*")
-        .eq("user_id", user_id)
-        .eq("progress_photo_id", body.progress_photo_id)
-        .eq("status", "active")
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
-    )
-    if existing.data:
-        return _serialize_share(dict(existing.data[0]))
+        existing = (
+            supabase.table("proof_shares")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("progress_photo_id", body.progress_photo_id)
+            .eq("status", "active")
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if existing.data:
+            return _serialize_share(dict(existing.data[0]))
 
-    photo = dict(photo_result.data[0])
-    snapshot = _goal_snapshot_for_user(supabase, user_id)
-    now = datetime.now(timezone.utc).isoformat()
-    share_row = {
-        "user_id": user_id,
-        "progress_photo_id": body.progress_photo_id,
-        "token": token_urlsafe(18),
-        "week_marker": body.week_marker,
-        "status": "active",
-        "created_at": now,
-        "revoked_at": None,
-        "current_bf_snapshot": snapshot["current_bf_snapshot"],
-        "target_bf_snapshot": snapshot["target_bf_snapshot"],
-        "goal_gap_snapshot": snapshot["goal_gap_snapshot"],
-        "shared_photo_taken_at": photo.get("taken_at"),
-        "shared_photo_weight_kg": photo.get("weight_kg"),
-        "shared_photo_body_fat_pct": photo.get("body_fat_pct"),
-    }
+        photo = dict(photo_result.data[0])
+        snapshot = _goal_snapshot_for_user(supabase, user_id)
+        now = datetime.now(timezone.utc).isoformat()
+        share_row = {
+            "user_id": user_id,
+            "progress_photo_id": body.progress_photo_id,
+            "token": token_urlsafe(18),
+            "week_marker": body.week_marker,
+            "status": "active",
+            "created_at": now,
+            "revoked_at": None,
+            "current_bf_snapshot": snapshot["current_bf_snapshot"],
+            "target_bf_snapshot": snapshot["target_bf_snapshot"],
+            "goal_gap_snapshot": snapshot["goal_gap_snapshot"],
+            "shared_photo_taken_at": photo.get("taken_at"),
+            "shared_photo_weight_kg": photo.get("weight_kg"),
+            "shared_photo_body_fat_pct": photo.get("body_fat_pct"),
+        }
 
-    result = supabase.table("proof_shares").insert(share_row).execute()
-    if not result.data:
-        raise HTTPException(status_code=500, detail="Failed to create share")
+        result = supabase.table("proof_shares").insert(share_row).execute()
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create share")
 
-    share = dict(result.data[0])
-    await log_retention_event(
-        user_id,
-        "share_created",
-        "progress_page",
-        {
-            "share_id": share["id"],
-            "share_token": share["token"],
-            "progress_photo_id": share["progress_photo_id"],
-            "week_marker": share.get("week_marker"),
-            "source": body.source or "proof_share",
-            "reentry_state": body.reentry_state,
-            "surface_state": body.surface_state,
-            "reminder_event_id": body.reminder_event_id,
-            "session_id": body.session_id,
-        },
-    )
-    return _serialize_share(share)
+        share = dict(result.data[0])
+        await log_retention_event(
+            user_id,
+            "share_created",
+            "progress_page",
+            {
+                "share_id": share["id"],
+                "share_token": share["token"],
+                "progress_photo_id": share["progress_photo_id"],
+                "week_marker": share.get("week_marker"),
+                "source": body.source or "proof_share",
+                "reentry_state": body.reentry_state,
+                "surface_state": body.surface_state,
+                "reminder_event_id": body.reminder_event_id,
+                "session_id": body.session_id,
+            },
+        )
+        return _serialize_share(share)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Proof share creation failed: %s", exc, exc_info=True)
+        if is_proof_share_storage_unavailable(exc):
+            raise proof_share_service_unavailable("Proof sharing is unavailable because this environment is missing proof-share write access.")
+        raise
 
 
 @router.get("", response_model=list[ProofShareResponse])
@@ -239,7 +249,8 @@ async def list_proof_shares(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    access_token = current_user.get("access_token")
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
     query = (
         supabase.table("proof_shares")
         .select("*")
@@ -258,7 +269,8 @@ async def revoke_proof_share(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    supabase = get_supabase()
+    access_token = current_user.get("access_token")
+    supabase = get_user_supabase(access_token) if access_token else get_supabase()
     share = _load_share_for_owner(supabase, user_id, share_id)
 
     if share.get("status") == "revoked" or share.get("revoked_at"):

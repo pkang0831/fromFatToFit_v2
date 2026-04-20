@@ -3,13 +3,51 @@ import logging
 import time
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, date, timedelta
-from ..database import get_supabase
+from ..database import get_supabase, get_user_supabase
 from .calorie_calculator import CalorieCalculator
 
 logger = logging.getLogger(__name__)
 
 _calorie_balance_cache: Dict[str, Tuple[float, Dict[str, Any]]] = {}
 _CALORIE_BALANCE_CACHE_TTL_SECONDS = 60
+
+
+def _coerce_float(value: Any, default: float) -> float:
+    try:
+        if value is None:
+            raise ValueError("missing")
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_int(value: Any, default: int) -> int:
+    try:
+        if value is None:
+            raise ValueError("missing")
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_str(value: Any, default: str) -> str:
+    if value is None:
+        return default
+    normalized = str(value).strip()
+    return normalized or default
+
+
+def _coerce_created_at_date(value: Any) -> date:
+    if isinstance(value, datetime):
+        return value.date()
+
+    if isinstance(value, str) and value.strip():
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00")).date()
+        except ValueError:
+            pass
+
+    return date.today()
 
 
 def _calorie_balance_cache_key(user_id: str, days: int) -> str:
@@ -38,6 +76,58 @@ def invalidate_calorie_balance_cache(user_id: str) -> None:
         _calorie_balance_cache.pop(key, None)
 
 
+def _normalize_date_key(value: Any) -> date | None:
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value
+
+    if isinstance(value, datetime):
+        return value.date()
+
+    if isinstance(value, str) and value.strip():
+        raw = value.strip()
+        try:
+            return date.fromisoformat(raw[:10])
+        except ValueError:
+            try:
+                return datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+            except ValueError:
+                return None
+
+    return None
+
+
+def _is_degraded_daily_summary_row(row: Dict[str, Any]) -> bool:
+    return any(
+        row.get(field) is None
+        for field in ("total_calories", "total_protein", "total_carbs", "total_fat")
+    )
+
+
+def _aggregate_food_log_rows(rows: List[Dict[str, Any]]) -> Dict[date, Dict[str, float]]:
+    aggregated: Dict[date, Dict[str, float]] = {}
+
+    for row in rows:
+        row_date = _normalize_date_key(row.get("date"))
+        if row_date is None:
+            continue
+
+        bucket = aggregated.setdefault(
+            row_date,
+            {
+                "calories": 0.0,
+                "protein": 0.0,
+                "carbs": 0.0,
+                "fat": 0.0,
+            },
+        )
+        bucket["calories"] += _coerce_float(row.get("calories"), 0.0)
+        bucket["protein"] += _coerce_float(row.get("protein"), 0.0)
+        bucket["carbs"] += _coerce_float(row.get("carbs"), 0.0)
+        bucket["fat"] += _coerce_float(row.get("fat"), 0.0)
+
+    return aggregated
+
+
 async def get_food_trend_data(
     user_id: str,
     days: int = 7,
@@ -55,52 +145,85 @@ async def get_food_trend_data(
     """
     try:
         supabase = get_supabase()
-        
+
         # Calculate date range
         end_date = date.today()
         start_date = end_date - timedelta(days=days-1)
-        
-        # Get daily summaries
-        result = supabase.table("daily_summaries").select("*").eq("user_id", user_id).gte('"date"', start_date.isoformat()).lte('"date"', end_date.isoformat()).order('"date"').execute()
-        
+
+        all_dates = [start_date + timedelta(days=x) for x in range(days)]
+        daily_summary_rows: List[Dict[str, Any]] = []
+        food_log_rollups: Dict[date, Dict[str, float]] = {}
+        needs_food_log_fallback = False
+
+        # Get daily summaries first; if they are missing, partial, or degraded for the
+        # requested window we can repair the read with food_logs instead of returning
+        # stale / zero-heavy data.
+        try:
+            result = supabase.table("daily_summaries").select("*").eq("user_id", user_id).gte('"date"', start_date.isoformat()).lte('"date"', end_date.isoformat()).order('"date"').execute()
+            daily_summary_rows = result.data or []
+        except Exception as summary_error:
+            logger.warning(
+                "Daily summaries unavailable for user %s (%s to %s); falling back to food logs: %s",
+                user_id,
+                start_date.isoformat(),
+                end_date.isoformat(),
+                summary_error,
+            )
+            needs_food_log_fallback = True
+
+        daily_summaries_by_date: Dict[date, Dict[str, Any]] = {}
+        for row in daily_summary_rows:
+            row_date = _normalize_date_key(row.get("date"))
+            if row_date is None or row_date < start_date or row_date > end_date:
+                continue
+            daily_summaries_by_date[row_date] = row
+
+        if len(daily_summaries_by_date) < len(all_dates):
+            needs_food_log_fallback = True
+
+        if any(_is_degraded_daily_summary_row(row) for row in daily_summaries_by_date.values()):
+            needs_food_log_fallback = True
+
+        if needs_food_log_fallback:
+            food_logs_result = supabase.table("food_logs").select("date, calories, protein, carbs, fat").eq("user_id", user_id).gte('"date"', start_date.isoformat()).lte('"date"', end_date.isoformat()).execute()
+            food_log_rollups = _aggregate_food_log_rows(food_logs_result.data or [])
+
         # Get user's calorie goal only when it was not already loaded by caller.
         if calorie_goal_override is not None:
             calorie_goal = calorie_goal_override
         else:
             user_result = supabase.table("user_profiles").select("calorie_goal").eq("user_id", user_id).execute()
             calorie_goal = user_result.data[0].get("calorie_goal") if user_result.data and len(user_result.data) > 0 else 2000
-        
+
         trend_data = []
-        for day_data in result.data:
+        for current_date in all_dates:
+            summary_row = daily_summaries_by_date.get(current_date)
+            fallback_row = food_log_rollups.get(current_date, {})
+            prefer_food_log_rollup = needs_food_log_fallback and bool(fallback_row)
+
             trend_data.append({
-                "date": day_data["date"],
-                "calories": day_data["total_calories"],
-                "protein": day_data["total_protein"],
-                "carbs": day_data["total_carbs"],
-                "fat": day_data["total_fat"],
-                "goal": calorie_goal
+                "date": current_date.isoformat(),
+                "calories": _coerce_float(
+                    None if prefer_food_log_rollup else (summary_row.get("total_calories") if summary_row else None),
+                    _coerce_float(fallback_row.get("calories"), 0.0),
+                ),
+                "protein": _coerce_float(
+                    None if prefer_food_log_rollup else (summary_row.get("total_protein") if summary_row else None),
+                    _coerce_float(fallback_row.get("protein"), 0.0),
+                ),
+                "carbs": _coerce_float(
+                    None if prefer_food_log_rollup else (summary_row.get("total_carbs") if summary_row else None),
+                    _coerce_float(fallback_row.get("carbs"), 0.0),
+                ),
+                "fat": _coerce_float(
+                    None if prefer_food_log_rollup else (summary_row.get("total_fat") if summary_row else None),
+                    _coerce_float(fallback_row.get("fat"), 0.0),
+                ),
+                "goal": calorie_goal,
             })
-        
-        # Fill in missing days with zero values
-        all_dates = [start_date + timedelta(days=x) for x in range(days)]
-        existing_dates = {datetime.fromisoformat(item["date"]).date() for item in trend_data}
-        
-        for check_date in all_dates:
-            if check_date not in existing_dates:
-                trend_data.append({
-                    "date": check_date.isoformat(),
-                    "calories": 0,
-                    "protein": 0,
-                    "carbs": 0,
-                    "fat": 0,
-                    "goal": calorie_goal
-                })
-        
-        # Sort by date
-        trend_data.sort(key=lambda x: x["date"])
-        
+
         return trend_data
-        
+
     except Exception as e:
         logger.error(f"Error getting food trend data: {e}")
         raise
@@ -210,11 +333,10 @@ async def get_calorie_balance_trend(
         if cached is not None:
             return cached
 
-        supabase = get_supabase()
-        
         profile_data = profile
 
         if not profile_data:
+            supabase = get_supabase()
             user_profile = supabase.table("user_profiles").select(
                 "created_at, calorie_goal, weight_kg, height_cm, age, gender, activity_level"
             ).eq("user_id", user_id).execute()
@@ -227,16 +349,16 @@ async def get_calorie_balance_trend(
         if not profile_data:
             raise ValueError(f"User profile not found for user_id: {user_id}")
 
-        calorie_goal = profile_data.get("calorie_goal", 2000)
-        registration_date = datetime.fromisoformat(profile_data["created_at"]).date()
+        calorie_goal = _coerce_float(profile_data.get("calorie_goal"), 2000.0)
+        registration_date = _coerce_created_at_date(profile_data.get("created_at"))
         today = date.today()
         
         # Calculate TDEE (daily baseline energy expenditure)
-        weight_kg = profile_data.get("weight_kg", 70.0)
-        height_cm = profile_data.get("height_cm", 170.0)
-        age = profile_data.get("age", 30)
-        gender = profile_data.get("gender", "male")
-        activity_level = profile_data.get("activity_level", "moderate")
+        weight_kg = _coerce_float(profile_data.get("weight_kg"), 70.0)
+        height_cm = _coerce_float(profile_data.get("height_cm"), 170.0)
+        age = _coerce_int(profile_data.get("age"), 30)
+        gender = _coerce_str(profile_data.get("gender"), "male")
+        activity_level = _coerce_str(profile_data.get("activity_level"), "moderate")
         
         tdee = CalorieCalculator.calculate_tdee(
             weight_kg=weight_kg,
@@ -334,7 +456,11 @@ async def get_calorie_balance_trend(
         raise
 
 
-async def calculate_daily_summary(user_id: str, target_date: date) -> Dict[str, Any]:
+async def calculate_daily_summary(
+    user_id: str,
+    target_date: date,
+    access_token: str | None = None,
+) -> Dict[str, Any]:
     """
     Calculate or update daily nutritional summary
     
@@ -346,7 +472,7 @@ async def calculate_daily_summary(user_id: str, target_date: date) -> Dict[str, 
         Dictionary with daily totals
     """
     try:
-        supabase = get_supabase()
+        supabase = get_user_supabase(access_token) if access_token else get_supabase()
         
         # Get all food logs for the date
         result = supabase.table("food_logs").select("*").eq("user_id", user_id).eq('"date"', target_date.isoformat()).execute()
@@ -377,14 +503,24 @@ async def calculate_daily_summary(user_id: str, target_date: date) -> Dict[str, 
             "updated_at": datetime.utcnow().isoformat()
         }
         
-        # Upsert daily summary
-        existing = supabase.table("daily_summaries").select("id").eq("user_id", user_id).eq('"date"', target_date.isoformat()).execute()
-        
-        if existing.data and len(existing.data) > 0:
-            supabase.table("daily_summaries").update(summary_data).eq("user_id", user_id).eq('"date"', target_date.isoformat()).execute()
-        else:
-            summary_data["created_at"] = datetime.utcnow().isoformat()
-            supabase.table("daily_summaries").insert(summary_data).execute()
+        # Upsert daily summary. Some local/dev environments run with a less-privileged
+        # Supabase key, so persistence may fail under RLS even though the computed
+        # summary itself is still perfectly usable for the dashboard response.
+        try:
+            existing = supabase.table("daily_summaries").select("id").eq("user_id", user_id).eq('"date"', target_date.isoformat()).execute()
+
+            if existing.data and len(existing.data) > 0:
+                supabase.table("daily_summaries").update(summary_data).eq("user_id", user_id).eq('"date"', target_date.isoformat()).execute()
+            else:
+                summary_data["created_at"] = datetime.utcnow().isoformat()
+                supabase.table("daily_summaries").insert(summary_data).execute()
+        except Exception as persistence_error:
+            logger.warning(
+                "Daily summary persistence degraded for user %s on %s: %s",
+                user_id,
+                target_date.isoformat(),
+                persistence_error,
+            )
         
         return summary_data
         
@@ -393,7 +529,10 @@ async def calculate_daily_summary(user_id: str, target_date: date) -> Dict[str, 
         raise
 
 
-async def get_dashboard_stats(user_id: str) -> Dict[str, Any]:
+async def get_dashboard_stats(
+    user_id: str,
+    access_token: str | None = None,
+) -> Dict[str, Any]:
     """
     Get comprehensive dashboard statistics for user
     
@@ -407,7 +546,11 @@ async def get_dashboard_stats(user_id: str) -> Dict[str, Any]:
         today = date.today()
         
         # Get today's summary
-        daily_summary = await calculate_daily_summary(user_id, today)
+        daily_summary = await calculate_daily_summary(
+            user_id,
+            today,
+            access_token=access_token,
+        )
         
         # Get 7-day trends
         food_trend_7d = await get_food_trend_data(user_id, 7)

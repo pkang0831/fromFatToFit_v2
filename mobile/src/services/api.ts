@@ -22,7 +22,6 @@ async function getBearerToken(): Promise<string | null> {
       return session.access_token;
     }
   } catch (e) {
-    console.error('getSession failed:', e);
   }
   return AsyncStorage.getItem('access_token');
 }
@@ -36,7 +35,6 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error getting auth token:', error);
     }
     return config;
   },
@@ -309,6 +307,11 @@ export interface WeeklyCheckinAnalysis {
     body_fat_percent_max: number;
     body_fat_confidence: number;
   };
+  hologram_visualization?: {
+    glow_intensity: number;
+    body_clarity: number;
+    pedestal_progress: number;
+  };
 }
 
 export const homeApi = {
@@ -332,6 +335,9 @@ export const weeklyCheckinsApi = {
 export const paymentApi = {
   createCheckoutSession: (priceId: string, successUrl: string, cancelUrl: string) =>
     api.post('/payments/create-checkout-session', { price_id: priceId, success_url: successUrl, cancel_url: cancelUrl }),
+
+  createBillingPortalSession: (returnUrl: string) =>
+    api.post('/payments/billing-portal', { return_url: returnUrl }),
   
   verifyPurchase: (receiptToken: string, platform: 'ios' | 'android') =>
     api.post('/payments/verify-purchase', { receipt_token: receiptToken, platform }),
@@ -341,7 +347,18 @@ export const paymentApi = {
   
   getUsageLimits: () =>
     api.get('/payments/usage-limits'),
+
+  getCredits: () =>
+    api.get<CreditBalanceResponse>('/payments/credits'),
 };
+
+export interface CreditBalanceResponse {
+  monthly_credits: number;
+  bonus_credits: number;
+  total_credits: number;
+  reset_date?: string | null;
+  credit_costs: Record<string, number>;
+}
 
 export const dashboardApi = {
   getDashboard: () =>

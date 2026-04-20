@@ -34,11 +34,29 @@ from ..services.journey_telemetry import (
 from ..services.usage_limiter import check_usage_limit, increment_usage, get_credit_balance
 from ..services.payment_service import check_premium_status, deduct_credits
 from ..services.retention_event_service import log_retention_event
+from ..services.service_availability import (
+    ai_service_unavailable,
+    body_model_service_unavailable,
+    is_hf_or_body_model_unavailable,
+    is_openai_unavailable,
+)
 from ..config import settings
 from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _raise_body_unavailable(exc: Exception, *, default_detail: str) -> None:
+    if is_hf_or_body_model_unavailable(exc):
+        raise body_model_service_unavailable(
+            "Body-analysis models are temporarily unavailable on this server."
+        ) from exc
+    if is_openai_unavailable(exc):
+        raise ai_service_unavailable(
+            "This body-analysis feature is temporarily unavailable because the AI service is not configured."
+        ) from exc
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=default_detail) from exc
 
 
 def _select_user_profile(supabase, user_id: str, columns: str):
@@ -156,10 +174,7 @@ async def validate_body_photo(
         raise
     except Exception as e:
         logger.error(f"validate-photo error: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Photo validation failed. Please try again.",
-        )
+        _raise_body_unavailable(e, default_detail="Photo validation failed. Please try again.")
 
 
 async def estimate_body_fat_with_fallback(image_base64: str, gender: str, age: int):
@@ -336,7 +351,7 @@ async def estimate_bodyfat(
         raise
     except Exception as e:
         logger.error(f"Error estimating body fat: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Body fat estimation failed")
+        _raise_body_unavailable(e, default_detail="Body fat estimation failed")
 
 
 @router.post("/percentile", response_model=PercentileResponse)
@@ -452,7 +467,7 @@ async def calculate_body_percentile(
         raise
     except Exception as e:
         logger.error(f"Error calculating percentile: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Percentile calculation failed")
+        _raise_body_unavailable(e, default_detail="Percentile calculation failed")
 
 
 @router.post("/transformation", response_model=TransformationJourneyResponse)
@@ -687,10 +702,7 @@ async def generate_transformation_journey(
         rec.total_latency_ms = elapsed_ms(t_start)
         record_journey(rec)
         logger.error(f"Transformation journey error: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Transformation generation failed. Please try again.",
-        )
+        _raise_body_unavailable(e, default_detail="Transformation generation failed. Please try again.")
 
 
 @router.post("/enhancement", response_model=EnhancementResponse)
@@ -765,7 +777,7 @@ async def generate_body_enhancement(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
         logger.error(f"Error generating enhancement: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Body enhancement failed")
+        _raise_body_unavailable(e, default_detail="Body enhancement failed")
 
 
 @router.get("/scans/history", response_model=List[BodyScanHistoryItem])
@@ -948,10 +960,7 @@ async def auto_segment_body(
 
     except Exception as e:
         logger.error(f"Auto-segmentation error: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Auto-segmentation failed. Please try again.",
-        )
+        _raise_body_unavailable(e, default_detail="Auto-segmentation failed. Please try again.")
 
 
 # ---------------------------------------------------------------------------
@@ -992,10 +1001,7 @@ async def prepare_cut_edit_endpoint(
 
     except Exception as e:
         logger.error(f"CUT edit prep error: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Edit preparation failed. Please try again.",
-        )
+        _raise_body_unavailable(e, default_detail="Edit preparation failed. Please try again.")
 
 
 # ---------------------------------------------------------------------------
@@ -1033,10 +1039,7 @@ async def cut_warp_preview_endpoint(
 
     except Exception as e:
         logger.error(f"CUT warp preview error: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Warp preview failed. Please try again.",
-        )
+        _raise_body_unavailable(e, default_detail="Warp preview failed. Please try again.")
 
 
 # ---------------------------------------------------------------------------
@@ -1064,10 +1067,7 @@ async def segment_body(
 
     except Exception as e:
         logger.error(f"SAM segmentation error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Body segmentation failed. Please try clicking a different area.",
-        )
+        _raise_body_unavailable(e, default_detail="Body segmentation failed. Please try clicking a different area.")
 
 
 @router.post("/transform-region", response_model=RegionTransformResponse)
@@ -1140,10 +1140,7 @@ async def transform_body_region(
         raise
     except Exception as e:
         logger.error(f"Region transform error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Region transformation failed. Please try again.",
-        )
+        _raise_body_unavailable(e, default_detail="Region transformation failed. Please try again.")
 
 
 # ---------------------------------------------------------------------------

@@ -674,7 +674,11 @@ async def create_billing_portal_session(user_id: str, return_url: str) -> Dict[s
     return {"url": session.url}
 
 
-async def verify_revenuecat_purchase(receipt_token: str, platform: str) -> dict[str, Any]:
+async def verify_revenuecat_purchase(
+    receipt_token: str,
+    platform: str,
+    app_user_id: str | None = None,
+) -> dict[str, Any]:
     """
     Verify purchase with RevenueCat
 
@@ -697,7 +701,7 @@ async def verify_revenuecat_purchase(receipt_token: str, platform: str) -> dict[
         url = "https://api.revenuecat.com/v1/receipts"
 
         data = {
-            "app_user_id": receipt_token,
+            "app_user_id": app_user_id or receipt_token,
             "fetch_token": receipt_token,
             "platform": platform
         }
