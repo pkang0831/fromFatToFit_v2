@@ -54,9 +54,9 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
           >
-            Start with one clear goal.
+            {t('landing.heroTitle')}
             <br className="hidden md:block" />
-            <span className="gradient-text">Build visual proof every week.</span>
+            <span className="gradient-text">{t('landing.heroHighlight')}</span>
           </motion.h1>
 
           <motion.p
@@ -65,8 +65,7 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Devenira should not feel like ten different apps. You set the direction,
-            take one body scan, then come back for proof instead of guesswork.
+            {t('landing.heroDescription')}
           </motion.p>
 
           <motion.div

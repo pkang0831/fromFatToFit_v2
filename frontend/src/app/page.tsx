@@ -6,6 +6,7 @@ import { FounderStorySection } from '@/components/landing/FounderStorySection';
 import { StartHereSection } from '@/components/landing/StartHereSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { TrustSection } from '@/components/landing/TrustSection';
+import { FAQSection } from '@/components/landing/FAQSection';
 import { FinalCTASection } from '@/components/landing/FinalCTASection';
 import { FooterSection } from '@/components/landing/FooterSection';
 
@@ -38,6 +39,7 @@ export default function LandingPage() {
       <StartHereSection />
       <HowItWorksSection />
       <TrustSection />
+      <FAQSection />
       <FinalCTASection />
       <FooterSection />
     </main>

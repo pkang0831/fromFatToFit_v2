@@ -525,6 +525,9 @@ export default function HomePage() {
 
                 <div className="mt-10 grid gap-8 xl:mt-auto">
                   <div className="grid gap-3 border-t border-border/60 pt-6 dark:border-white/[0.06]">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary dark:text-white/36">
+                      Current goal
+                    </p>
                     {leftMetrics.map((item) => (
                       <div key={item.label} className="flex items-baseline justify-between gap-4">
                         <dt className="text-sm text-text-secondary dark:text-white/46">{item.label}</dt>
@@ -534,9 +537,14 @@ export default function HomePage() {
                   </div>
 
                   <div className="grid gap-3 border-t border-border/60 pt-6 dark:border-white/[0.06]">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary dark:text-white/36">
-                      {t('dashboardHome.flow')}
-                    </p>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary dark:text-white/36">
+                        Journey
+                      </p>
+                      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary dark:text-white/36">
+                        {t('dashboardHome.flow')}
+                      </p>
+                    </div>
                     <ol className="grid gap-3">
                       {workflowRows.map((item) => (
                         <li key={item.index} className="grid grid-cols-[32px_minmax(0,1fr)_auto] items-center gap-3">
@@ -553,6 +561,9 @@ export default function HomePage() {
               </aside>
 
               <div className="relative z-10 px-4 py-4 md:px-6 md:py-6 xl:min-h-[760px] xl:px-8 xl:py-8">
+                <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary dark:text-white/36">
+                  Progress proof
+                </p>
                 <HologramBodyScanner
                   className="h-full min-h-[560px] xl:min-h-[700px]"
                   size={0.92}
