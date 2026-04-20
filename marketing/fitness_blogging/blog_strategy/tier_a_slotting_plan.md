@@ -69,9 +69,34 @@ Appetite lane — last appetite post will be ~12 posts old by then. Hyper-palata
 | Tier A | Scheduled Batch | Drafted | Reviewed | Ported |
 |--------|-----------------|---------|----------|--------|
 | `why-cutting-sodium-too-hard-can-backfire` | 14 | **done** (post 67) | **pass** | **done** (posts.ts + Medium wave_03_16) |
-| `why-lower-body-fat-feels-so-stubborn` | 15 | pending | pending | pending |
+| `why-lower-body-fat-feels-so-stubborn` | 15 | ✅ batch 15 | ✅ batch 15 | ✅ batch 15 (posts.ts + Medium wave_03_22) |
 | `can-you-lose-weight-while-eating-refined-carbs` | 16 | pending | pending | pending |
 | `thin-people-can-gain-weight-too-here-is-why-that-matters` | 17 | pending | pending | pending |
 | `why-highly-processed-food-starts-feeling-emotionally-loud` | 18 | pending | pending | pending |
 
 Update each row as that batch's pipeline progresses.
+
+## Notes from completed Tier A executions
+
+### Batch 15 — `why-lower-body-fat-feels-so-stubborn` (Imagery Density milestone)
+
+Post 73 is the first Tier A rewrite to score above the `voice_audit_75` Tier A imagery-density watch threshold. Reviewer-graded Imagery Density: **8.5** (against the 8.0 threshold), versus 7.5 for the batch 14 sodium post (`why-cutting-sodium-too-hard-can-backfire`, post 67).
+
+State of the Tier A imagery watch after batch 15: 1 of 2 above threshold (sodium 7.5, lower-body 8.5). The watch narrows. Three Tier A rewrites remain (refined_carbs batch 16, thin_people batch 17, processed_food batch 18). Per `running_style_drift_notes.md`, if 2 of those 3 also score ≥ 8.0 the watch closes; if 1 more scores ≤ 7.5 the watch promotes to Active rule 11.
+
+This confirms the research-note workflow (defined in the per-Tier-A workflow above) reproduces well **when the writer deliberately seeds concrete sensory anchors around the physiology numbers** rather than letting the numbers displace the imagery. Eleven concrete sensory anchors were threaded across seven body sections in the lower-body-stubborn draft — "a quiet war with my thighs," the "cement" word, "the last tenant out of the building," "Resentment is not measurement," "Fat does not leave the body democratically," "queued behind abdominal and upper-body clearance," etc. — woven around the timeline numbers (3–6 mo, 6–12 mo, 12–18 mo, 2–5 cm, 8–12 kg) rather than replaced by them.
+
+Workflow takeaway for batches 16–18 Tier A drafts: when the source research note carries dense physiology numbers, plan for the sensory-anchor density before drafting. The pre-flight pass should explicitly inventory concrete anchor candidates per section, not just the mechanism numbers. Post 73 is the proof the workflow can clear the imagery threshold under physiology-adjacent territory; post 67 (sodium, 7.5) was the proof it can fall short when the anchors are added late.
+
+## Tier A Imagery Density Watch (post-batch-15 update)
+
+Per `voice_audit_75` Tier A imagery-density watch (introduced 2026-04-20):
+
+- **Sodium post (post 67, batch 14):** Imagery Density 7.5 (below 8.0 threshold).
+- **Lower-body post (post 73, batch 15):** Imagery Density **8.5** (above 8.0 threshold).
+
+Post 73 is the **first Tier A retroactive rewrite to score above the voice_audit_75 imagery threshold**, per the batch 15 reviewer verdict. The delta vs the sodium post (8.5 vs 7.5) confirms that the research-note workflow described above reproduces well when the writer **deliberately seeds concrete sensory anchors around the physiology numbers**, rather than letting the physics/arithmetic density of the mechanism section displace them.
+
+The eleven concrete sensory anchors woven through post 73's seven body sections — "a quiet war with my thighs," "the word I used to my wife, more than once, was 'cement'," "Lower-body fat is the last tenant out of the building," "Resentment is not measurement," "fat does not leave the body democratically," "shirts that used to fit tight across the chest now fit shoulder-first," "queued behind abdominal and upper-body clearance," etc. — are the explicit, reproducible behavior the next three Tier A drafts (refined_carbs batch 16, thin_people batch 17, processed_food batch 18) should replicate.
+
+Post-batch-15 watch state: 1 of 2 Tier A scored ≥ 8.0. Three more Tier A rewrites remain. If 2 of those 3 also score ≥ 8.0, the watch closes. If 1 more scores ≤ 7.5, the watch promotes to Active drift rule 11 in `running_style_drift_notes.md`.
