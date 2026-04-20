@@ -6,7 +6,26 @@ This policy governs hero image selection for batch 13 onward, until either:
 1. New photos are added to `frontend/public/founder/`, OR
 2. The archive at `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/` is restored to the worktree
 
-## Current Pool Status (as of post-batch-12 close)
+## Current Pool Status (as of post-batch-15 close + 2026-04-20 archive extraction)
+
+- Total images: **28** (22 previously + 6 fresh from archive, 2 retired at T1 ceiling)
+- Active pool: 26 images (28 − 2 retired)
+- Use distribution: 1 at 4-use (retired from hero rotation via T2 skip-2), 9 at 3-use, 8 at 2-use, 0 at 1-use, **6 at 0-use** (fresh additions 2026-04-20)
+
+### Fresh additions 2026-04-20 (0-use, priority-deploy for batch 16)
+
+| Filename | Lane | Descriptor | Source date |
+|----------|------|------------|-------------|
+| `body-proof-front-20251107.jpg` | C — hard physique proof | body-proof-front | 2025-11-07 |
+| `body-proof-back-20251107.jpg` | C — hard physique proof | body-proof-back | 2025-11-07 |
+| `training-gym-20251128.jpg` | Exercise / training | training-gym | 2025-11-28 |
+| `maintenance-train-20260107.jpg` | A — founder / maintenance | maintenance-train | 2026-01-07 |
+| `maintenance-mirror-20260105.jpg` | A — founder / maintenance | maintenance-mirror | 2026-01-05 |
+| `hunger-cafe-20260119.jpg` | D — lifestyle / hunger | hunger-cafe | 2026-01-19 |
+
+Priority-deploy sequence for batch 16 (posts 77–81): prefer the 6 fresh 0-use images first; they cover the exact priority lanes that drove the pool refresh (lane C body composition, lane A maintenance after `long-game-founder` retirement, lane D hunger, exercise/training). Only after the 0-use pool is spent should batch 16 draw from 2-use or 3-use images.
+
+### Historical Pool Status (as of post-batch-12 close, pre-refresh)
 
 - Total images: 22
 - Use distribution: 3 images at 4 uses, 6 images at 3 uses, 11 images at 2 uses, 2 images at 1 use, 0 unused

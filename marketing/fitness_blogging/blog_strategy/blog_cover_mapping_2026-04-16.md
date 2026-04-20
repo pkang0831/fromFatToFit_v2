@@ -346,3 +346,76 @@ If fresh photos are available to add to `frontend/public/founder/`, priority lan
 - Mirror / body image (current covers carry limited emotional range)
 - Exercise / training (no pure training-session asset distinct from milestone portraits)
 - Maintenance (only `long-game-founder-20251221.jpg` in the lane)
+
+---
+
+## Pool Expansion 2026-04-20
+
+Archive `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/Takeout/Google Photos/` was restored. Six new founder assets copied into `frontend/public/founder/`, covering the priority lanes flagged in the 2026-04-17 checkpoint and in `image_pool_tightened_policy.md` (lane C most urgent after batch 15 retirement of `body-composition-proof-20251221.jpg`, lane A after batch 14 retirement of `long-game-founder-20251221.jpg`).
+
+Total pool after expansion: 22 + 6 = **28 images**.
+
+### New assets by lane
+
+#### C. Hard Physique Proof (MOST URGENT — target 2–3, added 2)
+
+- `/founder/body-proof-front-20251107.jpg`
+  - source: `Photos from 2025/20251107_202901.jpg`
+  - shirtless front-facing physique shot, clean locker-room background, visible abs
+  - use for: body-composition posts, progress proof, transformation milestones (successor to retired `body-composition-proof-20251221.jpg`)
+- `/founder/body-proof-back-20251107.jpg`
+  - source: `Photos from 2025/20251107_202908.jpg`
+  - shirtless back shot from same session; complementary pair to the front shot
+  - use for: body-composition posts requiring visual variety vs. the front shot; rotate with `transformation-proof-20251119.jpg`
+
+#### Exercise / Training Session (target 1, added 1)
+
+- `/founder/training-gym-20251128.jpg`
+  - source: `Photos from 2025/20251128_201756.jpg`
+  - gym floor with cable equipment, founder shirtless — first pure training-session asset in the pool
+  - use for: training-effort posts, adherence posts, any article where the thesis touches lifting or gym routine; can double as lane-C physique proof when needed
+
+#### A. Founder / Credibility — Maintenance (target 1–2, added 2)
+
+- `/founder/maintenance-train-20260107.jpg`
+  - source: `Photos from 2026/20260107_121558.jpg`
+  - winter portrait on a train, scarf, considered setting — matches lane-A criteria (not a gym shot)
+  - use for: maintenance posts, long-game / post-transformation worldview posts (successor to retired `long-game-founder-20251221.jpg`)
+- `/founder/maintenance-mirror-20260105.jpg`
+  - source: `Photos from 2026/20260105_121140.jpg`
+  - full-body store-mirror shot in street clothes — maintenance-phase body check without gym context
+  - use for: maintenance posts, "living at goal weight" essays; reserve as alternate when `maintenance-train-20260107.jpg` is already nearby
+
+#### D. Lifestyle / Support — Hunger / Appetite (target 1, added 1)
+
+- `/founder/hunger-cafe-20260119.jpg`
+  - source: `Photos from 2026/20260119_124954.jpg`
+  - minimalist cafe table with tea and a single flower — hunger management / satiety-with-restraint imagery
+  - use for: next appetite / hunger post to relieve `hunger-editorial-20260106.jpg` at 3-use saturation
+
+### Per-lane coverage summary
+
+| Priority lane | Target | Added | Status |
+| --- | --- | --- | --- |
+| C — Hard physique proof | 2–3 | 2 | covered (front + back pair from same session) |
+| Exercise / training | 1 | 1 | covered |
+| A — Maintenance | 1–2 | 2 | covered |
+| D — Hunger / appetite | 1 | 1 | covered |
+| Mirror / body image | 0–1 | 0 | not added (lowest priority per policy; `maintenance-mirror-20260105.jpg` partially substitutes) |
+
+Lane B (plateau / honest middle) was not in the priority list for this expansion.
+
+### Uncovered priority lane
+
+None of the flagged priority lanes remain uncovered. Mirror / body image was listed as lowest priority (0–1 target) and remains at `mirror-middle-checkin-20250716.jpg` at 3-use; recommend pulling a dedicated mirror-only candidate at the next archive refresh if appetite-lane demand grows faster than physique-lane demand.
+
+### Sampling notes
+
+- Total JPGs in archive: ~1,607 across 2024–2026; focus narrowed to 2025 (~744) and 2026 (~834) per policy direction.
+- Candidates visually inspected: ~30 (systematic every-40th sampling across 2025–2026 plus targeted inspection of filenames matching gym-hour / meal-hour timestamp patterns).
+- Candidates rejected: ~24.
+- Rejected-reason pattern:
+  - the two manually-named `02_22_2025 R side.jpeg` / `02_22_2025 front side.jpeg` files hinted as lane-C body shots in the curation brief turned out to be facial spa-treatment photos, not body composition — had to pivot to systematic sampling
+  - many 2025/2026 shots were food-only or interior-only with no founder present (useful as lane-D support but not as hero covers)
+  - several gym shots had awkward framing, other people in frame, or poor lighting
+- Dates verified against `*.supplemental-metadata.json` sidecars where filename pattern was ambiguous; filenames already in `YYYYMMDD_HHMMSS` local-time form matched the sidecar `photoTakenTime` within the expected KST→UTC offset.
