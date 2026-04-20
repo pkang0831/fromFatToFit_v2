@@ -1165,7 +1165,7 @@ async def transform_body_region(
 # Dev/staging-only telemetry endpoint
 # ---------------------------------------------------------------------------
 
-@router.get("/journey-telemetry")
+@router.get("/journey-telemetry", include_in_schema=not settings.is_production)
 async def get_journey_telemetry(
     current_user: dict = Depends(get_current_user),
 ):

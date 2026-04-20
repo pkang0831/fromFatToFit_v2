@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Body
 from starlette.requests import Request
 import logging
 from datetime import datetime, timezone
@@ -342,7 +342,7 @@ async def login(request: Request, credentials: UserLogin):
 
 
 @router.post("/test-login", response_model=TokenResponse)
-async def test_login():
+async def test_login(body: dict | None = Body(default=None)):
     """Explicitly opt-in auth bootstrap for Playwright and local QA."""
     if not settings.enable_test_login:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
@@ -353,7 +353,9 @@ async def test_login():
 
     try:
         auth_client = create_client(settings.supabase_url, settings.supabase_service_key)
-        email = settings.test_login_email.strip().lower()
+        payload = body if isinstance(body, dict) else {}
+        requested_email = str(payload.get("email") or "").strip().lower()
+        email = requested_email or settings.test_login_email.strip().lower()
         password = settings.test_login_password
 
         def _sign_in():
@@ -393,7 +395,12 @@ async def test_login():
             auth_response = _sign_in()
         except Exception:
             _bootstrap_user()
-            auth_response = _sign_in()
+            try:
+                auth_response = _sign_in()
+            except Exception:
+                logger.info("Test login sign-in still failing after bootstrap; repairing existing bootstrap account")
+                _repair_existing_user()
+                auth_response = _sign_in()
 
         if not auth_response.user or not auth_response.session:
             _bootstrap_user()
