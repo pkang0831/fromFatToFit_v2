@@ -372,10 +372,27 @@ async def generate_body_enhancement(
     except Exception as e:
         error_str = str(e).lower()
         if "moderation" in error_str or "safety" in error_str or "blocked" in error_str:
-            raise ValueError(
-                "The image was flagged by OpenAI's safety filter. "
-                "Try a photo with a shirt/tank top on, or taken from a different angle."
-            )
+            logger.warning("OpenAI enhancement blocked by safety filter; trying Replicate fallback")
+            try:
+                from .replicate_service import generate_transformation_image
+
+                fallback_prompt = (
+                    "Professional fitness photo retouch. Keep the exact same person, face, body shape, "
+                    "proportions, pose, clothing, and background. Do not change body fat, muscle size, "
+                    "or overall shape. Only improve lighting, contrast, skin tone consistency, and subtle "
+                    "definition visibility like a polished studio fitness photo. Preserve realism."
+                )
+                fallback = await generate_transformation_image(
+                    image_base64=image_base64,
+                    prompt=fallback_prompt,
+                )
+                return fallback["image_data_uri"]
+            except Exception as fallback_error:
+                logger.error("Replicate fallback for body enhancement failed: %s", fallback_error)
+                raise ValueError(
+                    "The image was flagged by OpenAI's safety filter, and fallback enhancement also failed. "
+                    "Try a photo with a shirt/tank top on, or taken from a different angle."
+                ) from fallback_error
         logger.error(f"Error generating body enhancement: {e}")
         raise
 

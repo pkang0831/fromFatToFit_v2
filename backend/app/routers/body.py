@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from starlette.requests import Request
 import logging
+import json
 from datetime import datetime, timezone
 from typing import List
 from ..schemas.body_schemas import (
@@ -76,7 +77,7 @@ async def _require_body_photo_quality(
     if result.ok:
         return
     raise HTTPException(
-        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         detail={
             "error": "body_photo_quality",
             "messages": result.messages,
@@ -109,7 +110,7 @@ async def _require_safe_body_photo(
     quality_result = await analyze_body_photo_quality(image_base64, framing=framing)
     if not quality_result.ok:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={
                 "error": "body_photo_quality",
                 "messages": quality_result.messages,
@@ -751,6 +752,7 @@ async def generate_body_enhancement(
         await deduct_credits(current_user["id"], ENHANCEMENT_COST, "enhancement")
 
         supabase = get_supabase()
+        scan_id = None
         scan_data = {
             "user_id": current_user["id"],
             "scan_type": "enhancement",
@@ -761,8 +763,14 @@ async def generate_body_enhancement(
             "ai_analysis": {"enhancement_level": enhancement_level},
             "created_at": datetime.now(timezone.utc).isoformat()
         }
-        result = supabase.table("body_scans").insert(scan_data).execute()
-        scan_id = result.data[0]["id"] if result.data else None
+        try:
+            result = supabase.table("body_scans").insert(scan_data).execute()
+            scan_id = result.data[0]["id"] if result.data else None
+        except Exception as scan_error:
+            logger.warning(
+                "Enhancement generated successfully but body_scans persistence failed; continuing without scan_id: %s",
+                scan_error,
+            )
 
         return EnhancementResponse(
             original_image_url="",
@@ -1038,6 +1046,11 @@ async def cut_warp_preview_endpoint(
         )
 
     except Exception as e:
+        if isinstance(e, (ValueError, IndexError, json.JSONDecodeError)):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Warp preview could not be generated from this image. Try a larger, clearer body photo.",
+            )
         logger.error(f"CUT warp preview error: {e}", exc_info=True)
         _raise_body_unavailable(e, default_detail="Warp preview failed. Please try again.")
 
@@ -1066,6 +1079,11 @@ async def segment_body(
         return SegmentResponse(**result)
 
     except Exception as e:
+        if isinstance(e, (ValueError, IndexError, json.JSONDecodeError)):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Body segmentation failed for this image. Try a clearer photo or a different click point.",
+            )
         logger.error(f"SAM segmentation error: {e}")
         _raise_body_unavailable(e, default_detail="Body segmentation failed. Please try clicking a different area.")
 

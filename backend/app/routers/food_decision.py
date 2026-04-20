@@ -30,7 +30,7 @@ from ..middleware.auth_middleware import get_current_user
 from ..database import get_supabase, get_user_supabase
 from ..services.payment_service import check_premium_status
 from ..services.usage_limiter import check_usage_limit, increment_usage
-from ..services.service_availability import ai_service_unavailable, is_openai_unavailable
+from ..services.service_availability import ai_service_unavailable, is_ai_input_invalid, is_openai_unavailable
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +199,11 @@ async def should_i_eat(
         raise
     except Exception as e:
         logger.exception(f"Error in should_i_eat endpoint: {e}")
+        if is_ai_input_invalid(e):
+            raise HTTPException(
+                status_code=422,
+                detail="We couldn't analyze this photo right now. Please try again with a clearer food photo.",
+            )
         if is_openai_unavailable(e):
             raise ai_service_unavailable("Food decision analysis is temporarily unavailable because the AI service is not configured.")
         raise HTTPException(status_code=500, detail="We couldn't analyze this photo right now. Please try again with a clearer food photo.")

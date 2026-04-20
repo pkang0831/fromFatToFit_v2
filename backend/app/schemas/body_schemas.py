@@ -16,7 +16,10 @@ class MuscleGainsInput(BaseModel):
 
 class BodyScanRequest(BaseModel):
     image_base64: str
-    scan_type: str = Field(..., description="bodyfat, percentile, or transformation")
+    scan_type: Optional[str] = Field(
+        default=None,
+        description="Optional client hint: bodyfat, percentile, transformation, or enhancement",
+    )
     source: Optional[str] = None
     session_id: Optional[str] = None
     reminder_event_id: Optional[str] = None
@@ -77,7 +80,7 @@ class EnhancementResponse(BaseModel):
     original_image_url: str
     enhanced_image_url: str
     enhancement_level: str
-    scan_id: str
+    scan_id: Optional[str] = None
 
 
 class SegmentRequest(BaseModel):

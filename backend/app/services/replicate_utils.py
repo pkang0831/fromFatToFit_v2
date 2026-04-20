@@ -23,9 +23,18 @@ _HAS_CURL = shutil.which("curl") is not None
 
 def curl_json(method: str, url: str, api_key: str, json_body: dict | None = None) -> dict:
     """Make an API call, preferring urllib with curl fallback."""
-    if _HAS_CURL:
+    try:
+        return _urllib_json(method, url, api_key, json_body)
+    except Exception as urllib_error:
+        if not _HAS_CURL:
+            raise
+        logger.warning(
+            "urllib request failed for %s %s; falling back to curl. error=%s",
+            method,
+            url,
+            urllib_error,
+        )
         return _curl_json_subprocess(method, url, api_key, json_body)
-    return _urllib_json(method, url, api_key, json_body)
 
 
 def _urllib_json(method: str, url: str, api_key: str, json_body: dict | None = None) -> dict:
@@ -76,7 +85,20 @@ def _curl_json_subprocess(method: str, url: str, api_key: str, json_body: dict |
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         if result.returncode != 0:
             raise RuntimeError(f"curl failed (exit {result.returncode}): {result.stderr[:300]}")
-        return json.loads(result.stdout)
+        stdout = (result.stdout or "").strip()
+        if not stdout:
+            logger.warning("curl returned empty response for %s %s; falling back to urllib", method, url)
+            return _urllib_json(method, url, api_key, json_body)
+        try:
+            return json.loads(stdout)
+        except json.JSONDecodeError:
+            logger.warning(
+                "curl returned non-JSON response for %s %s; falling back to urllib. body=%r",
+                method,
+                url,
+                stdout[:300],
+            )
+            return _urllib_json(method, url, api_key, json_body)
     finally:
         if tmp_file is not None:
             os.unlink(tmp_file.name)

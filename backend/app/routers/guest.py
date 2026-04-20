@@ -232,7 +232,7 @@ async def guest_body_scan(request: Request, scan_request: GuestScanRequest):
         raise
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(e),
         )
     except Exception as e:

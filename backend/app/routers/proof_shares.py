@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse, Response
 
 from app.dependencies import get_current_user
-from ..database import get_supabase, get_user_supabase
+from ..database import get_supabase
 from ..schemas.proof_share_schemas import (
     CreateProofShareRequest,
     ProofShareResponse,
@@ -165,8 +165,7 @@ async def create_proof_share(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    access_token = current_user.get("access_token")
-    supabase = get_user_supabase(access_token) if access_token else get_supabase()
+    supabase = get_supabase()
 
     try:
         photo_result = (
@@ -249,8 +248,7 @@ async def list_proof_shares(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    access_token = current_user.get("access_token")
-    supabase = get_user_supabase(access_token) if access_token else get_supabase()
+    supabase = get_supabase()
     query = (
         supabase.table("proof_shares")
         .select("*")
@@ -269,8 +267,7 @@ async def revoke_proof_share(
     current_user: dict = Depends(get_current_user),
 ):
     user_id = current_user["id"]
-    access_token = current_user.get("access_token")
-    supabase = get_user_supabase(access_token) if access_token else get_supabase()
+    supabase = get_supabase()
     share = _load_share_for_owner(supabase, user_id, share_id)
 
     if share.get("status") == "revoked" or share.get("revoked_at"):

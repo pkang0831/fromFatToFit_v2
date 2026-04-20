@@ -10,6 +10,16 @@ def is_openai_unavailable(exc: Exception) -> bool:
     )
 
 
+def is_ai_input_invalid(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return (
+        "image_parse_error" in message
+        or "unsupported image" in message
+        or "invalid image" in message
+        or "invalid_request_error" in message and "image" in message
+    )
+
+
 def is_hf_or_body_model_unavailable(exc: Exception) -> bool:
     message = str(exc).lower()
     return any(
@@ -32,6 +42,17 @@ def is_stripe_unavailable(exc: Exception) -> bool:
         "stripe" in message
         or "api.stripe.com" in message
         or "ssl certificate" in message
+    )
+
+
+def is_stripe_bad_request(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return (
+        "no such price" in message
+        or "no such customer" in message
+        or "invalid request" in message
+        or "received unknown parameter" in message
+        or "must provide" in message and "stripe" in message
     )
 
 

@@ -15,7 +15,7 @@ from ..services.ai_vision_service import analyze_food_image
 from ..services.usage_limiter import check_usage_limit, increment_usage
 from ..services.analytics import get_food_trend_data, calculate_daily_summary, invalidate_calorie_balance_cache
 from ..services.payment_service import check_premium_status
-from ..services.service_availability import ai_service_unavailable, is_openai_unavailable
+from ..services.service_availability import ai_service_unavailable, is_ai_input_invalid, is_openai_unavailable
 from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
@@ -111,6 +111,11 @@ async def analyze_food_photo(
         raise
     except Exception as e:
         logger.error(f"Error analyzing food photo: {e}")
+        if is_ai_input_invalid(e):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="We couldn't read a valid food photo from this upload. Try a brighter, closer image with the meal centered in frame.",
+            )
         if is_openai_unavailable(e):
             raise ai_service_unavailable("Food analysis is temporarily unavailable because the AI service is not configured.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Food analysis failed")

@@ -48,7 +48,7 @@ async def _ensure_safe_weekly_photo(
     quality_result = await analyze_body_photo_quality(image_base64, framing="full_body")
     if not quality_result.ok:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail={
                 "error": "body_photo_quality",
                 "messages": quality_result.messages,

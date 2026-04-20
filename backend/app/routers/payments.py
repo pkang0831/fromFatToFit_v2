@@ -19,7 +19,7 @@ from ..services.payment_service import (
 )
 from ..services.retention_event_service import log_retention_event
 from ..services.usage_limiter import get_all_usage_limits, get_credit_balance
-from ..services.service_availability import is_stripe_unavailable, payment_service_unavailable
+from ..services.service_availability import is_stripe_unavailable, is_stripe_bad_request, payment_service_unavailable
 from ..rate_limit import limiter
 
 logger = logging.getLogger(__name__)
@@ -46,6 +46,11 @@ async def create_checkout(
         
     except Exception as e:
         logger.error(f"Error creating checkout session: {e}")
+        if is_stripe_bad_request(e):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
         if is_stripe_unavailable(e):
             raise payment_service_unavailable("Payments are temporarily unavailable on this server.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create checkout session")
