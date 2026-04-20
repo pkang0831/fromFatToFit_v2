@@ -62,5 +62,5 @@ If neither extraction nor new photos are available before batch 13, continue und
 |----------------|------------|-----------------|--------|
 | 25 | reviews/voice_audit_25.md | _retroactively passed (no recorded composite; reviewer log clean)_ | informal |
 | 50 | reviews/voice_audit_50.md | 8.38 (drift delta -1.08) | **PASS-WITH-CORRECTION** 2026-04-19 (Q&A subgenre correction logged in running_style_drift_notes.md) |
-| 75 | _TBD_ | _future_ | pending |
+| 75 | reviews/voice_audit_75.md | 8.71 (drift delta -0.25) | **PASS (clean)** 2026-04-20 — first clean PASS since formal audits started; triggered EARLY pre-batch-15 per founder request (at post 71, not post 75). Rule 10 Q&A correction confirmed effective across batches 11-14 (4 consecutive clean cycles). No new drift rule added; watch-only note logged for Tier A deep_dive imagery density. |
 | 100 | _TBD_ | _future_ | pending |
