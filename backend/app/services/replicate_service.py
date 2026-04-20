@@ -364,7 +364,7 @@ async def controlnet_transform_region(
         aspect = "1:1"
 
     create_url = f"{REPLICATE_MODELS_API}/{FLUX_KONTEXT_MODEL}/predictions"
-    prediction = curl_json("POST", create_url, api_key, {
+    payload = {
         "input": {
             "prompt": prompt,
             "input_image": data_uri,
@@ -373,10 +373,20 @@ async def controlnet_transform_region(
             "output_format": "jpg",
             "output_quality": 90,
         },
-    })
+    }
 
-    poll_url = prediction.get("urls", {}).get("get")
-    if not poll_url:
+    for attempt in range(5):
+        prediction = curl_json("POST", create_url, api_key, payload)
+        poll_url = prediction.get("urls", {}).get("get")
+        if poll_url:
+            break
+        if prediction.get("status") == 429:
+            wait = prediction.get("retry_after", 10)
+            logger.info(f"Region transform rate limited, waiting {wait}s (attempt {attempt + 1}/5)")
+            await asyncio.sleep(wait + 1)
+            continue
+        raise RuntimeError(f"No poll URL: {prediction}")
+    else:
         raise RuntimeError(f"No poll URL: {prediction}")
 
     result = await poll_prediction(poll_url, api_key, max_polls=60, interval=3.0)

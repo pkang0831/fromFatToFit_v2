@@ -111,7 +111,21 @@ async def ensure_credit_record(user_id: str, is_premium: bool = False) -> Dict[s
         }).execute()
         if insert_result.data:
             return insert_result.data[0]
-    except Exception:
+    except Exception as rich_schema_error:
+        logger.warning("Rich credit insert failed for %s, trying default-column insert: %s", user_id, rich_schema_error)
+        try:
+            insert_result = supabase.table("user_credits").insert({
+                "user_id": user_id,
+                "created_at": now,
+                "updated_at": now,
+            }).execute()
+            if insert_result.data:
+                return insert_result.data[0]
+        except Exception as default_insert_error:
+            error_message = str(default_insert_error).lower()
+            if "balance" not in error_message:
+                raise
+
         # Support legacy schemas that still use a single balance column.
         insert_result = supabase.table("user_credits").insert({
             "user_id": user_id,

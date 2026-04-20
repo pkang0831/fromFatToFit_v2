@@ -113,6 +113,7 @@ class RegionTransformResponse(BaseModel):
     body_part: str
     goal: str
     direction: str = Field(..., description="fat_loss, muscle_gain, or definition")
+    scan_id: Optional[str] = None
 
 
 class BodyScanHistoryItem(BaseModel):

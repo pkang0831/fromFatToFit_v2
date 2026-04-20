@@ -40,6 +40,7 @@ from ..services.service_availability import (
     body_model_service_unavailable,
     is_hf_or_body_model_unavailable,
     is_openai_unavailable,
+    is_provider_rate_limited,
 )
 from ..config import settings
 from ..rate_limit import limiter
@@ -56,6 +57,11 @@ def _raise_body_unavailable(exc: Exception, *, default_detail: str) -> None:
     if is_openai_unavailable(exc):
         raise ai_service_unavailable(
             "This body-analysis feature is temporarily unavailable because the AI service is not configured."
+        ) from exc
+    if is_provider_rate_limited(exc):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Body image generation is temporarily rate limited. Please try again shortly.",
         ) from exc
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=default_detail) from exc
 
@@ -1128,6 +1134,7 @@ async def transform_body_region(
         )
 
         supabase = get_supabase()
+        scan_id = None
         scan_data = {
             "user_id": current_user["id"],
             "scan_type": "region_transform",
@@ -1143,7 +1150,14 @@ async def transform_body_region(
             },
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
-        supabase.table("body_scans").insert(scan_data).execute()
+        try:
+            persist_result = supabase.table("body_scans").insert(scan_data).execute()
+            scan_id = persist_result.data[0]["id"] if persist_result.data else None
+        except Exception as scan_error:
+            logger.warning(
+                "Region transform generated successfully but body_scans persistence failed; continuing without scan_id: %s",
+                scan_error,
+            )
 
         await deduct_credits(current_user["id"], REGION_TRANSFORM_COST, "region_transform")
 
@@ -1152,6 +1166,7 @@ async def transform_body_region(
             body_part=result["body_part"],
             goal=result["goal"],
             direction=result["direction"],
+            scan_id=scan_id,
         )
 
     except HTTPException:

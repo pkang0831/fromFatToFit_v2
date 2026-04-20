@@ -72,6 +72,18 @@ def is_proof_share_storage_unavailable(exc: Exception) -> bool:
     )
 
 
+def is_provider_rate_limited(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return (
+        "rate limit" in message
+        or "rate limited" in message
+        or "throttled" in message
+        or "retry_after" in message
+        or "status': 429" in message
+        or '"status": 429' in message
+    )
+
+
 def ai_service_unavailable(detail: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
 
