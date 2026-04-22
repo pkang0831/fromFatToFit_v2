@@ -152,7 +152,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
             <div className="rounded-[32px] border border-white/[0.08] bg-[#080810] px-6 py-8 md:px-10 md:py-10">
               <div className="mx-auto max-w-3xl">
-                <BlogArticleContent sections={post.sections} />
+                <BlogArticleContent sections={post.sections} currentSlug={post.slug} />
               </div>
             </div>
 
