@@ -64,12 +64,20 @@ EDGE_OPENERS: dict[str, str] = {
 }
 
 
+def unescape_js_string(raw: str, quote: str) -> str:
+    return raw.replace(f"\\{quote}", quote).replace("\\\\", "\\")
+
+
 def js_string(s: str) -> str:
-    if "'" in s and '"' not in s:
+    has_single = "'" in s
+    has_double = '"' in s
+    if has_single and not has_double:
         return f'"{s}"'
-    if "'" in s:
-        return "'" + s.replace("'", "\\'") + "'"
-    return f"'{s}'"
+    if has_double and not has_single:
+        return f"'{s}'"
+    if not has_single and not has_double:
+        return f"'{s}'"
+    return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
 def find_entry(text: str, slug: str) -> tuple[int, int] | None:
@@ -117,23 +125,30 @@ def main() -> int:
             continue
         idx, end = span
         entry = text[idx:end]
-        # idempotency — if opener string is already anywhere in sections[], skip
+        # idempotency — compare opener against unescaped section text
         sec = entry.find("sections:")
-        if sec >= 0 and opener in entry[sec:]:
-            stats["skip-already"] += 1
-            print(f"[skip-already] {slug}")
-            continue
+        if sec >= 0:
+            sec_unescaped = entry[sec:].replace("\\'", "'").replace('\\"', '"').replace("\\\\", "\\")
+            if opener in sec_unescaped:
+                stats["skip-already"] += 1
+                print(f"[skip-already] {slug}")
+                continue
 
         para = first_paragraph_span(entry)
         if para is None:
             stats["skip-no-para"] += 1
             print(f"[skip-no-para] {slug}")
             continue
-        rel_s, rel_e, cur_value = para
+        rel_s, rel_e, raw_value = para
         abs_s = idx + rel_s
         abs_e = idx + rel_e
 
-        new_value = opener + " " + cur_value
+        # first_paragraph_span returns the raw slice which contains escapes;
+        # need quote detection like force_openers; reuse its approach
+        # — here we infer quote by looking at char before raw_value's start
+        quote = text[abs_s]  # quote char before content
+        actual_value = unescape_js_string(raw_value, quote)
+        new_value = opener + " " + actual_value
         text = text[:abs_s] + js_string(new_value) + text[abs_e:]
         stats["applied"] += 1
         print(f"[applied]  {slug}")

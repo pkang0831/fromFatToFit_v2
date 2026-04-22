@@ -8853,7 +8853,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The daily weighing eating disorder risk doesn\'t get talked about because the advice sounds disciplined. For some people it isn\'t. The daily weighing eating disorder risk doesn\\'t get talked about because the advice sounds disciplined. For some people it isn\\'t. The advice to "weigh yourself every day" is delivered with the same tone as the advice to "track your sleep" or "log your meals." It sounds like discipline. It sounds like data hygiene.',
+          "The daily weighing eating disorder risk doesn't get talked about because the advice sounds disciplined. For some people it isn't. The advice to \"weigh yourself every day\" is delivered with the same tone as the advice to \"track your sleep\" or \"log your meals.\" It sounds like discipline. It sounds like data hygiene.",
           'For a meaningful share of people, it is the trap that wrecks the program.',
           'The myth is that daily weighing produces better information. It does, in a narrow technical sense, and only when the person doing it is reading the seven-day average, ignoring the day-to-day noise, and emotionally insulated against the morning\'s number.',
           'In practice, almost no one in the middle of a cut is emotionally insulated against the morning\'s number. So the discipline becomes the trap.',

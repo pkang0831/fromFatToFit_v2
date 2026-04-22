@@ -50,12 +50,27 @@ def load_spec() -> dict[str, dict]:
     return mod.FIRST_PARAGRAPH_OPENERS
 
 
+def unescape_js_string(raw: str, quote: str) -> str:
+    """Reverse js_string escaping so we can reason on the actual value."""
+    # unescape the matching quote only; preserve other \\x sequences for safety
+    # since our posts.ts only uses \\ for quote-escape and literal backslash
+    out = raw.replace(f"\\{quote}", quote).replace("\\\\", "\\")
+    return out
+
+
 def js_string(s: str) -> str:
-    if "'" in s and '"' not in s:
+    """Re-encode a Python string as a JS string literal. Pick the quote
+    style that doesn't require escaping."""
+    has_single = "'" in s
+    has_double = '"' in s
+    if has_single and not has_double:
         return f'"{s}"'
-    if "'" in s:
-        return "'" + s.replace("'", "\\'") + "'"
-    return f"'{s}'"
+    if has_double and not has_single:
+        return f"'{s}'"
+    if not has_single and not has_double:
+        return f"'{s}'"
+    # both present — prefer double-quoted, escape double quotes
+    return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
 def find_post_entry(text: str, slug: str) -> tuple[int, int] | None:
@@ -135,20 +150,24 @@ def main() -> int:
         idx, end = span
         entry_text = text[idx:end]
 
-        # idempotency — if opener is already in sections[], skip
-        if post_sections_contains(entry_text, opener):
-            stats["skip-already"] += 1
-            continue
+        # idempotency — compare opener against unescaped section text
+        sec = entry_text.find("sections:")
+        if sec >= 0:
+            sec_unescaped = entry_text[sec:].replace("\\'", "'").replace('\\"', '"').replace("\\\\", "\\")
+            if opener in sec_unescaped:
+                stats["skip-already"] += 1
+                continue
 
         first_p = get_first_paragraph_literal(entry_text)
         if first_p is None:
             stats["skip-no-paragraph"] += 1
             continue
-        rel_start, rel_end, quote, value = first_p
+        rel_start, rel_end, quote, raw_value = first_p
         abs_start = idx + rel_start
         abs_end = idx + rel_end
 
-        new_value = opener + " " + value
+        actual_value = unescape_js_string(raw_value, quote)
+        new_value = opener + " " + actual_value
         new_literal = js_string(new_value)
         text = text[:abs_start] + new_literal + text[abs_end:]
         stats["applied"] += 1
