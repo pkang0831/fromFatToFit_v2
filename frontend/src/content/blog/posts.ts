@@ -10115,7 +10115,7 @@ const posts: BlogPost[] = [
     tags: ['Body Composition', 'Fat Loss', 'Weight Loss', 'Patience', 'Long Game'],
     seoTitle: 'Why Lower Body Fat Feels Stubborn (and When It Clears)',
     metaDescription:
-      'Lower-body fat is not resisting — it clears last on a timeline most people quit before reaching. Why hips, thighs, and glutes are slow, and how long it really takes.',
+      'Lower-body fat is not resisting — it clears last on a timeline most people quit before reaching. Why hips and thighs are slow.',
     keywords: [
       'lower body fat stubborn',
       'why is lower body fat slow to lose',
@@ -10234,7 +10234,7 @@ const posts: BlogPost[] = [
     tags: ['Plateau', 'Consistency', 'Weight Loss', 'Diet Systems'],
     seoTitle: 'Plateau Fix: You\'re Consistent at the Wrong Input',
     metaDescription:
-      'A plateau is usually not a stalled body. It\'s a body responding to the wrong input because you kept doing what used to work. How to change the input, not the intensity.',
+      'A plateau is usually not a stalled body — it is the body responding to the wrong input. Change the input, not the intensity.',
     keywords: [
       'weight loss plateau fix',
       'consistent but not losing weight',
