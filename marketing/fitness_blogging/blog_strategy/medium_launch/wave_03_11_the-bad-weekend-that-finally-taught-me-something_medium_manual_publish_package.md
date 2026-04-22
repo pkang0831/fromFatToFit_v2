@@ -4,20 +4,37 @@
 The Bad Weekend That Finally Taught Me Something
 
 ## SEO Title
-The Bad Weekend That Finally Taught Me Something
+How to Get Back on Track After a Bad Diet Weekend
 
 ## Subtitle / Description
-I had been clean for six weeks. Then a Friday dinner became a Saturday lunch which became a Saturday night. The damage was small. What the weekend exposed was the whole story.
+Here's how to get back on track after a bad weekend without turning Monday into punishment. The fix isn't dramatic. I had been clean for six weeks. Then a Friday dinner became a Saturday lunch which became a Saturday night. The damage was small. What the weekend exposed was the whole story.
+
+## Meta Description
+How to get back on track after a bad weekend: Monday matters more than Sunday. The 2.4 kg on the scale is water — here's the reset that works.
+
+## Primary Keyword
+how to get back on track after a bad weekend
+
+## Secondary Keywords
+- blew my diet on weekend
+- weekend overeating recovery
+- bad weekend diet recovery
+- ruined diet this weekend
+- Monday after weekend binge
 
 ## Medium Tags
 - Weight Loss
 - Cheat Day
-- Binge Recovery
-- Self Awareness
+- Binge Eating
+- Dieting
 - Habits
 
 ## Canonical URL
-`https://devenira.com/blog/the-bad-weekend-that-finally-taught-me-something`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -42,6 +59,10 @@ Then a Friday dinner became a Saturday lunch which became a Saturday night which
 By Monday morning, the scale was up 2.4 kg, my stomach felt slow, and I was fairly sure the program was either ruined or about to be.
 
 Neither was true. The damage was small. What the weekend exposed was the whole story.
+
+> **How do I get back on track after a bad weekend?**
+>
+> Eat your normal breakfast Monday. Do not weigh in for three to five days. Return to your regular plan at the next meal, not next Monday. Treat the weekend as absorbed into the week, not as a reason to compensate. Most of the Monday scale jump is water and gut content, not fat. The math is fine.
 
 ## What the weekend actually contained
 
@@ -144,4 +165,29 @@ Pick the one that bends. The one that breaks does not actually exist; it just hi
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### How much damage does one bad weekend actually do?
+
+Usually 0.5 to 1 kg of true fat from a 3,000 to 5,000 calorie overshoot. The 2 to 3 kg the scale shows Monday morning is mostly water from carbs, sodium, and alcohol. It clears in three to five days. The weekly trend recovers within ten days.
+
+### Should I eat less Monday to make up for the weekend?
+
+No. Skipping breakfast or cutting Monday hard usually triggers another binge by Wednesday. Eat your normal Monday meals. The weekend's overshoot absorbs into the weekly total over 7 to 14 days without compensation. The fix is calm, not cardio.
+
+### Why do I always blow my diet on weekends?
+
+Usually because the weekday plan is too tight, weekend social structure is looser, and the binary 'on-plan-or-off-plan' framing turns one slip into a Friday-through-Sunday spiral. A system with a tolerance band — not a hard daily target — survives weekends without breaking.
+
+### What should I do if I keep having bad weekends?
+
+Build a system that bends. Tolerance bands of about 300 calories per day. Read the week as the unit, not the day. A bad Friday under this framing is an inconvenience, not a crisis. The perfect-looking plan that breaks under one Friday is the actual problem.
+
+### Is the Monday scale jump actually fat gain?
+
+Almost never. A 1.5 to 2.5 kg Monday spike after a high-sodium, high-carb weekend is mostly water, glycogen, and food in transit. Reading it as fat is what triggers the next bad week. Wait three to five days. The number drops back close to baseline.
+
 ```

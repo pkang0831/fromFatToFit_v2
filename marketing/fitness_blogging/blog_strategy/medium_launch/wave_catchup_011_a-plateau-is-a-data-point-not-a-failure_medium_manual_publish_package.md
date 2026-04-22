@@ -4,19 +4,37 @@
 A Plateau Is a Data Point, Not a Failure
 
 ## SEO Title
-A Plateau Is a Data Point, Not a Failure
+How to Break a Weight Loss Plateau (Without Panicking)
 
 ## Subtitle / Description
 A plateau is the body telling you something specific. Most people read it as rejection and quit. That is not what it is saying.
 
+## Meta Description
+How to break a weight loss plateau without panicking and cutting harder. The body is sending feedback — here's how to read it before you escalate.
+
+## Primary Keyword
+how to break a weight loss plateau
+
+## Secondary Keywords
+- weight loss plateau strategies
+- plateau not moving on scale
+- how to push through plateau
+- weight loss stalled what to do
+- plateau recovery weight loss
+
 ## Medium Tags
-- Plateau
-- Consistency
 - Weight Loss
+- Weight Loss Plateau
 - Dieting
+- Plateau
+- Habits
 
 ## Canonical URL
-`https://devenira.com/blog/a-plateau-is-a-data-point-not-a-failure`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,13 +50,17 @@ A plateau is the body telling you something specific. Most people read it as rej
 ```md
 # A Plateau Is a Data Point, Not a Failure
 
-Most people read a plateau as their body firing them. It is not. A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.
+Here's how to break a weight loss plateau without escalating to punishment-mode. The fix is rarely more discipline. Most people read a plateau as their body firing them. It is not. A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.
 
 Most people read a plateau as their body firing them.
 
 It is not.
 
 A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.
+
+> **How do I break a weight loss plateau?**
+>
+> First, confirm it is a real plateau: three weeks of stable weight under same conditions, not three days. Then check actual eating, sleep, stress, and NEAT before cutting calories. Most plateaus break by fixing the thing that drifted, not by adding more deficit. A plateau is a report, not a verdict.
 
 ## What A Plateau Actually Is
 
@@ -94,4 +116,29 @@ The people who break plateaus are almost always the ones who stopped trying to b
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### How long does it take to break a real plateau?
+
+Two to four weeks once the right intervention is applied. Honest re-tracking, a one-week diet break, fixing sleep, or adding daily walks all tend to resolve stalls within that window. Cutting more calories often extends the plateau by raising stress and dropping NEAT further.
+
+### Should I add cardio to break a plateau?
+
+Usually as a later move, not the first. Cardio added to an already-aggressive deficit tends to be compensated for behaviorally — lower NEAT and higher appetite later in the day. A 30-minute walk on rest days often works better than adding a structured cardio session.
+
+### Is a diet break necessary or just helpful?
+
+On a long cut, diet breaks tend to be necessary. People who take planned 7-to-14-day breaks at maintenance every 4 to 8 weeks retain more muscle, report lower hunger, and have better outcomes at six and twelve months than people who diet straight through.
+
+### Why does my weight stall right at month three?
+
+Maintenance calories drop as you lose weight, NEAT decreases unconsciously, and appetite rises. All four things stack around month three for most diets. The fix is a 7 to 14 day maintenance break, not deeper cuts. Cutting harder usually backfires here.
+
+### What's the difference between slow progress and a real plateau?
+
+Slow progress is still movement — even 0.2 kg per week is direction. A plateau is no scale movement and no shape change for three weeks under your usual conditions. Most 'plateaus' people complain about are actually slow weeks called the wrong name.
+
 ```

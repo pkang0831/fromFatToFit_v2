@@ -4,20 +4,37 @@
 Read This Before You Try to “Fix” Your Diet Slip
 
 ## SEO Title
-Read This Before You Try to “Fix” Your Diet Slip
+What to Do After a Binge on a Diet (Before You Spiral)
 
 ## Subtitle / Description
 The first thing to do after a binge is usually not punishment. Most of the sudden weight spike is water, and the real job is finding what made the binge happen in the first place.
 
+## Meta Description
+What to do after a binge on a diet: about 90% of the next-morning scale spike is water. Here's the 48-hour reset that doesn't punish — and doesn't pretend.
+
+## Primary Keyword
+what to do after a binge on a diet
+
+## Secondary Keywords
+- water weight after binge
+- binge recovery day after
+- how to recover from overeating
+- what to eat day after binge
+- scale went up after binge
+
 ## Medium Tags
-- Binge Eating
-- Dieting
-- Recovery
-- Appetite
 - Weight Loss
+- Binge Eating
+- Emotional Eating
+- Dieting
+- Food Psychology
 
 ## Canonical URL
-`https://devenira.com/blog/read-this-before-you-try-to-fix-your-diet-slip`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use a low-polish, honest image that feels like the aftermath of a hard week rather than a transformation ad.
@@ -42,6 +59,10 @@ The wrappers are still there. Your stomach feels ridiculous. And now your brain 
 No carbs tomorrow. Two workouts. I need to erase this.
 
 That is usually the second mistake. The first mistake already happened. The second one is trying to punish it out of existence.
+
+> **What should I do after a binge on a diet?**
+>
+> Eat your normal breakfast. Drink water. Do not weigh yourself for three to five days. Return to your regular meal plan at the next meal, not next Monday. Most of the scale spike is water, not fat. The damage is not the binge. The damage is the punishment response that turns one meal into a week.
 
 ## The Scale Jump After A Binge Is Usually Louder Than The Actual Damage
 
@@ -105,4 +126,29 @@ You need fewer reasons to binge again, not a more dramatic apology tour.
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### How much weight do you actually gain from a binge?
+
+About 0.2 to 0.5 kg of true fat for most people, even after a 1,500 to 3,500 calorie overshoot. The 1 to 2 kg the scale shows the next morning is almost entirely water, sodium, glycogen, and food still moving through digestion. It clears in three to five days.
+
+### Should I skip meals the day after a binge?
+
+No. Skipping breakfast or lunch as punishment usually drops blood sugar, raises appetite, and makes a second binge likely by late afternoon. Eat your normal meals. Your usual deficit absorbs the binge over 7 to 14 days without any extra effort.
+
+### Why did the binge happen in the first place?
+
+Most binges follow restriction, repetitive meals, ignored cravings, or stress with food as the fast exit. Binges rarely happen randomly. The honest question is not 'why am I weak' but 'what set this up?' Pattern detection beats damage control.
+
+### Should I add cardio to compensate for a binge?
+
+No. Compensation cardio reinforces the punishment loop and does not meaningfully change the math. The additional 300 to 500 calories burned does not undo a binge and trains you to keep using exercise as repayment for food.
+
+### When should I take a maintenance week instead?
+
+If you have binged twice in seven days, or if the plan feels brittle for more than ten days, eat at maintenance for a week. This is not quitting — it is the most common professional intervention for broken diet weeks. Hunger settles, head resets, deficit becomes possible again.
+
 ```

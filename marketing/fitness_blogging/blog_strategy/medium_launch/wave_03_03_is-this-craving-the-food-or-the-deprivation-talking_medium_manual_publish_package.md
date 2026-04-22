@@ -4,20 +4,37 @@
 Is This Craving the Food, or the Deprivation Talking?
 
 ## SEO Title
-Is This Craving the Food, or the Deprivation Talking?
+Why Does Restriction Make Cravings Worse?
 
 ## Subtitle / Description
-After about a year of careful eating, I noticed something I did not expect. The foods I missed most were not the foods I had loved most. They were the foods I had been most strict with myself about.
+Why does restriction make cravings worse? Usually because the food you forbid becomes the food your brain rehearses. After about a year of careful eating, I noticed something I did not expect. The foods I missed most were not the foods I had loved most. They were the foods I had been most strict with myself about.
+
+## Meta Description
+Why does restriction make cravings worse? The food you ban becomes the food you can't stop thinking about. Here's the test that breaks the loop.
+
+## Primary Keyword
+why does restriction make cravings worse
+
+## Secondary Keywords
+- food deprivation psychology cravings
+- dieting makes cravings worse
+- forbidden food craving
+- restriction leads to cravings
+- why am I craving what I can't have
 
 ## Medium Tags
 - Weight Loss
 - Cravings
 - Dieting
-- Mindful Eating
-- Self Awareness
+- Food Psychology
+- Intuitive Eating
 
 ## Canonical URL
-`https://devenira.com/blog/is-this-craving-the-food-or-the-deprivation-talking`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -40,6 +57,10 @@ After about a year of careful eating, I noticed something I did not expect.
 The foods I missed most were not the foods I had loved most. They were the foods I had been most strict with myself about.
 
 That gap is the whole essay. The craving is rarely about the food. It is about being told no, by yourself, for long enough that the no started to taste like the thing.
+
+> **Why does restriction make cravings worse?**
+>
+> Because the brain is built to track scarce resources. When you make a food forbidden, your brain reweights it: pays more attention to the smell, notices it on shelves, dreams about it. The cleaner the restriction, the louder the tracking. Most diet cravings are not about the food. They are about being told no.
 
 ## Q: What does a real craving for a food actually feel like?
 
@@ -154,4 +175,29 @@ The fix is fewer absolutes, earlier, before the release builds up.
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### How do I tell a real craving from a deprivation craving?
+
+Real cravings resolve. You eat the thing, you are satisfied, you move on. Deprivation cravings escalate. First cookies, then chips, then the whole pantry. They end embarrassed, not satisfied. Resolution versus escalation is the cleanest test.
+
+### Will giving myself permission make cravings worse?
+
+Counterintuitively, no. Replacing 'I do not eat ice cream' with 'ice cream fits in twice a week' shrinks the craving inside three to six weeks for most people. Restriction builds the craving. Permission deflates it. The food becomes ordinary once the no is removed.
+
+### Are some foods truly off-limits during a diet?
+
+Maybe one or two trigger foods per person, not the long list most diets recommend. Be honest about which specific foods you genuinely cannot keep in the kitchen at this stage. The list is usually short. For everything else, the absolute rule creates the craving.
+
+### Why do I crave foods I never even liked before?
+
+Because the craving is for permission, not the food. After weeks of restriction, foods you previously ignored start glowing because they are now in the forbidden category. The brain is tracking the rule, not the flavor. Drop the rule and the food usually becomes forgettable.
+
+### What if my deficit itself is creating the cravings?
+
+Some cravings are real hunger from the deficit, not psychological. Those are general — a chicken-and-rice plate satisfies them. If a balanced meal quiets the urge, you were hungry. If you finish it and still want the specific forbidden item, the craving is about the rule.
+
 ```

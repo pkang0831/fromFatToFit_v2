@@ -2,6 +2,26 @@
 
 Use this every time before hitting publish.
 
+## SEO Fields (fill first, before anything else)
+
+All Medium packages carry these fields (added 2026-04-21 per `seo_optimization_rules.md`). Apply them when publishing:
+
+1. **Display Title** — use the value under `## Title` (voice / brand headline; what readers see on the feed and on the article page).
+2. **SEO Title** — use the value under `## SEO Title`. On Medium this lives under story settings → "SEO settings" → "SEO title" field (≤ 60 chars; keyword-front-loaded; NOT the same as the display title).
+3. **Subtitle / Deck** — use the value under `## Subtitle / Description`.
+4. **Tags** — copy the 5 tags under `## Medium Tags` (brand broad + niche mix; first tag is highest-traffic; do not add or remove).
+5. **Meta Description** — Medium does NOT expose a separate meta description field; it auto-extracts from the first line or subtitle. The `## Meta Description` value in the package is for:
+   - the owned-site `<meta name="description">` (auto-populated from posts.ts)
+   - LinkedIn / X share-preview (paste when you share the link)
+6. **Primary Keyword / Secondary Keywords** — reference only; used in owned-site `<meta name="keywords">` and for writing the opening paragraph so Medium's auto-extract grabs a keyword-rich preview.
+7. **Canonical URL** — **DO NOT set a canonical URL in Medium's story settings.** Leave it blank. See `## Canonical URL` section of each package for the 2026-04-21 canonical-flip rationale. For any post imported from a URL, manually clear Medium's auto-populated canonical field before publishing.
+
+After publishing, copy the live Medium URL and:
+  - record it in `wave_01_tracker.md` (or its successor) under the Medium URL column
+  - set `mediumUrl` on the matching `posts.ts` entry so the owned-site canonical re-points to Medium
+
+If any field is missing from the package, STOP and retrofit per `seo_optimization_rules.md` before publishing.
+
 ## Before Paste
 
 - remove the `# Draft Package` block

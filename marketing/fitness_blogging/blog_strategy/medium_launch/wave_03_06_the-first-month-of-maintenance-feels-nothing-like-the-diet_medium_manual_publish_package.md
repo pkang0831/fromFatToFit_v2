@@ -4,20 +4,37 @@
 The First Month of Maintenance Feels Nothing Like the Diet
 
 ## SEO Title
-The First Month of Maintenance Feels Nothing Like the Diet
+The First Month of Maintenance After Weight Loss
 
 ## Subtitle / Description
-The diet has a finish line painted on it. Maintenance does not. That single difference is what makes the first month after the cut feel completely unlike anything you spent the cut preparing for.
+The first month of maintenance after weight loss feels nothing like the diet. The finish line is gone, and the rules quietly change. The diet has a finish line painted on it. Maintenance does not. That single difference is what makes the first month after the cut feel completely unlike anything you spent the cut preparing for.
+
+## Meta Description
+First month of maintenance after weight loss: the plate gets bigger and the head looks for a finish line that isn't there. Here's what actually happens.
+
+## Primary Keyword
+first month of maintenance after weight loss
+
+## Secondary Keywords
+- transitioning from diet to maintenance
+- how to start maintenance phase
+- maintenance phase after cut
+- calories after weight loss diet
+- first 30 days maintenance
 
 ## Medium Tags
 - Weight Loss
-- Maintenance
-- Habits
+- Maintenance Phase
+- Dieting
 - Long Game
-- Self Awareness
+- Mindset
 
 ## Canonical URL
-`https://devenira.com/blog/the-first-month-of-maintenance-feels-nothing-like-the-diet`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.

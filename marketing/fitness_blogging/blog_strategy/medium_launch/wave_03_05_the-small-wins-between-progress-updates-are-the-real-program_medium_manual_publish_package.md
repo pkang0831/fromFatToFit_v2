@@ -4,20 +4,37 @@
 The Small Wins Between Progress Updates Are the Real Program
 
 ## SEO Title
-The Small Wins Between Progress Updates Are the Real Program
+Non Scale Victories in Weight Loss: The Real Wins
 
 ## Subtitle / Description
-The big numbers were not the program. The 50 kg loss is the headline. But the program — the thing that actually moved the body — was almost entirely made of weeks where nothing photogenic happened.
+Non scale victories in weight loss are the boring half of the program — and the half that actually moves the body. The big numbers were not the program. The 50 kg loss is the headline. But the program — the thing that actually moved the body — was almost entirely made of weeks where nothing photogenic happened.
+
+## Meta Description
+Non scale victories in weight loss: the boring Wednesday is the program, not the milestone. Here's what 6 small wins look like across a real cut.
+
+## Primary Keyword
+non scale victories weight loss
+
+## Secondary Keywords
+- small weight loss wins
+- non scale wins diet
+- boring weeks weight loss
+- weight loss small victories
+- celebrate small progress diet
 
 ## Medium Tags
 - Weight Loss
+- Weight Loss Journey
 - Habits
-- Long Game
-- Self Improvement
-- Founder Story
+- Mindset
+- Consistency
 
 ## Canonical URL
-`https://devenira.com/blog/the-small-wins-between-progress-updates-are-the-real-program`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.

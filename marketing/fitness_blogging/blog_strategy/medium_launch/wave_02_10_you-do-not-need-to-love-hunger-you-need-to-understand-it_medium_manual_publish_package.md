@@ -4,19 +4,37 @@
 You Do Not Need to Love Hunger. You Need to Understand It.
 
 ## SEO Title
-You Do Not Need to Love Hunger. You Need to Understand It.
+How to Handle Hunger Pangs on a Diet (Without Hating It)
 
 ## Subtitle / Description
-You do not need to enjoy hunger to diet well. You need to understand what kind of hunger you are dealing with, and what kind of food pattern keeps making it louder.
+Here's how to handle hunger pangs on a diet without treating every signal as a failure of willpower. Most pangs want context, not food. You do not need to enjoy hunger to diet well. You need to understand what kind of hunger you are dealing with, and what kind of food pattern keeps making it louder.
+
+## Meta Description
+How to handle hunger pangs on a diet without making them louder. The 2 questions that separate normal hunger from chaos hunger — and which to ignore.
+
+## Primary Keyword
+how to handle hunger pangs on a diet
+
+## Secondary Keywords
+- managing hunger while dieting
+- how to stop being hungry on a diet
+- hunger vs craving
+- dealing with hunger weight loss
+- coping with hunger deficit
 
 ## Medium Tags
-- Hunger
+- Weight Loss
 - Dieting
+- Hunger
 - Appetite
-- Fasting
+- Intuitive Eating
 
 ## Canonical URL
-`https://devenira.com/blog/you-do-not-need-to-love-hunger-you-need-to-understand-it`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -39,6 +57,10 @@ There is a weird kind of diet advice that always sounds impressive online: learn
 Right. And while we are at it, should we learn to enjoy airport security and low battery notifications too?
 
 Hunger is not a personality test. You do not win points for making it dramatic.
+
+> **How do I handle hunger pangs on a diet?**
+>
+> Stop treating all hunger as one signal. Normal hunger between meals is fine. Aggressive food noise that ambushes the day usually means the meals are too small, too repetitive, or too restrictive. Aim for quieter hunger, not heroic suffering. Inspect the food pattern before inspecting your character.
 
 ## The Problem Is Not That People Hate Hunger
 
@@ -97,4 +119,29 @@ You do not need to love hunger. You need to understand it.
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### What's the difference between hunger and food noise?
+
+Real hunger is general, patient, and stomach-based. Any reasonable meal satisfies it. Food noise is specific, urgent, and head-based. You eat and the thought of food does not quiet down. Food noise usually points to a system problem, not a willpower problem.
+
+### What foods actually keep you full longest?
+
+High-protein meals, plus high-volume vegetables, plus some fiber. A 30 to 45 gram protein meal with a real vegetable component holds appetite for hours. Low-volume meals heavy in refined carbs leave most people hungry two hours later regardless of calorie count.
+
+### Does intermittent fasting help with hunger?
+
+For some people, yes. For others, the long unfed window amplifies the evening spike. Fasting works when the underlying food pattern is stable. It does not rescue a fragile pattern. Try it for two to three weeks and read your own response, not someone else's.
+
+### Why is my hunger getting worse the longer I diet?
+
+Hormonal signals shift during sustained dieting in ways that raise appetite. Restriction also makes ordinary food feel more important than it is. The longer the deficit and the tighter the rules, the louder the appetite. A planned diet break often quiets it.
+
+### Should I drink water when I'm hungry?
+
+It sometimes helps, but it is overrated as a fix. Water can blunt mild hunger for 20 to 40 minutes. It cannot replace a missing meal. If the hunger keeps returning after water, the body is asking for actual fuel and the meal structure needs adjusting.
+
 ```

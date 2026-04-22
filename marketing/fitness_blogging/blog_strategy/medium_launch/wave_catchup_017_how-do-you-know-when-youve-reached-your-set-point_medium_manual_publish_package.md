@@ -4,19 +4,37 @@
 How Do You Know When You Have Reached Your Set Point
 
 ## SEO Title
-How Do You Know When You Have Reached Your Set Point
+How Do You Know You've Reached Your Set Point Weight?
 
 ## Subtitle / Description
 Questions and honest answers about what a set point actually is, how to know you are at one, and what it means if you want to go lower.
 
+## Meta Description
+How do you know you've reached your set point weight? Set point is a 2 to 3 kg range, not a number. Here's the 6-week test that tells you you're at one.
+
+## Primary Keyword
+how do you know you've reached your set point weight
+
+## Secondary Keywords
+- signs you are at your set point
+- what is set point weight
+- body set point theory
+- natural weight set point
+- set point weight range
+
 ## Medium Tags
-- Set Point
-- Maintenance
 - Weight Loss
+- Maintenance Phase
 - Body Composition
+- Metabolism
+- Long Game
 
 ## Canonical URL
-`https://devenira.com/blog/how-do-you-know-when-youve-reached-your-set-point`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,11 +50,15 @@ Questions and honest answers about what a set point actually is, how to know you
 ```md
 # How Do You Know When You Have Reached Your Set Point
 
-A set point is one of the more misused ideas in dieting conversations. It is useful when understood correctly. It becomes an excuse when it is not.
+How do you know you've reached your set point weight, and not just a slow week? The set point is a slower signal than people use it as. A set point is one of the more misused ideas in dieting conversations. It is useful when understood correctly. It becomes an excuse when it is not.
 
 A set point is one of the more misused ideas in dieting conversations.
 
 It is useful when understood correctly. It becomes an excuse when it is not.
+
+> **How do you know you have reached your set point weight?**
+>
+> Five signals together: weight stable within a 2 to 3 kg range for 8 to 12 weeks, no active dieting, hunger normalized, energy and sleep reasonable, and small deviations like a heavier weekend do not push the weight permanently. If most of those are true, you are probably at a set point for your current life.
 
 ## Q: What Is A Set Point, Actually?
 
@@ -101,4 +123,29 @@ That sequence, in that order, is what separates people who lose and hold from pe
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What is a set point weight, exactly?
+
+The weight range your body most naturally defends given your current habits, sleep, stress, training, and eating. It is not a fixed number from birth and it is not immune to change. It is a rolling equilibrium that shifts as the inputs shift.
+
+### Can my set point change over time?
+
+Yes. Research suggests the body defends recent weights more strongly than older ones. Holding a new weight for 12 to 24 months often makes it the new defended range. This is why maintenance is the real skill, not just the losing phase.
+
+### Why does it feel like I cannot lose any more?
+
+Because maintenance calories adjusted downward as you lost weight, your body is defending the current state, and your hunger and fullness signals are tuned to this range. To go lower you create a new deficit or change the inputs. Both are possible. Both have a cost.
+
+### Should I stop trying to lose more if I'm at set point?
+
+Sometimes yes. If your habits are sustainable and your health markers are reasonable, the cost of pushing another 3 to 5 kg lower is often higher than the benefit. Wanting to lose more for your own reasons is fine. It is a decision, not an obligation.
+
+### How long should I hold a new weight before it sticks?
+
+At least six months of boring maintenance, ideally 12 to 24. The body needs time to accept the new weight as normal before you change inputs again. People who lose and hold long-term almost always stay in maintenance longer than people who rebound.
+
 ```

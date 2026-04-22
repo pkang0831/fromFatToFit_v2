@@ -4,19 +4,37 @@
 Why It Feels Like You Gain Weight Even When You Barely Eat
 
 ## SEO Title
-Why It Feels Like You Gain Weight Even When You Barely Eat
+Why Does the Scale Go Up When You're Barely Eating?
 
 ## Subtitle / Description
-A rude weigh-in can turn one morning into a small identity crisis. But scale weight and fat gain are not always the same story.
+Why does the scale go up when you're barely eating? Almost always: water, sodium, or a delayed bathroom — not fat. A rude weigh-in can turn one morning into a small identity crisis. But scale weight and fat gain are not always the same story.
+
+## Meta Description
+Why does the scale go up when I barely eat? Sodium, glycogen, and a 2 kg overnight swing that has nothing to do with fat. Read it before you cut more.
+
+## Primary Keyword
+why does the scale go up when I barely eat
+
+## Secondary Keywords
+- why am I gaining weight eating less
+- daily weight fluctuation 2 to 5 pounds
+- water retention not fat
+- scale went up eating clean
+- weight up overnight without eating
 
 ## Medium Tags
-- Scale Weight
-- Weight Illusions
+- Weight Loss
+- Weight Fluctuation
 - Dieting
-- Women’s Health
+- Scale Anxiety
+- Nutrition
 
 ## Canonical URL
-`https://devenira.com/blog/why-it-feels-like-you-gain-weight-even-when-you-barely-eat`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -41,6 +59,10 @@ That is the kind of sentence people say when they are one rude weigh-in away fro
 You wake up, step on the scale, and get a number that feels insulting. Now your whole morning has a villain.
 
 You start replaying yesterday like security footage. What did I eat? Was it the late snack? Was it the rice? Was it the fact that my body clearly enjoys humiliating me?
+
+> **Why does the scale go up when I'm barely eating?**
+>
+> Body weight is not just fat. It includes water, glycogen, food still moving through digestion, sodium, and hormonal water shifts. A 1 to 2 kg overnight rise after a low-calorie day is almost always one of those, not new fat. Fat does not arrive that fast. Read the week, not the morning.
 
 ## The Scale Measures Weight, Not Your Moral Character
 
@@ -105,4 +127,29 @@ One scan is a number. Weekly check-ins are proof.
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### Can you actually gain real fat overnight?
+
+Not meaningfully. Adding 1 kg of true body fat takes roughly 7,000 calories above maintenance, which is hard to do in a single day. Overnight scale jumps of 1 to 2 kg are almost entirely water, sodium, and food still in transit through digestion.
+
+### How much can the scale fluctuate day to day?
+
+Most adults swing 1 to 2 kg across a normal day from food, water, and sodium. Hormonal cycles can add another 1 to 2 kg around ovulation and the days before a period. None of that is fat. It is the scale measuring everything else.
+
+### Why am I gaining weight while eating less than usual?
+
+Two common reasons. Either intake is being underestimated, which happens to most people without it being a moral failure, or water has shifted from sodium, hormones, or training. Wait three to five days under your usual routine before deciding the rise is real.
+
+### Should I cut calories more after a scale spike?
+
+No. Cutting harder in response to a one-day spike usually triggers under-fueling and a binge later in the week. The spike was almost certainly water. Hold the plan for at least five days before adjusting anything based on a single morning.
+
+### When is a scale rise actually fat gain?
+
+When the higher number holds for more than two weeks under your usual conditions, with no clear water explanation. Real fat gain is slow, quiet, and consistent across morning weigh-ins. A loud one-day spike that disappears in three days is not it.
+
 ```

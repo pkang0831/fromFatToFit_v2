@@ -4,20 +4,37 @@
 The Day I Realized the Program Was Just My Life Now
 
 ## SEO Title
-The Day I Realized the Program Was Just My Life Now
+When Does a Diet Become a Lifestyle?
 
 ## Subtitle / Description
-There is a quiet moment when the program stops being a project and starts being your life. The shift is not announced. It is noticed weeks later, by accident.
+When does a diet become a lifestyle? Quietly. You usually notice weeks after it has already happened. There is a quiet moment when the program stops being a project and starts being your life. The shift is not announced. It is noticed weeks later, by accident.
+
+## Meta Description
+When does a diet become a lifestyle? You don't notice on the day. You notice the Tuesday weeks later when you didn't think about food once.
+
+## Primary Keyword
+when does a diet become a lifestyle
+
+## Secondary Keywords
+- diet to lifestyle change
+- diet vs lifestyle difference
+- sustainable weight loss habits
+- how long until diet becomes habit
+- weight loss lifestyle change mindset
 
 ## Medium Tags
 - Weight Loss
-- Founder Story
-- Maintenance
+- Maintenance Phase
+- Lifestyle Change
 - Long Game
 - Habits
 
 ## Canonical URL
-`https://devenira.com/blog/the-day-i-realized-the-program-was-just-my-life-now`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -44,6 +61,10 @@ What there was, instead, was a Tuesday — sometime in month seven of maintenanc
 The program had stopped being a thing I was running. It had become a default I was living.
 
 That moment, when I noticed it, was the actual end of the project. The numbers had landed months earlier. The behaviors had taken longer.
+
+> **When does a diet become a lifestyle?**
+>
+> Usually between month 6 and month 12 of consistent practice, sometimes longer. There is no announcement. The moment is noticed weeks later, by accident — a Tuesday where you have not consciously thought about food, training, or weight all day. The transition is a fade, not a celebration. The defaults stop feeling like effort.
 
 ## What the moment looked like
 
@@ -138,4 +159,29 @@ The body will already be there. The relationship to it is what took the longest.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### How long before diet habits feel automatic?
+
+Three habit layers each take their own time: cooking defaults usually 6 to 9 months, training cadence 4 to 6 months, calm weighing rhythm 6 to 12 months. When all three run unconsciously, conscious effort drops to near-zero. That is when the diet becomes a lifestyle.
+
+### Why doesn't the transition feel like a milestone?
+
+Because it is the absence of an event. The program fades from foreground to background slowly, across many ordinary days. The point you notice the fade is just one of those days. People waiting for a finish-line moment usually miss the transition entirely.
+
+### Can a diet become unsustainable if it never becomes a lifestyle?
+
+Yes. Effortful systems do not hold for years. They hold for months and break. If maintenance still feels like a project at month twelve, the system has not finished converting. The body change does not last without the lifestyle change underneath it.
+
+### What does the lifestyle phase actually look like?
+
+Boring. Same breakfast most mornings. Same training cadence most weeks. Calm weekly weigh-ins. Meals you do not frame as 'diet meals.' Sessions you do not frame as 'training for the project.' The body is just your body now. The work happens in the background.
+
+### How do I know I'm not just on a longer diet?
+
+If you still consciously frame meals as 'on plan' or 'off plan,' you are still in diet mode. If meals just happen, with the right macros, without you naming them as part of a program, the transition has started. The naming fades before the behaviors do.
+
 ```

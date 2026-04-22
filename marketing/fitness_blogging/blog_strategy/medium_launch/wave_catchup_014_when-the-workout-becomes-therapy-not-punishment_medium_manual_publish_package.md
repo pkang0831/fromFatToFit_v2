@@ -4,20 +4,37 @@
 When the Workout Becomes Therapy, Not Punishment
 
 ## SEO Title
-When the Workout Becomes Therapy, Not Punishment
+How to Stop Using Exercise as Punishment
 
 ## Subtitle / Description
 Most people train to make up for something. The workouts that change you are the ones that stopped being repayment.
 
+## Meta Description
+How to stop using exercise as punishment, without quitting the gym. The same workout shifts when you change what you bring to it. Here's the line.
+
+## Primary Keyword
+how to stop using exercise as punishment
+
+## Secondary Keywords
+- exercise as self care not punishment
+- working out as therapy mental health
+- healthy relationship with exercise
+- stop exercising to punish myself
+- mindset shift fitness self love
+
 ## Medium Tags
 - Weight Loss
-- Exercise
 - Mental Health
-- Body Image
-- Consistency
+- Exercise
+- Mindset
+- Self Improvement
 
 ## Canonical URL
-`https://devenira.com/blog/when-the-workout-becomes-therapy-not-punishment`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,13 +50,17 @@ Most people train to make up for something. The workouts that change you are the
 ```md
 # When the Workout Becomes Therapy, Not Punishment
 
-For most of my life, the workout was a receipt. I overate on Saturday. I earned the treadmill on Monday. That kind of training can still produce results. It cannot produce peace.
+Here's how to stop using exercise as punishment: change what the next training session is paying for. For most of my life, the workout was a receipt. I overate on Saturday. I earned the treadmill on Monday. That kind of training can still produce results. It cannot produce peace.
 
 For most of my life, the workout was a receipt.
 
 I overate on Saturday. I earned the treadmill on Monday. I felt bloated after dinner. I did twenty more minutes than I planned. Every session was a small repayment for a small crime.
 
 That kind of training can still produce results. It cannot produce peace.
+
+> **How do I stop using exercise as punishment?**
+>
+> Change what the workout is paying for. Punishment-training closes the loop between effort and food, which makes rest days feel like unpaid debt. Stop weighing yourself right after sessions. Train on a fixed cadence, not a guilt cadence. The same workout shifts when it stops being a receipt for what you ate.
 
 ## What Punishment-Training Actually Costs You
 
@@ -90,4 +111,29 @@ When the workout is maintenance of your nervous system, you train consistently a
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What does punishment training actually cost you?
+
+Three things. Rest days start feeling morally dangerous, so you overcompensate later. Hard sessions land on bad sleep and underfed mornings, because mood drives them, not readiness. And you slowly start disliking your body more, because every session is evidence of something you did wrong.
+
+### Why does weighing post-workout reinforce the loop?
+
+Because it ties effort to a number that is mostly water retention from the session. The scale rises slightly. The mood drops. The next session starts angrier. Breaking the post-workout weigh-in habit is one of the smallest changes that produces the biggest shift in how training lands.
+
+### What does therapy training look like instead?
+
+Boring, mostly. Same lifts. Same cadence. Same days. The sessions stop carrying mood. You walk in without something to regulate. You walk out without needing the scale to validate the effort. The training starts working on the rest of the day instead of the other way around.
+
+### Doesn't this mean training has to be soft?
+
+No. The lifts can still be heavy. The intervals can still be hard. The recovery can still be real. What changes is the emotional function of the session. The body knows the difference between hard work and apology. So does the body's response to it.
+
+### How long does the shift take?
+
+Usually a few weeks of training without the scale right after. The change is not announced. You notice, weeks later, that you walked into a session without a mood to regulate. That noticing is the signal that the old loop has finished closing.
+
 ```

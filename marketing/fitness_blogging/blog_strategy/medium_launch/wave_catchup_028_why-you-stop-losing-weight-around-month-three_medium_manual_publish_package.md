@@ -4,19 +4,37 @@
 Why You Stop Losing Weight Around Month Three
 
 ## SEO Title
-Why You Stop Losing Weight Around Month Three
+Why Did I Stop Losing Weight at 3 Months?
 
 ## Subtitle / Description
 Around month three, most diets slow down for reasons that are not about effort. Here is what is actually happening and why the fix is not cutting more.
 
+## Meta Description
+Why did I stop losing weight at 3 months? Adaptation, fatigue, and slow calorie creep — not a broken plan. Here's what to change without escalating.
+
+## Primary Keyword
+why did I stop losing weight at 3 months
+
+## Secondary Keywords
+- weight loss plateau month 3
+- stopped losing weight after 3 months
+- diet slows down after three months
+- plateau 3 months into diet
+- month 3 weight loss wall
+
 ## Medium Tags
-- Plateau
-- Dieting
-- Metabolic Adaptation
 - Weight Loss
+- Weight Loss Plateau
+- Dieting
+- Metabolism
+- Long Game
 
 ## Canonical URL
-`https://devenira.com/blog/why-you-stop-losing-weight-around-month-three`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,13 +50,17 @@ Around month three, most diets slow down for reasons that are not about effort. 
 ```md
 # Why You Stop Losing Weight Around Month Three
 
-Most diets slow down around month three. Not because effort dropped. Not because the plan got worse. The body has simply become better at operating on less.
+Why did I stop losing weight at 3 months on a plan that worked in week one? Mostly because the body adapted to it. Most diets slow down around month three. Not because effort dropped. Not because the plan got worse. The body has simply become better at operating on less.
 
 Most diets slow down around month three.
 
 Not because effort dropped. Not because the plan got worse. Not because willpower collapsed.
 
 The body has simply become better at operating on less.
+
+> **Why did I stop losing weight at 3 months?**
+>
+> Because four things stack quietly around month three. Maintenance calories drop as the body weighs less. Unconscious daily movement drops. Digestive efficiency shifts slightly. Appetite climbs. The diet did not break. The body adapted to it. Cutting harder usually backfires here. The fix is almost always a 7 to 14 day diet break.
 
 ## What The First Two Months Did
 
@@ -102,4 +124,29 @@ If you are here, the diet is working. It is asking you to rest before it can kee
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Why does cutting more calories backfire here?
+
+Because it works for a week or two, then the body adapts again. A few cycles in, you are eating 1,200 calories a day, losing nothing, and have trained your appetite louder, NEAT quieter, and muscle protein down. Smaller, weaker, hungrier — and the scale still has not moved.
+
+### What is a diet break and how long should it be?
+
+Seven to fourteen days at maintenance calories. Not a binge, not a cheat day. NEAT rises back up, appetite settles slightly, and the body stops aggressively defending its current weight. When you return to deficit, the deficit starts working again for another four to six weeks.
+
+### Will I gain weight during a diet break?
+
+Yes, in the form of water and glycogen. Expect 1 to 2 kg in the first few days. That is normal and not fat. It comes off when you return to deficit. The discomfort of seeing the scale rise is the price of breaking the plateau cleanly.
+
+### How do I know the slowdown is a real plateau and not a slow week?
+
+Three consecutive weeks of no scale movement under your usual conditions, with no shape change either. Less than that is noise. Most month-three slowdowns turn into resumed loss within a couple of weeks if the response is patient instead of aggressive.
+
+### Are diet breaks studied or just a coaching trick?
+
+Studied, in several formal trials. People who take planned 7 to 14 day breaks every 4 to 8 weeks on long diets tend to retain more muscle, report lower hunger, and have better outcomes at six and twelve months than people who diet straight through.
+
 ```

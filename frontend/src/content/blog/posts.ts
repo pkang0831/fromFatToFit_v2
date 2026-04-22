@@ -15,6 +15,23 @@ export type BlogSection =
       type: 'quote';
       quote: string;
       attribution?: string;
+    }
+  | {
+      // Featured-snippet-friendly direct-answer box. Use one near the top of
+      // Q&A posts: a 40-60 word answer that stands alone under the H2 so
+      // Google can pluck it into position 0. See seo_optimization_rules.md
+      // "Featured snippet targeting" notes.
+      type: 'answerBox';
+      question: string; // matches the post's primary query phrasing
+      answer: string;   // the 40-60 word direct answer
+    }
+  | {
+      // FAQ section that renders as an accordion on-page AND emits FAQPage
+      // JSON-LD via the parent page's schemaType: 'faq' hook. Use once per
+      // Q&A post with 4-8 question/answer pairs.
+      type: 'faq';
+      title?: string;
+      items: Array<{ question: string; answer: string }>;
     };
 
 export interface BlogPost {
@@ -31,11 +48,40 @@ export interface BlogPost {
   ctaTitle: string;
   ctaBody: string;
   sections: BlogSection[];
+  // SEO fields (added 2026-04-21 per seo_optimization_rules.md).
+  // All optional for progressive migration — generateMetadata falls back
+  // to title/description/tags when these are absent.
+  seoTitle?: string;          // <= 60 chars, primary keyword front-loaded
+  metaDescription?: string;   // <= 155 chars, primary keyword in first 100
+  keywords?: string[];        // primary + 2-4 secondary (PAA / related)
+  // Last revision date (ISO YYYY-MM-DD). When set, surfaces as
+  // <meta property="article:modified_time"> + Article schema dateModified,
+  // which Google rewards as a freshness signal. Default = post.date.
+  lastModified?: string;
+
+  // Canonical strategy (2026-04-21 flip): Medium is treated as primary
+  // because devenira.com's DR is effectively 0 and Medium's is ~95. When
+  // mediumUrl is set, the site's <link rel="canonical"> points to Medium,
+  // concentrating link equity where it can actually rank. Fall back to
+  // self-canonical when mediumUrl is missing (drafts, never-published).
+  mediumUrl?: string;
+  // Optional topical cluster label (e.g. "scale", "appetite"). Powers
+  // cross-post internal linking and pillar-page surfaces.
+  cluster?: string;
+  // Content type drives JSON-LD schema selection (Article by default;
+  // FAQPage for qa posts; HowTo for how-to posts).
+  schemaType?: 'article' | 'faq' | 'howto';
+  // Optional FAQ pairs for FAQPage schema. When provided and schemaType
+  // is 'faq', the page also emits FAQPage JSON-LD alongside Article.
+  faqItems?: Array<{ question: string; answer: string }>;
+  // Optional HowTo steps for HowTo schema.
+  howToSteps?: Array<{ name: string; text: string }>;
 }
 
 const posts: BlogPost[] = [
   {
-    slug: 'why-i-built-devenira-for-the-weeks-where-you-want-to-quit',
+    slug: 'how-i-lost-50-kg-middle-of-diet',
+    mediumUrl: 'https://medium.com/@pkang0831/why-i-built-devenira-for-the-weeks-where-you-want-to-quit-09da9cee9992',
     title: 'Why I Built Devenira for the Weeks Where You Want to Quit',
     description:
       'I lost 50kg, but the hardest part was not starting. It was the slow middle where progress was real, but hard to trust. That is why I built Devenira around weekly proof.',
@@ -44,8 +90,20 @@ const posts: BlogPost[] = [
     date: '2026-04-15',
     readingTime: '8 min read',
     tags: ['Founder Story', 'Weight Loss', 'Transformation', 'Body Image'],
-    heroImage: '/founder/founder-story-hanok-20260119.jpg',
-    heroAlt: 'Founder standing outdoors in a composed hanok portrait after a major transformation',
+    seoTitle: 'How I Lost 50 kg: Why the Middle of the Diet Is the Hardest',
+    metaDescription:
+      'How I lost 50 kg over 5 years — and why month nine was harder than month one. The fix that worked: weekly proof, not daily panic.',
+    keywords: [
+      'how I lost 50 kg',
+      'lost 50 kg transformation',
+      '50 kg weight loss journey',
+      'slow weight loss success story',
+      'how to trust slow weight loss',
+      'middle of weight loss transformation',
+    ],
+    cluster: 'founder-story',
+    heroImage: '/founder/founder-story-hanok-20260119.webp',
+    heroAlt: 'Composed outdoor hanok portrait of pkang after a major transformation, the visual anchor for how I lost 50 kg over five years',
     deck:
       'I did not build Devenira because I wanted another fitness app. I built it because the hardest part of losing 50kg was not starting. It was the long middle where the work was real, but the mirror still made it feel fake.',
     ctaTitle: 'Start with one body check-in.',
@@ -140,7 +198,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'why-the-mirror-can-make-real-progress-feel-fake',
+    slug: 'why-cant-i-see-weight-loss-in-the-mirror',
     title: 'Why the Mirror Can Make Real Progress Feel Fake',
     description:
       'The mirror is one of the worst tools for judging body change in real time. Here is why progress can be real even when it still feels invisible.',
@@ -149,10 +207,23 @@ const posts: BlogPost[] = [
     date: '2026-04-16',
     readingTime: '6 min read',
     tags: ['Body Image', 'Progress Tracking', 'Weight Loss', 'Dieting'],
-    heroImage: '/founder/mirror-middle-checkin-20250716.jpg',
-    heroAlt: 'Founder mirror check-in image showing the honest middle stage of body change',
+    seoTitle: "Why Can't I See My Weight Loss in the Mirror?",
+    metaDescription:
+      "Why can't I see my weight loss in the mirror, even after 10 kg gone? Daily viewing trains your eye to miss change. The fix isn't more checking.",
+    keywords: [
+      "why can't I see my weight loss in the mirror",
+      'mirror not showing weight loss',
+      "why I can't see my own weight loss",
+      'body dysmorphia after weight loss',
+      'progress photos vs mirror',
+      'phantom fat weight loss',
+    ],
+    schemaType: 'faq',
+    cluster: 'mirror',
+    heroImage: '/founder/mirror-middle-checkin-20250716.webp',
+    heroAlt: "Honest mirror check-in of pkang mid-process, illustrating why I can't see my weight loss in the mirror day to day",
     deck:
-      'If you see your body every day, the mirror is often the last place that will give you reassurance. That does not mean progress is not happening. It means the mirror is a terrible historian.',
+      "Why can't I see my weight loss in the mirror, even when the scale and the clothes agree? Daily exposure hides the gradient. If you see your body every day, the mirror is often the last place that will give you reassurance. That does not mean progress is not happening. It means the mirror is a terrible historian.",
     ctaTitle: 'Start with one body check-in.',
     ctaBody:
       'If the mirror is noisy right now, use one scan as a baseline and start building a visual record you can actually trust.',
@@ -165,6 +236,12 @@ const posts: BlogPost[] = [
           'When you see your body every day, small differences stop feeling like differences. That is why people can be making real progress and still feel stuck.',
           'This is where a lot of diets actually fail. Not in physiology. In interpretation.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "Why can't I see my weight loss in the mirror?",
+        answer:
+          'Because seeing your body daily makes gradual change invisible. The eyes adapt fast. The body changes slowly. That combination normalizes change before your perception catches up. The mirror also only shows one moment under one mood, and one moment is easy to misread. Photos across weeks beat daily mirror checks.',
       },
       {
         type: 'paragraphs',
@@ -229,10 +306,42 @@ const posts: BlogPost[] = [
           'That is why one of the best things you can do is stop asking the mirror to tell the whole story. Build a record instead. One scan is a number. Weekly check-ins are proof.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How long until the mirror starts showing the change?',
+          answer:
+            'For most people, three to six months after meaningful loss before the daily mirror reliably reflects it. Other people will notice first because they have weeks or months of gap to compare across. Your daily exposure is the thing hiding the change from you.',
+        },
+        {
+          question: 'Can the mirror lie even when the scale is moving?',
+          answer:
+            'Yes. Lighting, posture, time of day, sleep, and mood all change how the same body looks. The mirror amplifies whatever story you are telling yourself that morning. A good mood gets a generous read. A bad mood gets a punishing one. Same body.',
+        },
+        {
+          question: 'Are progress photos more honest than the mirror?',
+          answer:
+            'Yes, when taken under matched conditions: same room, same time, same posture, same light. Single photos can still lie, so compare in groups of four across months, not single shots week to week. The four-photo comparison removes most of the noise.',
+        },
+        {
+          question: 'Why does the back of my body change first?',
+          answer:
+            'For many people the back has less stubborn fat buffer than the front, so it tightens earlier. You also never see your back in the daily mirror, so the change registers when someone takes a photo from behind. Take one rear photo every two weeks under matched conditions.',
+        },
+        {
+          question: "Is feeling 'phantom fat' after weight loss normal?",
+          answer:
+            'Common, yes. The internal map of your body lags the physical change by months. People describe still reaching for old clothing sizes, still flinching at mirrors, still feeling like the older body. The perception updates gradually, pulled forward by external evidence and time.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'one-emotional-weigh-in-can-wreck-a-good-week',
+    slug: 'should-i-weigh-myself-every-day-on-a-diet',
     title: 'One Emotional Weigh-In Can Wreck a Good Week',
     description:
       'One weigh-in can trigger panic even when your fat loss is still on track. Here is why scale spikes happen and how to interpret them better.',
@@ -241,10 +350,23 @@ const posts: BlogPost[] = [
     date: '2026-04-17',
     readingTime: '6 min read',
     tags: ['Scale Weight', 'Fat Loss', 'Dieting', 'Weight Loss'],
-    heroImage: '/founder/weighin-middle-progress-20240801.jpg',
-    heroAlt: 'Founder progress image representing the vulnerable middle of a weight-loss process',
+    seoTitle: 'Should I Weigh Myself Every Day on a Diet?',
+    metaDescription:
+      "Should I weigh myself every day on a diet? Only if you can read 3 kg of water noise without panic. Here's the honest test most people fail.",
+    keywords: [
+      'should I weigh myself every day on a diet',
+      'why one bad weigh-in feels like a verdict',
+      'daily weight fluctuation up to 3 kg',
+      'scale anxiety tips',
+      'best time to weigh yourself daily',
+      'weighing yourself every morning',
+    ],
+    schemaType: 'faq',
+    cluster: 'scale',
+    heroImage: '/founder/weighin-middle-progress-20240801.webp',
+    heroAlt: 'Founder mid-process body image used to ask whether you should weigh yourself every day on a diet or step back',
     deck:
-      'The scale is not useless. But one loud reading can trigger a lot of bad decisions if you let it become a verdict instead of a data point.',
+      'Should you weigh yourself every day on a diet? It depends on whether one bad reading derails the rest of the week. The scale is not useless. But one loud reading can trigger a lot of bad decisions if you let it become a verdict instead of a data point.',
     ctaTitle: 'Use better evidence than one weigh-in.',
     ctaBody:
       'Start with one body check-in, then compare week by week instead of letting one loud scale reading define the whole process.',
@@ -257,6 +379,12 @@ const posts: BlogPost[] = [
           'The scale goes up. Panic starts. And suddenly one careful week feels fake.',
           'That is how people turn noise into a conclusion.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Should I weigh myself every day on a diet?',
+        answer:
+          'Only if you can read one weigh-in as a data point and not a verdict. Daily weight can fluctuate up to 3 kg from water, sodium, food volume, and timing. If a single rude morning number triggers restriction, punishment cardio, or a binge, switch to weekly averages until the reaction calms down.',
       },
       {
         type: 'paragraphs',
@@ -337,10 +465,42 @@ const posts: BlogPost[] = [
           'One scan is a number. Weekly check-ins are proof.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: "What's the best time of day to weigh yourself?",
+          answer:
+            'Morning, after the bathroom, before food or drink, in consistent clothing. Same scale, same spot. That is the most stable reference across days. Evening weight is typically 0.8 to 1.8 kg higher and is a different measurement series — do not mix the two.',
+        },
+        {
+          question: 'Why does my weight fluctuate so much day to day?',
+          answer:
+            'Water, sodium, glycogen, food in transit, hormonal cycles, sleep quality, and stress all move the scale without changing fat. A 1 to 2 kg daily swing is normal for most adults. A 3 kg swing across a high-sodium day is also normal. None of it is fat.',
+        },
+        {
+          question: 'Are weekly averages better than daily readings?',
+          answer:
+            'Almost always, yes. A weekly average smooths out the noise and shows the actual trend. Daily readings are useful only if you have built the discipline to ignore the day-to-day spikes. Most people have not, and the average works better.',
+        },
+        {
+          question: 'How do I stop panicking after a high weigh-in?',
+          answer:
+            "Ask better questions before reacting. How have the last seven days looked? Was yesterday high in sodium or food volume? Have I gathered enough data to call this a trend? Most of the time the answer is no, and 'not enough data yet' beats 'this is broken.'",
+        },
+        {
+          question: 'When should I stop weighing myself entirely?',
+          answer:
+            'If the daily number is driving binges, restriction, or anxiety that bleeds into the rest of the day, take a break. Track with photos, fit, and tape for two to four weeks. The scale becomes useful again once the emotional charge around it drops.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'how-to-track-body-transformation-without-obsessing-over-the-scale',
+    slug: 'how-to-track-body-transformation-without-the-scale',
     title: 'How to Track Body Transformation Without Obsessing Over the Scale',
     description:
       'If you want to track body transformation more accurately, you need better signals than daily scale obsession. Here is a simpler way to do it.',
@@ -349,10 +509,50 @@ const posts: BlogPost[] = [
     date: '2026-04-18',
     readingTime: '7 min read',
     tags: ['Transformation', 'Progress Photos', 'Body Composition', 'Fat Loss'],
-    heroImage: '/founder/transformation-proof-20251119.jpg',
-    heroAlt: 'Founder physique image showing clear transformation proof beyond the scale',
+    seoTitle: 'How to Track Body Transformation Without the Scale',
+    metaDescription:
+      'How to track body transformation without the scale: 4 weekly signals more honest than the morning weigh-in. Photos, fit, and 2 you probably skip.',
+    keywords: [
+      'how to track body transformation without the scale',
+      'measuring body transformation',
+      'track fat loss without scale',
+      'weekly progress check-in method',
+      'body transformation tracking tools',
+      'measuring weight loss progress',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Set one honest baseline',
+        text:
+          'Take one clear starting photo. Not a flattering angle. Not your best lighting. Just an honest reference point you can compare against. Without a baseline, every future check-in becomes a guess instead of a real comparison.',
+      },
+      {
+        name: 'Move to weekly check-ins',
+        text:
+          'Stop reading the body daily. Switch to one weekly check-in at roughly the same time, under similar conditions. The body changes slower than emotion, so daily tracking gives mood too many chances to interfere with the read.',
+      },
+      {
+        name: 'Track multiple signals together',
+        text:
+          'Use weekly photos, visual changes in waist, torso, face, and posture, plus fit on familiar clothes. Each signal alone is partial. Read together, they give a more stable picture than the scale ever does on its own.',
+      },
+      {
+        name: 'Demote the scale to a supporting metric',
+        text:
+          'Keep weighing if you want, but treat the number as one input, not the verdict. The scale is too noisy for daily interpretation. Let it support the photo and fit data instead of overruling it every morning.',
+      },
+      {
+        name: 'Compare check-ins in groups, not against yesterday',
+        text:
+          "Save check-ins in one place and compare in groups, not against yesterday. The four-photo comparison is where the real story shows up. Direction matters more than any single morning's reading.",
+      },
+    ],
+    cluster: 'food-structure',
+    heroImage: '/founder/transformation-proof-20251119.webp',
+    heroAlt: 'Founder physique proof shot showing how to track body transformation without the scale through visible composition change',
     deck:
-      'If you want to know whether your body is actually changing, you need a better system than checking the scale and the mirror every day. A simple weekly evidence loop works better.',
+      "Here's how to track body transformation without the scale, with one weekly evidence loop instead of a daily morning verdict. If you want to know whether your body is actually changing, you need a better system than checking the scale and the mirror every day. A simple weekly evidence loop works better.",
     ctaTitle: 'Track transformation with better evidence.',
     ctaBody:
       'Start with one body check-in and build a weekly record that is harder to distort than a single mirror glance or scale reading.',
@@ -365,6 +565,12 @@ const posts: BlogPost[] = [
           'They look too often. They react too quickly. And they ask each tool to do more than it is good at.',
           'That is how progress becomes confusing, even when the process is working.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I track body transformation without obsessing over the scale?',
+        answer:
+          'Build one weekly evidence loop instead of a daily judgment ritual. Take a baseline photo, add weekly progress photos under similar conditions, watch how clothes fit, and use the scale as a supporting metric rather than the main judge. The body usually changes slower than emotion. Weekly tracking gives the body room to tell a real story.',
       },
       {
         type: 'paragraphs',
@@ -451,10 +657,42 @@ const posts: BlogPost[] = [
           'One scan is a number. Weekly check-ins are proof.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How often should I take progress photos?',
+          answer:
+            'Once a week, same spot, same lighting, same pose. Save them without analyzing them on the day. Compare in groups of four. Weekly is frequent enough to stay relevant; comparing every four weeks is slow enough to let your body actually show direction.',
+        },
+        {
+          question: 'Why is daily scale tracking misleading?',
+          answer:
+            'Daily readings are mostly water, sodium, and digestive contents — almost everything except fat. The number swings two kilos in a normal day. Reading those swings as fat loss or gain creates emotional volatility with numbers attached, not tracking.',
+        },
+        {
+          question: 'What should a baseline check-in include?',
+          answer:
+            'One honest starting photo, taken under conditions you can repeat. Not a flattering angle. Not your best lighting. Just a clear reference point. Without a baseline, every future photo becomes a guess. With one, every check-in becomes a real comparison.',
+        },
+        {
+          question: 'What signals are more honest than the scale?',
+          answer:
+            'Weekly progress photos under matched conditions. Visual changes in waist, torso, face, and posture. How familiar clothes are fitting. Tape measurements at waist and hip every two weeks. Together those four catch composition shifts the scale silently misses.',
+        },
+        {
+          question: 'Why do most people quit before they see real progress?',
+          answer:
+            'Because they track on a daily timescale and grade emotionally. Daily noise is louder than weekly signal, so the program feels like it is failing while the body is quietly moving. Most people quit not from lack of discipline, but from lack of believable evidence.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'why-it-feels-like-you-gain-weight-even-when-you-barely-eat',
+    slug: 'why-does-the-scale-go-up-when-i-barely-eat',
     title: 'Why It Feels Like You Gain Weight Even When You Barely Eat',
     description:
       'Sometimes the scale goes up even when you feel like you are eating less. Here is why body-weight fluctuation can feel like fat gain, and why that misunderstanding wrecks good weeks.',
@@ -463,10 +701,23 @@ const posts: BlogPost[] = [
     date: '2026-04-19',
     readingTime: '7 min read',
     tags: ['Scale Weight', 'Weight Illusions', 'Dieting', 'Women’s Health'],
-    heroImage: '/founder/scale-rude-before-20240130.jpg',
-    heroAlt: 'Honest founder mirror image representing a discouraging weigh-in week',
+    seoTitle: "Why Does the Scale Go Up When You're Barely Eating?",
+    metaDescription:
+      'Why does the scale go up when I barely eat? Sodium, glycogen, and a 2 kg overnight swing that has nothing to do with fat. Read it before you cut more.',
+    keywords: [
+      'why does the scale go up when I barely eat',
+      'why am I gaining weight eating less',
+      'daily weight fluctuation 2 to 5 pounds',
+      'water retention not fat',
+      'scale went up eating clean',
+      'weight up overnight without eating',
+    ],
+    schemaType: 'faq',
+    cluster: 'scale',
+    heroImage: '/founder/scale-rude-before-20240130.webp',
+    heroAlt: 'Honest founder mirror shot from a discouraging weigh-in week, framing why does the scale go up when I barely eat',
     deck:
-      'A rude weigh-in can turn one morning into a small identity crisis. But scale weight and fat gain are not always the same story.',
+      "Why does the scale go up when you're barely eating? Almost always: water, sodium, or a delayed bathroom — not fat. A rude weigh-in can turn one morning into a small identity crisis. But scale weight and fat gain are not always the same story.",
     ctaTitle: 'Get a calmer read than one rude weigh-in.',
     ctaBody:
       'If one unfair-looking number can hijack your mood, use a body check-in to get another reference point before panic starts freelancing.',
@@ -479,6 +730,12 @@ const posts: BlogPost[] = [
           'You wake up, step on the scale, and get a number that feels insulting. Now your whole morning has a villain.',
           'You start replaying yesterday like security footage. What did I eat? Was it the late snack? Was it the rice? Was it the fact that my body clearly enjoys humiliating me?',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "Why does the scale go up when I'm barely eating?",
+        answer:
+          'Body weight is not just fat. It includes water, glycogen, food still moving through digestion, sodium, and hormonal water shifts. A 1 to 2 kg overnight rise after a low-calorie day is almost always one of those, not new fat. Fat does not arrive that fast. Read the week, not the morning.',
       },
       {
         type: 'paragraphs',
@@ -543,10 +800,42 @@ const posts: BlogPost[] = [
           'One scan is a number. Weekly check-ins are proof.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Can you actually gain real fat overnight?',
+          answer:
+            'Not meaningfully. Adding 1 kg of true body fat takes roughly 7,000 calories above maintenance, which is hard to do in a single day. Overnight scale jumps of 1 to 2 kg are almost entirely water, sodium, and food still in transit through digestion.',
+        },
+        {
+          question: 'How much can the scale fluctuate day to day?',
+          answer:
+            'Most adults swing 1 to 2 kg across a normal day from food, water, and sodium. Hormonal cycles can add another 1 to 2 kg around ovulation and the days before a period. None of that is fat. It is the scale measuring everything else.',
+        },
+        {
+          question: 'Why am I gaining weight while eating less than usual?',
+          answer:
+            'Two common reasons. Either intake is being underestimated, which happens to most people without it being a moral failure, or water has shifted from sodium, hormones, or training. Wait three to five days under your usual routine before deciding the rise is real.',
+        },
+        {
+          question: 'Should I cut calories more after a scale spike?',
+          answer:
+            'No. Cutting harder in response to a one-day spike usually triggers under-fueling and a binge later in the week. The spike was almost certainly water. Hold the plan for at least five days before adjusting anything based on a single morning.',
+        },
+        {
+          question: 'When is a scale rise actually fat gain?',
+          answer:
+            'When the higher number holds for more than two weeks under your usual conditions, with no clear water explanation. Real fat gain is slow, quiet, and consistent across morning weigh-ins. A loud one-day spike that disappears in three days is not it.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'what-actually-counts-as-a-weight-loss-plateau',
+    slug: 'what-counts-as-a-weight-loss-plateau',
     title: 'What Actually Counts as a Weight Loss Plateau?',
     description:
       'A slower scale does not always mean a real plateau. Here is how to tell the difference between slower progress, body recomposition, and an actual stall.',
@@ -555,10 +844,23 @@ const posts: BlogPost[] = [
     date: '2026-04-20',
     readingTime: '7 min read',
     tags: ['Plateau', 'Weight Loss', 'Progress Tracking', 'Body Recomposition'],
-    heroImage: '/founder/plateau-middle-checkin-20250711.jpg',
-    heroAlt: 'Founder check-in image representing a slower middle stage that can feel like a plateau',
+    seoTitle: "What Counts as a Weight Loss Plateau (and What Doesn't)?",
+    metaDescription:
+      'What counts as a weight loss plateau? Most people call it after 7 days. The honest threshold is 3 weeks of zero trend — and most never get there.',
+    keywords: [
+      'what counts as a weight loss plateau',
+      'weight loss plateau definition',
+      "how long until it's a plateau",
+      'am I in a plateau or slow progress',
+      'how many weeks to call it a plateau',
+      'weight stall vs plateau',
+    ],
+    schemaType: 'faq',
+    cluster: 'plateau',
+    heroImage: '/founder/plateau-middle-checkin-20250711.webp',
+    heroAlt: 'Founder mid-process check-in showing the slower middle that raises the question of what counts as a weight loss plateau',
     deck:
-      'A slower scale is not automatically a plateau. Sometimes progress just stopped flattering you and started looking like real life.',
+      'What counts as a weight loss plateau is narrower than people think. Most slow weeks are not plateaus — just real life. A slower scale is not automatically a plateau. Sometimes progress just stopped flattering you and started looking like real life.',
     ctaTitle: 'Check whether you are actually stuck.',
     ctaBody:
       'Before you call it a plateau, get one calmer read on what your body is actually doing and stop letting a flat number run management.',
@@ -571,6 +873,12 @@ const posts: BlogPost[] = [
           'Week three arrives, the number barely moves, and suddenly you are acting like the whole plan entered hospice care.',
           'People use the word plateau way too early.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'What actually counts as a weight loss plateau?',
+        answer:
+          'A real plateau is three weeks of stable weight under the same conditions, with no shape change either. Less than that is noise. Slower progress than week one is not a plateau. One or two flat weigh-ins is not a plateau. Most people use the word way too early and start punishing a plan that is still working.',
       },
       {
         type: 'paragraphs',
@@ -647,10 +955,42 @@ const posts: BlogPost[] = [
           'Before you call it a plateau, get one calmer read on what your body is actually doing.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How long until I can call it a plateau?',
+          answer:
+            'Three weeks of stable weight under similar conditions, with no shape change either. Anything shorter is noise. The early water-loss phase fooled people about what real progress looks like, so the second month often gets read as a plateau when it is just adulthood.',
+        },
+        {
+          question: "Can the scale stay flat while I'm still losing fat?",
+          answer:
+            'Yes. If body fat is going down while a small amount of muscle is going up, the scale shows nothing while the body is still changing. That is why one number should not be treated as a final verdict, especially during training.',
+        },
+        {
+          question: 'Why does cutting more usually backfire?',
+          answer:
+            'Because most plateaus are not actually plateaus, so the harsher response is solving a problem that does not exist. Even on real plateaus, cutting harder tends to drop NEAT, raise appetite, and trigger a binge later in the week. Bolt cutters on an unlocked door.',
+        },
+        {
+          question: 'Why does week one feel so dramatic compared to week three?',
+          answer:
+            'Week one is mostly water, glycogen, and a noisier scale. Motivation is fresh. The body is not yet in any real fat-loss rhythm. By week three, the noise has cleared and the actual rate of loss is what shows. Week one was the bad teacher.',
+        },
+        {
+          question: 'How should I respond if it is a real plateau?',
+          answer:
+            'Run an honest tracking week before changing anything. Check sleep, stress, and unconscious activity drift. Most plateaus break by fixing the variable that drifted, not by cutting calories or adding cardio. A plateau is a report, not a verdict. Read it before reacting.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'why-losing-5kg-in-a-week-usually-means-water-not-fat',
+    slug: 'is-losing-5kg-in-a-week-water-weight',
     title: 'Why Losing 5kg in a Week Usually Means Water, Not Fat',
     description:
       'Fast weekly weight loss is usually more about water and timing than miracle fat loss. The timeline matters more than the headline.',
@@ -659,10 +999,23 @@ const posts: BlogPost[] = [
     date: '2026-04-21',
     readingTime: '7 min read',
     tags: ['Water Weight', 'Rapid Weight Loss', 'Scale Weight', 'Fat Loss'],
-    heroImage: '/founder/water-weight-proof-20251031.jpg',
-    heroAlt: 'Founder physique image used to discuss water weight versus fat loss',
+    seoTitle: 'Is Losing 5 kg in a Week Water Weight?',
+    metaDescription:
+      "Is losing 5kg in a week water weight? Almost always yes — true fat loss caps near 1 kg per week. Here's what the first 7 days actually measure.",
+    keywords: [
+      'is losing 5kg in a week water weight',
+      'lost 5kg in a week diet',
+      'first week weight loss water not fat',
+      'how much water weight can you lose',
+      'rapid weight loss first week',
+      'glycogen water weight loss',
+    ],
+    schemaType: 'faq',
+    cluster: 'scale',
+    heroImage: '/founder/water-weight-proof-20251031.webp',
+    heroAlt: 'Founder physique comparison used to unpack whether losing 5kg in a week is water weight or actual fat loss',
     deck:
-      'Rapid weight loss sounds impressive, but most short-term scale drops are driven by water, not miracle fat loss. The timescale matters more than the headline.',
+      'Is losing 5kg in a week water weight? Almost always — the body cannot legitimately lose that much fat in seven days. Rapid weight loss sounds impressive, but most short-term scale drops are driven by water, not miracle fat loss. The timescale matters more than the headline.',
     ctaTitle: 'Do not benchmark yourself against a highlight reel.',
     ctaBody:
       'If a flashy one-week number is making your own progress look broken, check your actual body state before you start copying someone else’s crisis routine.',
@@ -675,6 +1028,12 @@ const posts: BlogPost[] = [
           'You see the thumbnail. You see the title. You see someone cheerfully announcing that they lost 5kg in a week by doing fasted cardio and eating one meal a day.',
           'And even if you know better, some ugly little part of your mind still says: then why is my progress so boring?',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Is losing 5 kg in a week mostly water weight?',
+        answer:
+          'Yes, almost always. Body fat does not move that fast. A 5 kg drop in seven days is mostly water from glycogen depletion, sodium reduction, and emptied digestive contents. Once normal eating resumes, much of it returns. The headline is real. The cause is not what you think. Compare timelines, not loud one-week numbers.',
       },
       {
         type: 'paragraphs',
@@ -738,10 +1097,42 @@ const posts: BlogPost[] = [
           'If a flashy short-term result is making you question everything, check your actual body state before you start copying someone else’s crisis routine.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How much real fat can you actually lose in a week?',
+          answer:
+            'For most adults in a reasonable deficit, 0.3 to 1 kg of true fat per week is the realistic range. Heavier people can lose more in early weeks because the deficit is larger relative to maintenance. Anything above 1 kg of weekly fat loss long-term is unusual.',
+        },
+        {
+          question: 'Why do I lose so much weight in the first week of a diet?',
+          answer:
+            'Glycogen stores drop with reduced carbs, and each gram of glycogen releases about 3 grams of water. Sodium drops with cleaner eating. Bowel contents shift. Add real fat loss of 0.2 to 0.5 kg, and the total can be 2 to 4 kg. Most of it is water.',
+        },
+        {
+          question: 'Will the water weight come back when I eat normally?',
+          answer:
+            'Yes, partly. Some water and glycogen restock as soon as carbs and sodium return to normal. The scale rebound is not fat regain. It is the body refilling its normal stores. People misread this rebound as failure when it is just water returning.',
+        },
+        {
+          question: 'Are crash diets that produce 5kg/week ever worth it?',
+          answer:
+            'Rarely. The dramatic number is mostly water that comes back, the muscle loss is high, the rebound is harder, and the appetite signal stays loud for weeks after. The people who hold weight off for years almost never lose it that fast.',
+        },
+        {
+          question: 'How fast should weight loss actually be?',
+          answer:
+            'Roughly 0.5 to 1 percent of body weight per week is the sustainable range. For a 90 kg person that is 0.45 to 0.9 kg weekly. Slower than that often means under-tracking. Faster than that often means too much muscle loss and a louder rebound.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-most-important-reason-you-think-youre-not-losing-weight',
+    slug: 'why-am-i-not-losing-weight-anymore',
     title: "The Most Important Reason You Think You're Not Losing Weight",
     description:
       'A lot of people think their diet stopped working when what actually stopped was the fast, flattering phase. Impatience ruins more diets than bad plans do.',
@@ -750,10 +1141,23 @@ const posts: BlogPost[] = [
     date: '2026-04-22',
     readingTime: '6 min read',
     tags: ['Plateau', 'Patience', 'Weight Loss', 'Dieting'],
-    heroImage: '/founder/patience-middle-checkin-20250731.jpg',
-    heroAlt: 'Founder check-in image representing the frustrating middle of a diet',
+    seoTitle: "Why Am I Not Losing Weight Anymore? (It's Not You)",
+    metaDescription:
+      "Why am I not losing weight anymore? The dramatic first week taught the wrong lesson. Real fat loss runs near 0.5 kg per week — and that's the program.",
+    keywords: [
+      'why am I not losing weight anymore',
+      'weight loss slowed down after first week',
+      'stopped losing weight on diet',
+      'not losing weight despite dieting',
+      'weight loss plateau causes',
+      'beginning of diet too fast',
+    ],
+    schemaType: 'faq',
+    cluster: 'plateau',
+    heroImage: '/founder/patience-middle-checkin-20250731.webp',
+    heroAlt: 'Founder check-in shot from the frustrating middle of a cut, the kind of stall behind why am I not losing weight anymore',
     deck:
-      'Many people think they are not losing weight because the process failed. More often, the dramatic early phase ended and their patience failed first.',
+      "Why am I not losing weight anymore, after the early weeks worked? Usually the plan didn't break — the early phase just ended. Many people think they are not losing weight because the process failed. More often, the dramatic early phase ended and their patience failed first.",
     ctaTitle: 'Do not let a slower week rewrite the story.',
     ctaBody:
       'If the scale still holds too much power in your process, start with one calmer body check-in before you decide the plan is broken.',
@@ -766,6 +1170,12 @@ const posts: BlogPost[] = [
           'That sounds rude. I do not mean it rudely. I mean it accurately.',
           'When people start a diet, they usually get spoiled early. The scale moves fast. The body looks less swollen. Even the suffering feels productive because it is paying rent immediately.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why am I not losing weight anymore?',
+        answer:
+          "Often the diet did not stop working. The dramatic early phase ended and patience failed first. Early loss is mostly water and glycogen, which clear in week one. Real fat loss is slower and quieter. People expect week one's pace forever, panic when it slows, and call a normal phase a failure.",
       },
       {
         type: 'paragraphs',
@@ -827,10 +1237,42 @@ const posts: BlogPost[] = [
           'Before you decide your body is broken, get one calmer read on what it is actually doing.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How long does it take for weight loss to slow down?',
+          answer:
+            'Usually around week three for most diets. Water and glycogen stabilize, novelty fades, and the scale starts reflecting actual body composition change. The new rate is often half or a third of week one, and that is the honest rate, not a problem.',
+        },
+        {
+          question: 'Should I cut more calories when I stop losing?',
+          answer:
+            'Usually no, not as a first move. Run an honest tracking week first — about half the time the stall is logging drift, not adaptation. If tracking is clean, try a one-week diet break before cutting. Most stalls break without escalating the deficit.',
+        },
+        {
+          question: 'Is my metabolism damaged from dieting too long?',
+          answer:
+            "'Damaged' is overstated. Maintenance calories drop modestly as you lose weight (a 70 kg person needs less than an 80 kg one), and NEAT can dip during sustained deficit. Both reverse with a proper diet break. There is no permanent damage in healthy adults.",
+        },
+        {
+          question: "What should I track if the scale isn't moving?",
+          answer:
+            'Tape measurements at waist, hip, and chest every two weeks. Photos under matched conditions. How clothes fit. Strength trends in the gym. Any of those moving while the scale holds means recomposition, which is real progress the scale is just bad at measuring.',
+        },
+        {
+          question: 'When should I take a diet break?',
+          answer:
+            'When the scale has been flat for three weeks under honest tracking, or when hunger and training fatigue are clearly stacking. Eat at maintenance for 7 to 14 days. NEAT and appetite reset, and the deficit usually starts working again on return.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-scale-can-say-normal-and-still-tell-you-nothing-useful',
+    slug: 'skinny-fat-normal-weight-high-body-fat',
     title: 'The Scale Can Say “Normal” and Still Tell You Nothing Useful',
     description:
       'A normal body weight does not guarantee that someone feels lean, strong, or at ease in their body. Weight and body composition are not the same story.',
@@ -839,10 +1281,22 @@ const posts: BlogPost[] = [
     date: '2026-04-23',
     readingTime: '6 min read',
     tags: ['Body Image', 'Body Composition', 'Scale Weight', 'Mirror'],
-    heroImage: '/founder/body-composition-proof-20251221.jpg',
-    heroAlt: 'Founder proof image representing body composition change beyond scale weight',
+    seoTitle: 'Skinny Fat: Normal Weight but High Body Fat',
+    metaDescription:
+      "Skinny fat: normal weight but high body fat. The scale calls you fine while the mirror calls you soft. Here's why one number can't carry the whole story.",
+    keywords: [
+      'skinny fat normal weight but high body fat',
+      'what is skinny fat',
+      'normal weight obesity',
+      'high body fat at normal weight',
+      'BMI vs body fat percentage',
+      'skinny fat signs',
+    ],
+    cluster: 'scale',
+    heroImage: '/founder/body-composition-proof-20251221.webp',
+    heroAlt: 'Founder composition proof shot showing how skinny fat normal weight with high body fat hides behind a healthy scale',
     deck:
-      'A normal weight does not guarantee that someone feels lean, strong, or at ease in their body. The scale is often too crude to explain what they are actually struggling with.',
+      "Skinny fat — normal weight but high body fat — is the version of unfit the scale never reports. The number is fine; the composition isn't. A normal weight does not guarantee that someone feels lean, strong, or at ease in their body. The scale is often too crude to explain what they are actually struggling with.",
     ctaTitle: 'Use a better lens than one number.',
     ctaBody:
       'If the scale keeps deciding whether your body feels acceptable, use a weekly visual check-in and track the pattern instead of the panic.',
@@ -918,7 +1372,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'the-most-reliable-way-to-succeed-at-dieting-is-still-the-least-dramatic-one',
+    slug: 'how-to-stick-to-a-diet-when-progress-slows',
     title: 'The Most Reliable Way to Succeed at Dieting Is Still the Least Dramatic One',
     description:
       'Most people do not quit dieting because they are lazy. They quit because early fast results create false expectations, later progress slows, and one noisy weigh-in feels like proof of failure.',
@@ -927,8 +1381,48 @@ const posts: BlogPost[] = [
     date: '2026-04-24',
     readingTime: '7 min read',
     tags: ['Consistency', 'Weight Loss', 'Mindset', 'Dieting'],
-    heroImage: '/founder/consistency-editorial-20251229.jpg',
-    heroAlt: 'Founder editorial portrait representing calm, long-term consistency',
+    seoTitle: 'How to Stick to a Diet When Progress Slows Down',
+    metaDescription:
+      "How to stick to a diet when progress slows down. Most diets don't end with a disaster — they end with one quiet week that talks you out. Here's the move.",
+    keywords: [
+      'how to stick to a diet when progress slows down',
+      'why people quit dieting',
+      'slow weight loss progress trust',
+      'middle of a diet hardest',
+      'how to stay consistent on a diet',
+      'diet consistency long term',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Expect early progress to be misleadingly dramatic',
+        text:
+          "Week one's fast scale drop is mostly water from refined food, sodium, and carbohydrate changes. Treat it as a one-time rebate, not the regular pace. If you anchor expectations to that first week, every later week looks like failure.",
+      },
+      {
+        name: 'Treat slower loss later as normal',
+        text:
+          'After the easy water leaves, the body switches to slow fat loss. That is the program working, not breaking. Reframe slower middle weeks as evidence the diet has moved into its actual phase, not a sign the plan stopped.',
+      },
+      {
+        name: 'Do not answer scale noise with punishment',
+        text:
+          'A 1 to 2 kg jump after a salty meal is water, not new fat. Cutting harder in response usually triggers an under-fed week and a binge. Hold the plan for five days before deciding the rise meant anything.',
+      },
+      {
+        name: 'Build identity around staying in',
+        text:
+          'Stop running the diet on motivation. Build a default — same breakfast, same training cadence, same weighing rhythm — that runs without inspiration. The people who finish are not more disciplined. They are more boring and more consistent.',
+      },
+      {
+        name: 'Take a planned diet break instead of quitting',
+        text:
+          'On a long cut, run a one-to-two-week diet break at maintenance calories every 4 to 8 weeks. Hunger settles, head resets, and 12-month outcomes improve versus continuous dieting. The break is part of the program, not a quit.',
+      },
+    ],
+    cluster: 'plateau',
+    heroImage: '/founder/consistency-editorial-20251229.webp',
+    heroAlt: 'Editorial portrait of pkang, the founder, on how to stick to a diet when progress slows down through calm consistency',
     deck:
       'Most diets do not end with one giant disaster. They end with a mood. The least dramatic success strategy is still the one most people avoid: staying in long enough to let the quiet phase work.',
     ctaTitle: 'Do not let one loud week end a quiet process.',
@@ -943,6 +1437,12 @@ const posts: BlogPost[] = [
           'That line has killed more progress than birthday cake ever did.',
           'And most of the time, it does not show up because the person suddenly became lazy. It shows up because the story of the diet changed.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I stick to a diet when progress slows down?',
+        answer:
+          "Stop expecting week one's pace forever. Treat slower loss later as normal, not insulting. Do not answer scale noise with punishment. Build identity around staying in, not around feeling inspired. The most reliable way to succeed at dieting is embarrassingly simple: do not keep leaving. The boring middle is where it actually works.",
       },
       {
         type: 'paragraphs',
@@ -1005,10 +1505,42 @@ const posts: BlogPost[] = [
           'Because the most certain way to succeed at dieting is still the least dramatic one: do not keep leaving.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why is the middle of a diet so much harder than the start?',
+          answer:
+            'Because the early water-loss phase ends, motivation fades, the scale stops being generous, and effort feels heavier just as feedback gets quieter. The job demands more patience right when patience runs lowest. Week one was a hype man. Week six is an accountant.',
+        },
+        {
+          question: "What's the most common reason people quit dieting?",
+          answer:
+            'Not laziness. Misinterpretation. Slower loss gets read as failure, which triggers either tightening the plan or abandoning it. Both responses are reactions to the story of the diet, not the diet itself. The plan was usually fine. The reading was the problem.',
+        },
+        {
+          question: 'Should I change my plan when results slow down?',
+          answer:
+            'Usually no. Most people switch plans because slower feedback feels like failure, not because the plan is wrong. The new plan produces another fast water drop, then slows down, then gets blamed too. The diet carousel keeps running. Patience would have worked.',
+        },
+        {
+          question: "How do I stay motivated when the scale won't budge?",
+          answer:
+            'Stop relying on motivation. Build a default — same breakfast, same training cadence, same weighing rhythm — that runs without conscious effort. Defaults survive bad weeks. Motivation does not. The people who finish are not more inspired. They are more boring.',
+        },
+        {
+          question: 'Is it okay to take a break from dieting?',
+          answer:
+            'Yes, planned. A one-to-two-week diet break at maintenance calories every 4 to 8 weeks on a long cut tends to retain more muscle, reduce hunger, and improve 12-month outcomes versus continuous dieting. The break is part of the program, not quitting it.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'progress-update-2-the-body-changed-slower-than-my-head-did',
+    slug: 'progress-update-body-changes-slower-than-mind',
     title: 'Progress Update #2: The Body Changed Slower Than My Head Did',
     description:
       'A personal progress update on what actually changed after the first stretch of weight-loss lessons: not just the body, but the way panic, appetite, and self-judgment started to quiet down.',
@@ -1017,10 +1549,22 @@ const posts: BlogPost[] = [
     date: '2026-04-25',
     readingTime: '6 min read',
     tags: ['Founder Story', 'Transformation', 'Progress Update', 'Mindset'],
-    heroImage: '/founder/progress-update-hanok-20260119.jpg',
-    heroAlt: 'Founder portrait used for a personal progress update in a polished outdoor setting',
+    seoTitle: 'Weight Loss Progress Update: Body vs Mind',
+    metaDescription:
+      'Body changes slower than mind during weight loss. The body shifted in months; the panic took another year to quiet. A founder note on the lag.',
+    keywords: [
+      'body changes slower than mind during weight loss',
+      'body dysmorphia after weight loss',
+      'phantom fat feeling',
+      "weight loss mind hasn't caught up",
+      'weight loss journey update',
+      'body changes faster than mind',
+    ],
+    cluster: 'founder-story',
+    heroImage: '/founder/progress-update-hanok-20260119.webp',
+    heroAlt: 'Founder portrait from a personal progress update, capturing how body changes slower than mind during weight loss',
     deck:
-      'The biggest visible change was not actually the most important one. The body changed, yes, but the bigger shift was that panic became less convincing.',
+      "The body changes slower than the mind during weight loss — and most of the time, it's the mind that quits first. The biggest visible change was not actually the most important one. The body changed, yes, but the bigger shift was that panic became less convincing.",
     ctaTitle: 'The goal is not just to be lighter.',
     ctaBody:
       'Start with one body check-in and build the kind of weekly record that helps your reading of the body catch up with what is actually changing.',
@@ -1088,7 +1632,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'dont-trust-the-scale-heres-what-actually-proves-youre-losing-weight',
+    slug: 'how-to-know-youre-losing-weight-without-the-scale',
     title: 'Don’t Trust the Scale—Here’s What Actually Proves You’re Losing Weight',
     description:
       'If the scale keeps confusing you, look for better evidence. Real fat-loss signs often show up in body shape, fit, firmness, and where the body starts changing first.',
@@ -1097,10 +1641,50 @@ const posts: BlogPost[] = [
     date: '2026-04-26',
     readingTime: '6 min read',
     tags: ['Scale Weight', 'Progress Tracking', 'Fat Loss', 'Body Image'],
-    heroImage: '/founder/scale-proof-20250919.jpg',
-    heroAlt: 'Founder proof image representing visible fat-loss progress beyond the scale',
+    seoTitle: "How to Know You're Losing Weight Without the Scale",
+    metaDescription:
+      "How to know you're losing weight without the scale: 5 signals fat loss leaves before the number moves. Clothes, jaw, posture — and 2 most people miss.",
+    keywords: [
+      "how to know you're losing weight without the scale",
+      'signs you are losing fat not water',
+      'non scale victories weight loss',
+      'how to tell if losing fat',
+      'ways to track fat loss',
+      'visual signs weight loss',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Stop asking only whether the scale moved',
+        text:
+          "Drop 'am I lighter?' as the only question. Replace it with 'what is changing?' That includes which part of the body feels different, what looks less pushed out, what hangs differently, and what fits differently this week.",
+      },
+      {
+        name: 'Read shape, fit, and feel together',
+        text:
+          'Use photos, clothing fit, where the body has softened or firmed, and posture as a stack. One signal is partial; together they give a more stable read than the scale alone, which is one witness, not the whole case.',
+      },
+      {
+        name: 'Be specific about where changes show up',
+        text:
+          'Notice if the upper abdomen feels less pushed out, if the lower section softens, if the waistline on usual clothes loosens. Naming the location of the change makes it harder for the mirror to argue away on a bad day.',
+      },
+      {
+        name: "Don't let a quiet scale erase body evidence",
+        text:
+          'If clothes fit looser and shape is changing while the scale is flat, the body is recomposing — losing fat and adding small amounts of muscle. The scale missed it because that is not what scales measure.',
+      },
+      {
+        name: 'Track visually, compare over time',
+        text:
+          'Take photos under similar conditions and compare in monthly windows, not week to week. Real weight loss is often visible before the scale officially approves. Repeated visual comparison beats one number for telling whether the work is paying off.',
+      },
+    ],
+    cluster: 'scale',
+    heroImage: '/founder/scale-proof-20250919.webp',
+    heroAlt: "Founder proof image of visible fat loss, demonstrating how to know you're losing weight without the scale",
     deck:
-      'A lot of people want fat loss to come with a receipt. But the scale is one witness, not the whole case. Real proof often shows up in shape, fit, firmness, and repeated visual change.',
+      "Here's how to know you're losing weight without the scale, with proof that holds up across a week. The receipt is rarely a number. A lot of people want fat loss to come with a receipt. But the scale is one witness, not the whole case. Real proof often shows up in shape, fit, firmness, and repeated visual change.",
     ctaTitle: 'Use a better lens than one loud number.',
     ctaBody:
       'If the scale keeps changing its personality, use one body check-in as a calmer baseline and build proof from repeated visual change instead.',
@@ -1113,6 +1697,12 @@ const posts: BlogPost[] = [
           'Instead, they get this: the scale moves weirdly, the mirror feels moody, and the belly looks different on some days and rude on others.',
           'So now they ask the question I hear constantly: how do I know this is real weight loss and not fake progress?',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "How can I tell I'm losing weight without the scale?",
+        answer:
+          'Look at shape, fit, firmness, and where the body is changing. The waistline on familiar clothes loosens before the scale fully cooperates. The upper abdomen feels less pushed out. The lower section softens and shifts. Real fat loss is often visible before it becomes official on a number.',
       },
       {
         type: 'paragraphs',
@@ -1173,10 +1763,42 @@ const posts: BlogPost[] = [
           'Use a better lens. One scan is a number. Weekly check-ins are proof.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What signals show up before the scale moves?',
+          answer:
+            'How clothes fit at the waist. Whether the upper abdomen feels less pushed out. How the lower section sits. Where shape is loosening or shifting. None of these are as neat as a number, but they often arrive earlier than the scale agrees to.',
+        },
+        {
+          question: "Why doesn't fat loss look the same on every body?",
+          answer:
+            'Because fat does not sit or leave the same way for everyone. Some people carry more around the upper abdomen, some lower, some at the back or thighs. Posture and muscle change how the midsection projects. Waiting for one universal pattern keeps people confused for years.',
+        },
+        {
+          question: 'Are progress photos more reliable than the mirror?',
+          answer:
+            "Usually yes, if the conditions match. The mirror reads through the day's mood. A photo taken in the same light, same posture, same time of day every week strips most of that out. Looked at in groups of four, photos catch what the daily mirror misses.",
+        },
+        {
+          question: "What if my clothes look different but the scale hasn't moved?",
+          answer:
+            'Your body composition probably shifted. The scale weighs everything at once: water, gut content, muscle, fat. A flat number can mean fat down and a little muscle up. Clothes catch what the scale is silent about. Trust the fit before the number.',
+        },
+        {
+          question: 'How long should I wait before deciding nothing changed?',
+          answer:
+            'Three weeks at minimum. Most weeks contain enough water and digestive noise to fake a stall in either direction. Comparing weekly photos, weekly waist measurements, and a rolling weekly weight average over three weeks tells you whether the body actually held or moved.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'read-this-before-you-try-to-fix-your-diet-slip',
+    slug: 'what-to-do-after-a-binge-on-a-diet',
     title: 'Read This Before You Try to “Fix” Your Diet Slip',
     description:
       'The first thing to do after a binge is usually not punishment. Most of the sudden weight spike is water, and the real job is finding what made the binge happen in the first place.',
@@ -1185,8 +1807,21 @@ const posts: BlogPost[] = [
     date: '2026-04-27',
     readingTime: '6 min read',
     tags: ['Binge Eating', 'Diet Slips', 'Recovery', 'Appetite'],
-    heroImage: '/founder/diet-slip-checkin-20250725.jpg',
-    heroAlt: 'Founder check-in image representing a difficult diet slip and recovery moment',
+    seoTitle: 'What to Do After a Binge on a Diet (Before You Spiral)',
+    metaDescription:
+      "What to do after a binge on a diet: about 90% of the next-morning scale spike is water. Here's the 48-hour reset that doesn't punish — and doesn't pretend.",
+    keywords: [
+      'what to do after a binge on a diet',
+      'water weight after binge',
+      'binge recovery day after',
+      'how to recover from overeating',
+      'what to eat day after binge',
+      'scale went up after binge',
+    ],
+    schemaType: 'faq',
+    cluster: 'binge',
+    heroImage: '/founder/diet-slip-checkin-20250725.webp',
+    heroAlt: 'Founder check-in shot from a difficult slip-and-recovery moment, visual context for what to do after a binge on a diet',
     deck:
       'The first thing to do after a binge is usually not damage control. It is pattern detection. Panic usually makes the sequel easier to write.',
     ctaTitle: 'Do not answer a binge with theater.',
@@ -1201,6 +1836,12 @@ const posts: BlogPost[] = [
           'No carbs tomorrow. Two workouts. I need to erase this.',
           'That is usually the second mistake. The first mistake already happened. The second one is trying to punish it out of existence.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'What should I do after a binge on a diet?',
+        answer:
+          'Eat your normal breakfast. Drink water. Do not weigh yourself for three to five days. Return to your regular meal plan at the next meal, not next Monday. Most of the scale spike is water, not fat. The damage is not the binge. The damage is the punishment response that turns one meal into a week.',
       },
       {
         type: 'paragraphs',
@@ -1267,10 +1908,42 @@ const posts: BlogPost[] = [
           'You do not need a more theatrical reset. You need fewer reasons to binge again.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How much weight do you actually gain from a binge?',
+          answer:
+            'About 0.2 to 0.5 kg of true fat for most people, even after a 1,500 to 3,500 calorie overshoot. The 1 to 2 kg the scale shows the next morning is almost entirely water, sodium, glycogen, and food still moving through digestion. It clears in three to five days.',
+        },
+        {
+          question: 'Should I skip meals the day after a binge?',
+          answer:
+            'No. Skipping breakfast or lunch as punishment usually drops blood sugar, raises appetite, and makes a second binge likely by late afternoon. Eat your normal meals. Your usual deficit absorbs the binge over 7 to 14 days without any extra effort.',
+        },
+        {
+          question: 'Why did the binge happen in the first place?',
+          answer:
+            "Most binges follow restriction, repetitive meals, ignored cravings, or stress with food as the fast exit. Binges rarely happen randomly. The honest question is not 'why am I weak' but 'what set this up?' Pattern detection beats damage control.",
+        },
+        {
+          question: 'Should I add cardio to compensate for a binge?',
+          answer:
+            'No. Compensation cardio reinforces the punishment loop and does not meaningfully change the math. The additional 300 to 500 calories burned does not undo a binge and trains you to keep using exercise as repayment for food.',
+        },
+        {
+          question: 'When should I take a maintenance week instead?',
+          answer:
+            'If you have binged twice in seven days, or if the plan feels brittle for more than ten days, eat at maintenance for a week. This is not quitting — it is the most common professional intervention for broken diet weeks. Hunger settles, head resets, deficit becomes possible again.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'you-do-not-need-to-love-hunger-you-need-to-understand-it',
+    slug: 'how-to-handle-hunger-pangs-on-a-diet',
     title: 'You Do Not Need to Love Hunger. You Need to Understand It.',
     description:
       'You do not need to romanticize hunger to diet well. The real skill is learning the difference between normal appetite, chaotic cravings, and the kind of food pattern that keeps making hunger louder than it needs to.',
@@ -1279,10 +1952,50 @@ const posts: BlogPost[] = [
     date: '2026-04-28',
     readingTime: '6 min read',
     tags: ['Hunger', 'Dieting', 'Appetite', 'Fasting'],
-    heroImage: '/founder/hunger-editorial-20260106.jpg',
-    heroAlt: 'Founder editorial image used for an article about hunger and appetite during dieting',
+    seoTitle: 'How to Handle Hunger Pangs on a Diet (Without Hating It)',
+    metaDescription:
+      'How to handle hunger pangs on a diet without making them louder. The 2 questions that separate normal hunger from chaos hunger — and which to ignore.',
+    keywords: [
+      'how to handle hunger pangs on a diet',
+      'managing hunger while dieting',
+      'how to stop being hungry on a diet',
+      'hunger vs craving',
+      'dealing with hunger weight loss',
+      'coping with hunger deficit',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Stop treating all hunger like one thing',
+        text:
+          'Separate normal hunger — patient, general, stomach-based — from food noise that arrives specific, urgent, and head-based. Normal hunger is part of being a person. Food noise is usually a system problem, not a character flaw.',
+      },
+      {
+        name: 'Inspect the food pattern before your character',
+        text:
+          'Before blaming willpower, audit the meals. Were they too small, too refined, too repetitive, or too low in protein and volume? Most aggressive hunger is a meal-design problem the diet can fix without you suffering through it.',
+      },
+      {
+        name: 'Build meals that hold appetite for hours',
+        text:
+          'Aim for 30 to 45 grams of protein per meal with high-volume vegetables and some fiber. Low-volume meals heavy in refined carbs leave most people hungry two hours later, regardless of the calorie count on paper.',
+      },
+      {
+        name: "Don't make fasting a morality badge",
+        text:
+          'If intermittent fasting works for you, fine. If the long unfed window is amplifying an evening spike, the schedule is not saving you. The food pattern has to be stable first. The clock alone does not rescue chaos.',
+      },
+      {
+        name: 'Aim for quieter hunger, not heroic suffering',
+        text:
+          "Track which meals leave appetite calmer and which leave it loud. Adjust toward calmer. The goal is a system you can actually live with, not a daily fight you keep winning by force until the day you don't.",
+      },
+    ],
+    cluster: 'appetite',
+    heroImage: '/founder/hunger-editorial-20260106.webp',
+    heroAlt: 'Founder editorial shot used for a piece on how to handle hunger pangs on a diet without binging or quitting',
     deck:
-      'You do not need to enjoy hunger to diet well. You need to understand what kind of hunger you are dealing with, and what kind of food pattern keeps making it louder.',
+      "Here's how to handle hunger pangs on a diet without treating every signal as a failure of willpower. Most pangs want context, not food. You do not need to enjoy hunger to diet well. You need to understand what kind of hunger you are dealing with, and what kind of food pattern keeps making it louder.",
     ctaTitle: 'Aim for quieter hunger, not heroic suffering.',
     ctaBody:
       'Track the pattern that makes appetite louder or calmer. The goal is not drama. It is a system you can actually live with.',
@@ -1294,6 +2007,12 @@ const posts: BlogPost[] = [
           'Right. And while we are at it, should we learn to enjoy airport security and low battery notifications too?',
           'Hunger is not a personality test. You do not win points for making it dramatic.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I handle hunger pangs on a diet?',
+        answer:
+          'Stop treating all hunger as one signal. Normal hunger between meals is fine. Aggressive food noise that ambushes the day usually means the meals are too small, too repetitive, or too restrictive. Aim for quieter hunger, not heroic suffering. Inspect the food pattern before inspecting your character.',
       },
       {
         type: 'paragraphs',
@@ -1357,10 +2076,42 @@ const posts: BlogPost[] = [
           'You do not need to love hunger. You need to understand it.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: "What's the difference between hunger and food noise?",
+          answer:
+            'Real hunger is general, patient, and stomach-based. Any reasonable meal satisfies it. Food noise is specific, urgent, and head-based. You eat and the thought of food does not quiet down. Food noise usually points to a system problem, not a willpower problem.',
+        },
+        {
+          question: 'What foods actually keep you full longest?',
+          answer:
+            'High-protein meals, plus high-volume vegetables, plus some fiber. A 30 to 45 gram protein meal with a real vegetable component holds appetite for hours. Low-volume meals heavy in refined carbs leave most people hungry two hours later regardless of calorie count.',
+        },
+        {
+          question: 'Does intermittent fasting help with hunger?',
+          answer:
+            "For some people, yes. For others, the long unfed window amplifies the evening spike. Fasting works when the underlying food pattern is stable. It does not rescue a fragile pattern. Try it for two to three weeks and read your own response, not someone else's.",
+        },
+        {
+          question: 'Why is my hunger getting worse the longer I diet?',
+          answer:
+            'Hormonal signals shift during sustained dieting in ways that raise appetite. Restriction also makes ordinary food feel more important than it is. The longer the deficit and the tighter the rules, the louder the appetite. A planned diet break often quiets it.',
+        },
+        {
+          question: "Should I drink water when I'm hungry?",
+          answer:
+            'It sometimes helps, but it is overrated as a fix. Water can blunt mild hunger for 20 to 40 minutes. It cannot replace a missing meal. If the hunger keeps returning after water, the body is asking for actual fuel and the meal structure needs adjusting.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'if-your-diet-broke-your-sleep-it-is-not-discipline-anymore',
+    slug: 'why-cant-i-sleep-on-a-calorie-deficit',
     title: 'If Your Diet Broke Your Sleep, It Is Not Discipline Anymore',
     description:
       'If dieting and training hard left you exhausted but unable to sleep, the plan may be under-fueling you. Persistent insomnia deserves real attention, not more self-blame.',
@@ -1369,10 +2120,23 @@ const posts: BlogPost[] = [
     date: '2026-04-29',
     readingTime: '6 min read',
     tags: ['Sleep', 'Overcorrection', 'Dieting', 'Training Stress'],
-    heroImage: '/founder/sleep-reflective-window-20241217.jpg',
-    heroAlt: 'Founder reflective image by a window used for an article about diet-related insomnia and overcorrection',
+    seoTitle: "Why Can't I Sleep on a Calorie Deficit?",
+    metaDescription:
+      "Why can't I sleep on a calorie deficit? Under-fueling a hard-trained body wakes you at 4 a.m. Here's the small fix that doesn't break the cut.",
+    keywords: [
+      "why can't I sleep on a calorie deficit",
+      'diet ruined my sleep',
+      'insomnia from dieting',
+      'calorie deficit sleep problems',
+      'dieting and insomnia',
+      'sleep disrupted weight loss',
+    ],
+    schemaType: 'faq',
+    cluster: 'exercise',
+    heroImage: '/founder/sleep-reflective-window-20241217.webp',
+    heroAlt: "Founder reflective shot by a window, framing the article on why can't I sleep on a calorie deficit and what to do",
     deck:
-      'If dieting and training hard left you exhausted but unable to sleep, the answer is probably not to become even stricter. Sometimes the plan is not impressive. It is just under-fueling a body asked to do too much.',
+      "Why can't I sleep on a calorie deficit, even when I'm exhausted? Usually because the deficit is bigger than the body wants to admit. If dieting and training hard left you exhausted but unable to sleep, the answer is probably not to become even stricter. Sometimes the plan is not impressive. It is just under-fueling a body asked to do too much.",
     ctaTitle: 'Do not romanticize a plan that is breaking signals.',
     ctaBody:
       'If your body is filing complaints, step back and get a clearer read on the pattern instead of answering distress with more discipline theater.',
@@ -1385,6 +2149,12 @@ const posts: BlogPost[] = [
           'Then 4:00 a.m. shows up and you are wide awake for no respectable reason.',
           'Now you are lying there doing exhausted math: I am eating clean. I am training hard. I am doing everything right. So why does my body feel like it is filing a complaint?',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "Why can't I sleep on a calorie deficit?",
+        answer:
+          'Usually because the deficit is bigger than the body wants to admit, especially if training is also high. Hard sessions plus aggressive food cuts plus poor sleep is not discipline. It is a low-grade emergency. Severe fatigue stacked with insomnia means the plan is under-fueling a body asked to do too much.',
       },
       {
         type: 'paragraphs',
@@ -1443,20 +2213,65 @@ const posts: BlogPost[] = [
           'Because if your diet broke your sleep, the answer is probably not to try even harder.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Is insomnia a normal part of dieting?',
+          answer:
+            'Mild restless nights happen for many people in the first weeks. Persistent 4 a.m. wake-ups, severe fatigue, and a body that feels fragile are not normal. They are signs the plan and the training load are out of balance. Persistent insomnia deserves real attention.',
+        },
+        {
+          question: "Why does 'not hungry' not equal 'well-fueled'?",
+          answer:
+            'Appetite gets weird when the system is pushed too hard. Feeling less hungry can mean the body has stopped expecting fuel, not that it has enough. If performance is dropping, sleep is wrecked, and energy is low, low appetite is not proof of success.',
+        },
+        {
+          question: 'Should I add more calories or train less?',
+          answer:
+            'Usually both, but eating slightly more is the cheaper move first. A small bump in carbs or total calories often restores sleep within a week. If insomnia continues despite that, training volume needs to come down too. Make the plan more livable before making it more extreme.',
+        },
+        {
+          question: 'Why do clean-looking diets still wreck the person doing them?',
+          answer:
+            'A plan can photograph well and still under-fuel the body running it. Disciplined-looking meals and admirable workouts mean nothing if the person is freezing, waking at 4 a.m., and dragging through the day. The plan was never meant to produce a low-grade emergency.',
+        },
+        {
+          question: 'When should I see a doctor?',
+          answer:
+            'When sleep stays broken for more than two to three weeks despite eating more, training less, and stabilizing the basics. Persistent insomnia, racing heart, severe mood changes, or lasting fatigue are not diet badges. They are reasons to get a real medical opinion.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'cheat-days-do-not-expose-your-character-they-expose-your-system',
+    slug: 'are-cheat-days-bad-for-weight-loss',
     title: 'Cheat Days Do Not Expose Your Character. They Expose Your System.',
     description:
-      'Some people binge on cheat days and some do not. The difference is often not willpower. It is whether the body and the food environment are still primed for rebound.',
+      'Are cheat days bad for weight loss? Not for everyone — and the difference says more about the rest of your week than your willpower. Some people binge on cheat days and some do not. The difference is often not willpower. It is whether the body and the food environment are still primed for rebound.',
     socialDescription:
       'Cheat days are not great judges of character. Most of the time they reveal how unstable the weekly setup still is.',
     date: '2026-04-30',
     readingTime: '6 min read',
     tags: ['Cheat Day', 'Binge Eating', 'Relapse', 'Dieting'],
-    heroImage: '/founder/cheat-day-checkin-20250719.jpg',
-    heroAlt: 'Founder check-in image representing rebound eating and cheat-day instability',
+    seoTitle: 'Are Cheat Days Bad for Weight Loss? Why They Backfire',
+    metaDescription:
+      "Are cheat days bad for weight loss? Depends if the rest of your week is a release valve waiting to blow. Here's the test before you plan one.",
+    keywords: [
+      'are cheat days bad for weight loss',
+      'do cheat days work for weight loss',
+      'cheat meal vs cheat day',
+      'cheat day psychology',
+      'planned cheat meals diet',
+      'when cheat days backfire',
+    ],
+    schemaType: 'faq',
+    cluster: 'binge',
+    heroImage: '/founder/cheat-day-checkin-20250719.webp',
+    heroAlt: 'Founder check-in image from a rebound-eating week, anchoring the question of whether cheat days are bad for weight loss',
     deck:
       'Cheat days get marketed like rewards, but for a lot of people they function more like release valves. The real question is not whether you are strong. It is whether the system is still built for rebound.',
     ctaTitle: 'Cheat day is not the real question.',
@@ -1471,6 +2286,12 @@ const posts: BlogPost[] = [
           'Then half the people who try them end up face-first in a buffet wondering why one meal turned into a full emotional incident.',
           'So now they make the obvious conclusion: I have no self-control.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Are cheat days bad for weight loss?',
+        answer:
+          'It depends on how restrictive the rest of the week is. For people with steady food patterns, a planned cheat meal is fine. For people running tight all-or-nothing weeks, the cheat day usually turns into a payback event. The food is rarely the real story. The system that needed the release valve is.',
       },
       {
         type: 'paragraphs',
@@ -1524,10 +2345,42 @@ const posts: BlogPost[] = [
           'Cheat days do not usually expose your character. They expose what your system still cannot absorb calmly.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why do cheat days turn into binges for some people?',
+          answer:
+            'Because the body and brain were primed for it. Sustained restriction, loud appetite, and forbidden-food framing make cheat day function as compensation, not relaxation. The same pizza eaten by someone with a calmer pattern is just a meal. Same food. Different aftermath.',
+        },
+        {
+          question: 'Is one cheat meal less damaging than a cheat day?',
+          answer:
+            "Usually yes. A single meal is easier to absorb into the week's total than a full day. Cheat-day expansion — meal becomes day, day becomes weekend — is the actual risk, not the original meal. Smaller, less ritualized indulgences cause less rebound for most people.",
+        },
+        {
+          question: 'Should I plan cheat meals or eat intuitively?',
+          answer:
+            "Either works depending on your relationship with food. If forbidden foods still carry an emotional charge, planned cheat meals reduce surprise binges. If the weekly pattern is calm and food noise is low, intuitive indulgences work. Read your own pattern, not someone else's rule.",
+        },
+        {
+          question: 'How do I stop cheat days from turning into cheat weeks?',
+          answer:
+            'Watch for cheat-day expansion early. Track when the meal becomes a day. Return to normal at the next meal, not next Monday. Build a week that does not need a scheduled explosion in the first place. Restriction creates the pressure that the cheat day releases.',
+        },
+        {
+          question: 'Will cheat days slow my weight loss?',
+          answer:
+            "One planned cheat meal a week, absorbed into the week's total, has minimal effect on a fat-loss phase. A cheat weekend that adds 3,000 calories, repeated weekly, is effectively a maintenance phase. Whether it slows you depends entirely on whether the days around it return to plan.",
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'youve-been-told-one-bad-day-wont-hurt-but-thats-only-half-the-truth',
+    slug: 'does-one-bad-day-ruin-a-diet',
     title: 'You’ve Been Told “One Bad Day Won’t Hurt”—But That’s Only Half the Truth',
     description:
       'One binge day usually does less damage than several days of overeating, but that does not make cheat-day logic harmless. The real danger is how quickly a “once in a while” escape starts expanding.',
@@ -1536,10 +2389,23 @@ const posts: BlogPost[] = [
     date: '2026-05-01',
     readingTime: '6 min read',
     tags: ['Cheat Day', 'Binge Eating', 'Habits', 'Weight Loss'],
-    heroImage: '/founder/cheat-day-founder-20251221.jpg',
-    heroAlt: 'Founder portrait representing the emotional logic behind cheat-day overcorrection',
+    seoTitle: 'Does One Bad Day Ruin a Diet? The Honest Answer',
+    metaDescription:
+      "Does one bad day ruin a diet? Mostly no — until 'one bad day' becomes a strategy. Here's the math on 1 bad day vs 3 in a row.",
+    keywords: [
+      'does one bad day ruin a diet',
+      'can one bad day ruin a diet',
+      'did I ruin my diet in one day',
+      'one cheat day damage',
+      'several bad days in a row diet',
+      'bad day diet recovery',
+    ],
+    schemaType: 'faq',
+    cluster: 'binge',
+    heroImage: '/founder/cheat-day-founder-20251221.webp',
+    heroAlt: 'Founder portrait holding the emotional logic behind the question, does one bad day ruin a diet or just dent it',
     deck:
-      'One bad day usually does less damage than several bad days in a row. The problem is how quickly that technically true idea turns into behaviorally disastrous cheat-day logic.',
+      'Does one bad day ruin a diet? Almost never — but the next three days decide whether one bad day stays one bad day. One bad day usually does less damage than several bad days in a row. The problem is how quickly that technically true idea turns into behaviorally disastrous cheat-day logic.',
     ctaTitle: 'Use the truth to stay calm, not to get clever.',
     ctaBody:
       'Track whether the occasional release valve is quietly turning into a structure and use pattern visibility before panic or permission takes over.',
@@ -1552,6 +2418,12 @@ const posts: BlogPost[] = [
           'Short answer? Usually, yes.',
           'Longer answer? That fact has ruined a lot of diets when people misunderstand what it means.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Does one bad day ruin a diet?',
+        answer:
+          'Usually not. One overshoot day is technically less damaging than several moderate-overshoot days in a row. Body fat is built from patterns, not single events. The real risk is not the bad day. It is the cheat-day expansion that follows: one meal becomes a weekend, the weekend becomes a reset Monday that keeps moving.',
       },
       {
         type: 'paragraphs',
@@ -1612,10 +2484,42 @@ const posts: BlogPost[] = [
           'The problem is that people who need that sentence most are often one step away from turning it into a lifestyle.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How much weight can one bad day actually add?',
+          answer:
+            'Maybe 0.2 to 0.5 kg of true fat in extreme cases. The 1 to 2 kg the scale shows the next morning is almost entirely water, glycogen, and food volume from the carbohydrates and sodium. Most of it leaves within three to five days of normal eating.',
+        },
+        {
+          question: 'Should I skip breakfast the day after a bad day?',
+          answer:
+            'No. Skipping breakfast as punishment usually drops blood sugar and triggers a second overeat by late afternoon. Eat your normal breakfast. Return to your normal lunch and dinner. Treat yesterday as yesterday. Do not chain two bad days together by trying to compensate.',
+        },
+        {
+          question: 'What turns one bad day into a bad week?',
+          answer:
+            "Three things: punishment-style restriction the next morning, the all-or-nothing 'I already blew it' framing, and weighing in too soon and reading the water spike as fat. Any of those alone can stretch one meal into five days off plan.",
+        },
+        {
+          question: 'Are scheduled cheat days a smart strategy?',
+          answer:
+            'Sometimes, but they often expand. The cheat meal becomes a cheat day, the cheat day becomes a cheat weekend, and anticipation of the release starts driving weekday behavior. If you find yourself counting down to the cheat day, the system is too tight the rest of the week.',
+        },
+        {
+          question: 'How long should I wait to weigh in after a bad day?',
+          answer:
+            'Three to five days, under your usual conditions. The scale will lie upward for that window because of water and sodium, and reading the lie usually triggers more off-plan eating. Skip the morning weigh-in until the noise has cleared.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'do-people-who-have-been-obese-for-years-lose-weight-more-slowly',
+    slug: 'do-obese-people-lose-weight-slower',
     title: 'Do People Who Have Been Obese for Years Lose Weight More Slowly?',
     description:
       'Weight gained quickly is often water and leaves quickly. Weight gained slowly over years is usually more fat, so it takes longer to change. But that does not mean your body is uniquely doomed.',
@@ -1624,10 +2528,23 @@ const posts: BlogPost[] = [
     date: '2026-05-02',
     readingTime: '6 min read',
     tags: ['Long-Term Obesity', 'Weight Loss', 'Habits', 'Mindset'],
-    heroImage: '/founder/long-game-founder-20251221.jpg',
-    heroAlt: 'Founder portrait used for a long-game perspective on weight loss',
+    seoTitle: 'Do Obese People Lose Weight Slower Than Others?',
+    metaDescription:
+      "Do obese people lose weight slower than others? Not slower per pound — but more of it is true fat, not water. Here's why the first month feels heavier.",
+    keywords: [
+      'do obese people lose weight slower than others',
+      'harder to lose weight after obesity',
+      'long-term obesity weight loss rate',
+      'slower fat loss after being obese',
+      'how fast can obese people lose weight',
+      'obesity duration weight loss speed',
+    ],
+    schemaType: 'faq',
+    cluster: 'body-composition',
+    heroImage: '/founder/long-game-founder-20251221.webp',
+    heroAlt: 'Founder portrait from the long-game phase, used to ask whether obese people lose weight slower than others on the same plan',
     deck:
-      'If weight came on slowly over years, more of it is usually true fat rather than temporary water. That can make the process feel heavier, but it does not mean your body is uniquely cursed.',
+      'Do obese people lose weight slower than others? On the scale, sometimes the opposite — but the fat under it tells a longer story. If weight came on slowly over years, more of it is usually true fat rather than temporary water. That can make the process feel heavier, but it does not mean your body is uniquely cursed.',
     ctaTitle: 'If the long game is your game, use long-game tools.',
     ctaBody:
       'When the process is slower, the answer is not more shame. It is better weekly interpretation and better pattern-reading.',
@@ -1640,6 +2557,12 @@ const posts: BlogPost[] = [
           'If I have been overweight for a long time, am I just stuck with a worse deal? Did I wait too long? Is this going to take forever because I was this size for years?',
           'That is what people really want to know.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Do obese people lose weight slower than others?',
+        answer:
+          'Not slower per pound, often faster early. But more of the loss is true fat instead of water, so it takes longer to feel and see. Weight gained slowly over years is mostly fat, and fat moves slower than water. Long-term obesity is also a long-term habit pattern. Both take time to change.',
       },
       {
         type: 'paragraphs',
@@ -1701,20 +2624,65 @@ const posts: BlogPost[] = [
           'This is harder, yes. But harder is not the same as hopeless.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: "Why does 'gained quickly, lost quickly' not apply here?",
+          answer:
+            'That phrase is usually about water. Holiday eating, travel, and a few salty days can move 3 to 5 kg of water that comes off fast. Fat built up over years is a different story. The body did not store it overnight, and it does not leave overnight.',
+        },
+        {
+          question: 'Is the metabolism actually broken?',
+          answer:
+            'Usually no. The fat itself is not stubborn because it has been there longer. The pattern around it is. Years of certain meals, routines, and stress responses became normal, and that is what feels hardest to change. The body is not signing secret contracts against you.',
+        },
+        {
+          question: 'Will I always crave the foods I crave now?',
+          answer:
+            'Probably not. Most cravings shift as the body and routine change. The thoughts that feel permanent today are usually thoughts produced by the body and lifestyle you have right now. When the body changes, the mind tends to follow, even if it lags by months.',
+        },
+        {
+          question: "What's a realistic rate of fat loss after long-term obesity?",
+          answer:
+            "Roughly 0.5 to 1 percent of body weight per week is sustainable for most people. The first month often shows more because of water. Then the rate steadies into a quieter, less photogenic version. The total trajectory matters more than any single week's number.",
+        },
+        {
+          question: 'How should I track if the long game is mine?',
+          answer:
+            'Use weekly check-ins, not daily verdicts. Photos, fit, waist measurements, and a rolling weight average over three to four weeks. The body is moving slower than emotion is. Daily readings make panic more persuasive than progress, which is the worst combination over years.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'why-appetite-feels-stronger-the-longer-you-diet',
+    slug: 'why-is-my-appetite-stronger-on-a-diet',
     title: 'Why Appetite Feels Stronger the Longer You Diet',
     description:
-      'If dieting has made food feel louder, that does not automatically mean you are weak. Appetite often gets more chaotic when the system becomes too restrictive, repetitive, or emotionally brittle.',
+      "Why is my appetite stronger on a diet, even when I'm eating enough on paper? Restriction makes the brain louder, not just the stomach. If dieting has made food feel louder, that does not automatically mean you are weak. Appetite often gets more chaotic when the system becomes too restrictive, repetitive, or emotionally brittle.",
     socialDescription:
       'If food started sounding louder the longer you dieted, that is not always a character problem. Sometimes it is a system problem.',
     date: '2026-05-03',
     readingTime: '7 min read',
     tags: ['Appetite', 'Dieting', 'Cravings', 'Weight Loss'],
-    heroImage: '/founder/hunger-editorial-20260106.jpg',
-    heroAlt: 'Founder editorial image used for an article about appetite getting louder during dieting',
+    seoTitle: 'Why Is My Appetite Stronger the Longer I Diet?',
+    metaDescription:
+      "Why is my appetite stronger on a diet, not weaker? Hunger climbs the longer you cut — leptin drops, ghrelin rises. Here's what to do at week 8.",
+    keywords: [
+      'why is my appetite stronger on a diet',
+      'hunger gets worse the longer you diet',
+      'appetite increases with weight loss',
+      'diet fatigue hunger',
+      'why am I hungrier on a diet',
+      'food noise while dieting',
+    ],
+    schemaType: 'faq',
+    cluster: 'appetite',
+    heroImage: '/founder/hunger-editorial-20260106.webp',
+    heroAlt: 'Founder editorial shot from the loud-hunger middle of a cut, anchoring why is my appetite stronger on a diet',
     deck:
       'If food has started sounding louder the longer you have been dieting, that does not automatically mean you failed. Sometimes it means the system got too restrictive, too repetitive, or too emotionally brittle to stay quiet.',
     ctaTitle: 'Track what makes appetite louder.',
@@ -1732,6 +2700,12 @@ const posts: BlogPost[] = [
           'Now your brain starts writing the usual insult: maybe I am just weak. Maybe I do not want this badly enough.',
           'That explanation is emotionally convenient. It is also often lazy.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why is my appetite stronger the longer I diet?',
+        answer:
+          'Because dieting changes hunger signaling over time. Restriction makes ordinary food feel more important than it is. The first weeks run on novelty and momentum. Several weeks in, the system stops cooperating and food gets louder, both in the stomach and in the head. That usually means a pattern problem, not a willpower problem.',
       },
       {
         type: 'paragraphs',
@@ -1814,10 +2788,42 @@ const posts: BlogPost[] = [
           'That is where better dieting actually starts.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why does the early phase feel easier than the middle?',
+          answer:
+            'Because momentum carries the first stretch. The plan is fresh, the rules feel meaningful, and the scale is generous. People often mistake that phase for being disciplined. The harder phase comes later, when the system has had time to argue back.',
+        },
+        {
+          question: "What's the difference between hunger and food noise?",
+          answer:
+            'Hunger is general, patient, and stomach-based. Any reasonable meal satisfies it. Food noise is loud in the head, specific, and does not quiet down even after eating. Food noise usually points to a system problem — too much restriction, too little variety — not a character flaw.',
+        },
+        {
+          question: 'Why do cheat meals start feeling so emotional?',
+          answer:
+            'Because the rest of the week became joyless. When food gets moralized, ordinary meals turn into anticipation, fantasy, and resentment. The cheat meal stops being a meal and becomes scheduled relief. That is why so many of them turn into binges instead of meals.',
+        },
+        {
+          question: 'What usually quiets appetite back down?',
+          answer:
+            'Meals that are actually satisfying. Less mythology around specific foods. Fewer all-or-nothing swings. A structure you can stay inside without fantasizing about escape all day. Once cravings stop being treated as character verdicts, the system has space to settle.',
+        },
+        {
+          question: 'Is louder appetite a sign I should quit the diet?',
+          answer:
+            'Not automatically. It is a sign the system needs adjustment, not abandonment. A planned diet break, a small calorie bump, or fewer banned foods often fixes it within a couple of weeks. Quitting because of louder appetite usually starts the next round at the same pattern.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'exercise-isnt-shrinking-you-the-way-you-expected',
+    slug: 'why-am-i-working-out-but-not-losing-weight',
     title: 'Exercise Is Not Shrinking You the Way You Expected',
     description:
       'If you are working out consistently and still not shrinking, the problem probably is not the workout. It is what the workout is actually doing.',
@@ -1826,10 +2832,23 @@ const posts: BlogPost[] = [
     date: '2026-05-04',
     readingTime: '5 min read',
     tags: ['Exercise', 'Weight Loss', 'Body Composition', 'Fitness Myths'],
-    heroImage: '/founder/body-composition-proof-20251221.jpg',
-    heroAlt: 'Founder mid-training session during the middle phase of transformation',
+    seoTitle: 'Why Am I Working Out but Not Losing Weight?',
+    metaDescription:
+      'Why am I working out but not losing weight? Exercise builds composition first, weight loss second. The scale catches up by week 6 to 12, usually.',
+    keywords: [
+      'why am I working out but not losing weight',
+      'exercise not losing weight',
+      'going to the gym but not losing weight',
+      'exercising every day no weight loss',
+      'why is my scale not moving with exercise',
+      'gym not working weight loss',
+    ],
+    schemaType: 'faq',
+    cluster: 'exercise',
+    heroImage: '/founder/body-composition-proof-20251221.webp',
+    heroAlt: 'Founder mid-training shot from the middle phase, framing why am I working out but not losing weight on the scale',
     deck:
-      'Exercise is not a shrinking machine. It is a body-composition machine, a metabolism-shaping machine, a stress-processing machine. What it is not, consistently, is a quick way to remove fat.',
+      "Why am I working out but not losing weight? Because exercise reshapes the body more than it shrinks it — and the scale doesn't reward that. Exercise is not a shrinking machine. It is a body-composition machine, a metabolism-shaping machine, a stress-processing machine. What it is not, consistently, is a quick way to remove fat.",
     ctaTitle: 'Separate training from shrinkage.',
     ctaBody:
       'The workout builds the engine. The plate decides what the engine runs on. Start with a weekly check-in that shows both, not just the scale.',
@@ -1841,6 +2860,12 @@ const posts: BlogPost[] = [
           'Four days a week. Sometimes five. The workouts feel hard. Your clothes feel about the same.',
           'That is the part nobody warns you about.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why am I working out but not losing weight?',
+        answer:
+          'Because exercise is not a shrinking machine. A full hour of cardio burns 300 to 500 calories, which most people eat back without noticing. Training also raises appetite and retains water in recovering tissue. The workout builds the engine. The plate decides what the engine runs on. The scale catches up last.',
       },
       {
         type: 'paragraphs',
@@ -1892,20 +2917,65 @@ const posts: BlogPost[] = [
           'The scale will catch up. It usually catches up last.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How many calories does a workout actually burn?',
+          answer:
+            "Less than people think. A vigorous one-hour gym session burns roughly 300 to 500 calories depending on body mass and intensity. Most fitness trackers overestimate by 20 to 50 percent. A single post-workout snack often covers the entire session's burn.",
+        },
+        {
+          question: 'Why does the scale go up after I start exercising?',
+          answer:
+            'Recovering muscle holds extra water for a few days, which adds 0.5 to 1.5 kg of scale weight that has nothing to do with fat. Appetite also nudges up, so intake often rises slightly. Both effects pass. The scale rarely lies long-term, just short-term.',
+        },
+        {
+          question: "Should I do more cardio if the scale isn't moving?",
+          answer:
+            'Usually no. Adding cardio to a stalled cut often triggers compensatory eating and lower NEAT later in the day. The session burned 300 calories. The compensation ate them back. Run an honest tracking week, take a diet break, or adjust intake before adding cardio.',
+        },
+        {
+          question: 'Does lifting weights actually help with fat loss?',
+          answer:
+            'Indirectly, yes. Lifting preserves muscle during a deficit so more of the scale loss is fat. It does not burn many calories during the session itself. The long-term composition payoff is real even when the weekly scale change is small.',
+        },
+        {
+          question: 'How long until exercise shows in the mirror?',
+          answer:
+            'Strength changes show up in 6 to 8 weeks. Visible shape change for most recreational lifters is 12 to 16 weeks, sometimes longer. The numbers in the gym move first. The body moves second. Most people quit at week 5 to 9, right before the visual change starts.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-unglamorous-middle-of-transformation',
+    slug: 'why-is-the-middle-of-weight-loss-the-hardest',
     title: 'The Unglamorous Middle of a Transformation',
     description:
       'Before-and-after photos make transformations look linear. The middle is where most people quit. This is what it actually looked like.',
     socialDescription:
-      'The before photo is easy. The after photo is easy. The six months between them is where everybody quits.',
+      "Why is the middle of weight loss the hardest stretch? The dramatic feedback is gone and the work hasn't ended. The before photo is easy. The after photo is easy. The six months between them is where everybody quits.",
     date: '2026-05-05',
     readingTime: '6 min read',
     tags: ['Founder Story', 'Transformation', 'Weight Loss', 'Consistency'],
-    heroImage: '/founder/patience-middle-checkin-20250731.jpg',
-    heroAlt: 'Founder during the middle phase of transformation, not before, not after',
+    seoTitle: 'Why Is the Middle of Weight Loss the Hardest?',
+    metaDescription:
+      "Why is the middle of weight loss the hardest? Months 3 to 9 don't photograph well. Here's what the unglamorous middle looks like — and why most quit.",
+    keywords: [
+      'why is the middle of weight loss the hardest',
+      'middle of weight loss journey',
+      'messy middle transformation',
+      'hardest phase of weight loss',
+      'plateau stage motivation',
+      'weight loss motivation middle',
+    ],
+    schemaType: 'faq',
+    cluster: 'founder-story',
+    heroImage: '/founder/patience-middle-checkin-20250731.webp',
+    heroAlt: 'Founder mid-transformation portrait, neither before nor after, showing why is the middle of weight loss the hardest',
     deck:
       'The before photo is easy. The after photo is easy. The six months between them is where everybody quits.',
     ctaTitle: 'Stay inside the middle.',
@@ -1918,6 +2988,12 @@ const posts: BlogPost[] = [
           'The before photo is easy. The after photo is easy.',
           'The six months between them is where everybody quits.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why is the middle of weight loss the hardest stretch?',
+        answer:
+          'Because the dramatic feedback is gone and the work has not ended. The first 5 kg often come from water, better sleep, and accidental protein increases. The middle is when the body starts negotiating, the novelty fades, and the diet becomes boring. Most transformation content skips it because the middle is not a story.',
       },
       {
         type: 'paragraphs',
@@ -1960,10 +3036,42 @@ const posts: BlogPost[] = [
           'The after photo is produced by a boring middle. There is no shortcut past it. There are only people who got through it and people who restarted.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Is the middle the same as a plateau?',
+          answer:
+            'No. A plateau is the body holding under the same conditions for three or more weeks. The middle is broader: the easy wins are gone, motivation has thinned, and the work has become unphotogenic. The graph still moves; it just moves quietly.',
+        },
+        {
+          question: 'Why do most people quit during this phase?',
+          answer:
+            'Because the dopamine drops at the same time the work continues. Visible feedback stops. Compliments slow. The plan still demands the same things and gives back less. People assume something is wrong with the program. Usually the program is fine. The middle is the cost of being in one.',
+        },
+        {
+          question: 'Should I change the plan if the middle drags?',
+          answer:
+            'Usually not. Chasing a new plan in the middle is almost always a way to feel busy without making progress. The middle keeps asking for novelty because novelty feels like motion. It is not. The skill in the middle is staying boring while the body adapts.',
+        },
+        {
+          question: 'How long does the middle usually last?',
+          answer:
+            'Months three through nine for most longer cuts. Some people get out earlier; many take longer. The exact length matters less than recognizing what phase you are in. Treating month four like month one is the fastest way to make month five worse than it had to be.',
+        },
+        {
+          question: 'What is actually happening to the body in the middle?',
+          answer:
+            'Habits are becoming structure. The body is learning what the new normal is. Composition shifts are quietly continuing. Maintenance calories are dropping as the body gets smaller. None of that photographs well. All of it is the program doing the thing it is supposed to do.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'is-it-bloat-or-is-it-fat',
+    slug: 'is-my-stomach-bloat-or-fat',
     title: 'Is It Bloat or Is It Fat',
     description:
       'A practical guide to distinguishing temporary bloat from real fat gain, so you stop reacting to noise as if it is signal.',
@@ -1972,10 +3080,23 @@ const posts: BlogPost[] = [
     date: '2026-05-06',
     readingTime: '5 min read',
     tags: ['Body Composition', 'Scale', 'Water Weight', 'Daily Fluctuation'],
-    heroImage: '/founder/water-weight-proof-20251031.jpg',
-    heroAlt: 'Founder image illustrating difference between water-weight fluctuation and real fat',
+    seoTitle: 'Is My Stomach Bloat or Fat? How to Tell',
+    metaDescription:
+      "How to tell if my stomach is bloat or fat: the body can't make 1.5 kg of fat overnight. Here's the 3-question test that ends most morning panic.",
+    keywords: [
+      'how to tell if my stomach is bloat or fat',
+      'is my belly bloat or fat',
+      'bloating vs belly fat difference',
+      'how to tell bloat from fat gain',
+      'stomach swelling vs fat',
+      'bloat feels hard belly fat soft',
+    ],
+    schemaType: 'faq',
+    cluster: 'body-composition',
+    heroImage: '/founder/water-weight-proof-20251031.webp',
+    heroAlt: 'Founder composition shot used to illustrate how to tell if my stomach is bloat or fat after eating or by morning',
     deck:
-      'This is one of the most useful questions anyone can ask. It is also one of the most mis-answered.',
+      "Here's how to tell if your stomach is bloat or fat: time it across days, not minutes. Bloat moves; fat doesn't. This is one of the most useful questions anyone can ask. It is also one of the most mis-answered.",
     ctaTitle: 'Wait before you react.',
     ctaBody:
       'Almost everything that makes the scale move quickly is not fat. A rolling average tells a truer story than today is number. Start with a weekly read that filters daily noise.',
@@ -1986,6 +3107,12 @@ const posts: BlogPost[] = [
           'This is one of the most useful questions anyone can ask.',
           'It is also one of the most mis-answered.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I tell if my stomach is bloat or fat?',
+        answer:
+          'Time it across days, not minutes. Bloat moves; fat does not. The body cannot synthesize 1.5 kg of fat overnight — that would take roughly 11,000 calories above maintenance in a day. Real fat gain is slow, gradual, and survives a normal week. If the spike clears in three days, it was never fat.',
       },
       {
         type: 'paragraphs',
@@ -2033,10 +3160,42 @@ const posts: BlogPost[] = [
           'The honest answer is: it is almost always bloat, and even when it is not, waiting does not cost you anything.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Can I really gain 1.5 kg of fat overnight?',
+          answer:
+            'No. That would require roughly 11,000 calories above maintenance in 24 hours, and you would remember doing it. Overnight scale jumps of 1 to 2 kg are almost entirely water, sodium, glycogen, and food still moving through digestion. Fat does not arrive that fast.',
+        },
+        {
+          question: 'What does real fat gain look like on the scale?',
+          answer:
+            'Slow, quiet, and unglamorous. Usually a gradual drift of 0.5 to 1 kg over two to four weeks that does not reverse after a normal day. The daily noise is still there, but the trendline is moving in one direction across multiple weeks.',
+        },
+        {
+          question: 'How can I tell which is which in the moment?',
+          answer:
+            'Usually you cannot, in the moment. That is the point. Wait four days, weigh again under your usual conditions. If the spike has cleared, it was bloat. If it has held across three consecutive measurements under usual conditions, then it is worth looking at.',
+        },
+        {
+          question: 'What about how the mirror looks?',
+          answer:
+            'The mirror is worse than the scale for this. Bloat changes how you look dramatically within hours. Fat changes how you look slowly over weeks. If you thought you looked smaller yesterday and larger today, you are looking at bloat, not at a body change.',
+        },
+        {
+          question: 'Is it ever worth panicking about a one-day spike?',
+          answer:
+            'No. There is no decision you can make on a one-day spike that a calmer decision three days later would not also catch. Over-reacting almost always leads to a binge or skipped meal that does more damage than the original blip. Waiting costs nothing.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'a-plateau-is-a-data-point-not-a-failure',
+    slug: 'how-to-break-a-weight-loss-plateau',
     title: 'A Plateau Is a Data Point, Not a Failure',
     description:
       'A plateau is the body telling you something specific. Most people read it as rejection and quit. That is not what it is saying.',
@@ -2045,10 +3204,55 @@ const posts: BlogPost[] = [
     date: '2026-05-07',
     readingTime: '6 min read',
     tags: ['Plateau', 'Consistency', 'Weight Loss', 'Dieting'],
-    heroImage: '/founder/plateau-middle-checkin-20250711.jpg',
-    heroAlt: 'Founder reflecting during a plateau phase',
+    seoTitle: 'How to Break a Weight Loss Plateau (Without Panicking)',
+    metaDescription:
+      "How to break a weight loss plateau without panicking and cutting harder. The body is sending feedback — here's how to read it before you escalate.",
+    keywords: [
+      'how to break a weight loss plateau',
+      'weight loss plateau strategies',
+      'plateau not moving on scale',
+      'how to push through plateau',
+      'weight loss stalled what to do',
+      'plateau recovery weight loss',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Confirm it is actually a plateau',
+        text:
+          'Three weeks of stable weight under your usual conditions is a plateau. Three days is noise. Most stalls people complain about are slow weeks called the wrong name. Do not act on a one-week flat reading.',
+      },
+      {
+        name: 'Re-check actual eating, not perceived eating',
+        text:
+          'Weigh a few of your usual meals and count for three honest days. Most plateaus reveal a 100 to 300 calorie drift that crept in unnoticed. The same plan you ate four months ago is not the same plan today.',
+      },
+      {
+        name: 'Check your sleep',
+        text:
+          'Poor sleep can stall weight loss cleanly even when food is unchanged. Hormonal signals shift, NEAT drops, and appetite rises. Aim for consistent sleep before adding cardio or cutting calories. The fix is often outside the diet itself.',
+      },
+      {
+        name: 'Check stress and water retention',
+        text:
+          'Cortisol from sustained stress can hold water for weeks and mask actual fat loss. The scale stays flat while the body is still moving. A lower-stress week often reveals a few pounds that were hiding behind water.',
+      },
+      {
+        name: 'Check your NEAT',
+        text:
+          'Many people unconsciously move less as the diet continues — fewer steps, less fidgeting, less standing. A 30-minute daily walk often outperforms an added cardio session. Restore movement before you add structured exercise.',
+      },
+      {
+        name: 'Take a diet break instead of cutting more',
+        text:
+          'On a long cut, a planned 7 to 14 day maintenance break every 4 to 8 weeks tends to break the stall. Hunger settles, NEAT recovers, and the deficit becomes possible again. Cutting harder usually extends the plateau.',
+      },
+    ],
+    cluster: 'plateau',
+    heroImage: '/founder/plateau-middle-checkin-20250711.webp',
+    heroAlt: 'Founder reflecting during a plateau phase, the visual anchor for how to break a weight loss plateau without panic',
     deck:
-      'Most people read a plateau as their body firing them. It is not. A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.',
+      "Here's how to break a weight loss plateau without escalating to punishment-mode. The fix is rarely more discipline. Most people read a plateau as their body firing them. It is not. A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.",
     ctaTitle: 'Read the plateau instead of breaking it.',
     ctaBody:
       'Most plateaus break by fixing the thing that drifted, not by cutting more. Start with a weekly trendline that lets you see the shape instead of reacting to a single reading.',
@@ -2060,6 +3264,12 @@ const posts: BlogPost[] = [
           'It is not.',
           'A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I break a weight loss plateau?',
+        answer:
+          'First, confirm it is a real plateau: three weeks of stable weight under same conditions, not three days. Then check actual eating, sleep, stress, and NEAT before cutting calories. Most plateaus break by fixing the thing that drifted, not by adding more deficit. A plateau is a report, not a verdict.',
       },
       {
         type: 'paragraphs',
@@ -2113,20 +3323,65 @@ const posts: BlogPost[] = [
           'The people who break plateaus are almost always the ones who stopped trying to break them and just kept going.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How long does it take to break a real plateau?',
+          answer:
+            'Two to four weeks once the right intervention is applied. Honest re-tracking, a one-week diet break, fixing sleep, or adding daily walks all tend to resolve stalls within that window. Cutting more calories often extends the plateau by raising stress and dropping NEAT further.',
+        },
+        {
+          question: 'Should I add cardio to break a plateau?',
+          answer:
+            'Usually as a later move, not the first. Cardio added to an already-aggressive deficit tends to be compensated for behaviorally — lower NEAT and higher appetite later in the day. A 30-minute walk on rest days often works better than adding a structured cardio session.',
+        },
+        {
+          question: 'Is a diet break necessary or just helpful?',
+          answer:
+            'On a long cut, diet breaks tend to be necessary. People who take planned 7-to-14-day breaks at maintenance every 4 to 8 weeks retain more muscle, report lower hunger, and have better outcomes at six and twelve months than people who diet straight through.',
+        },
+        {
+          question: 'Why does my weight stall right at month three?',
+          answer:
+            'Maintenance calories drop as you lose weight, NEAT decreases unconsciously, and appetite rises. All four things stack around month three for most diets. The fix is a 7 to 14 day maintenance break, not deeper cuts. Cutting harder usually backfires here.',
+        },
+        {
+          question: "What's the difference between slow progress and a real plateau?",
+          answer:
+            "Slow progress is still movement — even 0.2 kg per week is direction. A plateau is no scale movement and no shape change for three weeks under your usual conditions. Most 'plateaus' people complain about are actually slow weeks called the wrong name.",
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-body-looks-different-from-behind',
+    slug: 'why-does-my-body-look-different-from-different-angles',
     title: 'The Body Looks Different From Behind',
     description:
       'Most people only look at themselves from the front. That is why progress feels invisible. The back view is where the body often changes first.',
     socialDescription:
-      'I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.',
+      'Why does my body look different from different angles? Front view rewards bad lighting; back view tells the truth most of the time. I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.',
     date: '2026-05-08',
     readingTime: '6 min read',
     tags: ['Mirror', 'Body Image', 'Progress Photos', 'Transformation'],
-    heroImage: '/founder/transformation-proof-20251119.jpg',
-    heroAlt: 'Founder viewed from behind, showing back and shoulder change over time',
+    seoTitle: 'Why Does My Body Look Different From Different Angles?',
+    metaDescription:
+      "Why does my body look different from different angles? The front view stalls weeks before the back view does. Here's the angle most people never check.",
+    keywords: [
+      'why does my body look different from different angles',
+      'body looks different from behind photos',
+      'why does my body look different in photos',
+      'angles change how body looks',
+      'lighting changes body photo',
+      'body from different views',
+    ],
+    schemaType: 'faq',
+    cluster: 'mirror',
+    heroImage: '/founder/transformation-proof-20251119.webp',
+    heroAlt: 'Founder shot from behind, showing back and shoulder change, context for why does my body look different from different angles',
     deck:
       'I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.',
     ctaTitle: 'Give the back mirror a turn.',
@@ -2140,6 +3395,12 @@ const posts: BlogPost[] = [
           'Then my brother took a photo of me from behind at a wedding.',
           'It was a different body.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why does my body look different from different angles?',
+        answer:
+          'Because most people only ever check the front view. The back can change weeks before the front catches up. Different bodies carry fat differently, and the front view often holds the stubborn lower-belly buffer the longest. The back loses shape first for many people, and the front mirror cannot answer that question.',
       },
       {
         type: 'paragraphs',
@@ -2193,10 +3454,42 @@ const posts: BlogPost[] = [
           'Just give the back mirror a turn.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: "Why doesn't the front mirror catch progress?",
+          answer:
+            'Because it shows the same view every morning, and that view is often the slowest one to change. The front holds the deepest fat for many people. The mirror you see most is also the one with the least new information to give you.',
+        },
+        {
+          question: 'What changes show up in the back view first?',
+          answer:
+            'The dip between the shoulder blades. The slope from waist to hip. Whether the lats have any shape. How the glute sits relative to the thigh. Where fat loss is starting. The bra line loosening. None of that is visible in a front mirror.',
+        },
+        {
+          question: 'How often should I take a back-angle photo?',
+          answer:
+            'Every two weeks. Same spot, same lighting, same shirt or no shirt. Save them in a folder and look at them in groups of four. Daily back photos are noise. Two-week comparisons start to show the actual story the front mirror is missing.',
+        },
+        {
+          question: 'Why does lighting and angle change the verdict so much?',
+          answer:
+            'Because a body in the same condition can be photographed thinner or heavier depending on the camera height, the light direction, and posture. Lifting the camera a few centimeters changes the entire silhouette. Holding posture for the photo, or not, changes the waist by 1 to 2 cm.',
+        },
+        {
+          question: 'What if the back changed but I still feel the same about my body?',
+          answer:
+            'That is normal. The head adapts slower than the body. Even after weeks of visible change, the internal image is calibrated against the older version. The fix is not more checking. The fix is letting weeks of dated proof slowly outvote the daily mirror.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'progress-update-3-past-the-messy-middle',
+    slug: 'past-the-messy-middle-of-weight-loss',
     title: 'Progress Update 3: Past the Messy Middle',
     description:
       'The body after the messy middle. What changed, what did not, and what the past four months actually looked like from the inside.',
@@ -2205,10 +3498,22 @@ const posts: BlogPost[] = [
     date: '2026-05-09',
     readingTime: '6 min read',
     tags: ['Progress Update', 'Transformation', 'Founder Story', 'Weight Loss'],
-    heroImage: '/founder/progress-update-hanok-20260119.jpg',
-    heroAlt: 'Founder composed portrait after coming through the middle phase of transformation',
+    seoTitle: 'Past the Messy Middle of Weight Loss: A Check-In',
+    metaDescription:
+      "Past the messy middle of weight loss: 4 months on, what changed and what didn't. A check-in from the side of the program nobody photographs.",
+    keywords: [
+      'past the messy middle of weight loss',
+      'messy middle transformation over',
+      'past the hardest part of dieting',
+      'weight loss journey checkpoint',
+      'progress update weight loss middle',
+      'after the middle phase diet',
+    ],
+    cluster: 'founder-story',
+    heroImage: '/founder/progress-update-hanok-20260119.webp',
+    heroAlt: 'Founder composed portrait taken after coming through and now well past the messy middle of weight loss',
     deck:
-      'Four months past the messy middle. Down roughly 15 kg from the highest. The head is still catching up to the body. This is what that actually feels like.',
+      'Past the messy middle of weight loss, the work changes shape. The body keeps moving; the head finally starts to catch up. Four months past the messy middle. Down roughly 15 kg from the highest. The head is still catching up to the body. This is what that actually feels like.',
     ctaTitle: 'Refuse to renegotiate the plan every three weeks.',
     ctaBody:
       'The middle does not need motivation. It needs a weekly record you can stay inside without staring at the scale every day. Start with one weekly check-in.',
@@ -2271,7 +3576,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'when-the-workout-becomes-therapy-not-punishment',
+    slug: 'how-to-stop-using-exercise-as-punishment',
     title: 'When the Workout Becomes Therapy, Not Punishment',
     description:
       'Most people train to make up for something. The workouts that change you are the ones that stopped being repayment.',
@@ -2280,10 +3585,50 @@ const posts: BlogPost[] = [
     date: '2026-05-10',
     readingTime: '6 min read',
     tags: ['Exercise', 'Mental Health', 'Body Image', 'Consistency'],
-    heroImage: '/founder/consistency-editorial-20251229.jpg',
-    heroAlt: 'Founder in a composed mid-session moment representing calmer training',
+    seoTitle: 'How to Stop Using Exercise as Punishment',
+    metaDescription:
+      "How to stop using exercise as punishment, without quitting the gym. The same workout shifts when you change what you bring to it. Here's the line.",
+    keywords: [
+      'how to stop using exercise as punishment',
+      'exercise as self care not punishment',
+      'working out as therapy mental health',
+      'healthy relationship with exercise',
+      'stop exercising to punish myself',
+      'mindset shift fitness self love',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Stop weighing yourself right after training',
+        text:
+          'Post-workout weigh-ins close the receipt loop between effort and reward. The body retains water, the scale ticks up, your mood crashes, and the next session comes in angrier. Move the weigh-in to the morning after instead.',
+      },
+      {
+        name: "Decouple the session from the food it 'paid for'",
+        text:
+          'Show up to training on the schedule you set, regardless of what the previous day looked like. Do not add minutes because of dinner. Do not skip if you ate clean. The workout is not a price tag.',
+      },
+      {
+        name: 'Train at the same cadence even on rest days',
+        text:
+          'Rest days are part of the program, not an unpaid debt. If skipping a session feels morally dangerous, the framing is doing the damage. Rest days exist for the same reason training days do — to keep the system functional.',
+      },
+      {
+        name: 'Stop scheduling the hardest sessions on the worst days',
+        text:
+          'Punishment-training puts the heaviest workouts on the worst sleep, most stress, and most under-eaten mornings. Pick training intensity based on what the body has, not on how guilty the previous day made you feel.',
+      },
+      {
+        name: 'Let the workout work on the day, not the day on the workout',
+        text:
+          'A calmer session leaves you steadier for the rest of the day — sleep, appetite, stress all benefit. The body changes more steadily once you stop using it as collateral. Train consistently. Let the changes happen while you are not watching.',
+      },
+    ],
+    cluster: 'exercise',
+    heroImage: '/founder/consistency-editorial-20251229.webp',
+    heroAlt: 'Founder in a composed mid-session shot, anchoring a piece on how to stop using exercise as punishment and train calmer',
     deck:
-      'For most of my life, the workout was a receipt. I overate on Saturday. I earned the treadmill on Monday. That kind of training can still produce results. It cannot produce peace.',
+      "Here's how to stop using exercise as punishment: change what the next training session is paying for. For most of my life, the workout was a receipt. I overate on Saturday. I earned the treadmill on Monday. That kind of training can still produce results. It cannot produce peace.",
     ctaTitle: 'Stop training as repayment.',
     ctaBody:
       'When the workout is repayment, you train more and change less. When the workout is maintenance of your nervous system, your body changes while you are not watching. Track both without coupling them.',
@@ -2295,6 +3640,12 @@ const posts: BlogPost[] = [
           'I overate on Saturday. I earned the treadmill on Monday. I felt bloated after dinner. I did twenty more minutes than I planned. Every session was a small repayment for a small crime.',
           'That kind of training can still produce results. It cannot produce peace.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I stop using exercise as punishment?',
+        answer:
+          'Change what the workout is paying for. Punishment-training closes the loop between effort and food, which makes rest days feel like unpaid debt. Stop weighing yourself right after sessions. Train on a fixed cadence, not a guilt cadence. The same workout shifts when it stops being a receipt for what you ate.',
       },
       {
         type: 'paragraphs',
@@ -2338,10 +3689,42 @@ const posts: BlogPost[] = [
           'When the workout is maintenance of your nervous system, you train consistently and your body changes while you are not watching.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What does punishment training actually cost you?',
+          answer:
+            'Three things. Rest days start feeling morally dangerous, so you overcompensate later. Hard sessions land on bad sleep and underfed mornings, because mood drives them, not readiness. And you slowly start disliking your body more, because every session is evidence of something you did wrong.',
+        },
+        {
+          question: 'Why does weighing post-workout reinforce the loop?',
+          answer:
+            'Because it ties effort to a number that is mostly water retention from the session. The scale rises slightly. The mood drops. The next session starts angrier. Breaking the post-workout weigh-in habit is one of the smallest changes that produces the biggest shift in how training lands.',
+        },
+        {
+          question: 'What does therapy training look like instead?',
+          answer:
+            'Boring, mostly. Same lifts. Same cadence. Same days. The sessions stop carrying mood. You walk in without something to regulate. You walk out without needing the scale to validate the effort. The training starts working on the rest of the day instead of the other way around.',
+        },
+        {
+          question: "Doesn't this mean training has to be soft?",
+          answer:
+            "No. The lifts can still be heavy. The intervals can still be hard. The recovery can still be real. What changes is the emotional function of the session. The body knows the difference between hard work and apology. So does the body's response to it.",
+        },
+        {
+          question: 'How long does the shift take?',
+          answer:
+            'Usually a few weeks of training without the scale right after. The change is not announced. You notice, weeks later, that you walked into a session without a mood to regulate. That noticing is the signal that the old loop has finished closing.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'hunger-in-maintenance-is-different-from-hunger-on-a-diet',
+    slug: 'is-maintenance-hunger-different-from-diet-hunger',
     title: 'Hunger in Maintenance Is Different from Hunger on a Diet',
     description:
       'Maintenance hunger is not the same signal as dieting hunger. Most people misread it as regression. It is not.',
@@ -2350,10 +3733,23 @@ const posts: BlogPost[] = [
     date: '2026-05-11',
     readingTime: '7 min read',
     tags: ['Appetite', 'Maintenance', 'Dieting', 'Weight Loss'],
-    heroImage: '/founder/hunger-editorial-20260106.jpg',
-    heroAlt: 'Founder editorial image used for an article about hunger signals in maintenance',
+    seoTitle: 'Is Maintenance Hunger Different From Diet Hunger?',
+    metaDescription:
+      "Is maintenance hunger different from diet hunger? Yes — and most people misread the second as the first, and regain inside 6 months. Here's the tell.",
+    keywords: [
+      'is maintenance hunger different from diet hunger',
+      'hunger after weight loss',
+      'maintenance vs diet hunger',
+      'what does maintenance hunger feel like',
+      'hunger signals after dieting',
+      'different hunger during maintenance',
+    ],
+    schemaType: 'faq',
+    cluster: 'appetite',
+    heroImage: '/founder/hunger-editorial-20260106.webp',
+    heroAlt: 'Founder editorial shot used for a piece asking, is maintenance hunger different from diet hunger or just quieter',
     deck:
-      'Maintenance hunger is not the same signal as dieting hunger. Reading them the same way is one of the main reasons people regain weight within six months of reaching their goal.',
+      'Is maintenance hunger different from diet hunger? Yes — and reading them the same way is a fast route back to regain. Maintenance hunger is not the same signal as dieting hunger. Reading them the same way is one of the main reasons people regain weight within six months of reaching their goal.',
     ctaTitle: 'Read the shape of your hunger, not the volume.',
     ctaBody:
       'Waiting out the recalibration window is the actual skill of early maintenance. Log the shape of your hunger over weeks and stop treating maintenance like a failed diet.',
@@ -2365,6 +3761,12 @@ const posts: BlogPost[] = [
           'It is not.',
           'The hunger you feel on a diet and the hunger you feel in maintenance are physiologically and behaviorally different. Reading them the same way is one of the main reasons people regain weight within six months of reaching their goal.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Is maintenance hunger different from diet hunger?',
+        answer:
+          'Yes, physiologically and behaviorally. Diet hunger is loud, urgent, food-specific, and emotional. Maintenance hunger is quieter, mechanical, and rhythmic. The transition takes weeks to months as leptin and ghrelin recalibrate. Reading early-maintenance hunger as cut-era hunger is the main reason people regain within six months.',
       },
       {
         type: 'paragraphs',
@@ -2426,10 +3828,42 @@ const posts: BlogPost[] = [
         outro:
           'Three to four months into maintenance, for most people who hold the weight, hunger settles into something manageable.',
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How long does the maintenance hunger transition take?',
+          answer:
+            'Usually three to four months for most people, sometimes longer after aggressive cuts. Hunger and satiety hormones recalibrate gradually to the new weight. Waiting out that window is the actual skill of early maintenance, not eating less or eating more.',
+        },
+        {
+          question: 'Why am I still hungry on maintenance calories?',
+          answer:
+            'Because hormonal signals from the diet phase have not fully recalibrated yet. The body may still be defending the old weight for weeks after the deficit ends. The hunger is real, but it is in transit, not a signal that maintenance is broken.',
+        },
+        {
+          question: 'Should I keep eating more if hunger persists in maintenance?',
+          answer:
+            'Not automatically. If the hunger is loud but the weight is holding within a 1 to 2 kg range, the signal is recalibrating. Wait it out. If the weight is drifting up steadily for three weeks despite stable intake, then bump down slightly. Read the trend, not the day.',
+        },
+        {
+          question: 'What helps the most during early maintenance?',
+          answer:
+            'Consistent meal timing. Protein and fiber at most meals. Adequate sleep — poor sleep amplifies every hunger signal. And time. The signal settles for most people who hold the weight three to four months in. None of these are dramatic. All are necessary.',
+        },
+        {
+          question: 'Why do most people regain weight after dieting?',
+          answer:
+            'Three things stack: maintenance calories drop after weight loss, appetite signals run louder than the new caloric need for weeks, and NEAT decreases unconsciously. Reading those signals through cut-era logic — restrict more, or give up — produces the rebound. Maintenance is the program, not the finish line.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-friend-who-never-diets-and-never-gains',
+    slug: 'why-some-people-never-gain-weight-no-matter-what',
     title: 'The Friend Who Never Diets and Never Gains',
     description:
       'The friend who never diets and never gains is not lucky in the way you think. What is actually going on is usually boring and almost always invisible.',
@@ -2438,10 +3872,23 @@ const posts: BlogPost[] = [
     date: '2026-05-12',
     readingTime: '6 min read',
     tags: ['Body Composition', 'NEAT', 'Habits', 'Weight Stability'],
-    heroImage: '/founder/long-game-founder-20251221.jpg',
-    heroAlt: 'Founder image representing the boring long-game habits that actually keep bodies stable',
+    seoTitle: 'Why Some People Never Gain Weight No Matter What',
+    metaDescription:
+      "Why do some people never gain weight no matter what they eat? Not metabolism, not luck. Here's the boring set of habits hiding underneath.",
+    keywords: [
+      'why do some people never gain weight no matter what they eat',
+      'people who eat anything and stay thin',
+      'naturally thin people genetics',
+      "why don't some people gain weight",
+      'thin friend never diets',
+      'constitutional thinness obesity resistance',
+    ],
+    schemaType: 'faq',
+    cluster: 'body-composition',
+    heroImage: '/founder/long-game-founder-20251221.webp',
+    heroAlt: 'Founder shot of the boring long-game habits behind why do some people never gain weight no matter what they eat',
     deck:
-      'Everyone has that friend. Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May. You do not, and you are furious about it.',
+      'Why do some people never gain weight no matter what they eat? Genetics is part of it, but most of the gap is unmeasured behavior. Everyone has that friend. Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May. You do not, and you are furious about it.',
     ctaTitle: 'Learn the invisible habits, not the conscious effort.',
     ctaBody:
       'You are comparing a diet to a personality. That comparison is rigged. Track the small patterns your naturally stable days already have, and build from there.',
@@ -2453,6 +3900,12 @@ const posts: BlogPost[] = [
           'Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May.',
           'You do not, and you are furious about it.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why do some people never gain weight no matter what they eat?',
+        answer:
+          'It is rarely magic metabolism. Naturally lean people usually run a stack of small invisible habits: more standing and fidgeting, similar foods most days, stopping when full, consistent sleep. None of it looks like effort because to them it is not effort. You are comparing your conscious diet to their unconscious default.',
       },
       {
         type: 'paragraphs',
@@ -2511,10 +3964,42 @@ const posts: BlogPost[] = [
           'The answer is usually: more of them than you think.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Is it really genetics or are they just hiding the work?',
+          answer:
+            'Some genetic factors are real — NEAT, satiety signaling, and gut microbiome vary between people. But most of the gap is invisible habit, not luck. Watch a naturally lean friend for a week and you will see the small structure they are not naming as effort.',
+        },
+        {
+          question: 'What is NEAT and why does it matter so much?',
+          answer:
+            'NEAT is non-exercise activity thermogenesis: fidgeting, standing, walking on phone calls, taking the stairs without thinking about it. NEAT can vary by hundreds of calories per day between people. It is largely unconscious and explains a lot of so-called fast metabolisms.',
+        },
+        {
+          question: 'Can I learn to eat like a naturally thin person?',
+          answer:
+            'Most of it, yes, with about a year of practice. The stand-more, sleep-consistent, do-not-dramatize-food pattern is installable. It does not look like weight loss while it happens. It looks like a different relationship with eating and moving. Five-year maintainers usually built it.',
+        },
+        {
+          question: 'Do thin people actually eat less than I think?',
+          answer:
+            'Often yes, just within a tighter range than they realize. They stop when full, do not finish plates as a default, and rarely snack mindlessly. The total intake looks generous on any single day and adds up to balanced across the week without conscious tracking.',
+        },
+        {
+          question: 'Is constitutional thinness a real thing?',
+          answer:
+            "Yes — a small percentage of people have genuinely high-metabolism, high-NEAT, low-appetite physiology that resists weight gain even when they try. For most people though, the friend who 'eats anything' is running a default pattern, not breaking energy balance.",
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'how-do-you-know-when-youve-reached-your-set-point',
+    slug: 'how-do-you-know-youve-reached-set-point',
     title: 'How Do You Know When You Have Reached Your Set Point',
     description:
       'Questions and honest answers about what a set point actually is, how to know you are at one, and what it means if you want to go lower.',
@@ -2523,10 +4008,23 @@ const posts: BlogPost[] = [
     date: '2026-05-13',
     readingTime: '7 min read',
     tags: ['Set Point', 'Maintenance', 'Weight Loss', 'Body Composition'],
-    heroImage: '/founder/scale-proof-20250919.jpg',
-    heroAlt: 'Founder image representing reading the body is steady state, not chasing a lower number',
+    seoTitle: "How Do You Know You've Reached Your Set Point Weight?",
+    metaDescription:
+      "How do you know you've reached your set point weight? Set point is a 2 to 3 kg range, not a number. Here's the 6-week test that tells you you're at one.",
+    keywords: [
+      "how do you know you've reached your set point weight",
+      'signs you are at your set point',
+      'what is set point weight',
+      'body set point theory',
+      'natural weight set point',
+      'set point weight range',
+    ],
+    schemaType: 'faq',
+    cluster: 'maintenance',
+    heroImage: '/founder/scale-proof-20250919.webp',
+    heroAlt: "Founder image of a steady-state body, framing how do you know you've reached your set point weight without chasing a number",
     deck:
-      'A set point is one of the more misused ideas in dieting conversations. It is useful when understood correctly. It becomes an excuse when it is not.',
+      "How do you know you've reached your set point weight, and not just a slow week? The set point is a slower signal than people use it as. A set point is one of the more misused ideas in dieting conversations. It is useful when understood correctly. It becomes an excuse when it is not.",
     ctaTitle: 'Read the set point as information, not verdict.',
     ctaBody:
       'If you are at your set point, the question is no longer am I losing. The question is am I staying. Those require different reads.',
@@ -2537,6 +4035,12 @@ const posts: BlogPost[] = [
           'A set point is one of the more misused ideas in dieting conversations.',
           'It is useful when understood correctly. It becomes an excuse when it is not.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do you know you have reached your set point weight?',
+        answer:
+          'Five signals together: weight stable within a 2 to 3 kg range for 8 to 12 weeks, no active dieting, hunger normalized, energy and sleep reasonable, and small deviations like a heavier weekend do not push the weight permanently. If most of those are true, you are probably at a set point for your current life.',
       },
       {
         type: 'paragraphs',
@@ -2600,10 +4104,42 @@ const posts: BlogPost[] = [
           'That sequence, in that order, is what separates people who lose and hold from people who lose and yo-yo.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What is a set point weight, exactly?',
+          answer:
+            'The weight range your body most naturally defends given your current habits, sleep, stress, training, and eating. It is not a fixed number from birth and it is not immune to change. It is a rolling equilibrium that shifts as the inputs shift.',
+        },
+        {
+          question: 'Can my set point change over time?',
+          answer:
+            'Yes. Research suggests the body defends recent weights more strongly than older ones. Holding a new weight for 12 to 24 months often makes it the new defended range. This is why maintenance is the real skill, not just the losing phase.',
+        },
+        {
+          question: 'Why does it feel like I cannot lose any more?',
+          answer:
+            'Because maintenance calories adjusted downward as you lost weight, your body is defending the current state, and your hunger and fullness signals are tuned to this range. To go lower you create a new deficit or change the inputs. Both are possible. Both have a cost.',
+        },
+        {
+          question: "Should I stop trying to lose more if I'm at set point?",
+          answer:
+            'Sometimes yes. If your habits are sustainable and your health markers are reasonable, the cost of pushing another 3 to 5 kg lower is often higher than the benefit. Wanting to lose more for your own reasons is fine. It is a decision, not an obligation.',
+        },
+        {
+          question: 'How long should I hold a new weight before it sticks?',
+          answer:
+            'At least six months of boring maintenance, ideally 12 to 24. The body needs time to accept the new weight as normal before you change inputs again. People who lose and hold long-term almost always stay in maintenance longer than people who rebound.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-scale-lies-differently-in-the-morning-than-in-the-evening',
+    slug: 'why-do-i-weigh-more-at-night',
     title: 'The Scale Lies Differently in the Morning Than in the Evening',
     description:
       'Morning and evening weight are not the same reading. Treating them as one number is how people misread their week.',
@@ -2612,10 +4148,23 @@ const posts: BlogPost[] = [
     date: '2026-05-14',
     readingTime: '5 min read',
     tags: ['Scale', 'Daily Fluctuation', 'Weight Loss', 'Tracking'],
-    heroImage: '/founder/scale-rude-before-20240130.jpg',
-    heroAlt: 'Scale with an honest reading, illustrating the limits of a single daily number',
+    seoTitle: 'Why Do I Weigh More at Night Than in the Morning?',
+    metaDescription:
+      'Why do I weigh more at night than in the morning? Up to 2 kg of swing from food, water, and posture. Both readings are honest — different questions.',
+    keywords: [
+      'why do I weigh more at night than in the morning',
+      'morning weight vs evening weight difference',
+      'best time of day to weigh yourself',
+      'weight gain overnight morning',
+      'how much weight fluctuate morning night',
+      'weigh in morning or night',
+    ],
+    schemaType: 'faq',
+    cluster: 'scale',
+    heroImage: '/founder/scale-rude-before-20240130.webp',
+    heroAlt: 'Honest scale reading image used to explain why do I weigh more at night than in the morning, day after day',
     deck:
-      'Most people weigh themselves at one specific time and treat that number as the truth. It is not the truth. It is one sample.',
+      'Why do I weigh more at night than in the morning? Food, water, and salt move through you all day; the morning is just the lowest sample. Most people weigh themselves at one specific time and treat that number as the truth. It is not the truth. It is one sample.',
     ctaTitle: 'Weigh the same way. Read the trend.',
     ctaBody:
       'One reading tells you almost nothing. Seven readings in the same conditions tell you the shape. Start with a weekly trendline instead of a daily verdict.',
@@ -2627,6 +4176,12 @@ const posts: BlogPost[] = [
           'It is not the truth. It is one sample.',
           'Morning weight and evening weight are almost always different, and they lie in different directions.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why do I weigh more at night than in the morning?',
+        answer:
+          'Food, water, and salt have moved through you all day. Evening weight is typically 0.8 to 1.8 kg higher than morning weight. None of that is fat. Morning is the lowest sample because you are mildly dehydrated, your bladder is empty, and you have not eaten. Both readings are honest — they answer different questions.',
       },
       {
         type: 'paragraphs',
@@ -2675,10 +4230,42 @@ const posts: BlogPost[] = [
           'If you weigh at multiple times, do not mix them in your head. Evening is a different measurement series. Compare evenings to evenings. Mornings to mornings.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What is morning weight actually showing?',
+          answer:
+            'The bottom of your daily range. You are lightly dehydrated overnight, you have emptied most of your bladder, and you have not eaten. That is why morning weighing is the most stable reference across days. It is one sample, not a complete picture of the body.',
+        },
+        {
+          question: 'Why is the gap between morning and evening so wide?',
+          answer:
+            'Water retention shifts through the day. Food sits in the digestive tract for hours. Sodium intake peaks around dinner. Carbs bind about 3 grams of water per gram of stored glycogen. A 1.5 kg morning-to-evening swing is normal and means nothing about fat.',
+        },
+        {
+          question: 'Should I weigh in the morning or the evening?',
+          answer:
+            'If you weigh once a day, morning is the cleanest baseline. If you weigh at multiple times, do not mix them in your head. Compare evenings to evenings, mornings to mornings. The scale is not lying at either time. It is answering different questions.',
+        },
+        {
+          question: 'Is one reading enough to judge progress?',
+          answer:
+            "No. One reading tells you almost nothing. Seven readings under the same conditions tell you the shape of the week. Compare this week's average to last week's average, not today's number to yesterday's. Daily numbers are noise. Weekly trends are signal.",
+        },
+        {
+          question: 'What if my evening weight has been creeping up?',
+          answer:
+            'If both your evenings and your mornings are drifting up across two to three weeks under the same conditions, that is real movement. If only your evenings shifted while mornings held, you probably ate saltier or larger dinners that week. Keep the comparison consistent.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'sleep-debt-ruins-a-week-of-dieting-in-three-nights',
+    slug: 'does-bad-sleep-ruin-weight-loss',
     title: 'Sleep Debt Ruins a Week of Dieting in Three Nights',
     description:
       'Three bad nights is enough to undo a week of careful eating. Sleep is not a recovery topic. It is a dieting topic.',
@@ -2687,10 +4274,23 @@ const posts: BlogPost[] = [
     date: '2026-05-15',
     readingTime: '6 min read',
     tags: ['Sleep', 'Recovery', 'Dieting', 'Appetite'],
-    heroImage: '/founder/sleep-reflective-20260106.jpg',
-    heroAlt: 'Founder in a reflective moment representing the quiet cost of sleep debt on a diet',
+    seoTitle: 'Does Bad Sleep Ruin Weight Loss? Yes, and Fast',
+    metaDescription:
+      "Does bad sleep ruin weight loss? 3 bad nights can undo a clean week. Here's how sleep debt rewrites appetite, cravings, and gym output — fast.",
+    keywords: [
+      'does bad sleep ruin weight loss',
+      'sleep deprivation weight loss',
+      'bad sleep affects weight loss',
+      'not enough sleep weight gain',
+      'sleep debt diet impact',
+      'sleep and fat loss connection',
+    ],
+    schemaType: 'faq',
+    cluster: 'exercise',
+    heroImage: '/founder/sleep-reflective-20260106.webp',
+    heroAlt: 'Founder reflective portrait capturing the quiet cost of sleep debt, the visual anchor for, does bad sleep ruin weight loss',
     deck:
-      'I had a clean Monday, Tuesday, and Wednesday of eating. By Saturday, the week looked like a disaster. Three bad nights of sleep were the reason.',
+      'Does bad sleep ruin weight loss? Three short nights can make a clean week of eating look like a binge week on the scale. I had a clean Monday, Tuesday, and Wednesday of eating. By Saturday, the week looked like a disaster. Three bad nights of sleep were the reason.',
     ctaTitle: 'Look at sleep before willpower.',
     ctaBody:
       'If the week cracks and you do not understand why, the sleep usually explains it. Track sleep alongside eating and the pattern becomes readable.',
@@ -2702,6 +4302,12 @@ const posts: BlogPost[] = [
           'By Saturday, the week looked like a disaster.',
           'Three bad nights of sleep were the reason. Not the only reason. The main one.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Does bad sleep ruin weight loss?',
+        answer:
+          'Yes, faster than people realize. Three nights of under-sleeping push hunger signals up, cravings up, and decision-making around food down. The crack often shows up two to three days later as a binge people misread as willpower failure. Look at sleep before willpower. No amount of meal prep fixes three bad nights.',
       },
       {
         type: 'paragraphs',
@@ -2751,10 +4357,42 @@ const posts: BlogPost[] = [
           'Nine times out of ten, the sleep explains it.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How many hours of sleep do I need to lose weight?',
+          answer:
+            'Most adults need 7 to 9 hours. Below 6 consistently, appetite-regulating hormones shift in ways that make food feel louder. Sleep is the input that silently decides whether the diet works. It is the cheapest and least-used appetite intervention.',
+        },
+        {
+          question: "Why do I crave sugar when I'm sleep-deprived?",
+          answer:
+            "Under-sleeping pushes leptin down and ghrelin up, raises cravings for high-calorie carb and fat foods, and drops the brain's ability to delay gratification. The craving is physiological, not character-based. Fixing sleep usually quiets it within a few nights.",
+        },
+        {
+          question: 'Can one bad night of sleep affect a whole week?',
+          answer:
+            'Often, yes. Three bad nights in a row tend to produce elevated appetite for the next two to four days. The delay is what fools people — they binge Thursday and blame Thursday, not the Monday-Tuesday-Wednesday shortfall that built the appetite up.',
+        },
+        {
+          question: 'Should I eat less if I sleep badly?',
+          answer:
+            'No. Under-eating on top of sleep debt usually triggers a worse binge later in the week. Eat normally, prioritize protein and water, and prioritize fixing sleep. The diet recovers when sleep recovers, not when you punish the day.',
+        },
+        {
+          question: 'Does sleep affect weight more than calories?',
+          answer:
+            'Calories still drive the math, but sleep decides whether you can hit the calorie target consistently. A perfect plan plus poor sleep usually fails. A decent plan plus good sleep usually works. Sleep is the input that lets the rest of the plan run honestly.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-quiet-role-vegetables-play-in-staying-full',
+    slug: 'do-vegetables-help-you-feel-full-on-a-diet',
     title: 'The Quiet Role Vegetables Play in Staying Full',
     description:
       'Protein gets all the attention. The food that quietly decides whether your diet feels tolerable is usually vegetables.',
@@ -2763,10 +4401,23 @@ const posts: BlogPost[] = [
     date: '2026-05-16',
     readingTime: '6 min read',
     tags: ['Food Structure', 'Vegetables', 'Satiety', 'Weight Loss'],
-    heroImage: '/founder/cheat-day-checkin-20250719.jpg',
-    heroAlt: 'Founder image representing a calm approach to plate composition and food structure',
+    seoTitle: 'Do Vegetables Help You Feel Full on a Diet?',
+    metaDescription:
+      'Do vegetables help you feel full on a diet? They do the quiet job protein gets credit for. Volume and fiber decide whether your week holds.',
+    keywords: [
+      'do vegetables help you feel full on a diet',
+      'vegetables for satiety weight loss',
+      'high volume foods fullness diet',
+      'fiber keeps you full dieting',
+      'vegetables low calorie density',
+      'eat more vegetables lose weight',
+    ],
+    schemaType: 'faq',
+    cluster: 'appetite',
+    heroImage: '/founder/cheat-day-checkin-20250719.webp',
+    heroAlt: 'Founder portrait holding a calm approach to plate composition, framing whether vegetables help you feel full on a diet',
     deck:
-      'Protein gets all the press. Fats get the moral arguments. Carbs get the fear. Vegetables get a vague eat-more-of-them and then nothing. The food that quietly decides whether your diet feels tolerable is usually the vegetables.',
+      "Do vegetables help you feel full on a diet? Quietly, yes — they're the food that decides whether the day feels survivable. Protein gets all the press. Fats get the moral arguments. Carbs get the fear. Vegetables get a vague eat-more-of-them and then nothing. The food that quietly decides whether your diet feels tolerable is usually the vegetables.",
     ctaTitle: 'Change the shape of the plate.',
     ctaBody:
       'If you can see your plate compositions across a week, the meals that held your appetite usually look obviously different from the meals that did not. Start with one weekly meal audit.',
@@ -2778,6 +4429,12 @@ const posts: BlogPost[] = [
           'Fats get the moral arguments. Carbs get the fear. Vegetables get a vague "eat more of them" and then nothing.',
           'The food that quietly decides whether your diet feels tolerable is usually the vegetables.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Do vegetables help you feel full on a diet?',
+        answer:
+          'Yes, more than people give them credit for. They add volume without much energy, slow digestion through fiber, increase chewing time, and quietly displace denser calories on the plate. A meal with a real vegetable component holds appetite for hours. Most diets that fail in the evening were under-vegged at lunch.',
       },
       {
         type: 'paragraphs',
@@ -2831,10 +4488,42 @@ const posts: BlogPost[] = [
           'The vegetables are quietly making the rest of the diet survivable.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why does protein-only dieting often stall?',
+          answer:
+            'Because high-protein, low-volume meals leave the stomach feeling unused even when calories are technically met. The afternoon starts looking for snacks. The evening starts looking for relief. Adding a real vegetable component to the same meal usually fixes that without changing protein or calories.',
+        },
+        {
+          question: 'How much volume actually helps?',
+          answer:
+            'Disproportionate volume, not a side salad. A real vegetable component on most plates — large bowl, full half of the plate, real cooked portion — does the work. A tablespoon of spinach does not. Fresh, frozen, roasted, or raw all count. Whatever form you will actually eat.',
+        },
+        {
+          question: 'Are frozen vegetables as good as fresh?',
+          answer:
+            'For dieting purposes, yes. Frozen vegetables go from freezer to plate in four minutes, do not spoil, and count for the same fiber and volume work. Most weeknight diet failures are vegetable-skipping because fresh produce decayed in the fridge before it could be cooked.',
+        },
+        {
+          question: 'Which vegetables work best for satiety?',
+          answer:
+            'The exact ones matter less than people think. Anything green, leafy, or fibrous adds the volume and fiber that flatten the appetite curve. Broccoli, cabbage, spinach, peppers, mushrooms, and green beans all work. The vegetable you will actually cook three times this week is the right pick.',
+        },
+        {
+          question: 'What does a good plate composition look like?',
+          answer:
+            'A protein source, a starch or carb appropriate to the calorie target, and a disproportionately large vegetable component. Disproportionate is the part most people skip. Not a side salad. A real cooked portion, present at most meals. Over a week, that structure outperforms any single rule.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'how-do-i-stop-a-binge-from-becoming-a-binge-week',
+    slug: 'how-to-stop-a-binge-from-becoming-a-binge-week',
     title: 'How Do I Stop a Binge From Becoming a Binge Week',
     description:
       'One binge does not wreck a diet. The week after a binge wrecks a diet. Here is how to contain it.',
@@ -2843,10 +4532,55 @@ const posts: BlogPost[] = [
     date: '2026-05-17',
     readingTime: '6 min read',
     tags: ['Binge', 'Cheat Day', 'Recovery', 'Dieting'],
-    heroImage: '/founder/diet-slip-checkin-20250725.jpg',
-    heroAlt: 'Founder image representing the morning after a binge, the moment of decision',
+    seoTitle: 'How to Stop a Binge From Becoming a Binge Week',
+    metaDescription:
+      "How to stop a binge from becoming a binge week: the 24 hours after the binge decide. Here's the rescue plan that works without punishment math.",
+    keywords: [
+      'how to stop a binge from becoming a binge week',
+      'how to stop binge eating cycle',
+      'one binge to binge week',
+      'restrict binge cycle break',
+      'weekend binge cycle',
+      'stop binge eating spiral',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Eat your normal breakfast',
+        text:
+          'Not a smaller one. Not a skipped one. Skipping breakfast as punishment drops blood sugar and makes a second binge by late afternoon highly likely. Treat the morning after as an ordinary morning, because that is what it is.',
+      },
+      {
+        name: 'Drink water, but not punitively',
+        text:
+          "A reasonable amount of water settles digestion and reduces the gut-discomfort hangover. Chugging two litres to 'flush it out' is theatre. Hydration is maintenance, not penance. Stop trying to make water do moral work.",
+      },
+      {
+        name: "Don't weigh yourself for three to five days",
+        text:
+          'The 1 to 2 kg jump the morning after is mostly water, sodium, and food still moving through digestion. Reading water as fat is what triggers the next bad day. Skip the scale until the noise clears.',
+      },
+      {
+        name: 'Return to your normal plan at the next meal',
+        text:
+          'Lunch is a normal lunch. Dinner is a normal dinner. Do not start over Monday — Monday keeps moving. Acting as if yesterday was yesterday and today is today is most of the recovery in one sentence.',
+      },
+      {
+        name: "Don't cut calories the rest of the week",
+        text:
+          'Your normal deficit absorbs the binge into the weekly total over 7 to 14 days without extra effort. Compensation usually triggers another binge or stress water retention that makes the scale worse, not better. The math is fine.',
+      },
+      {
+        name: 'Take a maintenance week if it has happened twice',
+        text:
+          'If you have binged twice in seven days, eat at maintenance for 7 to 10 days. Hunger settles, head resets, and a return to the deficit becomes possible without another binge. This is intervention, not quitting.',
+      },
+    ],
+    cluster: 'binge',
+    heroImage: '/founder/diet-slip-checkin-20250725.webp',
+    heroAlt: 'Founder image from the morning after a binge, the decision point behind how to stop a binge from becoming a binge week',
     deck:
-      'One binge does not wreck a diet. The week after a binge wrecks a diet. This is the specific rescue plan.',
+      "Here's how to stop a binge from becoming a binge week. The first 48 hours after the binge are the actual rescue plan. One binge does not wreck a diet. The week after a binge wrecks a diet. This is the specific rescue plan.",
     ctaTitle: 'Rescue the day after, not the day of.',
     ctaBody:
       'The damage is not the binge. The damage is the response. Log the binge without judgment, then return to the normal plan at the next meal.',
@@ -2858,6 +4592,12 @@ const posts: BlogPost[] = [
           'The week after a binge wrecks a diet.',
           'This is the specific rescue plan.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I stop a binge from becoming a binge week?',
+        answer:
+          'Eat your normal breakfast the morning after. Drink water. Do not weigh yourself for three to five days. Return to your regular meal plan at lunch, not next Monday. The damage is not the binge. It is the response. Act as if yesterday was yesterday and today is today, because that is literally what they are.',
       },
       {
         type: 'paragraphs',
@@ -2929,10 +4669,42 @@ const posts: BlogPost[] = [
           'One binge is a meal. A binge week is a choice. The choice happens in the 24 hours after.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why does one binge often turn into several days off plan?',
+          answer:
+            "Three patterns: hard restriction the morning after drops blood sugar and triggers a second binge; all-or-nothing framing turns one meal into 'the day is ruined'; and obsessive scale-checking reads water weight as fat and confirms failure. Any of those alone stretches the binge.",
+        },
+        {
+          question: 'Should I cut calories the week after a binge?',
+          answer:
+            'No. Your normal deficit absorbs the binge into the weekly total over 7 to 14 days without any extra effort. Trying to compensate with a deeper deficit usually triggers another binge or stress water retention that makes the scale worse, not better.',
+        },
+        {
+          question: 'How can I tell if another binge is coming?',
+          answer:
+            'Common signals: under-eating the day before in compensation, under-sleeping, high-stress day, more than four hours past a regular meal. Eat a real meal with protein and volume. The craving usually drops by half within 30 to 60 minutes if the issue was fuel.',
+        },
+        {
+          question: 'When should I take a maintenance week instead?',
+          answer:
+            'If you have binged twice in seven days, or the plan feels brittle for more than ten days. Eat at maintenance for 7 to 10 days. Hunger settles, the head resets, and a return to deficit becomes possible without another binge. This is intervention, not quitting.',
+        },
+        {
+          question: 'How long does the scale stay up after a binge?',
+          answer:
+            'Three to five days under normal eating. The 1 to 2 kg scale jump is mostly water, sodium, and food still moving through digestion. Real fat addition is usually 0.2 to 0.5 kg, and the deficit absorbs it across the next week without intervention.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'you-look-different-to-other-people-before-yourself',
+    slug: 'why-do-others-notice-my-weight-loss-before-me',
     title: 'You Look Different to Other People Before You Look Different to Yourself',
     description:
       'Other people see your body change before you do. The delay is not vanity. It is how self-perception actually works.',
@@ -2941,10 +4713,23 @@ const posts: BlogPost[] = [
     date: '2026-05-18',
     readingTime: '6 min read',
     tags: ['Mirror', 'Body Image', 'Transformation', 'Self Perception'],
-    heroImage: '/founder/mirror-middle-checkin-20250716.jpg',
-    heroAlt: 'Founder mid-transformation, looking at the body the way other people already do',
+    seoTitle: 'Why Do Others Notice My Weight Loss Before I Do?',
+    metaDescription:
+      "Why do others notice my weight loss before me? They run the opposite experiment — months between visits. Here's the perception lag in plain terms.",
+    keywords: [
+      'why do others notice my weight loss before me',
+      'people notice weight loss before self',
+      'how much weight loss before others notice',
+      'weight loss face first noticed',
+      "why can't I see my own weight loss",
+      'weight loss blind spot perception',
+    ],
+    schemaType: 'faq',
+    cluster: 'mirror',
+    heroImage: '/founder/mirror-middle-checkin-20250716.webp',
+    heroAlt: 'Founder mid-transformation shot, anchoring the strange experience of why do others notice my weight loss before me',
     deck:
-      'People you have not seen in a few months will notice your body has changed. You will not have noticed yet. This is not modesty. It is not vanity. It is how your brain is built.',
+      'Why do others notice my weight loss before me? Because your brain updates the body image last, not first. People you have not seen in a few months will notice your body has changed. You will not have noticed yet. This is not modesty. It is not vanity. It is how your brain is built.',
     ctaTitle: 'Trust the external evidence while the head catches up.',
     ctaBody:
       'When the internal map and the external evidence disagree, the evidence is more current than the map. Use photos in a consistent setup to flatten the mirror is daily noise.',
@@ -2956,6 +4741,12 @@ const posts: BlogPost[] = [
           'You will not have noticed yet.',
           'This is not modesty. It is not vanity. It is how your brain is built.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why do others notice my weight loss before I do?',
+        answer:
+          'Self-perception updates slowly. You see your body every morning in the same mirror, so gradual change disappears into familiarity. Someone who has not seen you in three months gets a clean before-and-after read. The internal map usually runs three to six months behind the body. The compliment is data, not flattery.',
       },
       {
         type: 'paragraphs',
@@ -3013,10 +4804,42 @@ const posts: BlogPost[] = [
           'Give it time.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How much weight loss does it take for others to notice?',
+          answer:
+            'Roughly 4 to 6 kg for face changes to register, 8 to 10 kg for the body shape. Frequent contacts notice later than people who see you only every few months. The face usually shifts first, which is why family members on video calls often comment before in-person friends.',
+        },
+        {
+          question: "Why can't I see my own weight loss in photos?",
+          answer:
+            'Single photos are too noisy. Lighting, posture, and time of day can fake an entire month of change in either direction. The internal map also reads new photos through the old self-image, which lags the body. Compare groups of four photos across months, not single shots.',
+        },
+        {
+          question: 'How long until my own perception catches up?',
+          answer:
+            'Usually three to six months past the change, sometimes longer. There is no specific date. People who work with post-weight-loss body image professionally describe the lag as normal. The internal map updates gradually, pulled forward by external evidence and time.',
+        },
+        {
+          question: 'Should I trust compliments about my weight loss?',
+          answer:
+            'Yes, directionally. People may be polite about the magnitude, but if someone you have not seen in three months says you look different, you look different. Outside observers are usually closer to current reality than your own mirror is right now.',
+        },
+        {
+          question: 'Is body dysmorphia normal after weight loss?',
+          answer:
+            'A milder version of it is extremely common. Most people who lose meaningful weight describe a stretch where other people treat them as the new body and they still feel like the old one. That gap is the head catching up. If it persists or distresses, talk to a professional.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-first-week-of-any-diet-is-the-most-misleading-one',
+    slug: 'why-do-you-lose-so-much-weight-first-week',
     title: 'The First Week of Any Diet Is the Most Misleading One',
     description:
       'Week one numbers are not the diet working. They are water, glycogen, and novelty. The honest reading starts around week three.',
@@ -3025,10 +4848,23 @@ const posts: BlogPost[] = [
     date: '2026-05-19',
     readingTime: '6 min read',
     tags: ['Dieting', 'Weight Loss', 'Water Weight', 'Patience'],
-    heroImage: '/founder/start.jpg',
-    heroAlt: 'Founder at the earliest baseline of the transformation, the kind of starting point every diet actually has',
+    seoTitle: 'Why Do You Lose So Much Weight the First Week of a Diet?',
+    metaDescription:
+      'Why do you lose so much weight the first week of a diet? Glycogen and water — not fat. The honest reading starts at week 3, not week 1.',
+    keywords: [
+      'why do you lose so much weight the first week of a diet',
+      'first week diet water weight',
+      'initial weight loss water not fat',
+      'week 1 diet weight loss fast',
+      'honeymoon phase weight loss',
+      'why weight loss slows after week one',
+    ],
+    schemaType: 'faq',
+    cluster: 'food-structure',
+    heroImage: '/founder/start.webp',
+    heroAlt: 'Founder baseline image from the earliest start of the cut, framing why do you lose so much weight the first week of a diet',
     deck:
-      'The first week is where people decide whether the plan is working. That decision is almost always based on the wrong evidence.',
+      'Why do you lose so much weight the first week of a diet? Most of it is water, glycogen, and a noisier scale — not fat. The first week is where people decide whether the plan is working. That decision is almost always based on the wrong evidence.',
     ctaTitle: 'Wait for week three.',
     ctaBody:
       'The real diet begins around day 15. A rolling average makes the glycogen drop and the honest data point co-exist without emotional whiplash.',
@@ -3039,6 +4875,12 @@ const posts: BlogPost[] = [
           'The first week is where people decide whether the plan is working.',
           'That decision is almost always based on the wrong evidence.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why do you lose so much weight the first week of a diet?',
+        answer:
+          'Mostly water, glycogen, salt balance, and a temporary digestive clearing. A 3 kg drop in week one is often only 0.3 kg of actual fat and 2.7 kg of fluid and food volume. Week two looks like nothing happened, but it is the first honest data point. The real diet starts around day fifteen.',
       },
       {
         type: 'paragraphs',
@@ -3102,10 +4944,42 @@ const posts: BlogPost[] = [
           'The real diet begins around day 15.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: "How much of week one's drop is actually fat?",
+          answer:
+            'Roughly 0.2 to 0.5 kg for most people in a reasonable deficit. The rest is water from glycogen depletion, lower sodium retention from less processed food, and a one-time empty-out of digestive backlog. Real fat loss in week one is the smallest part of the number.',
+        },
+        {
+          question: 'Why does week two look like the diet stopped?',
+          answer:
+            'Because the water and glycogen drop has stabilized. What moves now is mostly fat, and fat moves slowly. Week two usually shows 0.3 to 0.8 kg loss, sometimes nothing, sometimes a small upward blip. None of that means failure. It means week one was misleading.',
+        },
+        {
+          question: 'Should I lock in a weekly target based on week one?',
+          answer:
+            'No. A week-one target builds the wrong expectation for every week after. Most diets fail at week two because the person was anchored to a 3 kg week and read 0.3 kg as broken. Use the third or fourth week as the basis for what your real rate is.',
+        },
+        {
+          question: 'Should I weigh daily during week one?',
+          answer:
+            'Probably not. Week one is mostly fluid noise. Daily readings during this phase teach you to interpret water shifts as fat changes, which sets up bad habits for the rest of the program. A weekly weigh-in or a rolling average reads the trend more honestly.',
+        },
+        {
+          question: 'When does the diet start telling the truth?',
+          answer:
+            'Around week three. By then the water effects have stabilized, the new eating pattern has become more consistent, and the scale starts reflecting actual body composition change. Almost every serious transformation across coaching contexts follows this pattern: fast week, slow week, honest week.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'losing-weight-is-not-the-same-as-getting-leaner',
+    slug: 'difference-between-weight-loss-and-fat-loss',
     title: 'Losing Weight Is Not the Same as Getting Leaner',
     description:
       'You can lose weight and not get leaner. You can get leaner and not lose weight. The scale is telling you one thing, the mirror is telling you another.',
@@ -3114,10 +4988,23 @@ const posts: BlogPost[] = [
     date: '2026-05-20',
     readingTime: '6 min read',
     tags: ['Body Composition', 'Scale', 'Recomposition', 'Weight Loss'],
-    heroImage: '/founder/body-composition-proof-20251221.jpg',
-    heroAlt: 'Founder image showing the difference between scale number and actual composition',
+    seoTitle: "What's the Difference Between Weight Loss and Fat Loss?",
+    metaDescription:
+      "What's the difference between weight loss and fat loss? You can drop 5 kg without getting leaner. Here's the composition test the scale can't run.",
+    keywords: [
+      "what's the difference between weight loss and fat loss",
+      'weight loss vs fat loss difference',
+      'losing weight but not leaner',
+      'getting lean not just skinny',
+      'fat loss vs body recomposition',
+      'leaner body same weight',
+    ],
+    schemaType: 'faq',
+    cluster: 'body-composition',
+    heroImage: '/founder/body-composition-proof-20251221.webp',
+    heroAlt: 'Founder body composition shot showing the practical difference between weight loss and fat loss on the same scale number',
     deck:
-      'At one point in the middle of my transformation, I weighed the same for eight weeks. My clothes stopped fitting anyway.',
+      "What's the difference between weight loss and fat loss? One moves the scale; the other actually changes how you look. At one point in the middle of my transformation, I weighed the same for eight weeks. My clothes stopped fitting anyway.",
     ctaTitle: 'Track composition, not just mass.',
     ctaBody:
       'If you are only ever reading the scale, you are reading one chapter of a book. Weight, measurements, and photos in parallel answer different questions.',
@@ -3130,6 +5017,12 @@ const posts: BlogPost[] = [
           'Looser around the waist. Tighter around the shoulders. The same number. A different body.',
           'I spent those eight weeks mostly frustrated because I did not yet understand what was happening.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'What is the difference between weight loss and fat loss?',
+        answer:
+          'Weight is total mass: water, bone, organ, muscle, fat, food in transit. Fat loss is just the fat portion. You can lose weight and get less lean if you lose mostly muscle, or stay the same weight and get leaner through recomposition. The scale weighs everything. It cannot tell those stories apart.',
       },
       {
         type: 'paragraphs',
@@ -3194,10 +5087,42 @@ const posts: BlogPost[] = [
           'They are not the same number and they are not the same clock.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: "How can I tell which one I'm doing?",
+          answer:
+            'Track three things together: weekly scale average, tape measurements at waist and hip, and photos every two weeks under matched conditions. If the scale moves but measurements do not, you are losing the wrong tissue. If measurements move but the scale does not, you are recomposing.',
+        },
+        {
+          question: 'Can you gain weight and look leaner?',
+          answer:
+            'Yes. If the gain is muscle and the loss is fat, the scale moves up while the body looks visibly leaner. A 70 kg person at 25 percent body fat looks softer than a 72 kg person at 18 percent. The heavier one is the leaner one.',
+        },
+        {
+          question: 'Why do people lose muscle on a diet?',
+          answer:
+            'Two reasons: protein intake is too low, or the deficit is so aggressive the body sheds tissue indiscriminately. Adequate protein (1.6 to 2.2 g/kg) plus resistance training tilts the loss toward fat and away from muscle. Cardio-only severe diets do the opposite.',
+        },
+        {
+          question: 'Is body recomposition possible at any age?',
+          answer:
+            'Yes, though the rate slows with age. Trained adults in their thirties, forties, and beyond still build muscle and lose fat at the same time, just more slowly than beginners. The direction is the same. The clock runs differently.',
+        },
+        {
+          question: 'Should I care about body fat percentage instead of weight?',
+          answer:
+            'For most people, yes. Unless you are an athlete with a weight class, the actual goal is composition, not mass. Track a waist measurement, a clothing size, and photos. Use the scale as one of four signals, not the sentence.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'why-people-gain-more-back-than-they-lost',
+    slug: 'why-do-i-gain-back-more-weight-than-i-lost',
     title: 'Why People Gain More Back Than They Lost',
     description:
       'The rebound is not lack of discipline. It is a predictable response to how most people diet. Here is what actually happens.',
@@ -3206,8 +5131,21 @@ const posts: BlogPost[] = [
     date: '2026-05-21',
     readingTime: '7 min read',
     tags: ['Maintenance', 'Rebound', 'Yo-Yo Dieting', 'Weight Loss'],
-    heroImage: '/founder/long-game-founder-20251221.jpg',
-    heroAlt: 'Founder image representing the long-game discipline that prevents rebound',
+    seoTitle: 'Why Do I Gain Back More Weight Than I Lost?',
+    metaDescription:
+      "Why do I gain back more weight than I lost? It isn't lack of discipline — it's a predictable rebound the diet built in. Here's the system that prevents it.",
+    keywords: [
+      'why do I gain back more weight than I lost',
+      'weight loss rebound effect',
+      'gained more weight back after diet',
+      'yo-yo dieting weight gain',
+      'weight regain after losing weight',
+      'dieting makes you gain weight back',
+    ],
+    schemaType: 'faq',
+    cluster: 'maintenance',
+    heroImage: '/founder/long-game-founder-20251221.webp',
+    heroAlt: 'Founder portrait holding the long-game discipline behind why do I gain back more weight than I lost on past diets',
     deck:
       'Most people who lose significant weight gain more back than they lost within a few years. The usual explanation is laziness. That explanation is mostly wrong. Or at least, it skips the real mechanism.',
     ctaTitle: 'Maintenance is the diet.',
@@ -3222,6 +5160,12 @@ const posts: BlogPost[] = [
           'The usual explanation is laziness, weakness, lack of discipline, slipping back into old habits.',
           'That explanation is mostly wrong. Or at least, it skips the real mechanism.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why do I gain back more weight than I lost?',
+        answer:
+          'Three things collide after a diet ends. Maintenance calories dropped because you weigh less. Appetite signals stay louder than the new caloric need for weeks. NEAT drops unconsciously. Eating like the old you, while hungrier, while moving less, produces overshoot. The rebound is not character failure. It is three lines crossing at once.',
       },
       {
         type: 'paragraphs',
@@ -3289,10 +5233,42 @@ const posts: BlogPost[] = [
           'Maintenance is the diet. The losing part was just the prequel.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Is rebound weight gain mostly fat or muscle?',
+          answer:
+            'Mostly fat for people who dieted aggressively without training. Metabolic and fat-storage patterns can shift after severe cuts in ways that make regained weight more likely to be fat, not the muscle that was lost. Slow loss with strength training reduces this effect.',
+        },
+        {
+          question: 'How long does the rebound risk last?',
+          answer:
+            'The most vulnerable window is the first 6 to 12 months of maintenance. Hunger signals stay louder, NEAT stays lower, and the body can keep defending the old weight for that period. Surviving it without rebounding is what separates long-term maintainers from yo-yo dieters.',
+        },
+        {
+          question: "What's the best way to prevent regaining weight?",
+          answer:
+            'Lose slower. Train through the diet to keep muscle. Treat maintenance as the actual program, not a finish line. Expect appetite to run louder than your caloric need for weeks and plan for it. None of these are slogans. They change the outcome.',
+        },
+        {
+          question: 'Does yo-yo dieting permanently change metabolism?',
+          answer:
+            "Repeated aggressive cycles can compound the compensation responses — lower NEAT, louder appetite, reduced lean mass. 'Permanent damage' is overstated, but each cycle tends to be harder than the last. Slower, less-extreme approaches break the pattern.",
+        },
+        {
+          question: "Why does my body 'overshoot' my old weight?",
+          answer:
+            'Defended-weight signals do not always shut off at the old weight. They may keep pushing past it until the body is certain food is plentiful. Combined with post-restriction food intensity and lower NEAT, the regain often passes the original starting point.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'how-do-i-eat-normally-at-social-events',
+    slug: 'how-to-eat-at-social-events-on-a-diet',
     title: 'How Do I Eat Normally at Social Events',
     description:
       'A practical Q&A on how to eat at dinners, parties, and events without overcompensating before or after. Most of the damage is not at the event.',
@@ -3301,10 +5277,55 @@ const posts: BlogPost[] = [
     date: '2026-05-22',
     readingTime: '6 min read',
     tags: ['Social Eating', 'Food Structure', 'Dieting', 'Restaurants'],
-    heroImage: '/founder/sleep-reflective-window-20241217.jpg',
-    heroAlt: 'Founder reflective image representing a calm approach to food outside the usual routine',
+    seoTitle: 'How to Eat at Social Events on a Diet',
+    metaDescription:
+      "How to eat at social events on a diet: the dinner is rarely the problem. The under-eating before and over-correcting after are. Here's the fix.",
+    keywords: [
+      'how to eat at social events on a diet',
+      'eating out while dieting',
+      'social eating weight loss',
+      'how to go to a party on a diet',
+      'diet at restaurants tips',
+      'eating at dinner party diet',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Eat your normal meals during the day',
+        text:
+          'Do not save calories. Arriving hungry, under-fueled, and with appetite cranked up is the worst possible state for choosing food at a large spread. Normal breakfast, normal lunch, protein at each. Show up not-hungry, not-full.',
+      },
+      {
+        name: 'Add a small protein snack 60 to 90 minutes before',
+        text:
+          'If the event runs later than your usual dinner time, eat a small, protein-forward snack about an hour before. Not to fill up. To avoid arriving starved, which makes everything that follows louder than it needs to be.',
+      },
+      {
+        name: 'Eat slower than you do at home',
+        text:
+          'Social eating is a marathon, not a sprint. You want fullness signals to arrive while the food is still in front of you, not 30 minutes after. Start with vegetables, salad, or protein before bread or dessert.',
+      },
+      {
+        name: 'Drink water between drinks, if you drink',
+        text:
+          'Alcohol suppresses hunger-regulation signals and tends to make the rest of the night feel less metered. A glass of water between rounds keeps the night from running away from you without any speech about discipline.',
+      },
+      {
+        name: 'Skip the avoidance frame',
+        text:
+          "Deciding bread is forbidden then eating bread reads to your brain as 'the diet is over.' Deciding bread is fine and eating one piece reads as 'I had one piece.' The frame is more dangerous than any specific food.",
+      },
+      {
+        name: 'Eat normally the day after',
+        text:
+          'Normal breakfast. Drink water. Skip the scale for 3 to 5 days while the water settles. Return to your plan at lunch as if the dinner were last week. The week absorbs the event without theatrics.',
+      },
+    ],
+    cluster: 'food-structure',
+    heroImage: '/founder/sleep-reflective-window-20241217.webp',
+    heroAlt: 'Founder reflective shot capturing a calm approach to food off-routine, anchor for how to eat at social events on a diet',
     deck:
-      'Most people think a dinner out is where the diet breaks. Usually, the dinner is the smallest part of the problem. The damage happens before and after, not at it.',
+      "Here's how to eat at social events on a diet without making the dinner the villain. The damage usually happens around the dinner. Most people think a dinner out is where the diet breaks. Usually, the dinner is the smallest part of the problem. The damage happens before and after, not at it.",
     ctaTitle: 'Eat normally around the event.',
     ctaBody:
       'Log the week, not the meal. If you can see the week in shape, one big dinner stops feeling like the center of gravity it was never really at.',
@@ -3316,6 +5337,12 @@ const posts: BlogPost[] = [
           'Usually, the dinner is the smallest part of the problem.',
           'The damage usually happens before and after the event, not at it.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I eat at social events on a diet?',
+        answer:
+          'Eat normally around the event, not before and after. Most damage happens in the under-eating before and the over-correcting after, not at the dinner itself. Skip the breakfast-skipping. Skip the morning-after restriction. Arrive not-hungry. Eat what you want at the event. Return to your plan at the next meal, not next Monday.',
       },
       {
         type: 'paragraphs',
@@ -3396,10 +5423,42 @@ const posts: BlogPost[] = [
           'Eat normally around the event. Eat normally at the event. Eat normally the day after.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Should I save calories during the day for the event?',
+          answer:
+            'No. Saving calories almost always backfires. You arrive hungry, under-fueled, and with appetite cranked up — the worst possible state for making food choices around a calorie-dense spread. Eat your normal breakfast. Eat your normal lunch. Arrive not-hungry, not-full.',
+        },
+        {
+          question: 'What should I actually do at the event?',
+          answer:
+            'Eat slower than you would at home. Start with vegetables, salad, or protein before the dense carbs and sweets. Drink water between alcoholic drinks. Stop when done, not when the plate is empty. There is no secret move. The slowness is most of it.',
+        },
+        {
+          question: 'Should I avoid certain foods at the event?',
+          answer:
+            'Not categorically. The avoidance frame usually wrecks the night. If you label bread as forbidden and then eat bread, the brain often reads it as the diet is over. Decide bread is fine and one piece stops there. The avoidance framing is more dangerous than any single food.',
+        },
+        {
+          question: 'What should I do the morning after?',
+          answer:
+            'Eat your normal breakfast. Drink water. Do not weigh yourself for three to five days while the sodium clears. Return to your plan at lunch, as if the event was last week. The drastic morning-after restriction is what turns one event into three days off plan.',
+        },
+        {
+          question: 'How often can I do social events without losing progress?',
+          answer:
+            'One a week, handled this way, has almost no effect on a fat-loss phase. Two a week starts compressing the deficit. Three a week is essentially a maintenance phase. The events themselves are not the threshold. Whether the days around them return to plan is the threshold.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-kind-of-person-who-stays-at-their-goal-weight',
+    slug: 'how-to-stay-at-your-goal-weight-long-term',
     title: 'The Kind of Person Who Stays at Their Goal Weight',
     description:
       'Most people who hold weight off for years share a few quiet traits. None of them are what motivational content says.',
@@ -3408,10 +5467,55 @@ const posts: BlogPost[] = [
     date: '2026-05-23',
     readingTime: '6 min read',
     tags: ['Maintenance', 'Founder Story', 'Long Game', 'Weight Loss'],
-    heroImage: '/founder/final-portrait.jpg',
-    heroAlt: 'Founder portrait representing a calmer, post-transformation steady state',
+    seoTitle: 'How to Stay at Your Goal Weight Long Term',
+    metaDescription:
+      'How to stay at your goal weight long term, not just hit it once. Most maintainers share 4 quiet habits — none of them what motivational content sells.',
+    keywords: [
+      'how to stay at your goal weight long term',
+      'keep weight off after dieting',
+      'what successful maintainers do',
+      'national weight control registry habits',
+      'maintaining weight loss long term',
+      'long term weight maintenance strategies',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Eat similar meals most days',
+        text:
+          'Breakfast looks like breakfast. Lunch looks like lunch. The variance is at dinner, on weekends, or during travel. The base week has a shape that does not require willpower because the defaults already do most of the work.',
+      },
+      {
+        name: 'Train consistently three to four days a week',
+        text:
+          'Most long-term maintainers train three or four times a week, for years, without drama. Training is part of the week, not a punishment project. Six-day-per-week regimens rarely survive past the loss phase, and they do not have to.',
+      },
+      {
+        name: 'Walk more, sleep enough',
+        text:
+          'Walking is mostly lifestyle, not a program. Most maintainers move more than they realize during ordinary days. Sleep is enough, not perfect. Both are unremarkable on any given day and decisive across years.',
+      },
+      {
+        name: 'Stop chasing a goal weight',
+        text:
+          'Treat the current weight as your weight now, not as the next stop on the way down. The chase ending matters more than any single number. Long-term maintainers had stopped optimizing the body at all by the time I met them.',
+      },
+      {
+        name: 'Run an emergency protocol for small drifts',
+        text:
+          'If weight drifts up 2 to 3 kg over a stretch, tighten for two weeks without drama and return to baseline. The tightening is a correction, not a diet. It works because it starts early, before the drift compounds.',
+      },
+      {
+        name: 'Weigh less often, in longer windows',
+        text:
+          'Daily weigh-ins amplify noise during maintenance because the trend is flat. Once or twice a week under matched morning conditions, with a weekly average, gives a cleaner signal than chasing daily readings that mostly reflect water and food.',
+      },
+    ],
+    cluster: 'maintenance',
+    heroImage: '/founder/final-portrait.webp',
+    heroAlt: 'Founder portrait from the post-transformation steady state, illustrating how to stay at your goal weight long term',
     deck:
-      'I have met people who held their weight off for five, ten, fifteen years. They do not look like the motivational content suggests. They seem, most of the time, a little bored.',
+      "Here's how to stay at your goal weight long term, in the unglamorous version: it looks more like routine than willpower. I have met people who held their weight off for five, ten, fifteen years. They do not look like the motivational content suggests. They seem, most of the time, a little bored.",
     ctaTitle: 'Become the ordinary week.',
     ctaBody:
       'If your longest stretch of stable weight was 4 weeks, the goal is to build 52. The ordinary week is what separates losing weight from keeping it off.',
@@ -3423,6 +5527,12 @@ const posts: BlogPost[] = [
           'They do not look like the motivational content suggests.',
           'They do not post. They do not moralize food. They do not seem to be working that hard. They seem, most of the time, a little bored.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I stay at my goal weight long term?',
+        answer:
+          'Become boring. People who hold weight off for years eat similar things most days, train three to four times a week without drama, sleep enough, walk more than average, and stop chasing a goal weight. They have an emergency protocol for small drifts. They do not run on willpower or inspiration. The defaults do the work.',
       },
       {
         type: 'paragraphs',
@@ -3476,10 +5586,42 @@ const posts: BlogPost[] = [
           'Not the photo. The ordinary week.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What do successful long-term maintainers actually do?',
+          answer:
+            'Eat similar meals most days. Train consistently without treating it as a punishment project. Sleep enough. Walk more than they realize. Weigh less often than during the cut. Tighten quickly without drama if weight drifts up 2 to 3 kg. They do not look like fitness people.',
+        },
+        {
+          question: 'How is maintenance different from being on a diet?',
+          answer:
+            'Maintenance has no finish line, no scale milestone, no trend to chase. The structure stays the same — same meal patterns, same training, same logging — but the deficit goes away. The food gets bigger. The discipline around it does not.',
+        },
+        {
+          question: 'Should I keep weighing myself in maintenance?',
+          answer:
+            'Yes, but less often. Once or twice a week, same morning conditions, weekly average. Daily weighing in maintenance amplifies noise — flat trends do not swallow the spikes the way deficit trends do. Less frequent, longer comparison windows work better.',
+        },
+        {
+          question: 'What should I do if my weight starts creeping up?',
+          answer:
+            'Tighten for two weeks without drama and return to baseline. Most successful maintainers run an emergency protocol when drift hits 2 to 3 kg. The tightening is not a diet. It is a correction. It works because it starts early, before the drift compounds.',
+        },
+        {
+          question: 'How long until maintenance feels automatic?',
+          answer:
+            'Usually 6 to 12 months of consistent practice for the defaults to run on autopilot. Then the program fades from foreground to background. There is no celebration moment. You just notice, weeks later, that you have stopped thinking about food the way you used to.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'why-you-stop-losing-weight-around-month-three',
+    slug: 'why-did-i-stop-losing-weight-at-3-months',
     title: 'Why You Stop Losing Weight Around Month Three',
     description:
       'Around month three, most diets slow down for reasons that are not about effort. Here is what is actually happening and why the fix is not cutting more.',
@@ -3488,10 +5630,23 @@ const posts: BlogPost[] = [
     date: '2026-05-24',
     readingTime: '7 min read',
     tags: ['Plateau', 'Dieting', 'Metabolic Adaptation', 'Weight Loss'],
-    heroImage: '/founder/plateau-middle-checkin-20250711.jpg',
-    heroAlt: 'Founder mid-plateau, calm, reading the graph instead of reacting to it',
+    seoTitle: 'Why Did I Stop Losing Weight at 3 Months?',
+    metaDescription:
+      "Why did I stop losing weight at 3 months? Adaptation, fatigue, and slow calorie creep — not a broken plan. Here's what to change without escalating.",
+    keywords: [
+      'why did I stop losing weight at 3 months',
+      'weight loss plateau month 3',
+      'stopped losing weight after 3 months',
+      'diet slows down after three months',
+      'plateau 3 months into diet',
+      'month 3 weight loss wall',
+    ],
+    schemaType: 'faq',
+    cluster: 'plateau',
+    heroImage: '/founder/plateau-middle-checkin-20250711.webp',
+    heroAlt: 'Founder mid-plateau portrait, calmly reading the graph, the visual anchor for why did I stop losing weight at 3 months',
     deck:
-      'Most diets slow down around month three. Not because effort dropped. Not because the plan got worse. The body has simply become better at operating on less.',
+      'Why did I stop losing weight at 3 months on a plan that worked in week one? Mostly because the body adapted to it. Most diets slow down around month three. Not because effort dropped. Not because the plan got worse. The body has simply become better at operating on less.',
     ctaTitle: 'Read the slowdown as a rest point.',
     ctaBody:
       'The diet is working. It is asking you to rest before it can keep working. Track the trendline across breaks instead of resetting the graph.',
@@ -3503,6 +5658,12 @@ const posts: BlogPost[] = [
           'Not because effort dropped. Not because the plan got worse. Not because willpower collapsed.',
           'The body has simply become better at operating on less.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why did I stop losing weight at 3 months?',
+        answer:
+          'Because four things stack quietly around month three. Maintenance calories drop as the body weighs less. Unconscious daily movement drops. Digestive efficiency shifts slightly. Appetite climbs. The diet did not break. The body adapted to it. Cutting harder usually backfires here. The fix is almost always a 7 to 14 day diet break.',
       },
       {
         type: 'paragraphs',
@@ -3567,10 +5728,42 @@ const posts: BlogPost[] = [
           'If you are here, the diet is working. It is asking you to rest before it can keep working.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why does cutting more calories backfire here?',
+          answer:
+            'Because it works for a week or two, then the body adapts again. A few cycles in, you are eating 1,200 calories a day, losing nothing, and have trained your appetite louder, NEAT quieter, and muscle protein down. Smaller, weaker, hungrier — and the scale still has not moved.',
+        },
+        {
+          question: 'What is a diet break and how long should it be?',
+          answer:
+            'Seven to fourteen days at maintenance calories. Not a binge, not a cheat day. NEAT rises back up, appetite settles slightly, and the body stops aggressively defending its current weight. When you return to deficit, the deficit starts working again for another four to six weeks.',
+        },
+        {
+          question: 'Will I gain weight during a diet break?',
+          answer:
+            'Yes, in the form of water and glycogen. Expect 1 to 2 kg in the first few days. That is normal and not fat. It comes off when you return to deficit. The discomfort of seeing the scale rise is the price of breaking the plateau cleanly.',
+        },
+        {
+          question: 'How do I know the slowdown is a real plateau and not a slow week?',
+          answer:
+            'Three consecutive weeks of no scale movement under your usual conditions, with no shape change either. Less than that is noise. Most month-three slowdowns turn into resumed loss within a couple of weeks if the response is patient instead of aggressive.',
+        },
+        {
+          question: 'Are diet breaks studied or just a coaching trick?',
+          answer:
+            'Studied, in several formal trials. People who take planned 7 to 14 day breaks every 4 to 8 weeks on long diets tend to retain more muscle, report lower hunger, and have better outcomes at six and twelve months than people who diet straight through.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'am-i-actually-hungry-or-am-i-bored',
+    slug: 'how-to-tell-if-youre-hungry-or-bored',
     title: 'Am I Actually Hungry or Am I Bored',
     description:
       'Most late-afternoon and evening hunger is not hunger. It is signal mismatch. A practical Q&A on how to read yourself.',
@@ -3579,10 +5772,50 @@ const posts: BlogPost[] = [
     date: '2026-05-25',
     readingTime: '7 min read',
     tags: ['Appetite', 'Emotional Eating', 'Cravings', 'Dieting'],
-    heroImage: '/founder/sleep-reflective-20260106.jpg',
-    heroAlt: 'Founder in a reflective moment representing the pause before reaching for a snack',
+    seoTitle: "How to Tell If You're Hungry or Bored",
+    metaDescription:
+      "How to tell if you're hungry or bored: the apple test ends the question in 5 seconds. Here's why most late-day hunger isn't hunger at all.",
+    keywords: [
+      "how to tell if you're hungry or bored",
+      'am I hungry or bored',
+      'boredom eating',
+      'emotional hunger vs physical hunger',
+      'how to stop boredom eating',
+      'hunger cues vs cravings',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Run the apple test',
+        text:
+          'Ask yourself: would I eat an apple right now? If yes, you are probably hungry. If no, but you want ice cream, you are probably bored or emotionally eating. The craving is specific. The hunger is general.',
+      },
+      {
+        name: 'Wait five minutes',
+        text:
+          'Not as a discipline test. As a signal test. Real hunger grows steadily over five minutes. Boredom often does not. If the pull fades while you wait, the body was not asking for food in the first place.',
+      },
+      {
+        name: 'Drink water or tea, change location',
+        text:
+          'A glass of water sometimes resets the signal entirely. Walking out of the kitchen helps too — the trigger is often the room, not the stomach. Both are crude. Both work often enough to be worth trying first.',
+      },
+      {
+        name: 'If the pull persists, eat intentionally',
+        text:
+          "Eat at the table, not standing at the fridge. Intention is what separates 'I ate a snack' from '40 minutes of unconscious grazing I do not remember.' Make the eating deliberate even when the choice is not perfect.",
+      },
+      {
+        name: 'Check whether under-fueling is the real issue',
+        text:
+          'If the boredom shows up every day at the same time with intensity, your meals there are too small. Move calories into protein-forward lunches and larger breakfasts. Often the boredom problem is actually a macronutrient timing problem in disguise.',
+      },
+    ],
+    cluster: 'appetite',
+    heroImage: '/founder/sleep-reflective-20260106.webp',
+    heroAlt: "Founder reflective shot at the pause before a snack, illustrating how to tell if you're hungry or bored in the moment",
     deck:
-      'If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real. Most of the time, it is not hunger. It is something else wearing hungers costume.',
+      "Here's how to tell if you're hungry or bored standing at the open fridge. The cue is almost never in the stomach. If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real. Most of the time, it is not hunger. It is something else wearing hungers costume.",
     ctaTitle: 'Run the apple test before the snack.',
     ctaBody:
       'The intention is what separates a snack from 40 minutes of unconscious grazing. Log the time and reason; the weekly pattern is where the behavior shifts.',
@@ -3593,6 +5826,12 @@ const posts: BlogPost[] = [
           'If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real.',
           'Most of the time, it is not hunger. It is something else wearing hunger is costume.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "How do I tell if I'm hungry or just bored?",
+        answer:
+          'Run the apple test. Would you eat an apple right now? If yes, you are probably hungry. If no, but you want ice cream, you are probably bored or emotionally eating. Real hunger is general and patient. Boredom eating is specific, urgent, and mouth-based. The craving is specific. The hunger is general.',
       },
       {
         type: 'paragraphs',
@@ -3677,10 +5916,42 @@ const posts: BlogPost[] = [
           'That is where the behavior changes. Not in the one moment of standing at the fridge. In the accumulation of small noticings.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What does real hunger actually feel like?',
+          answer:
+            'General. Patient. Stomach-based. Your whole body is mildly under-fueled. Mood and energy dip. Any reasonable meal — a sandwich, leftover rice, a banana — would feel fine. Real hunger grows slowly over 15 to 20 minutes. It does not spike on contact with the kitchen.',
+        },
+        {
+          question: 'Why does boredom eating usually hit in the afternoon?',
+          answer:
+            'Three things stack: decision fatigue from the day, wobbly blood sugar from a light or distant lunch, and looser social structure. You are home, alone, or winding down. Food becomes the most available source of fast pleasure. None of this is a character failure.',
+        },
+        {
+          question: 'How can I stop boredom eating without restricting?',
+          answer:
+            'Wait five minutes. Drink water or tea. Change location — the trigger is often the room, not the stomach. If the pull persists, eat intentionally at the table, not standing at the fridge. Intention is what separates a snack from 40 minutes of unconscious grazing.',
+        },
+        {
+          question: "Could my 'boredom eating' actually be under-fueling?",
+          answer:
+            'Often, yes. If you are in a real deficit and consistently hungry mid-afternoon, the lunch was probably too light. Move calories there. Protein-forward lunches and larger breakfasts usually fix what looked like an emotional eating pattern.',
+        },
+        {
+          question: "Is it ever okay to eat when I'm not hungry?",
+          answer:
+            'Yes. Sharing popcorn during a movie is not dietary dysfunction. It is being a person. The problem is unconscious repeated boredom eating that adds 300 to 700 calories a day without registering. The occasional social or comfort eat is fine.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'how-much-protein-do-i-actually-need-to-lose-fat',
+    slug: 'how-much-protein-do-i-need-to-lose-fat',
     title: 'How Much Protein Do I Actually Need to Lose Fat',
     description:
       'Protein is important on a diet for specific reasons. Here is how much you actually need, and where most protein advice overshoots.',
@@ -3689,10 +5960,22 @@ const posts: BlogPost[] = [
     date: '2026-05-26',
     readingTime: '6 min read',
     tags: ['Protein', 'Macronutrients', 'Fat Loss', 'Food Structure'],
-    heroImage: '/founder/founder-story-hanok-20260119.jpg',
-    heroAlt: 'Founder portrait representing a worldview-forward read on basic diet rules',
+    seoTitle: 'How Much Protein Do I Need to Lose Fat?',
+    metaDescription:
+      'How much protein do I need to lose fat? 1.6 to 2.2 g per kg daily, split across 3 to 4 meals. Most people overshoot the math and undershoot the timing.',
+    keywords: [
+      'how much protein do I need to lose fat',
+      'grams of protein per day for fat loss',
+      'protein intake for weight loss',
+      'how many grams of protein to lose weight',
+      'protein per kg body weight weight loss',
+      'high protein diet for cutting',
+    ],
+    cluster: 'food-structure',
+    heroImage: '/founder/founder-story-hanok-20260119.webp',
+    heroAlt: 'Founder portrait framing the basic question of how much protein do I need to lose fat without overthinking it',
     deck:
-      'Protein is the only macronutrient the internet agrees on. Unfortunately, the internet also cannot agree on how much of it you actually need. The truth is narrower than both.',
+      'How much protein do I need to lose fat? Less than the influencer math sells, more than the food pyramid ever recommended. Protein is the only macronutrient the internet agrees on. Unfortunately, the internet also cannot agree on how much of it you actually need. The truth is narrower than both.',
     ctaTitle: 'Stop overshooting the protein rule.',
     ctaBody:
       'Every gram above what you need is a gram you could have spent on vegetables, whole grains, or variety. Track protein per meal to see where the day actually lands.',
@@ -3783,7 +6066,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'why-your-workouts-feel-harder-when-youre-dieting',
+    slug: 'why-are-my-workouts-harder-on-a-cut',
     title: 'Why Your Workouts Feel Harder When You Are Dieting',
     description:
       'Training under a deficit is not the same workout at a different weight. Your perception of difficulty is mostly correct, and there is a simple reason.',
@@ -3792,10 +6075,23 @@ const posts: BlogPost[] = [
     date: '2026-05-27',
     readingTime: '7 min read',
     tags: ['Exercise', 'Recovery', 'Dieting', 'Strength Training'],
-    heroImage: '/founder/consistency-editorial-20251229.jpg',
-    heroAlt: 'Founder mid-training image representing consistent sessions under a different fuel state',
+    seoTitle: 'Why Are My Workouts Harder on a Cut?',
+    metaDescription:
+      "Why are my workouts harder on a cut? You're lifting on fumes, not lifting weaker. Here's the cost of the deficit and how to pay it without escalating.",
+    keywords: [
+      'why are my workouts harder on a cut',
+      'workouts feel harder on diet',
+      'lifting weaker on a cut',
+      'training in a calorie deficit',
+      'cut affecting gym performance',
+      'losing strength while cutting',
+    ],
+    schemaType: 'faq',
+    cluster: 'exercise',
+    heroImage: '/founder/consistency-editorial-20251229.webp',
+    heroAlt: 'Founder mid-training shot under low-fuel conditions, anchoring why are my workouts harder on a cut than at maintenance',
     deck:
-      'People expect a training session to feel approximately the same from week to week. Once you are in a caloric deficit for more than a few weeks, that is not how it goes.',
+      "Why are my workouts harder on a cut, even when the weights aren't heavier? Recovery changed, not the bar. People expect a training session to feel approximately the same from week to week. Once you are in a caloric deficit for more than a few weeks, that is not how it goes.",
     ctaTitle: 'Do not scale the deficit to the hard session.',
     ctaBody:
       'Your workouts are telling you, accurately, that your fuel is low. That is not a signal to cut more. Log training alongside weight and eating to see the pattern.',
@@ -3806,6 +6102,12 @@ const posts: BlogPost[] = [
           'People expect a training session to feel approximately the same from week to week.',
           'Once you are in a caloric deficit for more than a few weeks, that is not how it goes.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why are my workouts harder on a cut?',
+        answer:
+          'Because there is less fuel in the tank. Glycogen is the primary fuel for intense work, and a deficit, especially a low-carb one, stores less of it. You run out faster. Sets feel heavier. Recovery between sets slows. The session is the same. The fuel is different. You are not lifting weaker — you are lifting on fumes.',
       },
       {
         type: 'paragraphs',
@@ -3888,10 +6190,42 @@ const posts: BlogPost[] = [
           'That is the cost of the deficit. Pay it, do not fight it, and do not scale the deficit further because the workouts feel hard.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Am I actually losing strength on a cut?',
+          answer:
+            'Usually not the way you think. Absolute strength may dip 5 to 10 percent during aggressive dieting, often less. What dips is endurance within the session. Come off the deficit for a week and strength tends to return to baseline within days. The strength was not gone. The fuel was.',
+        },
+        {
+          question: 'Should I change my training during a cut?',
+          answer:
+            'Slightly. Keep the big lifts at reasonable intensities to protect muscle. Reduce total volume — fewer sets, fewer sessions if needed. Drop circuit finishers and conditioning complexes. Stop chasing PRs. The deficit phase is for maintaining strength. Save push phases for when you are eating more.',
+        },
+        {
+          question: 'Should I add cardio while my workouts are getting harder?',
+          answer:
+            'Almost never. Extra cardio on an already aggressive deficit eats into recovery, drops NEAT later in the day, and raises evening appetite. The session burned 200 to 400 calories. The compensation usually erased them. The deficit did not grow. You just got more tired.',
+        },
+        {
+          question: 'How do I know the diet has gone too far?',
+          answer:
+            'Four signals. Missing reps you used to hit by three or four. Sleep degraded noticeably. Resting heart rate up for a week or more. Mood around training shifted from neutral to actively reluctant. Two or more of those means step up to maintenance for a week. Training will snap back.',
+        },
+        {
+          question: 'Why does every session feel slightly worse than the last?',
+          answer:
+            'Because the compounding is gradual. Week one feels normal. Week three caps your usual reps a couple early. Week six the warmups feel heavier. Week ten you finish thinking something is wrong. Nothing is. You are a dieting person lifting weights, and that is what it feels like.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'why-your-strength-increases-before-your-shape-changes',
+    slug: 'why-does-strength-increase-before-muscle-size',
     title: 'Why Your Strength Increases Before Your Shape Changes',
     description:
       'Your strength improves before your shape does. The first six weeks of lifting are mostly neural. This is what that looks like from the inside.',
@@ -3900,10 +6234,23 @@ const posts: BlogPost[] = [
     date: '2026-05-28',
     readingTime: '6 min read',
     tags: ['Strength Training', 'Neural Adaptation', 'Beginner Lifting', 'Body Composition'],
-    heroImage: '/founder/patience-middle-checkin-20250731.jpg',
-    heroAlt: 'Founder mid-training phase representing the quiet strength curve that precedes visible change',
+    seoTitle: 'Why Does Strength Increase Before Muscle Size?',
+    metaDescription:
+      'Why does strength increase before muscle size? The first 6 weeks of lifting are mostly neural, not visual. Numbers move first. Shape moves second.',
+    keywords: [
+      'why does strength increase before muscle size',
+      'neural adaptation beginner lifting',
+      'strength gains without visible muscle',
+      'first 6 weeks lifting results',
+      'newbie gains neural adaptation',
+      'strength vs hypertrophy timeline',
+    ],
+    schemaType: 'faq',
+    cluster: 'exercise',
+    heroImage: '/founder/patience-middle-checkin-20250731.webp',
+    heroAlt: 'Founder mid-training shot from the quiet strength curve that explains why does strength increase before muscle size shows up',
     deck:
-      'I added 15 kg to my deadlift in my first six weeks of training. I did not look meaningfully different. If you were showing up in a mirror expecting week-by-week change, you would think the gym was broken.',
+      'Why does strength increase before muscle size? The nervous system gets organized weeks before the body looks different. I added 15 kg to my deadlift in my first six weeks of training. I did not look meaningfully different. If you were showing up in a mirror expecting week-by-week change, you would think the gym was broken.',
     ctaTitle: 'Judge the first six weeks on the numbers, not the mirror.',
     ctaBody:
       'Your job in the first six weeks is to let the nervous system do its quiet first pass. The visual program starts later. If you quit early, you never get to it.',
@@ -3915,6 +6262,12 @@ const posts: BlogPost[] = [
           'I did not look meaningfully different.',
           'If you were showing up in a mirror expecting week-by-week change, you would think the gym was broken.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why does strength increase before muscle size?',
+        answer:
+          'Because the first six to eight weeks of lifting are mostly neural, not visual. The nervous system learns to recruit muscle you already have. Coordination improves. Stabilizers wake up. The motor pattern cleans up. The numbers move first because the body upgrades the existing tissue before deciding to commit resources to growing new tissue.',
       },
       {
         type: 'paragraphs',
@@ -3992,10 +6345,42 @@ const posts: BlogPost[] = [
           'If you stay long enough, both move.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'When does visible muscle growth actually start?',
+          answer:
+            'For most recreational lifters, somewhere between week 12 and week 16, sometimes longer. Strength changes show up in 6 to 8 weeks. Visible shape change runs on a slower clock. Most people quit at week 5 to 9, right before the visual change starts.',
+        },
+        {
+          question: "Why doesn't the body just build muscle right away?",
+          answer:
+            'Because muscle is expensive to build. The body tries the existing tissue first. If it can do the job through better recruitment, it quietly upgrades coordination and stops there. Only when the workouts persist and the stimulus accumulates does the body start adding new tissue as a second-stage response.',
+        },
+        {
+          question: 'How should I judge the program in the early weeks?',
+          answer:
+            'Not on the mirror. Judge it on three things. Are working weights going up week to week, gradually? Are reps feeling more controlled? Is form holding on the last set? If yes to those, the program is working. The body will follow. The mirror is behind.',
+        },
+        {
+          question: 'Why do beginners gain strength so fast?',
+          answer:
+            'Because they have a lot of unrecruited muscle to wake up. The first six weeks of any program produce the steepest neural learning curve a lifter ever has. Lifts climb fast not because tissue grew, but because the body finally started using what was already there.',
+        },
+        {
+          question: 'Does this mean light weights are pointless early on?',
+          answer:
+            'No, but consistency matters more than intensity in the first weeks. Your job is to show up three or four times a week and let the nervous system do its first pass. The visual program runs on the foundation that pass builds. Quit early, never get to it.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-quiet-erosion-of-not-believing-your-progress',
+    slug: 'how-to-trust-slow-weight-loss-progress',
     title: 'The Quiet Erosion of Not Believing Your Progress',
     description:
       'The slow corrosion between checkpoints is rarely about the body. It is about the moment you stop trusting your own evidence. A founder note on what happens in the gap.',
@@ -4004,8 +6389,48 @@ const posts: BlogPost[] = [
     date: '2026-05-29',
     readingTime: '6 min read',
     tags: ['Founder Story', 'Belief', 'Long Game', 'Weight Loss'],
-    heroImage: '/founder/progress-update-hanok-20260119.jpg',
-    heroAlt: 'Founder in a composed setting between major progress checkpoints, holding a quieter version of the long-game posture',
+    seoTitle: 'How to Trust Slow Weight Loss Progress',
+    metaDescription:
+      "How to trust slow weight loss progress when the scale stops flattering you. The biggest losses happen on quiet weeks, not bad ones. Here's the bridge.",
+    keywords: [
+      'how to trust slow weight loss progress',
+      "can't see my own weight loss progress",
+      'weight loss self doubt',
+      'losing motivation mid diet',
+      'slow progress psychology',
+      'diet motivation fading',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Take a weekly photo under matched conditions',
+        text:
+          'Sunday morning, same room, same posture, even when you do not want to take it. Not for social media. For the file. Repeated under matched conditions, the photos give belief something to fall back on later.',
+      },
+      {
+        name: 'Note context with each weigh-in',
+        text:
+          'Add one sentence after the number — travel, sleep, sodium, stress for that week. So the next time you read it back, you have context. A 0.5 kg jump after a salty travel day reads differently with the note.',
+      },
+      {
+        name: 'Compare in monthly side-by-sides, not weekly',
+        text:
+          'Once a month, line up your photos against your own four-week-old photos. Not against anyone else. Week-to-week is mostly noise. Four-week comparisons are where the real signal lives. Save the comparison so you can return to it.',
+      },
+      {
+        name: 'Stop relying on belief; build evidence belief can use',
+        text:
+          'Belief is a daily signal. Results are a monthly one. If you wait for results to feed belief, belief runs out between checkpoints. Daily proof — small, dated, returnable — closes the cadence gap that quietly ends most programs.',
+      },
+      {
+        name: 'Refuse to argue with evidence on doubtful days',
+        text:
+          'On a bad day, look at the dated proof you collected when you were calmer. Your job is not to feel certain. Your job is to refuse to argue with what your earlier, less-loaded self already documented.',
+      },
+    ],
+    cluster: 'plateau',
+    heroImage: '/founder/progress-update-hanok-20260119.webp',
+    heroAlt: 'Founder portrait between progress checkpoints, holding the long-game posture behind how to trust slow weight loss progress',
     deck:
       'The biggest losses of my own program did not happen on the worst days. They happened on the quiet ones — three or four weeks without a real check-in, the scale drifting in a fine unremarkable way, and somewhere in that gap I would stop believing the project was working.',
     ctaTitle: 'Build evidence your belief can fall back on.',
@@ -4020,6 +6445,12 @@ const posts: BlogPost[] = [
           'I would go three or four weeks without a real check-in. The scale would drift in a fine, unremarkable way. The mirror would do its mirror thing. And somewhere in that gap, almost without noticing, I would stop believing the project was working.',
           'Nothing dramatic. Just a slow corrosion of trust in my own evidence.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I trust slow weight loss progress?',
+        answer:
+          'Stop relying on belief and start building evidence belief can fall back on. Weekly photos in matched conditions. A short note about sleep, sodium, and stress alongside each weigh-in. Monthly side-by-side comparisons against your own earlier photos. Belief is a daily signal, but results are a monthly one. Small dated proof closes the gap.',
       },
       {
         type: 'paragraphs',
@@ -4099,10 +6530,42 @@ const posts: BlogPost[] = [
           'The work is to keep looking. Not to feel certain.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why does belief in the program keep fading?',
+          answer:
+            'Because results pay out monthly and belief gets hungry daily. The cadence is mismatched. If you wait for the next big checkpoint to feed your belief, belief runs out between checkpoints. Daily noise — water, mood, light — starts running the read instead.',
+        },
+        {
+          question: "What's the right cadence for tracking slow progress?",
+          answer:
+            'Weekly weigh-ins as the rolling average. Photos every Sunday morning under matched conditions. Tape measurements every two weeks. Monthly comparisons against four-week-old photos. Daily signals are noise; weekly and monthly are signal.',
+        },
+        {
+          question: 'Should I trust the scale or the photos when they disagree?',
+          answer:
+            'Neither alone. When the scale is flat and the photos show change, you are recomposing. When the scale moves and the photos do not, you are losing the wrong tissue. Cross-reference always. The conflict itself is information.',
+        },
+        {
+          question: "What do I do on days I don't believe it's working?",
+          answer:
+            'Look at the dated proof you already produced. The monthly side-by-side. The four-week notes. Your job is not to feel certain. Your job is to refuse to argue with the evidence you already collected when you were calmer.',
+        },
+        {
+          question: 'Is slow weight loss actually better than fast?',
+          answer:
+            'Usually yes. Slower loss preserves more muscle, produces smaller appetite rebound after the diet ends, and tends to hold longer. Aggressive deficits produce more dramatic rebounds on average. The boring rate is the rate that survives.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'progress-photos-can-lie-as-much-as-the-mirror-does',
+    slug: 'why-progress-photos-dont-show-progress',
     title: 'Progress Photos Can Lie as Much as the Mirror Does',
     description:
       'People treat the progress photo as ground truth. It is not. Lighting, posture, time of day, and last night\'s dinner can fake an entire month of progress in either direction.',
@@ -4111,8 +6574,21 @@ const posts: BlogPost[] = [
     date: '2026-05-30',
     readingTime: '7 min read',
     tags: ['Mirror', 'Progress Photos', 'Body Image', 'Tracking'],
-    heroImage: '/founder/mirror-middle-checkin-20250716.jpg',
-    heroAlt: 'Founder mid-stage check-in image used here as a counterpoint — even an honest middle photo can look like progress or backsliding depending on the day',
+    seoTitle: "Why Progress Photos Don't Show Progress (and the Fix)",
+    metaDescription:
+      "Why progress photos don't show progress, even when the body changed. Lighting, posture, and last night's dinner can fake a month either way.",
+    keywords: [
+      "why progress photos don't show progress",
+      'progress photo lighting fat loss',
+      'how to take accurate progress photos',
+      'progress photos not showing change',
+      'progress photo angle matters',
+      'progress photos vs mirror',
+    ],
+    schemaType: 'faq',
+    cluster: 'mirror',
+    heroImage: '/founder/mirror-middle-checkin-20250716.webp',
+    heroAlt: "Founder mid-stage check-in used as a counterpoint, illustrating why progress photos don't show progress on a noisy day",
     deck:
       'People who would never trust a single weigh-in will completely trust a single photo. The scale gets warned about every week. The photo gets treated like court evidence. That trust is misplaced.',
     ctaTitle: 'A photo is a sample, not a sentence.',
@@ -4127,6 +6603,12 @@ const posts: BlogPost[] = [
           'The photo gets treated like court evidence.',
           'That trust is misplaced. Photos lie at least as much as the mirror does. They just lie more convincingly because they look final.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "Why don't my progress photos show progress?",
+        answer:
+          "Because the photo changed, not the body. Lighting, posture, time of day, last night's food, sleep, and camera angle can each fake an entire month of progress in either direction. The same body in two photos can give two verdicts. Treat any single photo as a sample, not a sentence.",
       },
       {
         type: 'paragraphs',
@@ -4207,10 +6689,42 @@ const posts: BlogPost[] = [
           'The mirror lies fast. The photo lies slowly and looks more like proof while it does it.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What makes the same body look different in two photos?',
+          answer:
+            "Lighting direction, posture, time of day, last night's food, sleep quality, and camera height. Lifting the camera a few centimeters slims the torso. Standing braced removes 1 to 2 cm at the waist. None of those is fat loss. All of them are the photo, not the body.",
+        },
+        {
+          question: 'Why is the photo lie more dangerous than the mirror lie?',
+          answer:
+            "Because you can stare at a photo for weeks. You can save it to a folder. You can compare it to last month's photo and conclude, with what feels like proof, that nothing is happening. The mirror only ruins one morning. The photo can ruin the program.",
+        },
+        {
+          question: 'What does an honest progress-photo setup look like?',
+          answer:
+            'Same room. Same time of day, ideally morning, fasted. Same camera distance and angle, marked on the floor. Same light source. Same posture and stance. Most people skip this and then blame their body when nothing shows. The setup, not the body, was the problem.',
+        },
+        {
+          question: 'How often should I compare progress photos?',
+          answer:
+            'Four weeks minimum. Often eight. Body composition does not move fast enough for a one-week comparison to mean much. Most of what changes between weekly photos is water, glycogen, and posture, not fat or muscle. The photo is a quarterly proof, not a weekly check.',
+        },
+        {
+          question: 'What do I do on a bad-photo day?',
+          answer:
+            'Wait three days. Take the photo again under your standard conditions. The setback almost always disappears. Bad photo days are not bad body days. Panic-restricting on a bad photo day teaches your body that bad days get punished, which sets up a worse pattern than the puff itself.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'is-this-craving-the-food-or-the-deprivation-talking',
+    slug: 'why-does-restriction-make-cravings-worse',
     title: 'Is This Craving the Food or the Deprivation Talking',
     description:
       'Most diet cravings are not about the food. They are about a memory of being told no. A Q&A on telling the food from the deprivation, with founder notes from a long restrictive history.',
@@ -4219,8 +6733,21 @@ const posts: BlogPost[] = [
     date: '2026-05-31',
     readingTime: '8 min read',
     tags: ['Cravings', 'Restriction', 'Cheat Day', 'Appetite'],
-    heroImage: '/founder/cheat-day-founder-20251221.jpg',
-    heroAlt: 'Founder in a calm post-cheat-day frame representing the difference between a peaceful indulgence and a deprivation-driven binge',
+    seoTitle: 'Why Does Restriction Make Cravings Worse?',
+    metaDescription:
+      "Why does restriction make cravings worse? The food you ban becomes the food you can't stop thinking about. Here's the test that breaks the loop.",
+    keywords: [
+      'why does restriction make cravings worse',
+      'food deprivation psychology cravings',
+      'dieting makes cravings worse',
+      'forbidden food craving',
+      'restriction leads to cravings',
+      "why am I craving what I can't have",
+    ],
+    schemaType: 'faq',
+    cluster: 'appetite',
+    heroImage: '/founder/cheat-day-founder-20251221.webp',
+    heroAlt: 'Founder calm post-cheat-day portrait, framing the difference behind why does restriction make cravings worse, not weaker',
     deck:
       'After about a year of careful eating, I noticed something I did not expect. The foods I missed most were not the foods I had loved most. They were the foods I had been most strict with myself about. The craving is rarely about the food.',
     ctaTitle: 'Drop the absolutes before they build the craving.',
@@ -4234,6 +6761,12 @@ const posts: BlogPost[] = [
           'The foods I missed most were not the foods I had loved most. They were the foods I had been most strict with myself about.',
           'That gap is the whole essay. The craving is rarely about the food. It is about being told no, by yourself, for long enough that the no started to taste like the thing.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why does restriction make cravings worse?',
+        answer:
+          'Because the brain is built to track scarce resources. When you make a food forbidden, your brain reweights it: pays more attention to the smell, notices it on shelves, dreams about it. The cleaner the restriction, the louder the tracking. Most diet cravings are not about the food. They are about being told no.',
       },
       {
         type: 'paragraphs',
@@ -4334,10 +6867,42 @@ const posts: BlogPost[] = [
           'The fix is fewer absolutes, earlier, before the release builds up.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How do I tell a real craving from a deprivation craving?',
+          answer:
+            'Real cravings resolve. You eat the thing, you are satisfied, you move on. Deprivation cravings escalate. First cookies, then chips, then the whole pantry. They end embarrassed, not satisfied. Resolution versus escalation is the cleanest test.',
+        },
+        {
+          question: 'Will giving myself permission make cravings worse?',
+          answer:
+            "Counterintuitively, no. Replacing 'I do not eat ice cream' with 'ice cream fits in twice a week' shrinks the craving inside three to six weeks for most people. Restriction builds the craving. Permission deflates it. The food becomes ordinary once the no is removed.",
+        },
+        {
+          question: 'Are some foods truly off-limits during a diet?',
+          answer:
+            'Maybe one or two trigger foods per person, not the long list most diets recommend. Be honest about which specific foods you genuinely cannot keep in the kitchen at this stage. The list is usually short. For everything else, the absolute rule creates the craving.',
+        },
+        {
+          question: 'Why do I crave foods I never even liked before?',
+          answer:
+            'Because the craving is for permission, not the food. After weeks of restriction, foods you previously ignored start glowing because they are now in the forbidden category. The brain is tracking the rule, not the flavor. Drop the rule and the food usually becomes forgettable.',
+        },
+        {
+          question: 'What if my deficit itself is creating the cravings?',
+          answer:
+            'Some cravings are real hunger from the deficit, not psychological. Those are general — a chicken-and-rice plate satisfies them. If a balanced meal quiets the urge, you were hungry. If you finish it and still want the specific forbidden item, the craving is about the rule.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-same-number-on-the-scale-feels-different-at-30-than-at-20',
+    slug: 'why-does-the-same-weight-feel-different-as-you-age',
     title: 'The Same Number on the Scale Feels Different at 30 Than at 20',
     description:
       'The same number on the scale rarely means the same body across decades. Composition shifts, sleep shifts, recovery shifts, and the meaning of the number changes with them.',
@@ -4346,8 +6911,21 @@ const posts: BlogPost[] = [
     date: '2026-06-01',
     readingTime: '8 min read',
     tags: ['Scale', 'Body Composition', 'Aging', 'Maintenance'],
-    heroImage: '/founder/scale-proof-20250919.jpg',
-    heroAlt: 'A scale image used to ground the article\'s central observation that the same number tells different stories in different decades',
+    seoTitle: 'Why Does the Same Weight Feel Different as You Age?',
+    metaDescription:
+      "Why does the same weight feel different as you age? 75 kg at 22 isn't 75 kg at 32 — composition shifts under the number. Here's what the scale misses.",
+    keywords: [
+      'why does the same weight feel different as you age',
+      'body composition changes in your 30s',
+      'same weight different body shape',
+      'muscle loss with age sarcopenia',
+      'body fat increase with age',
+      'losing weight after 30 harder',
+    ],
+    schemaType: 'faq',
+    cluster: 'scale',
+    heroImage: '/founder/scale-proof-20250919.webp',
+    heroAlt: 'Honest scale image grounding the observation that why does the same weight feel different as you age across decades',
     deck:
       'The first time I weighed exactly 75 kg, I was 22. The second time I weighed exactly 75 kg, I was around 30. The number was identical. The body underneath it was not.',
     ctaTitle: 'Read the scale with the right age in mind.',
@@ -4363,6 +6941,12 @@ const posts: BlogPost[] = [
           'The body underneath it was not. Not even close.',
           'This is the part most people are not warned about. The scale is a long-running instrument that does not adjust for the slow work the rest of the body does between readings. The number stays the same. The body it describes does not.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why does the same weight feel different as you age?',
+        answer:
+          'Because the same number describes a different body. Across decades, untrained adults usually lose a small amount of muscle and add a small amount of fat each year, even at constant weight. Glycogen storage drops. Recovery slows. The scale stays still while the body it describes quietly shifts underneath.',
       },
       {
         type: 'paragraphs',
@@ -4468,10 +7052,42 @@ const posts: BlogPost[] = [
           'Read the number with the right age in mind. The scale will not do that for you.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What changes underneath the same number?',
+          answer:
+            'Three things, slowly. Body composition shifts toward less muscle and more fat unless training fights it. Water and glycogen storage drops, especially in untrained bodies. Recovery from a bad week slows. Same scale weight, very different body. The clothes know it before the scale does.',
+        },
+        {
+          question: 'Should I chase the weight I had a decade ago?',
+          answer:
+            'Probably not, at least not as a single number. The body that produced that number then was made of different things than the body trying to produce it now. Composition is the more useful target. A waist measurement, a clothing size, a strength baseline — those stay honest across decades.',
+        },
+        {
+          question: 'How much does training change this trajectory?',
+          answer:
+            'A lot. Trained adults in their thirties and beyond hold more lean mass, store more glycogen, and recover faster than untrained adults of the same age. The same scale number on a trained body looks and behaves much closer to the younger version of itself.',
+        },
+        {
+          question: 'Why does the bad-week recovery take longer with age?',
+          answer:
+            'Because the body has not changed its rules; it has changed its speed. A heavy weekend that cleared by Wednesday at 22 takes until Sunday at 32. Daily fluctuations are larger and last longer. The fix is not weighing less. It is reading the scale on a longer timescale.',
+        },
+        {
+          question: "What hasn't changed across decades?",
+          answer:
+            'Energy balance still works. Strength training still builds muscle. Protein still preserves lean mass during a deficit. Sleep still amplifies recovery. Walking still adds free expenditure. The basics did not change. The tolerances around the basics narrowed. The same plan is just less forgiving than it used to be.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-small-wins-between-progress-updates-are-the-real-program',
+    slug: 'non-scale-victories-weight-loss',
     title: 'The Small Wins Between Progress Updates Are the Real Program',
     description:
       'The real diet program is not the milestone post. It is the boring Wednesday. A founder note on the small wins that keep a long cut alive between visible checkpoints.',
@@ -4480,10 +7096,22 @@ const posts: BlogPost[] = [
     date: '2026-06-02',
     readingTime: '7 min read',
     tags: ['Habits', 'Long Game', 'Founder Story', 'Weight Loss'],
-    heroImage: '/founder/final-portrait.jpg',
-    heroAlt: 'Founder portrait used here as the quiet end-state proof that long programs are built mostly out of small Wednesdays',
+    seoTitle: 'Non Scale Victories in Weight Loss: The Real Wins',
+    metaDescription:
+      "Non scale victories in weight loss: the boring Wednesday is the program, not the milestone. Here's what 6 small wins look like across a real cut.",
+    keywords: [
+      'non scale victories weight loss',
+      'small weight loss wins',
+      'non scale wins diet',
+      'boring weeks weight loss',
+      'weight loss small victories',
+      'celebrate small progress diet',
+    ],
+    cluster: 'plateau',
+    heroImage: '/founder/final-portrait.webp',
+    heroAlt: 'Founder portrait at the quiet end-state, showing the small Wednesdays behind non scale victories in weight loss',
     deck:
-      'The big numbers were not the program. The 50 kg loss is the headline. But the program — the thing that actually moved the body — was almost entirely made of weeks where nothing photogenic happened.',
+      'Non scale victories in weight loss are the boring half of the program — and the half that actually moves the body. The big numbers were not the program. The 50 kg loss is the headline. But the program — the thing that actually moved the body — was almost entirely made of weeks where nothing photogenic happened.',
     ctaTitle: 'Count Wednesdays, not Saturdays.',
     ctaBody:
       'The slow accumulation of unimpressive Tuesdays and Wednesdays is what produces the body that eventually shows up in the photo. If you want the photo, run the Wednesdays.',
@@ -4600,7 +7228,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'the-first-month-of-maintenance-feels-nothing-like-the-diet',
+    slug: 'first-month-of-maintenance-after-weight-loss',
     title: 'The First Month of Maintenance Feels Nothing Like the Diet',
     description:
       'The first month of maintenance is the part nobody warned me about. The plate gets bigger, the structure stays, and the head expects a finish line that never arrives.',
@@ -4609,10 +7237,22 @@ const posts: BlogPost[] = [
     date: '2026-06-03',
     readingTime: '8 min read',
     tags: ['Maintenance', 'Weight Loss', 'Habits', 'Long Game'],
-    heroImage: '/founder/long-game-founder-20251221.jpg',
-    heroAlt: 'Founder in a long-game posture marking the transition from active loss into the much quieter maintenance phase',
+    seoTitle: 'The First Month of Maintenance After Weight Loss',
+    metaDescription:
+      "First month of maintenance after weight loss: the plate gets bigger and the head looks for a finish line that isn't there. Here's what actually happens.",
+    keywords: [
+      'first month of maintenance after weight loss',
+      'transitioning from diet to maintenance',
+      'how to start maintenance phase',
+      'maintenance phase after cut',
+      'calories after weight loss diet',
+      'first 30 days maintenance',
+    ],
+    cluster: 'maintenance',
+    heroImage: '/founder/long-game-founder-20251221.webp',
+    heroAlt: 'Founder long-game portrait at the handoff into the first month of maintenance after weight loss, calmer than the cut',
     deck:
-      'The diet has a finish line painted on it. Maintenance does not. That single difference is what makes the first month after the cut feel completely unlike anything you spent the cut preparing for.',
+      'The first month of maintenance after weight loss feels nothing like the diet. The finish line is gone, and the rules quietly change. The diet has a finish line painted on it. Maintenance does not. That single difference is what makes the first month after the cut feel completely unlike anything you spent the cut preparing for.',
     ctaTitle: 'Use lighter instruments in maintenance.',
     ctaBody:
       'The structure is not gone. It just stopped looking like a goal. Weigh less often, read longer windows, and let the absence of a target stop feeling like an absence of progress.',
@@ -4721,7 +7361,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'why-does-my-hunger-spike-at-night-when-i-was-fine-all-day',
+    slug: 'why-am-i-hungry-at-night-but-not-during-the-day',
     title: 'Why Does My Hunger Spike at Night When I Was Fine All Day',
     description:
       'A practical Q&A on the night-hunger spike. Why a clean day can end with a 9 p.m. raid on the kitchen, and what the actual signal is asking for.',
@@ -4730,8 +7370,21 @@ const posts: BlogPost[] = [
     date: '2026-06-04',
     readingTime: '8 min read',
     tags: ['Appetite', 'Night Cravings', 'Dieting', 'Sleep'],
-    heroImage: '/founder/weighin-middle-progress-20240801.jpg',
-    heroAlt: 'Founder mid-process check-in image used here as the visual anchor for the calm of a clean weekday that quietly sets up the evening hunger spike',
+    seoTitle: 'Why Am I Hungry at Night but Not During the Day?',
+    metaDescription:
+      "Why am I hungry at night but not during the day? At 9 p.m. you're at the fridge — but your daytime was a number, not a meal. Here's the fix.",
+    keywords: [
+      'why am I hungry at night but not during the day',
+      'night hunger diet',
+      'late night hunger weight loss',
+      'evening hunger cravings',
+      'why am I so hungry at 9pm',
+      'nighttime hunger diet',
+    ],
+    schemaType: 'faq',
+    cluster: 'appetite',
+    heroImage: '/founder/weighin-middle-progress-20240801.webp',
+    heroAlt: 'Founder mid-process check-in framing a clean weekday, anchor for why am I hungry at night but not during the day',
     deck:
       'The cleanest day on paper can end at 9 p.m. with you standing at the open fridge. You ate well. You hit your protein. You walked. The day was a good day. And then the evening arrived and tried to undo it.',
     ctaTitle: 'Move calories into the evening, not out of the day.',
@@ -4746,6 +7399,12 @@ const posts: BlogPost[] = [
           'And then the evening arrived and tried to undo it.',
           'This is one of the most common questions I get, so the answers are organized as a Q&A. The honest version of the answer is not "you have no discipline." The honest version is closer to: the day and the evening are running on different physiology and different psychology, and almost nothing is wrong with you.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why am I hungry at night but not during the day?',
+        answer:
+          'Three things stack in the evening. Caloric debt from the day becomes audible once distractions drop. Decision fatigue lowers self-regulation. And the kitchen is suddenly nearby. Most night spikes are not psychological. They are scheduling problems wearing psychological clothes. A later, protein-forward dinner usually quiets the spike inside two weeks.',
       },
       {
         type: 'paragraphs',
@@ -4841,10 +7500,42 @@ const posts: BlogPost[] = [
           'Most night-hunger spikes are not psychological. They are scheduling problems wearing psychological clothes.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why does my hunger hit hardest around 9pm?',
+          answer:
+            "By 9pm, the day's intake is mostly behind you and any deficit becomes audible. Self-regulation also runs lowest in late evening, and the kitchen is two rooms away with no work or meetings in the way. The friction is the lowest it has been all day.",
+        },
+        {
+          question: 'Will eating dinner later actually help?',
+          answer:
+            'For most people with evening spikes, yes. Pushing dinner 60 to 90 minutes later shrinks the unfueled gap between dinner and the spike. The same total calories, just redistributed. Two weeks is usually enough to see whether the change quiets the evening.',
+        },
+        {
+          question: 'Should I plan an evening snack?',
+          answer:
+            'If the spike happens at the same time most nights, yes. A planned 150 to 200 calorie protein-forward snack — yogurt, fruit, a small shake — slotted into the daily plan removes the surprise. The spike stops feeling like a fight because the meal is already on the schedule.',
+        },
+        {
+          question: 'How does sleep affect night cravings?',
+          answer:
+            'Sleep-deprived bodies are hungrier the next day, especially in the evening. Three nights of six hours instead of seven and a half routinely produces 200 to 400 calories of extra hunger. Pushing bedtime back is one of the cheapest appetite interventions available.',
+        },
+        {
+          question: 'What if I tried all this and still spike at night?',
+          answer:
+            'Then your daily total is probably too low for your activity. A consistent loud evening signal across several weeks, despite a structurally fine evening, usually means the deficit is too aggressive. Add 150 to 200 calories until the spike loses its edge.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-plateau-that-was-actually-an-honesty-problem',
+    slug: 'am-i-really-in-a-plateau-or-tracking-wrong',
     title: 'The Plateau That Was Actually an Honesty Problem',
     description:
       'People talk about plateaus as if the body has stopped responding. Most of the time, the body has not stopped responding. The tracking has stopped being honest.',
@@ -4853,10 +7544,23 @@ const posts: BlogPost[] = [
     date: '2026-06-05',
     readingTime: '8 min read',
     tags: ['Plateau', 'Tracking', 'Weight Loss', 'Self Awareness'],
-    heroImage: '/founder/plateau-middle-checkin-20250711.jpg',
-    heroAlt: 'Founder mid-stage check-in image used here as the visual anchor for the moment a plateau gets diagnosed before the data has been honestly examined',
+    seoTitle: 'Am I Really in a Plateau, or Am I Tracking Wrong?',
+    metaDescription:
+      "Am I really in a plateau or am I tracking wrong? Most stalls aren't stalls — they're 200 calories of hidden creep. Here's the honest 7-day audit.",
+    keywords: [
+      'am I really in a plateau or am I tracking wrong',
+      'weight loss plateau calorie creep',
+      'underestimating calories plateau',
+      'fake plateau tracking error',
+      'honest food tracking weight loss',
+      'plateau vs portion creep',
+    ],
+    schemaType: 'faq',
+    cluster: 'plateau',
+    heroImage: '/founder/plateau-middle-checkin-20250711.webp',
+    heroAlt: 'Founder mid-stage check-in capturing the moment to ask, am I really in a plateau or am I tracking wrong',
     deck:
-      'Most plateaus are real. But a meaningful share of the plateaus people report are not the body refusing to lose weight. They are the tracking refusing to admit what the day actually contained.',
+      'Am I really in a plateau or am I tracking wrong? Most plateaus are real — but a meaningful share are the food log, not the body. Most plateaus are real. But a meaningful share of the plateaus people report are not the body refusing to lose weight. They are the tracking refusing to admit what the day actually contained.',
     ctaTitle: 'Run the honest week first.',
     ctaBody:
       'Same calories. Same plan. Just clean measurement for seven days. If the scale moves, the plateau was a tracking problem. If it does not, then the plateau is real and a real intervention is justified.',
@@ -4869,6 +7573,12 @@ const posts: BlogPost[] = [
           'This is not a popular framing. It implies a hint of self-blame, which is rarely what someone reaching for the word "plateau" wants to hear. But it is also the version that solves the problem more often than any other intervention, so it is worth saying clearly.',
           'If your scale has been still for three weeks, the first place to look is not the metabolism. It is the food log.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Am I really in a plateau or am I tracking wrong?',
+        answer:
+          'Most plateaus are real. A meaningful share are not — they are the food log refusing to admit what the day actually contained. Estimated rice portions, oil in the pan, taste-and-bite snacks, weekend narrative-logging. Run an honest week of clean tracking before changing the plan. The cheap diagnostic catches what the expensive interventions cannot.',
       },
       {
         type: 'paragraphs',
@@ -4958,20 +7668,64 @@ const posts: BlogPost[] = [
           'Run the cheap one first.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What does an honest tracking week actually look like?',
+          answer:
+            'Weighing every solid food. Logging every taste, lick, and bite while cooking. Capturing every drink, including coffee with milk and weekend wine. Detailed item-level logging of restaurant and social meals. No changes to the plan. Same target. Just clean data for seven days.',
+        },
+        {
+          question: 'Why does tracking accuracy decay over time?',
+          answer:
+            "Because almost no one's tracking gets more accurate over weeks. Month one runs on novelty and weighing everything. Month three runs on eyeballing portions you 'know.' Sometimes you do, sometimes you don't. The error compounds quietly until the body responds to the actual numbers.",
+        },
+        {
+          question: "What's weekend amnesia and why does it matter?",
+          answer:
+            "Even honest weekday tracking misses the weekend. Saturday dinner out gets logged as 'had dinner with friends' instead of 4 oz steak, half cup mash, half a glass of wine, dessert split. A typical narrative-logged weekend can hide 1,500 to 3,000 calories. Across four weekends, the monthly deficit is gone.",
+        },
+        {
+          question: "Isn't metabolic adaptation real?",
+          answer:
+            'Yes, but smaller than people think. Realistic adaptation sits in the 100 to 300 calorie per day range at the worst extreme. That is meaningful, but not the entire 4-week stall most people attribute to it. Most stalls have tracking drift layered on top of a real adaptation.',
+        },
+        {
+          question: 'What if the honest week shows nothing changed?',
+          answer:
+            'Then the plateau is real, and now you can intervene with confidence. Pick one move at a time: a 7 to 14 day diet break at maintenance, a 100 to 200 calorie reduction, or an increase in non-training activity. Three weeks per move, then re-evaluate.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'progress-update-4-the-body-finally-stopped-being-the-loud-thing',
+    slug: 'life-after-50kg-weight-loss',
     title: 'Progress Update 4: The Body Finally Stopped Being the Loud Thing',
     description:
-      'Four months past the last update. The numbers moved less. The relationship moved more. A founder check-in on the phase where the body finally goes quiet.',
+      'Life after 50kg weight loss is quieter than the highlight reel sells it. The dramatic part ends; the body just is. Four months past the last update. The numbers moved less. The relationship moved more. A founder check-in on the phase where the body finally goes quiet.',
     socialDescription:
       'The body finally stopped being the loud thing. The work was not making the body louder. The work was making everything else loud enough that the body did not have to do all the talking.',
     date: '2026-06-06',
     readingTime: '7 min read',
     tags: ['Progress Update', 'Founder Story', 'Maintenance', 'Transformation'],
-    heroImage: '/founder/final-body.jpg',
-    heroAlt: 'Founder portrait at the post-loss steady-state phase, used here as the visual anchor for the moment the body stops being the loudest signal of the day',
+    seoTitle: 'Life After 50 kg Weight Loss: The Quiet Phase',
+    metaDescription:
+      'Life after 50 kg weight loss: 4 months past the last update, the body finally went quiet. The relationship moved more than the number this time.',
+    keywords: [
+      'life after 50kg weight loss',
+      'after losing 50kg maintenance',
+      'weight loss maintenance journal',
+      'two years after weight loss',
+      'life after weight loss transformation',
+      'what maintenance really feels like',
+    ],
+    cluster: 'founder-story',
+    heroImage: '/founder/final-body.webp',
+    heroAlt: 'Founder portrait at the post-loss steady state, the visual anchor for what life after 50kg weight loss actually looks like',
     deck:
       'This is the fourth update. The earlier ones were about the process moving. This one is about the process going quiet. The numbers below are smaller than the previous update. The relationship to them is different.',
     ctaTitle: 'Read the maintenance dashboard at maintenance speed.',
@@ -5069,7 +7823,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'clothes-tell-you-the-truth-the-mirror-cannot',
+    slug: 'clothes-fit-better-but-scale-is-the-same',
     title: 'Clothes Tell You the Truth the Mirror Cannot',
     description:
       'The mirror lies fast. The scale is noisy. The clothes do not negotiate. A founder note on why the most honest body composition tracker is hanging in your closet.',
@@ -5078,8 +7832,21 @@ const posts: BlogPost[] = [
     date: '2026-06-07',
     readingTime: '7 min read',
     tags: ['Body Composition', 'Mirror', 'Tracking', 'Weight Loss'],
-    heroImage: '/founder/body-composition-proof-20251221.jpg',
-    heroAlt: 'Founder composition image used here as the visual anchor for the moment a single pair of jeans started telling the truth the mirror was still arguing with',
+    seoTitle: "Clothes Fit Better but Scale Is the Same: What's Happening",
+    metaDescription:
+      "Why my clothes fit better but the scale is the same: fit is the most honest tracker in the closet. Here's how to read it on the weeks the scale won't move.",
+    keywords: [
+      'why my clothes fit better but scale is the same',
+      'losing inches but not weight',
+      'clothes looser scale same',
+      'non scale victory weight loss',
+      'pants fitting better not losing weight',
+      'body recomposition scale same',
+    ],
+    schemaType: 'faq',
+    cluster: 'mirror',
+    heroImage: '/founder/body-composition-proof-20251221.webp',
+    heroAlt: 'Founder composition shot from the moment a single pair of jeans explains why clothes fit better but the scale is the same',
     deck:
       'The mirror has too many feelings. The scale has too much noise. The clothes do not negotiate. They either fit or they do not. There is no light, no posture, no time of day that changes the answer.',
     ctaTitle: 'Pick one snug item as a calibration tool.',
@@ -5094,6 +7861,12 @@ const posts: BlogPost[] = [
           'The clothes do not negotiate. They either fit or they do not. They either zip or they do not. The button either closes calmly or it does not. There is no light, no posture, no time of day that changes the answer.',
           'For most of the messy middle of my own program, the most honest record I had of what was happening to my body was a single pair of jeans I owned at the start.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why do my clothes fit better when the scale is the same?',
+        answer:
+          'Because the scale measures total mass and clothes measure shape. If you are training, you can lose fat and add small amounts of muscle at the same scale weight. The waist gets smaller, the shoulders or thighs get fuller, and the jeans tell the truth the scale is missing. The body moved. The scale missed it.',
       },
       {
         type: 'paragraphs',
@@ -5181,10 +7954,42 @@ const posts: BlogPost[] = [
           'The closet has been keeping a record the whole time. It just needs to be asked.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Can I lose inches without losing weight?',
+          answer:
+            'Yes, regularly. Body recomposition during training produces fat loss and small muscle gain that cancel out on the scale but visibly change waist, hip, and thigh measurements. A flat scale week with looser clothes is a real-progress week, not a stalled one.',
+        },
+        {
+          question: 'Are my clothes a more accurate tracker than the scale?',
+          answer:
+            'For waist and shape, often yes. Clothes do not have moods, do not respond to sodium, and do not adapt to your body image the way the mirror does. A pair of jeans from a year ago is the same instrument today. The scale and mirror both drift.',
+        },
+        {
+          question: 'How often should I check fit during a diet?',
+          answer:
+            'Once every two weeks under similar conditions, ideally in the morning. Pick one snug item — not the goal item, the currently-snug one — and use it as a calibration tool. Weekly is too noisy. Monthly is too slow to catch the trend.',
+        },
+        {
+          question: 'Why does the scale lie about composition change?',
+          answer:
+            'Because it weighs everything at once. Two kilos of fat lost and one kilo of muscle gained shows up as one kilo down. Same body, very different shape. The scale was never built to separate the two. Photos, tape, and clothes have to do that job.',
+        },
+        {
+          question: 'Should I keep weighing if my clothes are the only thing changing?',
+          answer:
+            'Weigh weekly as a reference, but stop letting one number run management. If clothes loosen and the scale holds for several weeks, the program is working. Keep going. A flat scale during recomposition is the boring sign of real progress.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-bad-weekend-that-finally-taught-me-something',
+    slug: 'how-to-get-back-on-track-after-a-bad-weekend',
     title: 'The Bad Weekend That Finally Taught Me Something',
     description:
       'One bad weekend taught me more than six clean weeks did. The damage was small. The pattern it exposed was the whole problem.',
@@ -5193,8 +7998,53 @@ const posts: BlogPost[] = [
     date: '2026-06-08',
     readingTime: '7 min read',
     tags: ['Cheat Day', 'Binge Recovery', 'Diet Systems', 'Weight Loss'],
-    heroImage: '/founder/cheat-day-checkin-20250719.jpg',
-    heroAlt: 'Founder check-in image at a real cheat-day moment used here as the visual anchor for the weekend the program almost broke and instead got more honest',
+    seoTitle: 'How to Get Back on Track After a Bad Diet Weekend',
+    metaDescription:
+      "How to get back on track after a bad weekend: Monday matters more than Sunday. The 2.4 kg on the scale is water — here's the reset that works.",
+    keywords: [
+      'how to get back on track after a bad weekend',
+      'blew my diet on weekend',
+      'weekend overeating recovery',
+      'bad weekend diet recovery',
+      'ruined diet this weekend',
+      'Monday after weekend binge',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Eat your normal Monday breakfast',
+        text:
+          'Do not skip. Do not cut. Skipping breakfast or hard restriction usually triggers another binge by Wednesday. Treat Monday as an ordinary Monday. Your normal breakfast is the start of recovery, not a punishment for the weekend.',
+      },
+      {
+        name: "Don't weigh in for three to five days",
+        text:
+          'The 2 to 3 kg Monday spike is mostly water from carbs, sodium, and alcohol — not fat. Reading it as fat is what triggers the next bad week. Step off the scale until the water clears on its own.',
+      },
+      {
+        name: 'Return to your regular plan at the next meal',
+        text:
+          "Lunch is a normal lunch. Dinner is a normal dinner. Do not 'start over Monday' next week — Monday keeps moving. Acting as if yesterday was yesterday and today is today is most of the recovery in one sentence.",
+      },
+      {
+        name: 'Stop grading days as binary',
+        text:
+          "Replace 'on plan or off plan' with a tolerance band of about 300 calories per day. A 1,400-over Friday becomes a 1,100-over-band day, not a write-off. Binary framing is what turns one slip into three days off plan.",
+      },
+      {
+        name: 'Use the week as the unit, not the day',
+        text:
+          "A normal weekly deficit absorbs the weekend's overshoot over 7 to 14 days without compensation. Read the week, not Monday. Most fat damage from a single bad weekend is small enough to disappear into the trend within ten days.",
+      },
+      {
+        name: 'Build a system with a recovery mode',
+        text:
+          'A perfect-looking program with no recovery mode breaks the first time something normal happens. A slightly less elegant system that bends survives. Pick the one that bends. The one that breaks does not actually exist; it just hides.',
+      },
+    ],
+    cluster: 'binge',
+    heroImage: '/founder/cheat-day-checkin-20250719.webp',
+    heroAlt: 'Founder check-in shot from a real cheat-day moment, framing how to get back on track after a bad weekend',
     deck:
       'I had been clean for six weeks. Then a Friday dinner became a Saturday lunch which became a Saturday night. By Monday morning, the scale was up 2.4 kg. The damage was small. What the weekend exposed was the whole story.',
     ctaTitle: 'Build a system that bends, not one that breaks.',
@@ -5209,6 +8059,12 @@ const posts: BlogPost[] = [
           'By Monday morning, the scale was up 2.4 kg, my stomach felt slow, and I was fairly sure the program was either ruined or about to be.',
           'Neither was true. The damage was small. What the weekend exposed was the whole story.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I get back on track after a bad weekend?',
+        answer:
+          'Eat your normal breakfast Monday. Do not weigh in for three to five days. Return to your regular plan at the next meal, not next Monday. Treat the weekend as absorbed into the week, not as a reason to compensate. Most of the Monday scale jump is water and gut content, not fat. The math is fine.',
       },
       {
         type: 'paragraphs',
@@ -5298,10 +8154,42 @@ const posts: BlogPost[] = [
           'Pick the one that bends. The one that breaks does not actually exist; it just hides for six weeks and then does what it was always going to do.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How much damage does one bad weekend actually do?',
+          answer:
+            'Usually 0.5 to 1 kg of true fat from a 3,000 to 5,000 calorie overshoot. The 2 to 3 kg the scale shows Monday morning is mostly water from carbs, sodium, and alcohol. It clears in three to five days. The weekly trend recovers within ten days.',
+        },
+        {
+          question: 'Should I eat less Monday to make up for the weekend?',
+          answer:
+            "No. Skipping breakfast or cutting Monday hard usually triggers another binge by Wednesday. Eat your normal Monday meals. The weekend's overshoot absorbs into the weekly total over 7 to 14 days without compensation. The fix is calm, not cardio.",
+        },
+        {
+          question: 'Why do I always blow my diet on weekends?',
+          answer:
+            "Usually because the weekday plan is too tight, weekend social structure is looser, and the binary 'on-plan-or-off-plan' framing turns one slip into a Friday-through-Sunday spiral. A system with a tolerance band — not a hard daily target — survives weekends without breaking.",
+        },
+        {
+          question: 'What should I do if I keep having bad weekends?',
+          answer:
+            'Build a system that bends. Tolerance bands of about 300 calories per day. Read the week as the unit, not the day. A bad Friday under this framing is an inconvenience, not a crisis. The perfect-looking plan that breaks under one Friday is the actual problem.',
+        },
+        {
+          question: 'Is the Monday scale jump actually fat gain?',
+          answer:
+            'Almost never. A 1.5 to 2.5 kg Monday spike after a high-sodium, high-carb weekend is mostly water, glycogen, and food in transit. Reading it as fat is what triggers the next bad week. Wait three to five days. The number drops back close to baseline.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'how-to-go-on-a-mirror-diet-when-the-real-diet-is-getting-loud',
+    slug: 'how-to-stop-mirror-checking-on-a-diet',
     title: 'How to Go on a Mirror Diet When the Real Diet Is Getting Loud',
     description:
       'When the diet is going well but the mirror is getting loud, the answer is sometimes a mirror diet. Fewer checks, on cleaner conditions, with longer windows between them.',
@@ -5310,8 +8198,53 @@ const posts: BlogPost[] = [
     date: '2026-06-09',
     readingTime: '8 min read',
     tags: ['Mirror', 'Body Image', 'Self Awareness', 'Weight Loss'],
-    heroImage: '/founder/founder-story-hanok-20260119.jpg',
-    heroAlt: 'Founder portrait used here as the visual anchor for the calm of stepping back from constant mirror checking during a loud phase of a diet',
+    seoTitle: 'How to Stop Mirror Checking on a Diet',
+    metaDescription:
+      "How to stop mirror checking on a diet without quitting the bathroom. Fewer checks, cleaner conditions, longer windows. Here's the 3-rule version.",
+    keywords: [
+      'how to stop mirror checking on a diet',
+      'stop body checking weight loss',
+      'mirror checking anxiety',
+      'obsessive mirror checking body',
+      'body checking eating disorder',
+      'how to stop looking in the mirror',
+    ],
+    schemaType: 'howto',
+    howToSteps: [
+      {
+        name: 'Cut the daily count to two structured checks',
+        text:
+          'If you currently check six to eight times a day, drop to two. One in the morning at the same time after the same routine. One brief check at the end of the day. Everything else gets averted, walked past, ignored.',
+      },
+      {
+        name: 'Look better — match the conditions of the checks',
+        text:
+          'The two checks happen under the same time of day, same lighting, same fasted state in the morning, and same posture. Structured, not opportunistic. A controlled check gives signal. A passing glance under random light gives noise.',
+      },
+      {
+        name: 'Look in fewer states — skip the worst lighting',
+        text:
+          'Avoid late evening with overhead light, the bathroom at midnight, and dressing rooms with three angles of fluorescent. Those are not honest mirrors. They are theatre. A mirror diet skips them entirely instead of arguing with them.',
+      },
+      {
+        name: 'Cover the loudest mirror in your home',
+        text:
+          'If a full-length mirror in the bedroom or hallway is catching most of the casual checks, cover it for a few weeks. Not as avoidance — as instrument selection. The trend keeps going without it. The mirror loses its accumulated mood.',
+      },
+      {
+        name: 'Use one weekly photo, compared in 4-week windows',
+        text:
+          'Take one photo per week under the same conditions. Save it. Do not analyze it that day. Compare every four weeks. Week-to-week photos are mostly noise. Four-week comparisons are where the actual signal lives.',
+      },
+      {
+        name: "Lean on the scale's quiet honesty when the mirror is loud",
+        text:
+          'In the loud phase, the scale weekly average often becomes the cleanest instrument. If the trend is down, trust the trend. The mirror is not the lead instrument right now. There are weeks where it is wrong about almost everything.',
+      },
+    ],
+    cluster: 'mirror',
+    heroImage: '/founder/founder-story-hanok-20260119.webp',
+    heroAlt: 'Founder portrait of stepping back from constant checking, the visual anchor for how to stop mirror checking on a diet',
     deck:
       'There is a phase in most cuts where the diet is working and the mirror is getting louder. The clothes are looser. The trend is down. The reflection at 7 a.m. before coffee is having a different conversation entirely.',
     ctaTitle: 'Cut the count. Improve the conditions.',
@@ -5326,6 +8259,12 @@ const posts: BlogPost[] = [
           'This is not unusual. It is the moment most people start checking the mirror more, hoping for evidence that catches up to the data. The hope is rational. The behavior is the wrong one. More checking is what makes the mirror louder, not what calms it.',
           'The fix, in a phase like this, is to go on a mirror diet. Reduce the number of checks. Improve the conditions of the ones you do. Lengthen the windows between them.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'How do I stop mirror checking on a diet?',
+        answer:
+          'Go on a mirror diet. Look less, look better, look in fewer states. Cut casual checks down to two a day under structured conditions — same time, same lighting, same posture, ideally morning and fasted. Skip the worst lighting. Skip the bathroom mirror at midnight. Two structured checks beat eight opportunistic ones.',
       },
       {
         type: 'paragraphs',
@@ -5424,10 +8363,42 @@ const posts: BlogPost[] = [
           'The body is moving. The mirror does not have to be the one that tells you.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why does more checking make the mirror louder?',
+          answer:
+            'Because each check is information that affects the next check. A bad-mood morning loads the next reading. By the seventh check of the day, the mirror is reporting on the trajectory of your mood, not your body. Cutting the count breaks that loop.',
+        },
+        {
+          question: 'When is the loud mirror phase usually worst?',
+          answer:
+            'Somewhere between week six and week twelve of a meaningful cut. By then the body has changed enough that the mirror should be cooperating, but you are also tired, hungry, sleep-thinned, and mood-thinner. The mirror reads all of that and presents it as evidence about the body.',
+        },
+        {
+          question: 'Should I cover my mirrors during this phase?',
+          answer:
+            'If a specific mirror is loudest — the full-length one you walk past ten times a day — yes. Cover it for two or three weeks. Keep one structured mirror up for the morning check. Fewer casual checks does more for body image than any pep talk.',
+        },
+        {
+          question: "Isn't this just avoiding my body?",
+          answer:
+            'No. A mirror diet is not avoiding the body. It is selecting the instruments giving you useful data this week. The mirror is the noisiest one in the loud phase. Clothes, tape measurements, weekly weight averages, and four-week photos do the work while the mirror calms down.',
+        },
+        {
+          question: 'When can I come off the mirror diet?',
+          answer:
+            'When the loud phase ends. The morning check starts agreeing with the trend. The evening check stops being charged. A passing glance goes back to neutral. The structure can loosen then. If the loud phase comes back, the diet comes back. It is not a permanent setting.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'do-i-actually-have-to-meal-prep-to-lose-weight',
+    slug: 'do-i-have-to-meal-prep-to-lose-weight',
     title: 'Do I Actually Have to Meal Prep to Lose Weight',
     description:
       'A practical Q&A on meal prep. When the Sunday containers help, when they hurt, and what to do if the prep itself becomes the problem.',
@@ -5436,8 +8407,21 @@ const posts: BlogPost[] = [
     date: '2026-06-10',
     readingTime: '9 min read',
     tags: ['Food Structure', 'Meal Prep', 'Habits', 'Weight Loss'],
-    heroImage: '/founder/sleep-reflective-window-20241217.jpg',
-    heroAlt: 'Founder reflective image used here as the visual anchor for the calm of having a weeknight food default that does not require Sunday\'s worth of plastic containers',
+    seoTitle: 'Do I Have to Meal Prep to Lose Weight? The Real Answer',
+    metaDescription:
+      'Do I have to meal prep to lose weight? Honest answer: no. But you have to solve the 3 problems meal prep solves. Here are the working alternatives.',
+    keywords: [
+      'do I have to meal prep to lose weight',
+      'lose weight without meal prep',
+      'alternatives to meal prepping',
+      'decision fatigue diet weight loss',
+      'is meal prep necessary for weight loss',
+      'meal prep vs intuitive eating',
+    ],
+    schemaType: 'faq',
+    cluster: 'food-structure',
+    heroImage: '/founder/sleep-reflective-window-20241217.webp',
+    heroAlt: 'Founder reflective shot of a simple weeknight food default, framing whether I have to meal prep to lose weight',
     deck:
       'The most-asked question I get about food on a cut is some version of "do I have to meal prep on Sundays to make this work?" The honest answer is no. The more useful answer is that you have to solve the same underlying problem meal prep is solving.',
     ctaTitle: 'Build the default first.',
@@ -5451,6 +8435,12 @@ const posts: BlogPost[] = [
           'The honest answer is no, you do not have to. The more useful answer is that you have to solve the same underlying problem meal prep is solving, and meal prep is one of three or four ways to do that.',
           'This is a Q&A, partly because the question itself splits in many directions and partly because most of what people call "meal prep" is doing one of several distinct jobs at once.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Do I have to meal prep to lose weight?',
+        answer:
+          'No, but you have to solve what meal prep solves: decision fatigue, macro reliability, and friction at 7pm on a Wednesday. Weeknight defaults, component prep, restaurant defaults, or repeated breakfasts can do the same job without a Sunday batch. The Sunday is not the program. The default is the program.',
       },
       {
         type: 'paragraphs',
@@ -5551,20 +8541,65 @@ const posts: BlogPost[] = [
           'Build the default first. Add a Sunday only if the default genuinely needs the help.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What problem is meal prep actually solving?',
+          answer:
+            "Three at once: removing the daily 'what do I eat' decision, hitting consistent calorie and protein targets, and reducing the friction of cooking when you are tired. Solve those three some other way and you do not need a Sunday batch. Skip them and no system holds.",
+        },
+        {
+          question: 'What are alternatives to Sunday meal prep?',
+          answer:
+            'Default weeknight meals you can cook on autopilot in 25 minutes. Component prep — just protein and vegetables, combined fresh. Two or three reliable restaurant orders. The same breakfast every day. Most people use a combination of two or three of these.',
+        },
+        {
+          question: 'When does meal prep actually help most?',
+          answer:
+            'Three cases: when weeknight cooking is genuinely impossible (long shifts, small kids, long commutes), when you happily eat the same lunch five days a week, or when you are early in the program and still building eyeball portion skills.',
+        },
+        {
+          question: 'When does meal prep actively backfire?',
+          answer:
+            'When the four-hour Sunday leaves you resentful before the week starts, when you throw out food in week three from boredom, or when the system depends so much on perfect Sundays that one missed Sunday wrecks the week. A program that brittle was always going to fail.',
+        },
+        {
+          question: 'What should I cook on weeknights instead?',
+          answer:
+            'A short list of three or four default meals you can make in 25 to 30 minutes — usually a one-pan combo of protein, frozen vegetables, a starch, and a sauce. Rotate the protein and sauce. Nine combinations from three of each. None of them require pre-cooking.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'why-adding-cardio-to-a-cut-can-backfire-faster-than-you-think',
+    slug: 'why-adding-cardio-to-a-cut-backfires',
     title: 'Why Adding Cardio to a Cut Can Backfire Faster Than You Think',
     description:
-      'Cardio looks like the obvious add when fat loss slows. It often makes things worse, not better. The reasons are physiological, behavioral, and almost never about the cardio itself.',
+      "Why adding cardio to a cut can backfire is rarely about the cardio. It's usually about what the cardio costs everywhere else. Cardio looks like the obvious add when fat loss slows. It often makes things worse, not better. The reasons are physiological, behavioral, and almost never about the cardio itself.",
     socialDescription:
       'A stalled cut is rarely a movement deficit. The cardio adds expenditure. The body answers. If the body answers loud enough, the net change is much smaller than the session math implied.',
     date: '2026-06-11',
     readingTime: '8 min read',
     tags: ['Cardio', 'Exercise', 'Plateau', 'Weight Loss'],
-    heroImage: '/founder/transformation-proof-20251119.jpg',
-    heroAlt: 'Founder body composition image used here as the visual anchor for the moment a cut starts adding cardio in the hope of breaking a stall',
+    seoTitle: 'Why Adding Cardio to a Cut Can Backfire',
+    metaDescription:
+      'Why adding cardio to a cut can backfire: the body adapts to expenditure faster than the math expects. A stalled cut is rarely a movement deficit.',
+    keywords: [
+      'why adding cardio to a cut can backfire',
+      'too much cardio on a cut',
+      'cardio stalls weight loss',
+      'cardio and calorie deficit problems',
+      'when cardio backfires weight loss',
+      'cardio cortisol water retention',
+    ],
+    schemaType: 'faq',
+    cluster: 'exercise',
+    heroImage: '/founder/transformation-proof-20251119.webp',
+    heroAlt: 'Founder body composition shot from a stalled cut, the visual anchor for why adding cardio to a cut can backfire',
     deck:
       'The standard move when a cut slows down is to add cardio. The math feels obvious — more movement equals more calories out equals more fat loss. The math is not wrong. The math is also not the whole picture.',
     ctaTitle: 'Run the cheaper interventions first.',
@@ -5579,6 +8614,12 @@ const posts: BlogPost[] = [
           'The math is not wrong. The math is also not the whole picture.',
           'Most cuts that add cardio aggressively in response to a stall do not start losing faster. Many of them stall harder, then break the wrong way. The reasons are partly physiological, partly behavioral, and almost never about the cardio itself being a bad tool.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why does adding cardio to a cut often backfire?',
+        answer:
+          'Because the body in a deficit answers exercise much louder than a fed body does. NEAT drops. Appetite rises. Fatigue makes the rest of the day sedentary. The 300 calories burned in the session often net 80 by bedtime. A stalled cut is rarely a movement deficit. Cardio is rarely the cheapest tool to fix it.',
       },
       {
         type: 'paragraphs',
@@ -5677,10 +8718,42 @@ const posts: BlogPost[] = [
           'Run the cheaper interventions first. Save cardio for when it is filling a real hole, not when it is filling an emotional one.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'Why does the body compensate harder during a deficit?',
+          answer:
+            'Because it has less spare energy. In maintenance, the body has slack and meets a 300-calorie cardio session with mild compensation. In a deficit, it answers louder — NEAT drops noticeably, appetite climbs, dinner gets bigger, the next workout feels heavier. The session math overestimates the result.',
+        },
+        {
+          question: 'What should I try before adding cardio to break a stall?',
+          answer:
+            'Almost anything else. Run an honest tracking week. Take a 7 to 14 day diet break at maintenance. Add daily walking instead of structured cardio. Adjust the deficit by 100 to 200 calories. Hold the line for two more weeks. All of those are cheaper than added cardio.',
+        },
+        {
+          question: 'When does cardio actually help a cut?',
+          answer:
+            'Three cases. When daily activity is genuinely low and there is no other way to raise it. When the cardio is low-intensity, low-duration, and not adjacent to lifting days. When you would do it anyway because you enjoy it. Outside those, cardio additions tend to underperform.',
+        },
+        {
+          question: 'How is a daily walk different from a cardio session?',
+          answer:
+            'A 30 minute walk in flat shoes does not trigger the same fatigue compensation downstream. Steps spread across the day cost almost nothing in behavioral interest. A 60 minute run leaves the rest of the day sedentary. Same calorie math on paper. Different cost in real life.',
+        },
+        {
+          question: 'How do I know cardio is breaking the cut, not just failing it?',
+          answer:
+            'When recovery debt is building, sleep is degrading, lifts have stopped progressing, and the mood around training has gone brittle. Around week three of aggressive added cardio, the cut becomes incompatible with the rest of life. That is the threshold for stepping back to maintenance for a week.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'weighing-yourself-every-day-can-be-a-trap-not-a-discipline',
+    slug: 'daily-weighing-eating-disorder-risk',
     title: 'Weighing Yourself Every Day Can Be a Trap, Not a Discipline',
     description:
       'Daily weigh-ins are sold as discipline. They are often the trap that wrecks the program. The fix is not less weighing — it is reading the right window.',
@@ -5689,8 +8762,20 @@ const posts: BlogPost[] = [
     date: '2026-06-12',
     readingTime: '9 min read',
     tags: ['Scale', 'Tracking', 'Mindset', 'Weight Loss'],
-    heroImage: '/founder/scale-rude-before-20240130.jpg',
-    heroAlt: 'Founder before-state scale image used here as the visual anchor for the morning the daily weigh-in stopped being information and started being weather',
+    seoTitle: 'Daily Weighing: When It Becomes an Eating-Disorder Risk',
+    metaDescription:
+      'Daily weighing and eating disorder risk: the same habit is discipline for some and a trap for others. Here are 4 signals that tell you which one you are.',
+    keywords: [
+      'daily weighing eating disorder risk',
+      'when daily weighing becomes unhealthy',
+      'self weighing disordered eating',
+      'obsessive scale checking',
+      'should I stop weighing myself daily',
+      'scale obsession eating disorder',
+    ],
+    cluster: 'scale',
+    heroImage: '/founder/scale-rude-before-20240130.webp',
+    heroAlt: 'Founder before-state scale image from a morning the weigh-in became weather, framing the daily weighing eating disorder risk',
     deck:
       'The advice to weigh yourself every day is delivered with the tone of discipline. For a meaningful share of people, it is the trap that wrecks the program. The myth is that daily weighing produces better information.',
     ctaTitle: 'Match the cadence to the signal.',
@@ -5807,7 +8892,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'why-cutting-sodium-too-hard-can-backfire',
+    slug: 'does-cutting-sodium-cause-water-retention',
     title: 'Why Cutting Sodium Too Hard Can Backfire',
     description:
       'Aggressive sodium restriction creates a fast scale drop that flatters bad systems. The water comes back, the food gets joyless, and the diet gets harder to hold.',
@@ -5816,8 +8901,21 @@ const posts: BlogPost[] = [
     date: '2026-06-13',
     readingTime: '8 min read',
     tags: ['Scale', 'Water Weight', 'Sodium', 'Weight Loss'],
-    heroImage: '/founder/water-weight-proof-20251031.jpg',
-    heroAlt: 'Founder water-weight-proof image used here as the visual anchor for the moment a fast scale drop from sodium restriction starts looking like progress that is not there',
+    seoTitle: 'Does Cutting Sodium Cause a Water-Retention Rebound?',
+    metaDescription:
+      "Does cutting sodium cause water retention rebound? A 2 kg drop from low salt feels like discipline. It's mostly water — and it teaches the wrong signal.",
+    keywords: [
+      'does cutting sodium cause water retention rebound',
+      'cutting salt backfires weight loss',
+      'low sodium water retention',
+      'sodium cut water weight gain',
+      'cutting salt water retention',
+      'how low can sodium go diet',
+    ],
+    schemaType: 'faq',
+    cluster: 'scale',
+    heroImage: '/founder/water-weight-proof-20251031.webp',
+    heroAlt: 'Founder water-weight proof shot from a fast scale drop, anchoring whether does cutting sodium cause water retention rebound',
     deck:
       'There is a move every dieter discovers within the first month. Eat salty. Scale jumps. Cut sodium. Scale drops 1.5 to 2.5 kg. It feels like discipline. It is mostly water moving around.',
     ctaTitle: 'Read the scale, do not chase it.',
@@ -5833,6 +8931,12 @@ const posts: BlogPost[] = [
           'It is mostly water moving around. The body did not lose 1.5 kg of fat in two days. It dropped 1.5 kg of held water that came back as soon as your sodium intake returned to normal.',
           'That round trip is not a problem on its own. The problem is that it teaches you to treat water manipulation as fat loss, and then to chase it.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Does cutting sodium cause a water-retention rebound?',
+        answer:
+          'Yes, when you return to normal sodium intake. Cutting hard for two days drops 1 to 2 kg of water that comes back inside 48 to 72 hours of normal eating. The number rewarded the move. The body did not lose fat. Aggressive sodium restriction flatters bad systems and makes the rest of the diet brittle.',
       },
       {
         type: 'paragraphs',
@@ -5920,10 +9024,42 @@ const posts: BlogPost[] = [
           'The water comes back. Your relationship with food does not — at least not for free.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What is the fast scale drop actually measuring?',
+          answer:
+            'Extracellular water. Sodium controls extracellular water balance, and the body responds to intake changes within 24 to 72 hours. Cutting from 3,000 mg to 1,500 mg per day for two days drops 1 to 2 kg of held water in most people. None of that is fat.',
+        },
+        {
+          question: 'Why does the system get harder to hold under low sodium?',
+          answer:
+            'Food gets less satisfying. Cravings rise. Sleep can fragment from extra bathroom trips. Performance drops in hard sessions. None of those costs show up on the scale. They show up in the rest of the day, and the diet that started feeling more disciplined ends up more brittle.',
+        },
+        {
+          question: 'Why do people keep doing it anyway?',
+          answer:
+            'Because the feedback is fast, the number is real, and the alternative is slow. Most diet interventions take weeks to show. Sodium manipulation shows in 48 hours. The brain rewards fast feedback regardless of what the feedback means. The slow path is unrewarding day to day.',
+        },
+        {
+          question: 'What does an honest sodium policy look like?',
+          answer:
+            'Eat in your normal range most days, somewhere between 2,300 and 4,000 mg depending on activity and climate. Do not chase sodium drops as a strategy. Use sodium awareness to interpret fluctuation, not to control it. The scale is for trend reading. Sodium is for taste.',
+        },
+        {
+          question: 'When is sodium control actually appropriate?',
+          answer:
+            'Three legitimate cases. A clinician-prescribed target for cardiovascular conditions. Bodybuilding stage prep or weight-class athletes running a planned protocol with a defined endpoint. Acute medical edema. Outside those, aggressive restriction flatters the scale and degrades the rest of the diet for almost no real benefit.',
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-week-my-appetite-came-back-during-maintenance',
+    slug: 'appetite-returns-during-maintenance',
     title: 'The Week My Appetite Came Back During Maintenance',
     description:
       'Five months into maintenance, my appetite came back. Not as failure. As a normal part of the body finishing the work the cut started. Here is what that week actually looked like.',
@@ -5932,8 +9068,20 @@ const posts: BlogPost[] = [
     date: '2026-06-14',
     readingTime: '8 min read',
     tags: ['Maintenance', 'Appetite', 'Founder Story', 'Weight Loss'],
-    heroImage: '/founder/weighin-middle-progress-20240801.jpg',
-    heroAlt: 'Founder mid-progress check-in image used here as the visual anchor for the maintenance week appetite returned and the program had to listen instead of resist',
+    seoTitle: 'Why Appetite Returns During Maintenance After Weight Loss',
+    metaDescription:
+      "Appetite returns during maintenance after weight loss — usually 4 to 6 months in. It isn't failure. Here's the week it hit and what I almost did wrong.",
+    keywords: [
+      'appetite returns during maintenance after weight loss',
+      'hungry during maintenance phase',
+      'increased appetite after weight loss',
+      'hormonal hunger after dieting',
+      'ghrelin increase weight loss maintenance',
+      'appetite rebound after cut',
+    ],
+    cluster: 'appetite',
+    heroImage: '/founder/weighin-middle-progress-20240801.webp',
+    heroAlt: 'Founder mid-progress check-in from the week appetite returns during maintenance after weight loss and asks to be heard',
     deck:
       'The appetite came back in week 22 of maintenance. By Friday I was eating 600 extra calories without planning to. By the next week the body was up 0.8 kg. I almost ran the cut playbook on it. That instinct was wrong.',
     ctaTitle: 'Feed and watch, do not restrict and punish.',
@@ -6031,7 +9179,7 @@ const posts: BlogPost[] = [
     ],
   },
   {
-    slug: 'when-does-one-bad-meal-actually-become-a-slip',
+    slug: 'does-one-bad-meal-ruin-a-diet',
     title: 'When Does One Bad Meal Actually Become a Slip',
     description:
       'One bad meal is not a slip. The slip is a behavior pattern that follows. A practical Q&A on the difference, with the early signals to watch for.',
@@ -6040,8 +9188,21 @@ const posts: BlogPost[] = [
     date: '2026-06-15',
     readingTime: '8 min read',
     tags: ['Cheat Day', 'Binge Recovery', 'Diet Systems', 'Weight Loss'],
-    heroImage: '/founder/cheat-day-founder-20251221.jpg',
-    heroAlt: 'Founder calm post-cheat-day frame used here as the visual anchor for the moment one meal lands and the day either reabsorbs it or starts unraveling',
+    seoTitle: 'Does One Bad Meal Ruin a Diet? The Honest Answer',
+    metaDescription:
+      "Does one bad meal ruin a diet? The meal is just a meal. The slip is everything you do in the 48 hours after. Here's how to keep the two separate.",
+    keywords: [
+      'does one bad meal ruin a diet',
+      'one bad meal diet damage',
+      'one cheat meal weight gain',
+      'diet slip vs binge',
+      'how to recover from one bad meal',
+      'one bad meal scale',
+    ],
+    schemaType: 'faq',
+    cluster: 'binge',
+    heroImage: '/founder/cheat-day-founder-20251221.webp',
+    heroAlt: 'Founder calm post-cheat-day frame at the moment one meal lands, the visual anchor for does one bad meal ruin a diet',
     deck:
       'People treat one bad meal and a slip like they are the same thing. They are not. One bad meal is one bad meal. A slip is the behavior pattern that follows. The meal is the trigger; the slip is everything you do in the next 48 hours.',
     ctaTitle: 'Restart at the next meal, not at tomorrow.',
@@ -6057,6 +9218,12 @@ const posts: BlogPost[] = [
           'A slip is a behavior pattern that follows the meal. The meal is the trigger. The slip is everything you do in the 48 hours after.',
           'This Q&A is about telling them apart, with the founder-anchored signals that show up between the meal and the slip — and the moves that keep one from becoming the other.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Does one bad meal ruin a diet?',
+        answer:
+          "No. The meal is the meal. The slip is what you do the morning after. Most 'slips' people remember were normal over-target meals that the system absorbed without consequence. The only way one meal becomes a slip is if the next morning gets shaped like punishment instead of structure. The work is at the morning.",
       },
       {
         type: 'paragraphs',
@@ -6156,20 +9323,65 @@ const posts: BlogPost[] = [
           'The work is at the morning, not at the dinner.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: "What's the difference between a bad meal and a slip?",
+          answer:
+            'A bad meal is a single over-target meal. A slip is the behavior pattern that follows: skipped breakfast as punishment, larger lunch from blood-sugar drop, snacks from irregular eating, bigger dinner from fatigue. The meal was the trigger. The slip is the next 48 hours.',
+        },
+        {
+          question: 'How do I tell if my meal is becoming a slip?',
+          answer:
+            'Ask one question the morning after: is my first meal today the planned breakfast, or a punishment version of it? Planned breakfast means the system is intact. Skipped or shrunk breakfast means the slip is being set up. Eat the planned breakfast and stop the cycle.',
+        },
+        {
+          question: 'What about the scale jump after one bad meal?',
+          answer:
+            'It is water and gut content, not fat. A 0.6 to 1.2 kg morning-after jump after a high-sodium dinner is almost entirely temporary. Reading it as fat is what triggers the slip. Wait three days under normal eating and the number comes back.',
+        },
+        {
+          question: "Should I restart 'tomorrow' or 'Monday' after a slip?",
+          answer:
+            "Neither. Restart at the next meal. Days do not restart, meals do. If lunch on day 2 is the meal that started getting punishment-shaped, dinner on day 2 is the meal where you go back to the plan. 'Tomorrow' framing keeps the slip alive through tomorrow.",
+        },
+        {
+          question: 'Are some meals automatically slips by themselves?',
+          answer:
+            "A few cases: a meal eaten in clearly out-of-control binge mode, a meal that triggers same-evening continuation, or a meal that follows weeks of tight restriction. Outside those, most 'bad meals' are ordinary over-target meals that the morning-after handling decides the fate of.",
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'your-appetite-scales-with-training-volume-not-with-weight',
+    slug: 'why-am-i-so-hungry-after-lifting-weights',
     title: 'Your Appetite Scales With Training Volume, Not With Weight',
     description:
-      'Appetite is not a function of how much you weigh. It is a function of how much you trained, how you slept, and what your body is rebuilding. The scale is not what your hunger is reading.',
+      "Why am I so hungry after lifting weights, even on weeks the scale didn't move? Hunger reads training volume, not body weight. Appetite is not a function of how much you weigh. It is a function of how much you trained, how you slept, and what your body is rebuilding. The scale is not what your hunger is reading.",
     socialDescription:
       'Treat the scale as the slow variable. Treat appetite as the fast variable. Do not confuse them. Most diet appetite spikes are not weight problems. They are repair signals.',
     date: '2026-06-16',
     readingTime: '9 min read',
     tags: ['Appetite', 'Exercise', 'Sleep', 'Recovery'],
-    heroImage: '/founder/sleep-reflective-20260106.jpg',
-    heroAlt: 'Founder reflective image used here as the visual anchor for the realization that appetite was tracking the body\'s repair workload, not the scale\'s verdict',
+    seoTitle: 'Why Am I So Hungry After Lifting Weights?',
+    metaDescription:
+      'Why am I so hungry after lifting weights? Appetite tracks training volume and recovery, not body weight. Most diet hunger is a repair signal, not failure.',
+    keywords: [
+      'why am I so hungry after lifting weights',
+      'appetite after workout',
+      'hungry on training days',
+      'strength training increases appetite',
+      'training volume hunger',
+      'post workout hunger weight loss',
+    ],
+    schemaType: 'faq',
+    cluster: 'appetite',
+    heroImage: '/founder/sleep-reflective-20260106.webp',
+    heroAlt: 'Founder reflective shot capturing appetite tracking repair load, the anchor for why am I so hungry after lifting weights',
     deck:
       'People assume appetite scales with weight. The intuition is mostly wrong. Appetite scales much more closely with training volume, sleep quality, and recent repair workload than with what the scale says.',
     ctaTitle: 'Track training and sleep alongside calories.',
@@ -6184,6 +9396,12 @@ const posts: BlogPost[] = [
           'The intuition is mostly wrong. Appetite, day to day and week to week, scales much more closely with training volume, sleep quality, and the body\'s recent repair workload than with what the scale says you weigh.',
           'This is not a small distinction. It changes what to do when hunger is loud, and it explains why two people at the same weight can have wildly different appetite signals on the same day.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'Why am I so hungry after lifting weights?',
+        answer:
+          "Because appetite tracks training volume and recovery, not body weight. The body's energy demand spikes 6 to 36 hours after a real session and stays elevated through the recovery window. Add a poor night of sleep and the signal climbs further. Most diet hunger is not failure. It is a repair signal asking for fuel.",
       },
       {
         type: 'paragraphs',
@@ -6282,20 +9500,65 @@ const posts: BlogPost[] = [
           'If you keep diagnosing daily hunger as a weight problem, you will keep applying restriction to a signal that was asking for repair.',
         ],
       },
+      {
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'What variables actually drive day-to-day appetite?',
+          answer:
+            "Three matter more than weight. Training volume in the past 24 to 72 hours. Sleep across the past three to five nights. The body's recent repair load. A lifter who trained heavy yesterday and slept six hours will be hungrier than a sedentary person who slept eight.",
+        },
+        {
+          question: 'When does training-driven hunger actually show up?',
+          answer:
+            'Six to 36 hours after the session. A heavy lower-body Monday morning often shows up as elevated hunger Tuesday afternoon and evening. A long Sunday cardio session tends to peak Monday afternoon. Sleep deprivation is faster — usually the same day and the day after a poor night.',
+        },
+        {
+          question: 'Should I feed training-driven hunger or push through?',
+          answer:
+            "Feed it, especially on hard training days. The repair demand is real. Adding 100 to 200 calories of protein-forward food on a heavy session day is not breaking the diet. It is feeding the work the diet is supposed to support. Pushing through usually backfires by week's end.",
+        },
+        {
+          question: 'How can I tell if my hunger is training, sleep, or actual food shortage?',
+          answer:
+            'Track training intensity and a rolling sleep average alongside calories. Within three to four weeks the pattern usually shows. Loud-appetite weeks line up with high training and low sleep. Quiet weeks line up with the opposite. Body weight has almost no week-to-week relationship with how hungry the body feels.',
+        },
+        {
+          question: "Why don't more dieters know this?",
+          answer:
+            "Because diet narratives frame appetite as a function of body size and willpower. Athletes are taught to read appetite through training and recovery. The first framing maps onto the actual physiology. The second produces 'the diet is failing' diagnoses for what are really hard-training nights.",
+        },
+      ],
+      },
+    
     ],
   },
   {
-    slug: 'the-day-i-realized-the-program-was-just-my-life-now',
+    slug: 'when-does-a-diet-become-a-lifestyle',
     title: 'The Day I Realized the Program Was Just My Life Now',
     description:
-      'There is a quiet moment when the program stops being a project and starts being your life. The shift is not announced. It is noticed weeks later, by accident.',
+      'When does a diet become a lifestyle? Quietly. You usually notice weeks after it has already happened. There is a quiet moment when the program stops being a project and starts being your life. The shift is not announced. It is noticed weeks later, by accident.',
     socialDescription:
       'The program had to disappear for the body to hold. The body was already there. The relationship to it is what took the longest.',
     date: '2026-06-17',
     readingTime: '8 min read',
     tags: ['Founder Story', 'Maintenance', 'Long Game', 'Habits'],
-    heroImage: '/founder/final-portrait.jpg',
-    heroAlt: 'Founder portrait used here as the visual anchor for the steady state where the program quietly became indistinguishable from the rest of the day',
+    seoTitle: 'When Does a Diet Become a Lifestyle?',
+    metaDescription:
+      "When does a diet become a lifestyle? You don't notice on the day. You notice the Tuesday weeks later when you didn't think about food once.",
+    keywords: [
+      'when does a diet become a lifestyle',
+      'diet to lifestyle change',
+      'diet vs lifestyle difference',
+      'sustainable weight loss habits',
+      'how long until diet becomes habit',
+      'weight loss lifestyle change mindset',
+    ],
+    schemaType: 'faq',
+    cluster: 'maintenance',
+    heroImage: '/founder/final-portrait.webp',
+    heroAlt: 'Founder portrait at the steady state where the program quietly disappeared, anchoring when does a diet become a lifestyle',
     deck:
       'There was no announcement. No milestone. No before-and-after moment. There was a Tuesday in month seven of maintenance where I noticed I had not consciously thought about food, training, or weight all day.',
     ctaTitle: 'The transition is a fade, not a celebration.',
@@ -6311,6 +9574,12 @@ const posts: BlogPost[] = [
           'The program had stopped being a thing I was running. It had become a default I was living.',
           'That moment, when I noticed it, was the actual end of the project. The numbers had landed months earlier. The behaviors had taken longer.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: 'When does a diet become a lifestyle?',
+        answer:
+          'Usually between month 6 and month 12 of consistent practice, sometimes longer. There is no announcement. The moment is noticed weeks later, by accident — a Tuesday where you have not consciously thought about food, training, or weight all day. The transition is a fade, not a celebration. The defaults stop feeling like effort.',
       },
       {
         type: 'paragraphs',
@@ -6391,314 +9660,38 @@ const posts: BlogPost[] = [
           'The body will already be there. The relationship to it is what took the longest.',
         ],
       },
-    ],
-  },
-  {
-    slug: 'you-are-probably-consistent-at-the-wrong-thing',
-    title: 'You Are Probably Consistent at the Wrong Thing',
-    description:
-      'A plateau is usually not a stalled body. It is a body that is responding to the wrong input because you kept doing what was already working before it stopped.',
-    socialDescription:
-      'Consistency is not a virtue. It is a tool that only works when pointed at the right thing. The body moves on from what was working about once every few months. The program has to move with it.',
-    date: '2026-06-19',
-    readingTime: '9 min read',
-    tags: ['Plateau', 'Consistency', 'Weight Loss', 'Diet Systems'],
-    heroImage: '/founder/start.jpg',
-    heroAlt:
-      'Founder start-state image used to anchor a post about how the habits that got you moving are not the habits that keep you moving through a plateau',
-    deck:
-      'Most plateaus are not the body stalling. They are the body quietly telling you that your input is no longer the thing moving the output — and the fix is almost never more of the same.',
-    ctaTitle: 'Read the body, not the checklist.',
-    ctaBody:
-      'Month-one consistency is satisfying to run. It stops being the thing producing the change somewhere around month five. Alignment is not more work. It is asking a different question about whether the thing you are doing is still what the body is responding to.',
-    sections: [
       {
-        type: 'paragraphs',
-        paragraphs: [
-          'Most plateaus I have watched a person run into, including my own, were not the body stalling.',
-          'They were the body quietly telling the person their input was no longer the thing that moved the output.',
-          'The person did not hear it that way. They heard it as failure. They responded with more of what had been working. More days of the same food. More weeks of the same training. More rigor on the same surfaces.',
-          'And the body kept not responding.',
-          'The word the person reaches for in this moment is almost always consistency. I just need to stay consistent. My problem is that I am not consistent enough.',
-          'I spent a long time believing this too. It took a humiliating amount of time to notice I was being consistent at the wrong thing.',
-        ],
+        type: 'faq',
+        title: 'Frequently Asked Questions',
+      items: [
+        {
+          question: 'How long before diet habits feel automatic?',
+          answer:
+            'Three habit layers each take their own time: cooking defaults usually 6 to 9 months, training cadence 4 to 6 months, calm weighing rhythm 6 to 12 months. When all three run unconsciously, conscious effort drops to near-zero. That is when the diet becomes a lifestyle.',
+        },
+        {
+          question: "Why doesn't the transition feel like a milestone?",
+          answer:
+            'Because it is the absence of an event. The program fades from foreground to background slowly, across many ordinary days. The point you notice the fade is just one of those days. People waiting for a finish-line moment usually miss the transition entirely.',
+        },
+        {
+          question: 'Can a diet become unsustainable if it never becomes a lifestyle?',
+          answer:
+            'Yes. Effortful systems do not hold for years. They hold for months and break. If maintenance still feels like a project at month twelve, the system has not finished converting. The body change does not last without the lifestyle change underneath it.',
+        },
+        {
+          question: 'What does the lifestyle phase actually look like?',
+          answer:
+            "Boring. Same breakfast most mornings. Same training cadence most weeks. Calm weekly weigh-ins. Meals you do not frame as 'diet meals.' Sessions you do not frame as 'training for the project.' The body is just your body now. The work happens in the background.",
+        },
+        {
+          question: "How do I know I'm not just on a longer diet?",
+          answer:
+            "If you still consciously frame meals as 'on plan' or 'off plan,' you are still in diet mode. If meals just happen, with the right macros, without you naming them as part of a program, the transition has started. The naming fades before the behaviors do.",
+        },
+      ],
       },
-      {
-        type: 'paragraphs',
-        title: 'What Consistency Actually Is and Is Not',
-        paragraphs: [
-          'Consistency is a word that sounds like it names a virtue when it is usually just naming a surface behavior.',
-          'The surface behavior is: the same action, repeated across days. Weighing every morning. Logging every meal. Running the same training split. Having the same breakfast.',
-          'That is not consistency in the useful sense.',
-          'Useful consistency is: the load-bearing behavior for your current stage, repeated until the stage changes.',
-          'The word "load-bearing" is doing most of the work in that sentence. Your program at month one has different load-bearing behaviors than your program at month six. The actions that stopped the weight gain in the first month are almost never the actions that move you through a stalled month five.',
-          'The trap is that month-one consistency is satisfying to run. You have a checklist. You can grade yourself. You feel like a person with discipline. So you keep running it, even after it has stopped being the thing actually producing the change.',
-          'That is being consistent at the wrong thing.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'Why the Wrong Thing Feels Like the Right Thing',
-        paragraphs: [
-          'The wrong thing feels right for three reasons, and none of them are stupid.',
-          'The first reason is that it worked recently. You remember the month it worked. You remember the weigh-in that confirmed it. The body\'s memory of what worked is short; the head\'s memory is long. Your head is loyal to the version of the program that produced visible results. Your body has already moved past that version.',
-          'The second reason is that it is measurable. Weighing every day, logging every meal, hitting every training session — these produce visible evidence of effort. You can look at the log and see that you did the work. The problem is that the log is a record of your effort, not a record of the body\'s response. The two drift apart during a plateau. You keep logging. The body keeps not responding. The gap between the two is the plateau.',
-          'The third reason is that switching surfaces feels like cheating. If you have been weighing every morning, taking a measuring tape to your waist feels like moving the goalposts. If you have been logging calories, shifting attention to protein feels like giving up on the thing that was working. If you have been running the same cardio, switching to lifting feels like abandoning the program. None of those are giving up. All of them are alignment moves. But they read as retreat to a head that has been trained to value the previous surface.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'What Consistency at the Wrong Thing Looks Like',
-        paragraphs: [
-          'It usually looks exactly the same as consistency at the right thing, for about three to six weeks.',
-          'Then it diverges.',
-          'Consistency is not the same thing as alignment. You can be perfectly consistent at tracking a body that stopped responding to tracking alone. You can be perfectly consistent at a training volume that stopped producing a training response. You can be perfectly consistent at a calorie target that no longer matches your weight, your sleep, or your stress.',
-          'The signature of it, in my own program and in every plateau I have watched someone else run into, is this: the effort feels heavier but produces less. You are working the same hours. You are following the same rules. But the rules have stopped being the thing that converts work into change.',
-          'The specific forms it takes:',
-          'You keep weighing daily when the useful signal has moved to a two-week trend. The daily number is now noise around a body that is asking to be read in longer windows. The number punishes you for honesty (eating normally). You cut harder to reward it. The cut eats the rest of your program.',
-          'You keep running the same training split when the useful signal has moved to recovery. The lifts are no longer moving. Your sleep is no longer moving them either. You add a fourth cardio session because that was the move at month one. Month one, you had a ceiling of capacity. Month five, the ceiling is a floor.',
-          'You keep eating the same meals when the useful signal has moved to volume or protein. The calorie target is being hit; the satiety is not. You feel like you are restricting despite eating "enough." You are. The food stopped being the food the body is asking for about a month ago.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'What Alignment Looks Like Instead',
-        paragraphs: [
-          'Alignment is not more work. It is asking a different question.',
-          'The month-one question was: am I doing the thing?',
-          'The month-five question is: is the thing I am doing still what the body is responding to?',
-          'Those are different questions. They look similar on paper. They produce different programs in practice.',
-          'The month-five question forces you to move the read surface. If the scale has gone quiet, the tape measure becomes the read. If the tape measure has gone quiet, the clothes become the read. If the clothes have gone quiet, the photos. If all four have gone quiet for three consecutive weeks, the input needs to change — not because you have failed, but because the body has moved past the input.',
-          'The month-five question also forces you to let go of surfaces that were carrying you but are now carrying nothing. You do not have to weigh every day forever. You do not have to log every meal forever. At some point, the log has taught you what it was going to teach you. You stop running the log because it was producing the change, and start running it because it was producing a feeling of running a program. Those are different jobs.',
-          'I stopped daily weighing at month seven of my own cut. I still weigh. Once a week, same time, same conditions. That was an alignment move. It felt like giving up for about two weeks. By week three, the new surface was doing the thing the old surface had stopped doing — giving me a useful weekly read instead of a daily emotional event.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'The Soft Part Nobody Names',
-        paragraphs: [
-          'The thing most plateau advice gets wrong is treating the plateau as a body problem and prescribing more of the consistency that stopped working.',
-          'Plateaus are almost always a reading problem first. The body is usually still moving. The surface you were reading it on has stopped being the surface that shows the movement. Changing the surface often reveals that the body was fine all along — it was your map that had gone stale.',
-          'Occasionally the body has genuinely stopped. When that is true, the answer is still not more consistency at the old input. It is a small change to the input itself — a modest shift in the calorie target, a different training stimulus, a week of better sleep — delivered with the same calm the rest of the program has.',
-          'Either way, more of the same is usually the wrong answer.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'The Line Worth Keeping',
-        paragraphs: [
-          'Consistency is not a virtue. It is a tool that only works when pointed at the right thing.',
-          'If the input has stopped producing the output, you are not failing by noticing. You are doing the part of the program that separates people who reach the goal from people who just run the spreadsheet.',
-          'The body moves on from what was working about once every few months. The program has to move with it.',
-        ],
-      },
-    ],
-  },
-  {
-    slug: 'why-lower-body-fat-feels-so-stubborn',
-    title: 'Why Lower Body Fat Feels So Stubborn',
-    description:
-      'Lower-body fat is not refusing to move. It is clearing last on a timeline most people quit before reaching, and the mirror is bad at reading that particular kind of slow.',
-    socialDescription:
-      'Lower-body fat is the last tenant out of the building. If the thighs or hips still feel untouched while the rest of the body is clearly moving, the body is almost certainly not stuck. It is doing the last thing last.',
-    date: '2026-06-20',
-    readingTime: '11 min read',
-    tags: ['Body Composition', 'Fat Loss', 'Weight Loss', 'Patience', 'Long Game'],
-    heroImage: '/founder/body-composition-proof-20251221.jpg',
-    heroAlt:
-      'Founder body-composition-proof image used as the anchor for a post about how regional fat clears on different timelines and how lower-body fat is usually late, not refusing',
-    deck:
-      'There is a specific kind of rage a person reserves for the lower body. The scale has moved, the face has softened, the waist is smaller — and the thighs still look like nothing has happened. That is not the body stalling. It is the body doing the last thing last.',
-    ctaTitle: 'The last region needs the longest runway.',
-    ctaBody:
-      'Lower-body fat is not conspiring against you. It is clearing on its own schedule, and the schedule is longer than the one your head signed up for. The fix is not more force. It is more patience, a better read surface, and a timeline honest enough to include the months the lower body needs.',
-    sections: [
-      {
-        type: 'paragraphs',
-        paragraphs: [
-          'There is a specific kind of rage a person reserves for the lower body.',
-          'The scale has moved. The face has softened. The waist is smaller. A shirt fits differently. The person standing in front of the mirror can see all of this, and still looks down at the thighs or the hips and feels like nothing has happened.',
-          'The word people use next is always the same. Stubborn.',
-          'It is a useful word the first time. It names a real thing — the lower body really does clear last in most people. But the word quickly stops being descriptive and starts being accusatory. The thighs become the villain. The program becomes a referendum on whether one body zone is finally cooperating.',
-          'That is where the trouble starts. Not with the body, which is doing something orderly. With the map, which has stopped being able to read what the body is doing.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'Fat Does Not Leave the Body Democratically',
-        paragraphs: [
-          'The body does not draw down its fat stores evenly across every region. It cannot. Different depots — abdominal, facial, upper-arm, flank, thigh, hip, buttock — have different structural characteristics, and those characteristics set different clearance rates during a deficit.',
-          'The main drivers are local. Blood flow to the depot, the density of fat cells in the region, and the rate at which those fat cells release their stored triglycerides into circulation for oxidation. Some regions are biochemically "fast." Some are biochemically "slow." Most people have a pattern that clusters abdominal and facial fat as the fast depots, and lower-body subcutaneous fat (thigh, hip, outer buttock) as the slow depots.',
-          'The difference is not small. In most people, abdominal subcutaneous fat will visibly clear in 3 to 6 months of a consistent moderate deficit, while lower-body subcutaneous fat clears visibly over 6 to 12 months of the same deficit. In larger transformations — 30 kg or more total loss — the lower body often does not reach its final visible state until months 12 to 18.',
-          'That timeline is not a plateau. It is the normal clearance curve. The lower body is drawing down the same way the abdominal fat did; it is just doing so at roughly half the visible rate, because the local mobilization rate is lower.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'What the Timeline Actually Looks Like',
-        paragraphs: [
-          'Here is the sequence most people actually run, although very few notice it while they are in it.',
-          'Months 0–2: the face changes first. Almost nobody credits this because faces are hard to see in the mirror day-to-day. But jawline definition and cheek hollow often shift within the first 4–8 weeks of a deficit.',
-          'Months 1–4: the waist starts moving. Belt holes. Shirt fit. Pants around the waistband feeling looser without the hip fitting any differently. The tape at the navel starts dropping — often 2 to 5 cm across this window.',
-          'Months 2–6: upper arms and shoulders start showing shape. This is the "I look like I lift now" window, which most people credit to training even though it is mostly fat clearing from over previously-built muscle.',
-          'Months 4–9: chest, upper back, and flanks clear. This is where photos start reading dramatically different. Shirts that used to fit tight across the chest now fit shoulder-first.',
-          'Months 6–12: the hip and glute measurement starts changing. Tape numbers you could not move for months begin to come down. Pant fit around the seat shifts.',
-          'Months 9–18: the thighs and outer hips finish clearing. This is the last region for most people. It often happens in the final third of a long transformation and frequently overlaps with the first months of maintenance.',
-          'The waistband loosened three months before the thighs did. The face softened four months before the hips did. The scale did not break that sequence down for me. It reported a single number across the whole body while the regions cleared on different timelines under the surface.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'Why the Mirror and the Scale Both Misread This',
-        paragraphs: [
-          'Two instruments people rely on are almost useless at reading regional change in real time.',
-          'The mirror is bad at it because familiarity defeats visual discrimination. Looking at the same thighs every day makes the change invisible, even when the same body compared to a 6-month-old photo has obviously changed. The mirror reports "no change" in the specific region the person has been staring at, even while the rest of the body has clearly moved.',
-          'The scale is bad at it because the number is a sum. A 0.5 kg weekly drop could be almost entirely abdominal fat in month two and almost entirely lower-body fat in month ten. The scale reports the same movement; the regional composition of that movement is completely different. The number is agnostic to where the loss is happening. The person staring at their thighs is not.',
-          'The practical consequence: at month five, the scale has been moving for five months, the person has lost 8 to 12 kg of fat, and the thighs still look essentially the same. The conclusion the head reaches is "my thighs don\'t respond." The actual situation is "my thighs are queued behind abdominal and upper-body clearance, and they will start moving in months 6–9."',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'Why Overcorrection Here Ruins the Rest of the Program',
-        paragraphs: [
-          'This is the part that costs people the most.',
-          'Because the lower body reads as "not responding," the person does something predictable. They cut harder. They add cardio. They spot-target with leg work they believe will "lean the thighs." They introduce fasted cardio. They drop calories another 200 per day.',
-          'None of these change the regional clearance rate. Regional mobilization is set by local characteristics of the depot. The only variable the person controls that meaningfully affects lower-body clearance is time spent in a moderate deficit — the very variable they are about to blow up.',
-          'What the overcorrection actually does is raise the cost of the diet. Sleep degrades. Training suffers. Appetite gets louder. The deficit stops being holdable at month five, and the person quits at month six — three to six months before the lower body was going to show the change they were trying to force.',
-          'The lower body did not fail them. The program\'s length did.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'What the Body Is Actually Telling You',
-        paragraphs: [
-          'Lower-body fat that feels stuck at month five is a signal about timing, not about biology. It is telling you the body is working through its clearance sequence in the order it does, and your region of interest is late in the order.',
-          'The useful response is the unglamorous one. Keep the deficit moderate and holdable. Track the broader signals — waist tape, hip tape, clothes fit, monthly photos — rather than running daily mirror checks on one region. Respect that the last region is going to require the longest runway. Plan for 12 to 18 months on a serious transformation, not 12 to 18 weeks.',
-          'And stop punishing a region for being exactly what it is.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'What I Noticed in My Own Program',
-        paragraphs: [
-          'For about four months of my own cut, I was in a quiet war with my thighs.',
-          'My waist had moved 9 cm. My shirts fit differently. My face looked like a different person in photos. The scale was reporting a clean trend. And every time I looked at the lower half of my body in the mirror, I felt like the work had not landed there. The word I used to my wife, more than once, was "cement."',
-          'Around month seven, I started reviewing monthly photos instead of daily mirror checks. The photos told a different story than the mirror had been telling me. The thighs had moved. Not as much as the waist. But the outer hip had softened perceptibly between month four and month seven, and I had been too close to the mirror to see it.',
-          'By month eleven, the thighs had done most of what they were going to do. By month fourteen, the outer hip had finished clearing. I did not do anything differently at months ten and fourteen than I had been doing at month six. The timeline did the work. I had spent four months accusing a region that was on schedule.',
-          'The clearance was always going to happen in the order it happened. My problem was reading the wrong instrument for the wrong region at the wrong time.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'The Line Worth Keeping',
-        paragraphs: [
-          'Lower-body fat is the last tenant out of the building.',
-          'If you are mid-transformation and the thighs or hips still feel untouched while the rest of the body is clearly moving, the body is almost certainly not stuck. It is doing the last thing last.',
-          'The fix is not more force. It is more patience, a better read surface, and a timeline honest enough to include the months the lower body needs.',
-          'Resentment is not measurement. The lower body is not conspiring against you. It is clearing on its own schedule, and the schedule is longer than the one your head signed up for.',
-        ],
-      },
-    ],
-  },
-  {
-    slug: 'the-week-i-stopped-adding-cardio-and-the-body-caught-up',
-    title: 'The Week I Stopped Adding Cardio and the Body Caught Up',
-    description:
-      'For three months I answered every slow week with more cardio. The week I stopped, the program finally showed me what had been blocked by my own correction.',
-    socialDescription:
-      'The move that looks like discipline — adding, stacking, doubling — is often the move that costs the program more than it adds. I learned this by accident, on a week I had intended to call a failure.',
-    date: '2026-06-21',
-    readingTime: '9 min read',
-    tags: ['Founder Story', 'Cardio', 'Recovery', 'Weight Loss', 'Training'],
-    heroImage: '/founder/sleep-reflective-window-20241217.jpg',
-    heroAlt:
-      'Founder lifestyle image of a reflective quiet window-side moment used here to anchor a story about backing off training intensity and letting recovery reveal progress that overtraining had been hiding',
-    deck:
-      'There was a three-month stretch of my own cut where I answered every slow weigh-in the same way. I added a cardio session. I thought I was disciplined. I was actually running a program that was eating itself.',
-    ctaTitle: 'The progress was there. The correction was hiding it.',
-    ctaBody:
-      'If your program is already producing slow, steady change, more effort on top of it is not the neutral move it feels like. Sometimes the move that looks like slacking — sleeping the extra hour, sitting out the fifth session — is what lets the program actually finish what it started.',
-    sections: [
-      {
-        type: 'paragraphs',
-        paragraphs: [
-          'There was a three-month stretch of my own cut where I answered every slow weigh-in the same way.',
-          'I added a cardio session.',
-          'Not intentionally, at first. It happened on a Tuesday after a Monday weigh-in that had not moved. I thought: the number is stuck, the obvious lever is expenditure, I will add a thirty-minute zone-2 walk after dinner. The next Monday\'s number moved. I kept the walk.',
-          'The week after that, the number slowed again. I extended the walk to forty-five minutes. The number moved.',
-          'By the start of month four, I was running five cardio sessions a week on top of four lifting sessions. I was sleeping badly. My training felt heavy. My appetite was louder than it had been at month one, even though the deficit on paper was the same. The weigh-in was still moving, but the move required another cardio extension every couple of weeks to keep happening.',
-          'I thought I was disciplined. I was actually running a program that was eating itself.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'The Week It Became Obvious',
-        paragraphs: [
-          'The week it finally became obvious was not a crisis week. It was worse than that. It was a normal week.',
-          'On a Monday morning, I could not face the 6 a.m. cardio session. Not because of anything dramatic. I was just tired. I hit snooze, slept the extra hour, did the day\'s lift at lunch, and decided I would take the whole week off cardio. Not as a strategy. As a small personal bargain with a tired body.',
-          'The first few days felt like slipping. I walked past the running shoes in the doorway and felt a low-grade guilt. I caught myself adding up, at breakfast, the calories the missed sessions would cost me over the week. I had already decided on the compromise; my head kept trying to undo it.',
-          'By Wednesday, something unfamiliar happened. The Wednesday lift, which had been feeling heavy for about a month, felt like a Wednesday lift from two months earlier. Clean. Not dragging. The bar moved at the bar\'s normal speed.',
-          'By Thursday evening, I noticed I was not hungry the way I had been hungry for the previous eight weeks. The evening craving that had become a reliable nightly feature had quietly not arrived.',
-          'By Saturday, I slept nine hours for the first time in a month.',
-          'I weighed on Monday morning expecting the number to punish me for the missed sessions. It was down 0.8 kg from the previous Monday, which was a larger weekly drop than I had seen in four weeks.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'What the Rest Week Actually Produced',
-        paragraphs: [
-          'The rest week did not produce a 0.8 kg fat loss. I am not going to pretend that.',
-          'What it probably did was a combination — some scale drop from reduced glycogen and water stress, some from the body finally resuming the underlying clearance it had been doing all along under less cumulative load, and some from simply sleeping enough to stop running high on the other side of the deficit.',
-          'The useful thing was not the number. The useful thing was the visibility.',
-          'For three months, I had been treating the slow weigh-ins as a signal that the body was not working, and cardio as the corrective. When I stopped adding the corrective, I could finally see that the body had been working the whole time. The slow weeks had not been the body failing. They had been the body trying to finish the job under the noise of a training load I kept increasing.',
-          'The body had been doing the work. The noise I was adding on top of it had been hiding what the body was doing.',
-          'The metaphor I reached for that weekend, trying to explain it to my wife, was that I had spent three months shouting at a phone to make the call connect, when the issue was that I kept interrupting the call to shout.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'Why I Had Been Doing It in the First Place',
-        paragraphs: [
-          'The motion of "add cardio when the scale slows" is not irrational. Cardio raises expenditure. Raised expenditure, all else equal, should move a scale that has slowed.',
-          'The problem is that all else was not equal.',
-          'Each additional cardio session cost me sleep, training quality, and appetite discipline on the other side. The visible cost was "I spent 45 minutes on a walk." The invisible cost was "I slept 30 minutes less for three nights, my Wednesday lift dropped 5% in volume, and by Thursday evening I was eating 200 extra calories of snack food I had not planned to eat."',
-          'The scale was reporting the net — cardio expenditure minus the snack food minus the lift-volume drop minus whatever recovery cost the body was carrying silently. When the net came out positive, the number moved. When it came out close to zero, the number stalled. The stall was not a biology problem. It was a net-motion problem.',
-          'The cumulative cost of the correction had become larger than its benefit somewhere around week six. I did not notice. I kept adding. The body kept compensating.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'What I Changed Afterward',
-        paragraphs: [
-          'I did not swear off cardio. That would have been its own kind of theater.',
-          'I set two rules, both small, both boring.',
-          'One: I was not allowed to add a cardio session as a response to a weigh-in. Weigh-ins are noise on the time horizon where a single cardio session would register. The correlation the previous me had been reading into the scale was mostly post-hoc narrative. Adding a session because of a number is almost always adding a session to manage a feeling, not an input.',
-          'Two: any cardio beyond a maintenance baseline of three walks a week had to come with an honest sleep and lift check. If adding a fourth session meant the Wednesday lift would drop, the fourth session cost more than it earned. If the 6 a.m. session meant I would sleep seven hours instead of eight, the session cost more than it earned.',
-          'Those two rules took the training log out of my emotional management system and put it back in the body\'s. The cut kept moving. The rest of the cut stopped feeling like I was running on fumes.',
-          'The cardio budget dropped from five sessions to three. The progress did not.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'What the Episode Actually Taught Me',
-        paragraphs: [
-          'I had been running the program as if effort was the input and change was the output. More effort, more change. Less effort, less change.',
-          'The body does not work that way past the first couple of weeks. The body works on a budget that includes the deficit, the training load, the sleep, the recovery, and the psychological weight of the whole stack. Add to one column and the body often debits another column you were not looking at.',
-          'The thing I was optimizing for — visible weekly effort — was not the thing producing the change. The thing producing the change was the underlying deficit, held long enough, with the training load and sleep staying inside the recoverable range.',
-          'Every hour of cardio past that threshold was not adding anything. It was just taking away from a different account.',
-          'The week I stopped adding, the account rebalanced. That was the progress. The progress had been there all along; it had been hidden by the cost of my own correction.',
-        ],
-      },
-      {
-        type: 'paragraphs',
-        title: 'The Line Worth Keeping',
-        paragraphs: [
-          'If your program is already producing slow, steady change, more effort on top of it is not the neutral move it feels like.',
-          'The move that looks like discipline — adding, stacking, doubling — is often the move that costs the program more than it adds.',
-          'The move that looks like slacking — sleeping the extra hour, sitting out the fifth session, letting a slow week be a slow week — is sometimes the move that lets the program actually finish what it started.',
-          'I learned this by accident, on a week I had intended to call a failure.',
-        ],
-      },
+    
     ],
   },
   {
@@ -6895,6 +9888,315 @@ const posts: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'the-week-i-stopped-adding-cardio-and-the-body-caught-up',
+    title: 'The Week I Stopped Adding Cardio and the Body Caught Up',
+    description:
+      'For three months I answered every slow week with more cardio. The week I stopped, the program finally showed me what had been blocked by my own correction.',
+    socialDescription:
+      'The move that looks like discipline — adding, stacking, doubling — is often the move that costs the program more than it adds. I learned this by accident, on a week I had intended to call a failure.',
+    date: '2026-06-21',
+    readingTime: '9 min read',
+    tags: ['Founder Story', 'Cardio', 'Recovery', 'Weight Loss', 'Training'],
+    heroImage: '/founder/sleep-reflective-window-20241217.jpg',
+    heroAlt:
+      'Founder lifestyle image of a reflective quiet window-side moment used here to anchor a story about backing off training intensity and letting recovery reveal progress that overtraining had been hiding',
+    deck:
+      'There was a three-month stretch of my own cut where I answered every slow weigh-in the same way. I added a cardio session. I thought I was disciplined. I was actually running a program that was eating itself.',
+    ctaTitle: 'The progress was there. The correction was hiding it.',
+    ctaBody:
+      'If your program is already producing slow, steady change, more effort on top of it is not the neutral move it feels like. Sometimes the move that looks like slacking — sleeping the extra hour, sitting out the fifth session — is what lets the program actually finish what it started.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'There was a three-month stretch of my own cut where I answered every slow weigh-in the same way.',
+          'I added a cardio session.',
+          'Not intentionally, at first. It happened on a Tuesday after a Monday weigh-in that had not moved. I thought: the number is stuck, the obvious lever is expenditure, I will add a thirty-minute zone-2 walk after dinner. The next Monday\'s number moved. I kept the walk.',
+          'The week after that, the number slowed again. I extended the walk to forty-five minutes. The number moved.',
+          'By the start of month four, I was running five cardio sessions a week on top of four lifting sessions. I was sleeping badly. My training felt heavy. My appetite was louder than it had been at month one, even though the deficit on paper was the same. The weigh-in was still moving, but the move required another cardio extension every couple of weeks to keep happening.',
+          'I thought I was disciplined. I was actually running a program that was eating itself.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Week It Became Obvious',
+        paragraphs: [
+          'The week it finally became obvious was not a crisis week. It was worse than that. It was a normal week.',
+          'On a Monday morning, I could not face the 6 a.m. cardio session. Not because of anything dramatic. I was just tired. I hit snooze, slept the extra hour, did the day\'s lift at lunch, and decided I would take the whole week off cardio. Not as a strategy. As a small personal bargain with a tired body.',
+          'The first few days felt like slipping. I walked past the running shoes in the doorway and felt a low-grade guilt. I caught myself adding up, at breakfast, the calories the missed sessions would cost me over the week. I had already decided on the compromise; my head kept trying to undo it.',
+          'By Wednesday, something unfamiliar happened. The Wednesday lift, which had been feeling heavy for about a month, felt like a Wednesday lift from two months earlier. Clean. Not dragging. The bar moved at the bar\'s normal speed.',
+          'By Thursday evening, I noticed I was not hungry the way I had been hungry for the previous eight weeks. The evening craving that had become a reliable nightly feature had quietly not arrived.',
+          'By Saturday, I slept nine hours for the first time in a month.',
+          'I weighed on Monday morning expecting the number to punish me for the missed sessions. It was down 0.8 kg from the previous Monday, which was a larger weekly drop than I had seen in four weeks.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What the Rest Week Actually Produced',
+        paragraphs: [
+          'The rest week did not produce a 0.8 kg fat loss. I am not going to pretend that.',
+          'What it probably did was a combination — some scale drop from reduced glycogen and water stress, some from the body finally resuming the underlying clearance it had been doing all along under less cumulative load, and some from simply sleeping enough to stop running high on the other side of the deficit.',
+          'The useful thing was not the number. The useful thing was the visibility.',
+          'For three months, I had been treating the slow weigh-ins as a signal that the body was not working, and cardio as the corrective. When I stopped adding the corrective, I could finally see that the body had been working the whole time. The slow weeks had not been the body failing. They had been the body trying to finish the job under the noise of a training load I kept increasing.',
+          'The body had been doing the work. The noise I was adding on top of it had been hiding what the body was doing.',
+          'The metaphor I reached for that weekend, trying to explain it to my wife, was that I had spent three months shouting at a phone to make the call connect, when the issue was that I kept interrupting the call to shout.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why I Had Been Doing It in the First Place',
+        paragraphs: [
+          'The motion of "add cardio when the scale slows" is not irrational. Cardio raises expenditure. Raised expenditure, all else equal, should move a scale that has slowed.',
+          'The problem is that all else was not equal.',
+          'Each additional cardio session cost me sleep, training quality, and appetite discipline on the other side. The visible cost was "I spent 45 minutes on a walk." The invisible cost was "I slept 30 minutes less for three nights, my Wednesday lift dropped 5% in volume, and by Thursday evening I was eating 200 extra calories of snack food I had not planned to eat."',
+          'The scale was reporting the net — cardio expenditure minus the snack food minus the lift-volume drop minus whatever recovery cost the body was carrying silently. When the net came out positive, the number moved. When it came out close to zero, the number stalled. The stall was not a biology problem. It was a net-motion problem.',
+          'The cumulative cost of the correction had become larger than its benefit somewhere around week six. I did not notice. I kept adding. The body kept compensating.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Changed Afterward',
+        paragraphs: [
+          'I did not swear off cardio. That would have been its own kind of theater.',
+          'I set two rules, both small, both boring.',
+          'One: I was not allowed to add a cardio session as a response to a weigh-in. Weigh-ins are noise on the time horizon where a single cardio session would register. The correlation the previous me had been reading into the scale was mostly post-hoc narrative. Adding a session because of a number is almost always adding a session to manage a feeling, not an input.',
+          'Two: any cardio beyond a maintenance baseline of three walks a week had to come with an honest sleep and lift check. If adding a fourth session meant the Wednesday lift would drop, the fourth session cost more than it earned. If the 6 a.m. session meant I would sleep seven hours instead of eight, the session cost more than it earned.',
+          'Those two rules took the training log out of my emotional management system and put it back in the body\'s. The cut kept moving. The rest of the cut stopped feeling like I was running on fumes.',
+          'The cardio budget dropped from five sessions to three. The progress did not.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What the Episode Actually Taught Me',
+        paragraphs: [
+          'I had been running the program as if effort was the input and change was the output. More effort, more change. Less effort, less change.',
+          'The body does not work that way past the first couple of weeks. The body works on a budget that includes the deficit, the training load, the sleep, the recovery, and the psychological weight of the whole stack. Add to one column and the body often debits another column you were not looking at.',
+          'The thing I was optimizing for — visible weekly effort — was not the thing producing the change. The thing producing the change was the underlying deficit, held long enough, with the training load and sleep staying inside the recoverable range.',
+          'Every hour of cardio past that threshold was not adding anything. It was just taking away from a different account.',
+          'The week I stopped adding, the account rebalanced. That was the progress. The progress had been there all along; it had been hidden by the cost of my own correction.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Line Worth Keeping',
+        paragraphs: [
+          'If your program is already producing slow, steady change, more effort on top of it is not the neutral move it feels like.',
+          'The move that looks like discipline — adding, stacking, doubling — is often the move that costs the program more than it adds.',
+          'The move that looks like slacking — sleeping the extra hour, sitting out the fifth session, letting a slow week be a slow week — is sometimes the move that lets the program actually finish what it started.',
+          'I learned this by accident, on a week I had intended to call a failure.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'why-lower-body-fat-feels-so-stubborn',
+    title: 'Why Lower Body Fat Feels So Stubborn',
+    description:
+      'Lower-body fat is not refusing to move. It is clearing last on a timeline most people quit before reaching, and the mirror is bad at reading that particular kind of slow.',
+    socialDescription:
+      'Lower-body fat is the last tenant out of the building. If the thighs or hips still feel untouched while the rest of the body is clearly moving, the body is almost certainly not stuck. It is doing the last thing last.',
+    date: '2026-06-20',
+    readingTime: '11 min read',
+    tags: ['Body Composition', 'Fat Loss', 'Weight Loss', 'Patience', 'Long Game'],
+    heroImage: '/founder/body-composition-proof-20251221.jpg',
+    heroAlt:
+      'Founder body-composition-proof image used as the anchor for a post about how regional fat clears on different timelines and how lower-body fat is usually late, not refusing',
+    deck:
+      'There is a specific kind of rage a person reserves for the lower body. The scale has moved, the face has softened, the waist is smaller — and the thighs still look like nothing has happened. That is not the body stalling. It is the body doing the last thing last.',
+    ctaTitle: 'The last region needs the longest runway.',
+    ctaBody:
+      'Lower-body fat is not conspiring against you. It is clearing on its own schedule, and the schedule is longer than the one your head signed up for. The fix is not more force. It is more patience, a better read surface, and a timeline honest enough to include the months the lower body needs.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'There is a specific kind of rage a person reserves for the lower body.',
+          'The scale has moved. The face has softened. The waist is smaller. A shirt fits differently. The person standing in front of the mirror can see all of this, and still looks down at the thighs or the hips and feels like nothing has happened.',
+          'The word people use next is always the same. Stubborn.',
+          'It is a useful word the first time. It names a real thing — the lower body really does clear last in most people. But the word quickly stops being descriptive and starts being accusatory. The thighs become the villain. The program becomes a referendum on whether one body zone is finally cooperating.',
+          'That is where the trouble starts. Not with the body, which is doing something orderly. With the map, which has stopped being able to read what the body is doing.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Fat Does Not Leave the Body Democratically',
+        paragraphs: [
+          'The body does not draw down its fat stores evenly across every region. It cannot. Different depots — abdominal, facial, upper-arm, flank, thigh, hip, buttock — have different structural characteristics, and those characteristics set different clearance rates during a deficit.',
+          'The main drivers are local. Blood flow to the depot, the density of fat cells in the region, and the rate at which those fat cells release their stored triglycerides into circulation for oxidation. Some regions are biochemically "fast." Some are biochemically "slow." Most people have a pattern that clusters abdominal and facial fat as the fast depots, and lower-body subcutaneous fat (thigh, hip, outer buttock) as the slow depots.',
+          'The difference is not small. In most people, abdominal subcutaneous fat will visibly clear in 3 to 6 months of a consistent moderate deficit, while lower-body subcutaneous fat clears visibly over 6 to 12 months of the same deficit. In larger transformations — 30 kg or more total loss — the lower body often does not reach its final visible state until months 12 to 18.',
+          'That timeline is not a plateau. It is the normal clearance curve. The lower body is drawing down the same way the abdominal fat did; it is just doing so at roughly half the visible rate, because the local mobilization rate is lower.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What the Timeline Actually Looks Like',
+        paragraphs: [
+          'Here is the sequence most people actually run, although very few notice it while they are in it.',
+          'Months 0–2: the face changes first. Almost nobody credits this because faces are hard to see in the mirror day-to-day. But jawline definition and cheek hollow often shift within the first 4–8 weeks of a deficit.',
+          'Months 1–4: the waist starts moving. Belt holes. Shirt fit. Pants around the waistband feeling looser without the hip fitting any differently. The tape at the navel starts dropping — often 2 to 5 cm across this window.',
+          'Months 2–6: upper arms and shoulders start showing shape. This is the "I look like I lift now" window, which most people credit to training even though it is mostly fat clearing from over previously-built muscle.',
+          'Months 4–9: chest, upper back, and flanks clear. This is where photos start reading dramatically different. Shirts that used to fit tight across the chest now fit shoulder-first.',
+          'Months 6–12: the hip and glute measurement starts changing. Tape numbers you could not move for months begin to come down. Pant fit around the seat shifts.',
+          'Months 9–18: the thighs and outer hips finish clearing. This is the last region for most people. It often happens in the final third of a long transformation and frequently overlaps with the first months of maintenance.',
+          'The waistband loosened three months before the thighs did. The face softened four months before the hips did. The scale did not break that sequence down for me. It reported a single number across the whole body while the regions cleared on different timelines under the surface.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why the Mirror and the Scale Both Misread This',
+        paragraphs: [
+          'Two instruments people rely on are almost useless at reading regional change in real time.',
+          'The mirror is bad at it because familiarity defeats visual discrimination. Looking at the same thighs every day makes the change invisible, even when the same body compared to a 6-month-old photo has obviously changed. The mirror reports "no change" in the specific region the person has been staring at, even while the rest of the body has clearly moved.',
+          'The scale is bad at it because the number is a sum. A 0.5 kg weekly drop could be almost entirely abdominal fat in month two and almost entirely lower-body fat in month ten. The scale reports the same movement; the regional composition of that movement is completely different. The number is agnostic to where the loss is happening. The person staring at their thighs is not.',
+          'The practical consequence: at month five, the scale has been moving for five months, the person has lost 8 to 12 kg of fat, and the thighs still look essentially the same. The conclusion the head reaches is "my thighs don\'t respond." The actual situation is "my thighs are queued behind abdominal and upper-body clearance, and they will start moving in months 6–9."',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why Overcorrection Here Ruins the Rest of the Program',
+        paragraphs: [
+          'This is the part that costs people the most.',
+          'Because the lower body reads as "not responding," the person does something predictable. They cut harder. They add cardio. They spot-target with leg work they believe will "lean the thighs." They introduce fasted cardio. They drop calories another 200 per day.',
+          'None of these change the regional clearance rate. Regional mobilization is set by local characteristics of the depot. The only variable the person controls that meaningfully affects lower-body clearance is time spent in a moderate deficit — the very variable they are about to blow up.',
+          'What the overcorrection actually does is raise the cost of the diet. Sleep degrades. Training suffers. Appetite gets louder. The deficit stops being holdable at month five, and the person quits at month six — three to six months before the lower body was going to show the change they were trying to force.',
+          'The lower body did not fail them. The program\'s length did.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What the Body Is Actually Telling You',
+        paragraphs: [
+          'Lower-body fat that feels stuck at month five is a signal about timing, not about biology. It is telling you the body is working through its clearance sequence in the order it does, and your region of interest is late in the order.',
+          'The useful response is the unglamorous one. Keep the deficit moderate and holdable. Track the broader signals — waist tape, hip tape, clothes fit, monthly photos — rather than running daily mirror checks on one region. Respect that the last region is going to require the longest runway. Plan for 12 to 18 months on a serious transformation, not 12 to 18 weeks.',
+          'And stop punishing a region for being exactly what it is.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What I Noticed in My Own Program',
+        paragraphs: [
+          'For about four months of my own cut, I was in a quiet war with my thighs.',
+          'My waist had moved 9 cm. My shirts fit differently. My face looked like a different person in photos. The scale was reporting a clean trend. And every time I looked at the lower half of my body in the mirror, I felt like the work had not landed there. The word I used to my wife, more than once, was "cement."',
+          'Around month seven, I started reviewing monthly photos instead of daily mirror checks. The photos told a different story than the mirror had been telling me. The thighs had moved. Not as much as the waist. But the outer hip had softened perceptibly between month four and month seven, and I had been too close to the mirror to see it.',
+          'By month eleven, the thighs had done most of what they were going to do. By month fourteen, the outer hip had finished clearing. I did not do anything differently at months ten and fourteen than I had been doing at month six. The timeline did the work. I had spent four months accusing a region that was on schedule.',
+          'The clearance was always going to happen in the order it happened. My problem was reading the wrong instrument for the wrong region at the wrong time.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Line Worth Keeping',
+        paragraphs: [
+          'Lower-body fat is the last tenant out of the building.',
+          'If you are mid-transformation and the thighs or hips still feel untouched while the rest of the body is clearly moving, the body is almost certainly not stuck. It is doing the last thing last.',
+          'The fix is not more force. It is more patience, a better read surface, and a timeline honest enough to include the months the lower body needs.',
+          'Resentment is not measurement. The lower body is not conspiring against you. It is clearing on its own schedule, and the schedule is longer than the one your head signed up for.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'you-are-probably-consistent-at-the-wrong-thing',
+    title: 'You Are Probably Consistent at the Wrong Thing',
+    description:
+      'A plateau is usually not a stalled body. It is a body that is responding to the wrong input because you kept doing what was already working before it stopped.',
+    socialDescription:
+      'Consistency is not a virtue. It is a tool that only works when pointed at the right thing. The body moves on from what was working about once every few months. The program has to move with it.',
+    date: '2026-06-19',
+    readingTime: '9 min read',
+    tags: ['Plateau', 'Consistency', 'Weight Loss', 'Diet Systems'],
+    heroImage: '/founder/start.jpg',
+    heroAlt:
+      'Founder start-state image used to anchor a post about how the habits that got you moving are not the habits that keep you moving through a plateau',
+    deck:
+      'Most plateaus are not the body stalling. They are the body quietly telling you that your input is no longer the thing moving the output — and the fix is almost never more of the same.',
+    ctaTitle: 'Read the body, not the checklist.',
+    ctaBody:
+      'Month-one consistency is satisfying to run. It stops being the thing producing the change somewhere around month five. Alignment is not more work. It is asking a different question about whether the thing you are doing is still what the body is responding to.',
+    sections: [
+      {
+        type: 'paragraphs',
+        paragraphs: [
+          'Most plateaus I have watched a person run into, including my own, were not the body stalling.',
+          'They were the body quietly telling the person their input was no longer the thing that moved the output.',
+          'The person did not hear it that way. They heard it as failure. They responded with more of what had been working. More days of the same food. More weeks of the same training. More rigor on the same surfaces.',
+          'And the body kept not responding.',
+          'The word the person reaches for in this moment is almost always consistency. I just need to stay consistent. My problem is that I am not consistent enough.',
+          'I spent a long time believing this too. It took a humiliating amount of time to notice I was being consistent at the wrong thing.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Consistency Actually Is and Is Not',
+        paragraphs: [
+          'Consistency is a word that sounds like it names a virtue when it is usually just naming a surface behavior.',
+          'The surface behavior is: the same action, repeated across days. Weighing every morning. Logging every meal. Running the same training split. Having the same breakfast.',
+          'That is not consistency in the useful sense.',
+          'Useful consistency is: the load-bearing behavior for your current stage, repeated until the stage changes.',
+          'The word "load-bearing" is doing most of the work in that sentence. Your program at month one has different load-bearing behaviors than your program at month six. The actions that stopped the weight gain in the first month are almost never the actions that move you through a stalled month five.',
+          'The trap is that month-one consistency is satisfying to run. You have a checklist. You can grade yourself. You feel like a person with discipline. So you keep running it, even after it has stopped being the thing actually producing the change.',
+          'That is being consistent at the wrong thing.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'Why the Wrong Thing Feels Like the Right Thing',
+        paragraphs: [
+          'The wrong thing feels right for three reasons, and none of them are stupid.',
+          'The first reason is that it worked recently. You remember the month it worked. You remember the weigh-in that confirmed it. The body\'s memory of what worked is short; the head\'s memory is long. Your head is loyal to the version of the program that produced visible results. Your body has already moved past that version.',
+          'The second reason is that it is measurable. Weighing every day, logging every meal, hitting every training session — these produce visible evidence of effort. You can look at the log and see that you did the work. The problem is that the log is a record of your effort, not a record of the body\'s response. The two drift apart during a plateau. You keep logging. The body keeps not responding. The gap between the two is the plateau.',
+          'The third reason is that switching surfaces feels like cheating. If you have been weighing every morning, taking a measuring tape to your waist feels like moving the goalposts. If you have been logging calories, shifting attention to protein feels like giving up on the thing that was working. If you have been running the same cardio, switching to lifting feels like abandoning the program. None of those are giving up. All of them are alignment moves. But they read as retreat to a head that has been trained to value the previous surface.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Consistency at the Wrong Thing Looks Like',
+        paragraphs: [
+          'It usually looks exactly the same as consistency at the right thing, for about three to six weeks.',
+          'Then it diverges.',
+          'Consistency is not the same thing as alignment. You can be perfectly consistent at tracking a body that stopped responding to tracking alone. You can be perfectly consistent at a training volume that stopped producing a training response. You can be perfectly consistent at a calorie target that no longer matches your weight, your sleep, or your stress.',
+          'The signature of it, in my own program and in every plateau I have watched someone else run into, is this: the effort feels heavier but produces less. You are working the same hours. You are following the same rules. But the rules have stopped being the thing that converts work into change.',
+          'The specific forms it takes:',
+          'You keep weighing daily when the useful signal has moved to a two-week trend. The daily number is now noise around a body that is asking to be read in longer windows. The number punishes you for honesty (eating normally). You cut harder to reward it. The cut eats the rest of your program.',
+          'You keep running the same training split when the useful signal has moved to recovery. The lifts are no longer moving. Your sleep is no longer moving them either. You add a fourth cardio session because that was the move at month one. Month one, you had a ceiling of capacity. Month five, the ceiling is a floor.',
+          'You keep eating the same meals when the useful signal has moved to volume or protein. The calorie target is being hit; the satiety is not. You feel like you are restricting despite eating "enough." You are. The food stopped being the food the body is asking for about a month ago.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'What Alignment Looks Like Instead',
+        paragraphs: [
+          'Alignment is not more work. It is asking a different question.',
+          'The month-one question was: am I doing the thing?',
+          'The month-five question is: is the thing I am doing still what the body is responding to?',
+          'Those are different questions. They look similar on paper. They produce different programs in practice.',
+          'The month-five question forces you to move the read surface. If the scale has gone quiet, the tape measure becomes the read. If the tape measure has gone quiet, the clothes become the read. If the clothes have gone quiet, the photos. If all four have gone quiet for three consecutive weeks, the input needs to change — not because you have failed, but because the body has moved past the input.',
+          'The month-five question also forces you to let go of surfaces that were carrying you but are now carrying nothing. You do not have to weigh every day forever. You do not have to log every meal forever. At some point, the log has taught you what it was going to teach you. You stop running the log because it was producing the change, and start running it because it was producing a feeling of running a program. Those are different jobs.',
+          'I stopped daily weighing at month seven of my own cut. I still weigh. Once a week, same time, same conditions. That was an alignment move. It felt like giving up for about two weeks. By week three, the new surface was doing the thing the old surface had stopped doing — giving me a useful weekly read instead of a daily emotional event.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Soft Part Nobody Names',
+        paragraphs: [
+          'The thing most plateau advice gets wrong is treating the plateau as a body problem and prescribing more of the consistency that stopped working.',
+          'Plateaus are almost always a reading problem first. The body is usually still moving. The surface you were reading it on has stopped being the surface that shows the movement. Changing the surface often reveals that the body was fine all along — it was your map that had gone stale.',
+          'Occasionally the body has genuinely stopped. When that is true, the answer is still not more consistency at the old input. It is a small change to the input itself — a modest shift in the calorie target, a different training stimulus, a week of better sleep — delivered with the same calm the rest of the program has.',
+          'Either way, more of the same is usually the wrong answer.',
+        ],
+      },
+      {
+        type: 'paragraphs',
+        title: 'The Line Worth Keeping',
+        paragraphs: [
+          'Consistency is not a virtue. It is a tool that only works when pointed at the right thing.',
+          'If the input has stopped producing the output, you are not failing by noticing. You are doing the part of the program that separates people who reach the goal from people who just run the spreadsheet.',
+          'The body moves on from what was working about once every few months. The program has to move with it.',
+        ],
+      },
+    ],
+  },
+
 ];
 
 export function getAllBlogPosts() {
@@ -6906,7 +10208,210 @@ export function getBlogPostBySlug(slug: string) {
 }
 
 export function getRelatedBlogPosts(slug: string, limit = 3) {
-  return getAllBlogPosts()
-    .filter((post) => post.slug !== slug)
-    .slice(0, limit);
+  // Prefer same-cluster posts so internal linking reinforces topical
+  // authority; fall back to any post when the cluster pool is too small.
+  const current = posts.find((p) => p.slug === slug);
+  if (!current) {
+    return getAllBlogPosts()
+      .filter((post) => post.slug !== slug)
+      .slice(0, limit);
+  }
+  const sameCluster = getAllBlogPosts().filter(
+    (p) => p.slug !== slug && p.cluster && p.cluster === current.cluster,
+  );
+  if (sameCluster.length >= limit) {
+    return sameCluster.slice(0, limit);
+  }
+  const otherCluster = getAllBlogPosts().filter(
+    (p) => p.slug !== slug && (!p.cluster || p.cluster !== current.cluster),
+  );
+  return [...sameCluster, ...otherCluster].slice(0, limit);
+}
+
+// ----- Topical cluster helpers -----
+
+/**
+ * Canonical cluster metadata — pillar pages at `/blog/topic/[cluster]` use
+ * this to render their title/description/hero. Each cluster also has a
+ * primary seed keyword that pillar pages target.
+ */
+export interface ClusterMeta {
+  slug: string;
+  title: string;
+  description: string;
+  seoTitle: string;
+  metaDescription: string;
+  primaryKeyword: string;
+  secondaryKeywords: string[];
+}
+
+export const CLUSTERS: Record<string, ClusterMeta> = {
+  scale: {
+    slug: 'scale',
+    title: 'The Scale: Everything That Goes Up and Down',
+    description:
+      'The honest reader on what the scale actually measures — water weight, sodium, fluctuation, daily-vs-weekly reading, and how to stop letting a single weigh-in run your whole week.',
+    seoTitle: 'Weight Scale Guide: How to Read It Without Panic',
+    metaDescription:
+      'Daily weight can fluctuate up to 3 kg from water alone. Here is how to read the scale during a diet — what spikes mean, what plateaus mean, and what to ignore.',
+    primaryKeyword: 'how to read a scale for weight loss',
+    secondaryKeywords: [
+      'scale weight fluctuation',
+      'daily weighing diet',
+      'morning weight vs evening',
+      'scale not moving',
+    ],
+  },
+  mirror: {
+    slug: 'mirror',
+    title: 'The Mirror During Weight Loss',
+    description:
+      'The mirror is the worst tool for measuring body change in real time. Here is why progress often looks invisible, why photos can lie too, and what to track instead.',
+    seoTitle: 'Mirror vs Weight Loss: Why It Lies (and What to Use)',
+    metaDescription:
+      'Seeing your body every day hides the actual change. Here is why the mirror lies during weight loss — and the honest ways to track body progress instead.',
+    primaryKeyword: 'why cant i see weight loss in the mirror',
+    secondaryKeywords: [
+      'mirror not showing progress',
+      'progress photos vs mirror',
+      'body dysmorphia weight loss',
+      'other people see weight loss first',
+    ],
+  },
+  appetite: {
+    slug: 'appetite',
+    title: 'Hunger and Appetite on a Diet',
+    description:
+      'Hunger gets louder before it gets quieter. Here is the full reader on appetite signals during a cut, maintenance, and training — and how to tell real hunger from noise.',
+    seoTitle: 'Hunger on a Diet: How to Read Your Appetite Correctly',
+    metaDescription:
+      'Dieting makes hunger complicated. Here is how to tell real hunger from deprivation cravings, why appetite spikes at night, and what training volume has to do with it.',
+    primaryKeyword: 'how to manage hunger on a diet',
+    secondaryKeywords: [
+      'hunger vs craving',
+      'night hunger dieting',
+      'appetite during maintenance',
+      'hungry or bored',
+    ],
+  },
+  binge: {
+    slug: 'binge',
+    title: 'Binges, Cheat Days, and Diet Slips',
+    description:
+      'The meal is not the problem. The morning after is. Here is the full reader on recovering from a binge, reading cheat-day rebound patterns, and stopping one bad meal becoming a bad week.',
+    seoTitle: 'What to Do After a Binge (Before You Spiral)',
+    metaDescription:
+      'Most of the scale spike after a binge is water. Here is what to actually do after a binge or cheat day — and how to stop one bad meal from becoming a bad week.',
+    primaryKeyword: 'what to do after a binge on a diet',
+    secondaryKeywords: [
+      'binge recovery diet',
+      'cheat day rebound',
+      'one bad meal diet',
+      'diet slip recovery',
+    ],
+  },
+  maintenance: {
+    slug: 'maintenance',
+    title: 'Maintenance After Weight Loss',
+    description:
+      'The diet is a project with a finish line. Maintenance is not. Here is the full reader on the first month, set point, appetite return, and why the system has to fade for the body to hold.',
+    seoTitle: 'Maintenance After Weight Loss: The Honest Guide',
+    metaDescription:
+      'Maintenance is not the end — it is a different phase with different rules. Here is the full reader on keeping weight off: set point, hunger return, and habits that hold.',
+    primaryKeyword: 'how to maintain weight loss long term',
+    secondaryKeywords: [
+      'first month of maintenance',
+      'weight loss set point',
+      'appetite during maintenance',
+      'weight regain prevention',
+    ],
+  },
+  plateau: {
+    slug: 'plateau',
+    title: 'Weight Loss Plateaus and Consistency',
+    description:
+      'Not every slow week is a plateau. Here is the full reader on what counts as a real plateau, why middle-stage progress slows, and how the quiet weeks do the actual work.',
+    seoTitle: 'Weight Loss Plateaus: What Is Real and What Isn\'t',
+    metaDescription:
+      'A slower scale is not always a plateau. Here is the honest test for a real stall — tracking errors, creep, adaptation — and how to read the quiet middle of a diet.',
+    primaryKeyword: 'what counts as a weight loss plateau',
+    secondaryKeywords: [
+      'weight loss plateau test',
+      'middle of a diet',
+      'slowed down weight loss',
+      'three month plateau',
+    ],
+  },
+  exercise: {
+    slug: 'exercise',
+    title: 'Training While Dieting',
+    description:
+      'Adding cardio, losing sleep, lifting weaker, feeling harder to recover — the full reader on what training really does during a cut and why "more exercise" usually is not the fix.',
+    seoTitle: 'How to Train While Dieting (Without Breaking Both)',
+    metaDescription:
+      'Training in a calorie deficit is harder. Here is how to manage cardio, lifting, sleep, and recovery during a cut — and why "just do more" often backfires.',
+    primaryKeyword: 'how to train while dieting',
+    secondaryKeywords: [
+      'cardio while dieting',
+      'workout feels harder on diet',
+      'sleep and weight loss',
+      'strength before shape',
+    ],
+  },
+  'founder-story': {
+    slug: 'founder-story',
+    title: 'The Founder Story: 50 kg Over Five Years',
+    description:
+      'The progress updates, the middle that nobody talks about, and the through-line from 128 kg to 78 kg. Everything I wish someone had told me before starting.',
+    seoTitle: 'How I Lost 50 kg Over 5 Years (Founder Story)',
+    metaDescription:
+      'I lost 50 kg over five years. Here is the founder story behind the writing — the middle, the messy progress updates, and what maintenance actually looked like.',
+    primaryKeyword: 'how i lost 50 kg transformation story',
+    secondaryKeywords: [
+      'slow weight loss journey',
+      'weight loss progress updates',
+      'messy middle transformation',
+      'founder weight loss story',
+    ],
+  },
+  'food-structure': {
+    slug: 'food-structure',
+    title: 'Food Structure: Prep, Protein, Events',
+    description:
+      'Meal prep, protein targets, social eating, tracking — the mechanical side of dieting. Here is the full reader on the food system, not the food feelings.',
+    seoTitle: 'Food Structure for Weight Loss: The Mechanics',
+    metaDescription:
+      'The food side of dieting: meal prep alternatives, protein targets for fat loss, how to eat at social events, and the tracking rules that actually work.',
+    primaryKeyword: 'meal planning for weight loss',
+    secondaryKeywords: [
+      'protein for fat loss',
+      'eating out on diet',
+      'meal prep weight loss',
+      'diet tracking honesty',
+    ],
+  },
+  'body-composition': {
+    slug: 'body-composition',
+    title: 'Body Composition vs Weight',
+    description:
+      'You can lose weight without getting leaner. The full reader on body recomposition, bloat vs fat, long-term obesity math, and why the scale alone always undercounts.',
+    seoTitle: 'Body Composition: Why Weight Is Not the Whole Story',
+    metaDescription:
+      'Scale weight is one signal. Body composition is the real one. Here is the reader on recomposition, bloat vs fat, and why people at the same weight look completely different.',
+    primaryKeyword: 'body composition vs weight',
+    secondaryKeywords: [
+      'body recomposition',
+      'bloat vs fat',
+      'same weight different body',
+      'getting leaner without losing weight',
+    ],
+  },
+};
+
+export function getBlogPostsByCluster(cluster: string) {
+  return getAllBlogPosts().filter((p) => p.cluster === cluster);
+}
+
+export function getAllClusters(): ClusterMeta[] {
+  return Object.values(CLUSTERS);
 }

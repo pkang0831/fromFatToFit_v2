@@ -4,19 +4,37 @@
 The Quiet Role Vegetables Play in Staying Full
 
 ## SEO Title
-The Quiet Role Vegetables Play in Staying Full
+Do Vegetables Help You Feel Full on a Diet?
 
 ## Subtitle / Description
 Protein gets all the attention. The food that quietly decides whether your diet feels tolerable is usually vegetables.
 
+## Meta Description
+Do vegetables help you feel full on a diet? They do the quiet job protein gets credit for. Volume and fiber decide whether your week holds.
+
+## Primary Keyword
+do vegetables help you feel full on a diet
+
+## Secondary Keywords
+- vegetables for satiety weight loss
+- high volume foods fullness diet
+- fiber keeps you full dieting
+- vegetables low calorie density
+- eat more vegetables lose weight
+
 ## Medium Tags
-- Food Structure
-- Vegetables
-- Satiety
 - Weight Loss
+- Nutrition
+- Dieting
+- Intuitive Eating
+- Hunger
 
 ## Canonical URL
-`https://devenira.com/blog/the-quiet-role-vegetables-play-in-staying-full`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,13 +50,17 @@ Protein gets all the attention. The food that quietly decides whether your diet 
 ```md
 # The Quiet Role Vegetables Play in Staying Full
 
-Protein gets all the press. Fats get the moral arguments. Carbs get the fear. Vegetables get a vague eat-more-of-them and then nothing. The food that quietly decides whether your diet feels tolerable is usually the vegetables.
+Do vegetables help you feel full on a diet? Quietly, yes — they're the food that decides whether the day feels survivable. Protein gets all the press. Fats get the moral arguments. Carbs get the fear. Vegetables get a vague eat-more-of-them and then nothing. The food that quietly decides whether your diet feels tolerable is usually the vegetables.
 
 Protein gets all the press.
 
 Fats get the moral arguments. Carbs get the fear. Vegetables get a vague "eat more of them" and then nothing.
 
 The food that quietly decides whether your diet feels tolerable is usually the vegetables.
+
+> **Do vegetables help you feel full on a diet?**
+>
+> Yes, more than people give them credit for. They add volume without much energy, slow digestion through fiber, increase chewing time, and quietly displace denser calories on the plate. A meal with a real vegetable component holds appetite for hours. Most diets that fail in the evening were under-vegged at lunch.
 
 ## The Myth
 
@@ -94,4 +116,29 @@ The vegetables are quietly making the rest of the diet survivable.
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Why does protein-only dieting often stall?
+
+Because high-protein, low-volume meals leave the stomach feeling unused even when calories are technically met. The afternoon starts looking for snacks. The evening starts looking for relief. Adding a real vegetable component to the same meal usually fixes that without changing protein or calories.
+
+### How much volume actually helps?
+
+Disproportionate volume, not a side salad. A real vegetable component on most plates — large bowl, full half of the plate, real cooked portion — does the work. A tablespoon of spinach does not. Fresh, frozen, roasted, or raw all count. Whatever form you will actually eat.
+
+### Are frozen vegetables as good as fresh?
+
+For dieting purposes, yes. Frozen vegetables go from freezer to plate in four minutes, do not spoil, and count for the same fiber and volume work. Most weeknight diet failures are vegetable-skipping because fresh produce decayed in the fridge before it could be cooked.
+
+### Which vegetables work best for satiety?
+
+The exact ones matter less than people think. Anything green, leafy, or fibrous adds the volume and fiber that flatten the appetite curve. Broccoli, cabbage, spinach, peppers, mushrooms, and green beans all work. The vegetable you will actually cook three times this week is the right pick.
+
+### What does a good plate composition look like?
+
+A protein source, a starch or carb appropriate to the calorie target, and a disproportionately large vegetable component. Disproportionate is the part most people skip. Not a side salad. A real cooked portion, present at most meals. Over a week, that structure outperforms any single rule.
+
 ```

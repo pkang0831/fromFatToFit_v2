@@ -4,20 +4,37 @@
 Why Adding Cardio to a Cut Can Backfire Faster Than You Think
 
 ## SEO Title
-Why Adding Cardio to a Cut Can Backfire Faster Than You Think
+Why Adding Cardio to a Cut Can Backfire
 
 ## Subtitle / Description
-Cardio looks like the obvious add when fat loss slows. It often makes things worse, not better. The reasons are physiological, behavioral, and almost never about the cardio itself.
+Why adding cardio to a cut can backfire is rarely about the cardio. It's usually about what the cardio costs everywhere else. Cardio looks like the obvious add when fat loss slows. It often makes things worse, not better. The reasons are physiological, behavioral, and almost never about the cardio itself.
+
+## Meta Description
+Why adding cardio to a cut can backfire: the body adapts to expenditure faster than the math expects. A stalled cut is rarely a movement deficit.
+
+## Primary Keyword
+why adding cardio to a cut can backfire
+
+## Secondary Keywords
+- too much cardio on a cut
+- cardio stalls weight loss
+- cardio and calorie deficit problems
+- when cardio backfires weight loss
+- cardio cortisol water retention
 
 ## Medium Tags
 - Weight Loss
 - Cardio
-- Exercise
-- Plateau
-- Health
+- Exercise Science
+- Dieting
+- Overtraining
 
 ## Canonical URL
-`https://devenira.com/blog/why-adding-cardio-to-a-cut-can-backfire-faster-than-you-think`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -42,6 +59,10 @@ Three sessions a week becomes four. Four becomes six. Forty-minute walks become 
 The math is not wrong. The math is also not the whole picture.
 
 Most cuts that add cardio aggressively in response to a stall do not start losing faster. Many of them stall harder, then break the wrong way. The reasons are partly physiological, partly behavioral, and almost never about the cardio itself being a bad tool.
+
+> **Why does adding cardio to a cut often backfire?**
+>
+> Because the body in a deficit answers exercise much louder than a fed body does. NEAT drops. Appetite rises. Fatigue makes the rest of the day sedentary. The 300 calories burned in the session often net 80 by bedtime. A stalled cut is rarely a movement deficit. Cardio is rarely the cheapest tool to fix it.
 
 ## What cardio is actually doing to a cut
 
@@ -152,4 +173,29 @@ Run the cheaper interventions first. Save cardio for when it is filling a real h
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Why does the body compensate harder during a deficit?
+
+Because it has less spare energy. In maintenance, the body has slack and meets a 300-calorie cardio session with mild compensation. In a deficit, it answers louder — NEAT drops noticeably, appetite climbs, dinner gets bigger, the next workout feels heavier. The session math overestimates the result.
+
+### What should I try before adding cardio to break a stall?
+
+Almost anything else. Run an honest tracking week. Take a 7 to 14 day diet break at maintenance. Add daily walking instead of structured cardio. Adjust the deficit by 100 to 200 calories. Hold the line for two more weeks. All of those are cheaper than added cardio.
+
+### When does cardio actually help a cut?
+
+Three cases. When daily activity is genuinely low and there is no other way to raise it. When the cardio is low-intensity, low-duration, and not adjacent to lifting days. When you would do it anyway because you enjoy it. Outside those, cardio additions tend to underperform.
+
+### How is a daily walk different from a cardio session?
+
+A 30 minute walk in flat shoes does not trigger the same fatigue compensation downstream. Steps spread across the day cost almost nothing in behavioral interest. A 60 minute run leaves the rest of the day sedentary. Same calorie math on paper. Different cost in real life.
+
+### How do I know cardio is breaking the cut, not just failing it?
+
+When recovery debt is building, sleep is degrading, lifts have stopped progressing, and the mood around training has gone brittle. Around week three of aggressive added cardio, the cut becomes incompatible with the rest of life. That is the threshold for stepping back to maintenance for a week.
+
 ```

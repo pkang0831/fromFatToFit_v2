@@ -4,20 +4,37 @@
 Why Cutting Sodium Too Hard Can Backfire
 
 ## SEO Title
-Why Cutting Sodium Too Hard Can Backfire
+Does Cutting Sodium Cause a Water-Retention Rebound?
 
 ## Subtitle / Description
-There is a move every dieter discovers within the first month: cut sodium hard, watch the scale drop. It feels like discipline. It is mostly water moving around, and it teaches you to chase the wrong signal.
+Does cutting sodium cause water retention rebound? Often — and the rebound usually erases the drop within a week. There is a move every dieter discovers within the first month: cut sodium hard, watch the scale drop. It feels like discipline. It is mostly water moving around, and it teaches you to chase the wrong signal.
+
+## Meta Description
+Does cutting sodium cause water retention rebound? A 2 kg drop from low salt feels like discipline. It's mostly water — and it teaches the wrong signal.
+
+## Primary Keyword
+does cutting sodium cause water retention rebound
+
+## Secondary Keywords
+- cutting salt backfires weight loss
+- low sodium water retention
+- sodium cut water weight gain
+- cutting salt water retention
+- how low can sodium go diet
 
 ## Medium Tags
 - Weight Loss
-- Scale
-- Sodium
 - Water Weight
-- Health
+- Nutrition
+- Dieting
+- Scale Anxiety
 
 ## Canonical URL
-`https://devenira.com/blog/why-cutting-sodium-too-hard-can-backfire`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -44,6 +61,10 @@ It feels like discipline. It feels like a system that finally responded to you.
 It is mostly water moving around. The body did not lose 1.5 kg of fat in two days. It dropped 1.5 kg of held water that came back as soon as your sodium intake returned to normal.
 
 That round trip is not a problem on its own. The problem is that it teaches you to treat water manipulation as fat loss, and then to chase it.
+
+> **Does cutting sodium cause a water-retention rebound?**
+>
+> Yes, when you return to normal sodium intake. Cutting hard for two days drops 1 to 2 kg of water that comes back inside 48 to 72 hours of normal eating. The number rewarded the move. The body did not lose fat. Aggressive sodium restriction flatters bad systems and makes the rest of the diet brittle.
 
 ## What the fast drop is actually measuring
 
@@ -145,4 +166,29 @@ The water comes back. Your relationship with food does not — at least not for 
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What is the fast scale drop actually measuring?
+
+Extracellular water. Sodium controls extracellular water balance, and the body responds to intake changes within 24 to 72 hours. Cutting from 3,000 mg to 1,500 mg per day for two days drops 1 to 2 kg of held water in most people. None of that is fat.
+
+### Why does the system get harder to hold under low sodium?
+
+Food gets less satisfying. Cravings rise. Sleep can fragment from extra bathroom trips. Performance drops in hard sessions. None of those costs show up on the scale. They show up in the rest of the day, and the diet that started feeling more disciplined ends up more brittle.
+
+### Why do people keep doing it anyway?
+
+Because the feedback is fast, the number is real, and the alternative is slow. Most diet interventions take weeks to show. Sodium manipulation shows in 48 hours. The brain rewards fast feedback regardless of what the feedback means. The slow path is unrewarding day to day.
+
+### What does an honest sodium policy look like?
+
+Eat in your normal range most days, somewhere between 2,300 and 4,000 mg depending on activity and climate. Do not chase sodium drops as a strategy. Use sodium awareness to interpret fluctuation, not to control it. The scale is for trend reading. Sodium is for taste.
+
+### When is sodium control actually appropriate?
+
+Three legitimate cases. A clinician-prescribed target for cardiovascular conditions. Bodybuilding stage prep or weight-class athletes running a planned protocol with a defined endpoint. Acute medical edema. Outside those, aggressive restriction flatters the scale and degrades the rest of the diet for almost no real benefit.
+
 ```

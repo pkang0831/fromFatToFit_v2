@@ -4,20 +4,37 @@
 Why Your Strength Increases Before Your Shape Changes
 
 ## SEO Title
-Why Your Strength Increases Before Your Shape Changes
+Why Does Strength Increase Before Muscle Size?
 
 ## Subtitle / Description
 Your strength improves before your shape does. The first six weeks of lifting are mostly neural. This is what that looks like from the inside.
 
+## Meta Description
+Why does strength increase before muscle size? The first 6 weeks of lifting are mostly neural, not visual. Numbers move first. Shape moves second.
+
+## Primary Keyword
+why does strength increase before muscle size
+
+## Secondary Keywords
+- neural adaptation beginner lifting
+- strength gains without visible muscle
+- first 6 weeks lifting results
+- newbie gains neural adaptation
+- strength vs hypertrophy timeline
+
 ## Medium Tags
 - Weight Loss
 - Strength Training
-- Neural Adaptation
-- Beginner Lifting
+- Fitness
+- Exercise Science
 - Body Composition
 
 ## Canonical URL
-`https://devenira.com/blog/why-your-strength-increases-before-your-shape-changes`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,13 +50,17 @@ Your strength improves before your shape does. The first six weeks of lifting ar
 ```md
 # Why Your Strength Increases Before Your Shape Changes
 
-I added 15 kg to my deadlift in my first six weeks of training. I did not look meaningfully different. If you were showing up in a mirror expecting week-by-week change, you would think the gym was broken.
+Why does strength increase before muscle size? The nervous system gets organized weeks before the body looks different. I added 15 kg to my deadlift in my first six weeks of training. I did not look meaningfully different. If you were showing up in a mirror expecting week-by-week change, you would think the gym was broken.
 
 I added 15 kg to my deadlift in my first six weeks of training.
 
 I did not look meaningfully different.
 
 If you were showing up in a mirror expecting week-by-week change, you would think the gym was broken.
+
+> **Why does strength increase before muscle size?**
+>
+> Because the first six to eight weeks of lifting are mostly neural, not visual. The nervous system learns to recruit muscle you already have. Coordination improves. Stabilizers wake up. The motor pattern cleans up. The numbers move first because the body upgrades the existing tissue before deciding to commit resources to growing new tissue.
 
 ## What The First Six Weeks Actually Are
 
@@ -124,4 +145,29 @@ If you stay long enough, both move.
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### When does visible muscle growth actually start?
+
+For most recreational lifters, somewhere between week 12 and week 16, sometimes longer. Strength changes show up in 6 to 8 weeks. Visible shape change runs on a slower clock. Most people quit at week 5 to 9, right before the visual change starts.
+
+### Why doesn't the body just build muscle right away?
+
+Because muscle is expensive to build. The body tries the existing tissue first. If it can do the job through better recruitment, it quietly upgrades coordination and stops there. Only when the workouts persist and the stimulus accumulates does the body start adding new tissue as a second-stage response.
+
+### How should I judge the program in the early weeks?
+
+Not on the mirror. Judge it on three things. Are working weights going up week to week, gradually? Are reps feeling more controlled? Is form holding on the last set? If yes to those, the program is working. The body will follow. The mirror is behind.
+
+### Why do beginners gain strength so fast?
+
+Because they have a lot of unrecruited muscle to wake up. The first six weeks of any program produce the steepest neural learning curve a lifter ever has. Lifts climb fast not because tissue grew, but because the body finally started using what was already there.
+
+### Does this mean light weights are pointless early on?
+
+No, but consistency matters more than intensity in the first weeks. Your job is to show up three or four times a week and let the nervous system do its first pass. The visual program runs on the foundation that pass builds. Quit early, never get to it.
+
 ```

@@ -4,19 +4,37 @@
 Do People Who Have Been Obese for Years Lose Weight More Slowly?
 
 ## SEO Title
-Do People Who Have Been Obese for Years Lose Weight More Slowly?
+Do Obese People Lose Weight Slower Than Others?
 
 ## Subtitle / Description
-If weight came on slowly over years, more of it is usually true fat rather than temporary water. That can make the process feel heavier, but it does not mean your body is uniquely cursed.
+Do obese people lose weight slower than others? On the scale, sometimes the opposite — but the fat under it tells a longer story. If weight came on slowly over years, more of it is usually true fat rather than temporary water. That can make the process feel heavier, but it does not mean your body is uniquely cursed.
+
+## Meta Description
+Do obese people lose weight slower than others? Not slower per pound — but more of it is true fat, not water. Here's why the first month feels heavier.
+
+## Primary Keyword
+do obese people lose weight slower than others
+
+## Secondary Keywords
+- harder to lose weight after obesity
+- long-term obesity weight loss rate
+- slower fat loss after being obese
+- how fast can obese people lose weight
+- obesity duration weight loss speed
 
 ## Medium Tags
-- Long-Term Obesity
 - Weight Loss
-- Habits
+- Dieting
+- Health
 - Mindset
+- Fitness
 
 ## Canonical URL
-`https://devenira.com/blog/do-people-who-have-been-obese-for-years-lose-weight-more-slowly`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -41,6 +59,10 @@ Underneath, it is often a fairness question.
 If I have been overweight for a long time, am I just stuck with a worse deal? Did I wait too long? Is this going to take forever because I was this size for years?
 
 That is what people really want to know.
+
+> **Do obese people lose weight slower than others?**
+>
+> Not slower per pound, often faster early. But more of the loss is true fat instead of water, so it takes longer to feel and see. Weight gained slowly over years is mostly fat, and fat moves slower than water. Long-term obesity is also a long-term habit pattern. Both take time to change.
 
 ## Quick Gain and Quick Loss Are Usually Talking About Water
 
@@ -101,4 +123,29 @@ This is harder, yes. But harder is not the same as hopeless.
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### Why does 'gained quickly, lost quickly' not apply here?
+
+That phrase is usually about water. Holiday eating, travel, and a few salty days can move 3 to 5 kg of water that comes off fast. Fat built up over years is a different story. The body did not store it overnight, and it does not leave overnight.
+
+### Is the metabolism actually broken?
+
+Usually no. The fat itself is not stubborn because it has been there longer. The pattern around it is. Years of certain meals, routines, and stress responses became normal, and that is what feels hardest to change. The body is not signing secret contracts against you.
+
+### Will I always crave the foods I crave now?
+
+Probably not. Most cravings shift as the body and routine change. The thoughts that feel permanent today are usually thoughts produced by the body and lifestyle you have right now. When the body changes, the mind tends to follow, even if it lags by months.
+
+### What's a realistic rate of fat loss after long-term obesity?
+
+Roughly 0.5 to 1 percent of body weight per week is sustainable for most people. The first month often shows more because of water. Then the rate steadies into a quieter, less photogenic version. The total trajectory matters more than any single week's number.
+
+### How should I track if the long game is mine?
+
+Use weekly check-ins, not daily verdicts. Photos, fit, waist measurements, and a rolling weight average over three to four weeks. The body is moving slower than emotion is. Daily readings make panic more persuasive than progress, which is the worst combination over years.
+
 ```

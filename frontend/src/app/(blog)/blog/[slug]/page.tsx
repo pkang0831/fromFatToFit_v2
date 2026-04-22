@@ -6,7 +6,15 @@ import { ArrowRight } from 'lucide-react';
 
 import { BlogArticleContent } from '@/components/blog/BlogArticleContent';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
-import { getAllBlogPosts, getBlogPostBySlug, getRelatedBlogPosts } from '@/content/blog/posts';
+import { BlogShareButtons } from '@/components/blog/BlogShareButtons';
+import { BlogStructuredData } from '@/components/blog/BlogStructuredData';
+import { ReadingProgressBar } from '@/components/blog/ReadingProgressBar';
+import {
+  CLUSTERS,
+  getAllBlogPosts,
+  getBlogPostBySlug,
+  getRelatedBlogPosts,
+} from '@/content/blog/posts';
 
 interface BlogPostPageProps {
   params: {
@@ -29,11 +37,23 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     };
   }
 
+  // SEO title and meta description are distinct from editorial title/description.
+  // Editorial title/description is kept for OG + Twitter (social feed voice),
+  // while search-facing surfaces use seoTitle / metaDescription when present.
+  // See marketing/fitness_blogging/blog_strategy/seo_optimization_rules.md.
+  //
+  // Canonical strategy: when a Medium URL is set, canonical points there so
+  // Google concentrates ranking signals on Medium (DR ~95) rather than this
+  // low-authority domain. Self-canonical is used as the fallback for drafts
+  // and for pillar/cluster pages that never have a Medium sibling.
+  const canonicalUrl = post.mediumUrl ?? `https://devenira.com/blog/${post.slug}`;
   return {
-    title: post.title,
-    description: post.description,
+    title: post.seoTitle ?? post.title,
+    description: post.metaDescription ?? post.description,
+    keywords: post.keywords,
+    authors: [{ name: 'pkang', url: 'https://devenira.com/authors/pkang' }],
     alternates: {
-      canonical: `/blog/${post.slug}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
       title: post.title,
@@ -41,13 +61,16 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       type: 'article',
       url: `https://devenira.com/blog/${post.slug}`,
       publishedTime: post.date,
+      modifiedTime: post.lastModified ?? post.date,
       images: [{ url: `https://devenira.com${post.heroImage}` }],
+      authors: ['pkang'],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.socialDescription,
       images: [`https://devenira.com${post.heroImage}`],
+      creator: '@pkang',
     },
   };
 }
@@ -60,9 +83,14 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   const relatedPosts = getRelatedBlogPosts(post.slug, 2);
+  const clusterMeta = post.cluster ? CLUSTERS[post.cluster] : undefined;
+
+  const shareUrl = post.mediumUrl ?? `https://devenira.com/blog/${post.slug}`;
 
   return (
     <div className="bg-[#0a0a0f] text-white">
+      <ReadingProgressBar />
+      <BlogStructuredData post={post} />
       <section className="px-6 py-16 md:py-20">
         <article className="mx-auto max-w-4xl">
           <div className="space-y-8">
@@ -71,6 +99,17 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 Blog
               </Link>
               <span className="h-1 w-1 rounded-full bg-white/20" />
+              {clusterMeta ? (
+                <>
+                  <Link
+                    href={`/blog/topic/${clusterMeta.slug}`}
+                    className="transition-colors hover:text-primary"
+                  >
+                    {clusterMeta.title}
+                  </Link>
+                  <span className="h-1 w-1 rounded-full bg-white/20" />
+                </>
+              ) : null}
               <span>{post.date}</span>
               <span className="h-1 w-1 rounded-full bg-white/20" />
               <span>{post.readingTime}</span>
@@ -114,6 +153,15 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               </div>
             </div>
 
+            <div className="rounded-[24px] border border-white/[0.08] bg-white/[0.02] px-6 py-5">
+              <BlogShareButtons
+                url={shareUrl}
+                title={post.title}
+                summary={post.socialDescription}
+                utmCampaign={post.slug}
+              />
+            </div>
+
             <div className="rounded-[32px] border border-primary/20 bg-primary/[0.08] px-6 py-8 md:px-8">
               <div className="mx-auto max-w-3xl space-y-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Next step</p>
@@ -133,10 +181,12 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
       </section>
 
       {relatedPosts.length > 0 ? (
-        <section className="px-6 pb-24">
+        <section className="px-6 pb-16">
           <div className="mx-auto max-w-6xl space-y-8">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Keep reading</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+                {clusterMeta ? `More in ${clusterMeta.title}` : 'Keep reading'}
+              </p>
               <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
                 More articles
               </h2>
@@ -146,6 +196,17 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 <BlogPostCard key={relatedPost.slug} post={relatedPost} />
               ))}
             </div>
+            {clusterMeta ? (
+              <div className="pt-4">
+                <Link
+                  href={`/blog/topic/${clusterMeta.slug}`}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  See all articles on {clusterMeta.title}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}

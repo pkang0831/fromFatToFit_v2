@@ -4,20 +4,37 @@
 Progress Photos Can Lie as Much as the Mirror Does
 
 ## SEO Title
-Progress Photos Can Lie as Much as the Mirror Does
+Why Progress Photos Don't Show Progress (and the Fix)
 
 ## Subtitle / Description
-People who would never trust a single weigh-in will completely trust a single photo. They should not. Lighting, posture, and last night's dinner can fake an entire month of progress in either direction.
+Why progress photos don't show progress half the time has nothing to do with the body. It's lighting, posture, and last night's dinner. People who would never trust a single weigh-in will completely trust a single photo. They should not. Lighting, posture, and last night's dinner can fake an entire month of progress in either direction.
+
+## Meta Description
+Why progress photos don't show progress, even when the body changed. Lighting, posture, and last night's dinner can fake a month either way.
+
+## Primary Keyword
+why progress photos don't show progress
+
+## Secondary Keywords
+- progress photo lighting fat loss
+- how to take accurate progress photos
+- progress photos not showing change
+- progress photo angle matters
+- progress photos vs mirror
 
 ## Medium Tags
 - Weight Loss
 - Body Image
 - Progress Photos
-- Self Awareness
-- Health
+- Self Image
+- Fitness
 
 ## Canonical URL
-`https://devenira.com/blog/progress-photos-can-lie-as-much-as-the-mirror-does`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -42,6 +59,10 @@ The scale gets warned about every week. "It is just water. It is just sodium. It
 The photo gets treated like court evidence.
 
 That trust is misplaced. Photos lie at least as much as the mirror does. They just lie more convincingly because they look final.
+
+> **Why don't my progress photos show progress?**
+>
+> Because the photo changed, not the body. Lighting, posture, time of day, last night's food, sleep, and camera angle can each fake an entire month of progress in either direction. The same body in two photos can give two verdicts. Treat any single photo as a sample, not a sentence.
 
 ## What makes a photo look like a different body
 
@@ -136,4 +157,29 @@ The mirror lies fast. The photo lies slowly and looks more like proof while it d
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What makes the same body look different in two photos?
+
+Lighting direction, posture, time of day, last night's food, sleep quality, and camera height. Lifting the camera a few centimeters slims the torso. Standing braced removes 1 to 2 cm at the waist. None of those is fat loss. All of them are the photo, not the body.
+
+### Why is the photo lie more dangerous than the mirror lie?
+
+Because you can stare at a photo for weeks. You can save it to a folder. You can compare it to last month's photo and conclude, with what feels like proof, that nothing is happening. The mirror only ruins one morning. The photo can ruin the program.
+
+### What does an honest progress-photo setup look like?
+
+Same room. Same time of day, ideally morning, fasted. Same camera distance and angle, marked on the floor. Same light source. Same posture and stance. Most people skip this and then blame their body when nothing shows. The setup, not the body, was the problem.
+
+### How often should I compare progress photos?
+
+Four weeks minimum. Often eight. Body composition does not move fast enough for a one-week comparison to mean much. Most of what changes between weekly photos is water, glycogen, and posture, not fat or muscle. The photo is a quarterly proof, not a weekly check.
+
+### What do I do on a bad-photo day?
+
+Wait three days. Take the photo again under your standard conditions. The setback almost always disappears. Bad photo days are not bad body days. Panic-restricting on a bad photo day teaches your body that bad days get punished, which sets up a worse pattern than the puff itself.
+
 ```

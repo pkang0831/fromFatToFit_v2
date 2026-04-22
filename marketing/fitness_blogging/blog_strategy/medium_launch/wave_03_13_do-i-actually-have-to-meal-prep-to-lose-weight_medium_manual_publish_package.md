@@ -4,20 +4,37 @@
 Do I Actually Have to Meal Prep to Lose Weight?
 
 ## SEO Title
-Do I Actually Have to Meal Prep to Lose Weight?
+Do I Have to Meal Prep to Lose Weight? The Real Answer
 
 ## Subtitle / Description
-The honest answer is no. The more useful answer is that you have to solve the same underlying problem meal prep is solving — decision fatigue, macro reliability, friction. Sunday is one tool among several.
+Do I have to meal prep to lose weight? No — but you have to solve the problem meal prep is solving, with or without Sunday containers. The honest answer is no. The more useful answer is that you have to solve the same underlying problem meal prep is solving — decision fatigue, macro reliability, friction. Sunday is one tool among several.
+
+## Meta Description
+Do I have to meal prep to lose weight? Honest answer: no. But you have to solve the 3 problems meal prep solves. Here are the working alternatives.
+
+## Primary Keyword
+do I have to meal prep to lose weight
+
+## Secondary Keywords
+- lose weight without meal prep
+- alternatives to meal prepping
+- decision fatigue diet weight loss
+- is meal prep necessary for weight loss
+- meal prep vs intuitive eating
 
 ## Medium Tags
 - Weight Loss
 - Meal Prep
+- Dieting
+- Meal Planning
 - Habits
-- Food Structure
-- Health
 
 ## Canonical URL
-`https://devenira.com/blog/do-i-actually-have-to-meal-prep-to-lose-weight`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -40,6 +57,10 @@ The question I get most often about food on a cut is some version of "do I have 
 The honest answer is no, you do not have to. The more useful answer is that you have to solve the same underlying problem meal prep is solving, and meal prep is one of three or four ways to do that.
 
 This is a Q&A, partly because the question itself splits in many directions and partly because most of what people call "meal prep" is doing one of several distinct jobs at once.
+
+> **Do I have to meal prep to lose weight?**
+>
+> No, but you have to solve what meal prep solves: decision fatigue, macro reliability, and friction at 7pm on a Wednesday. Weeknight defaults, component prep, restaurant defaults, or repeated breakfasts can do the same job without a Sunday batch. The Sunday is not the program. The default is the program.
 
 ## Q: What is meal prep actually solving?
 
@@ -154,4 +175,29 @@ Build the default first. Add a Sunday only if the default genuinely needs the he
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What problem is meal prep actually solving?
+
+Three at once: removing the daily 'what do I eat' decision, hitting consistent calorie and protein targets, and reducing the friction of cooking when you are tired. Solve those three some other way and you do not need a Sunday batch. Skip them and no system holds.
+
+### What are alternatives to Sunday meal prep?
+
+Default weeknight meals you can cook on autopilot in 25 minutes. Component prep — just protein and vegetables, combined fresh. Two or three reliable restaurant orders. The same breakfast every day. Most people use a combination of two or three of these.
+
+### When does meal prep actually help most?
+
+Three cases: when weeknight cooking is genuinely impossible (long shifts, small kids, long commutes), when you happily eat the same lunch five days a week, or when you are early in the program and still building eyeball portion skills.
+
+### When does meal prep actively backfire?
+
+When the four-hour Sunday leaves you resentful before the week starts, when you throw out food in week three from boredom, or when the system depends so much on perfect Sundays that one missed Sunday wrecks the week. A program that brittle was always going to fail.
+
+### What should I cook on weeknights instead?
+
+A short list of three or four default meals you can make in 25 to 30 minutes — usually a one-pan combo of protein, frozen vegetables, a starch, and a sauce. Rotate the protein and sauce. Nine combinations from three of each. None of them require pre-cooking.
+
 ```

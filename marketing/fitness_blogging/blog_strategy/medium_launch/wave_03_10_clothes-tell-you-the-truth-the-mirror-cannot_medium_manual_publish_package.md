@@ -4,20 +4,37 @@
 Clothes Tell You the Truth the Mirror Cannot
 
 ## SEO Title
-Clothes Tell You the Truth the Mirror Cannot
+Clothes Fit Better but Scale Is the Same: What's Happening
 
 ## Subtitle / Description
-The mirror lies fast. The scale is noisy. The clothes do not negotiate. They either fit or they do not. There is no light, no posture, no time of day that changes the answer.
+Why do my clothes fit better but the scale is the same? Body composition shifted; total mass didn't — and the clothes don't negotiate. The mirror lies fast. The scale is noisy. The clothes do not negotiate. They either fit or they do not. There is no light, no posture, no time of day that changes the answer.
+
+## Meta Description
+Why my clothes fit better but the scale is the same: fit is the most honest tracker in the closet. Here's how to read it on the weeks the scale won't move.
+
+## Primary Keyword
+why my clothes fit better but scale is the same
+
+## Secondary Keywords
+- losing inches but not weight
+- clothes looser scale same
+- non scale victory weight loss
+- pants fitting better not losing weight
+- body recomposition scale same
 
 ## Medium Tags
 - Weight Loss
-- Body Image
 - Body Composition
-- Self Awareness
-- Tracking
+- Body Image
+- Progress Photos
+- Dieting
 
 ## Canonical URL
-`https://devenira.com/blog/clothes-tell-you-the-truth-the-mirror-cannot`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -42,6 +59,10 @@ The scale has too much noise.
 The clothes do not negotiate. They either fit or they do not. They either zip or they do not. The button either closes calmly or it does not. There is no light, no posture, no time of day that changes the answer.
 
 For most of the messy middle of my own program, the most honest record I had of what was happening to my body was a single pair of jeans I owned at the start.
+
+> **Why do my clothes fit better when the scale is the same?**
+>
+> Because the scale measures total mass and clothes measure shape. If you are training, you can lose fat and add small amounts of muscle at the same scale weight. The waist gets smaller, the shoulders or thighs get fuller, and the jeans tell the truth the scale is missing. The body moved. The scale missed it.
 
 ## What one pair of jeans taught me
 
@@ -140,4 +161,29 @@ The closet has been keeping a record the whole time. It just needs to be asked.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Can I lose inches without losing weight?
+
+Yes, regularly. Body recomposition during training produces fat loss and small muscle gain that cancel out on the scale but visibly change waist, hip, and thigh measurements. A flat scale week with looser clothes is a real-progress week, not a stalled one.
+
+### Are my clothes a more accurate tracker than the scale?
+
+For waist and shape, often yes. Clothes do not have moods, do not respond to sodium, and do not adapt to your body image the way the mirror does. A pair of jeans from a year ago is the same instrument today. The scale and mirror both drift.
+
+### How often should I check fit during a diet?
+
+Once every two weeks under similar conditions, ideally in the morning. Pick one snug item — not the goal item, the currently-snug one — and use it as a calibration tool. Weekly is too noisy. Monthly is too slow to catch the trend.
+
+### Why does the scale lie about composition change?
+
+Because it weighs everything at once. Two kilos of fat lost and one kilo of muscle gained shows up as one kilo down. Same body, very different shape. The scale was never built to separate the two. Photos, tape, and clothes have to do that job.
+
+### Should I keep weighing if my clothes are the only thing changing?
+
+Weigh weekly as a reference, but stop letting one number run management. If clothes loosen and the scale holds for several weeks, the program is working. Keep going. A flat scale during recomposition is the boring sign of real progress.
+
 ```

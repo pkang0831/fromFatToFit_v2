@@ -4,20 +4,37 @@
 The Week My Appetite Came Back During Maintenance
 
 ## SEO Title
-The Week My Appetite Came Back During Maintenance
+Why Appetite Returns During Maintenance After Weight Loss
 
 ## Subtitle / Description
-Five months into maintenance, my appetite came back. Not as failure. As a normal part of the body finishing the work the cut started. Here is what that week actually looked like — and what I almost did wrong.
+When appetite returns during maintenance after weight loss, it isn't failure. It is the body finishing what the cut started. Five months into maintenance, my appetite came back. Not as failure. As a normal part of the body finishing the work the cut started. Here is what that week actually looked like — and what I almost did wrong.
+
+## Meta Description
+Appetite returns during maintenance after weight loss — usually 4 to 6 months in. It isn't failure. Here's the week it hit and what I almost did wrong.
+
+## Primary Keyword
+appetite returns during maintenance after weight loss
+
+## Secondary Keywords
+- hungry during maintenance phase
+- increased appetite after weight loss
+- hormonal hunger after dieting
+- ghrelin increase weight loss maintenance
+- appetite rebound after cut
 
 ## Medium Tags
 - Weight Loss
-- Maintenance
+- Maintenance Phase
 - Appetite
 - Founder Story
-- Self Awareness
+- Hunger
 
 ## Canonical URL
-`https://devenira.com/blog/the-week-my-appetite-came-back-during-maintenance`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.

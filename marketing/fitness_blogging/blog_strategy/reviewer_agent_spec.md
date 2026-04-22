@@ -94,6 +94,25 @@ Input:
 - Does the keyword angle appear in the article naturally?
 - Are H1 and H2 headings scannable for someone skimming?
 
+### 4a. SEO Completeness Gate (Rule 11, active from batch 15)
+
+Per `seo_optimization_rules.md`, every draft must carry:
+
+- `seoTitle` distinct from display title, ≤ 60 chars, primary keyword in first 40
+- `metaDescription` distinct from on-page description, ≤ 155 chars, primary keyword in first 100
+- `primary_keyword` (already required in verdict front-matter)
+- 3–5 `secondary_keywords` pulled from PAA / related queries
+- Medium tags: 3 broad + 2 niche, no single tag saturated >80% of program
+
+Verdict front-matter gains two fields:
+
+```
+seo_title: <value>
+seo_complete: yes|no
+```
+
+If `seo_complete: no`, draft enters `revise` with SEO-only fix path (no voice changes). Drift scorecard gains row 11 tracking pass rate.
+
 ### 5. Internal Link and Feed Fit
 - Suggest 2 internal link candidates from existing slugs.
 - Name the cluster or narrative lane this post fits into.
@@ -156,6 +175,9 @@ That way the reviewer is not only auditing posts individually but also tracking 
 - `marketing/fitness_blogging/style_guide.md`
 - `marketing/fitness_blogging/blog_strategy/blog_post_blueprint.md`
 - `marketing/fitness_blogging/blog_strategy/blog_cover_mapping_2026-04-16.md`
+- `marketing/fitness_blogging/blog_strategy/seo_optimization_rules.md` (SEO gate — from batch 15)
+- `marketing/fitness_blogging/blog_strategy/writer_pre_flight_class_checklist.md`
+- `marketing/fitness_blogging/blog_strategy/image_pool_tightened_policy.md`
 - `frontend/src/content/blog/posts.ts` for existing slugs and titles
 - the 5 newest publish-ready drafts
 - the most recent 10 drafts for context

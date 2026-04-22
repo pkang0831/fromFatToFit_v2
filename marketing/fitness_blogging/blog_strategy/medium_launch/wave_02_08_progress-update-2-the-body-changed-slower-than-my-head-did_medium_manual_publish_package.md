@@ -4,19 +4,37 @@
 Progress Update #2: The Body Changed Slower Than My Head Did
 
 ## SEO Title
-Progress Update #2: The Body Changed Slower Than My Head Did
+Weight Loss Progress Update: Body vs Mind
 
 ## Subtitle / Description
-The biggest visible change was not actually the most important one. The body changed, yes, but the bigger shift was that panic became less convincing.
+The body changes slower than the mind during weight loss — and most of the time, it's the mind that quits first. The biggest visible change was not actually the most important one. The body changed, yes, but the bigger shift was that panic became less convincing.
+
+## Meta Description
+Body changes slower than mind during weight loss. The body shifted in months; the panic took another year to quiet. A founder note on the lag.
+
+## Primary Keyword
+body changes slower than mind during weight loss
+
+## Secondary Keywords
+- body dysmorphia after weight loss
+- phantom fat feeling
+- weight loss mind hasn't caught up
+- weight loss journey update
+- body changes faster than mind
 
 ## Medium Tags
-- Founder Story
+- Weight Loss
 - Transformation
-- Progress Update
+- Weight Loss Journey
+- Founder Story
 - Mindset
 
 ## Canonical URL
-`https://devenira.com/blog/progress-update-2-the-body-changed-slower-than-my-head-did`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.

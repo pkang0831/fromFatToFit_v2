@@ -110,6 +110,8 @@ colab_notebook/
 # ===== Archives (not for production) =====
 _archived/
 archive_qa/
+marketing/fitness_blogging/my_past_photos/extracted/
+marketing/fitness_blogging/my_past_photos/extracted_*/
 
 # ===== Playwright reports (generated) =====
 playwright-report/
@@ -121,7 +123,3 @@ test-results/
 # Offline body-validation models (HF + MediaPipe; large — keep script only)
 backend/models/body_validation/*
 !backend/models/body_validation/import_from_downloads.sh
-
-# ===== Local-only photo archives (Google Takeout, not for production) =====
-marketing/fitness_blogging/my_past_photos/extracted_fresh_*/
-marketing/fitness_blogging/my_past_photos/takeout-*.zip

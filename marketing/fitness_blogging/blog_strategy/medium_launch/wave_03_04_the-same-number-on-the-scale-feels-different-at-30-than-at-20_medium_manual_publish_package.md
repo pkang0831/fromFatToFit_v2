@@ -4,20 +4,37 @@
 The Same Number on the Scale Feels Different at 30 Than at 20
 
 ## SEO Title
-The Same Number on the Scale Feels Different at 30 Than at 20
+Why Does the Same Weight Feel Different as You Age?
 
 ## Subtitle / Description
-The first time I weighed exactly 75 kg, I was 22. The second time I weighed exactly 75 kg, I was around 30. The number was identical. The body underneath it was not. Not even close.
+Why does the same weight feel different as you age? Same number on the scale, different body underneath it. The first time I weighed exactly 75 kg, I was 22. The second time I weighed exactly 75 kg, I was around 30. The number was identical. The body underneath it was not. Not even close.
+
+## Meta Description
+Why does the same weight feel different as you age? 75 kg at 22 isn't 75 kg at 32 — composition shifts under the number. Here's what the scale misses.
+
+## Primary Keyword
+why does the same weight feel different as you age
+
+## Secondary Keywords
+- body composition changes in your 30s
+- same weight different body shape
+- muscle loss with age sarcopenia
+- body fat increase with age
+- losing weight after 30 harder
 
 ## Medium Tags
 - Weight Loss
-- Aging
 - Body Composition
+- Aging
 - Health
-- Self Awareness
+- Fitness
 
 ## Canonical URL
-`https://devenira.com/blog/the-same-number-on-the-scale-feels-different-at-30-than-at-20`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -44,6 +61,10 @@ The number was identical.
 The body underneath it was not. Not even close.
 
 This is the part most people are not warned about. The scale is a long-running instrument that does not adjust for the slow work the rest of the body does between readings. The number stays the same. The body it describes does not.
+
+> **Why does the same weight feel different as you age?**
+>
+> Because the same number describes a different body. Across decades, untrained adults usually lose a small amount of muscle and add a small amount of fat each year, even at constant weight. Glycogen storage drops. Recovery slows. The scale stays still while the body it describes quietly shifts underneath.
 
 ## What changes underneath the same number
 
@@ -158,4 +179,29 @@ Read the number with the right age in mind. The scale will not do that for you.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What changes underneath the same number?
+
+Three things, slowly. Body composition shifts toward less muscle and more fat unless training fights it. Water and glycogen storage drops, especially in untrained bodies. Recovery from a bad week slows. Same scale weight, very different body. The clothes know it before the scale does.
+
+### Should I chase the weight I had a decade ago?
+
+Probably not, at least not as a single number. The body that produced that number then was made of different things than the body trying to produce it now. Composition is the more useful target. A waist measurement, a clothing size, a strength baseline — those stay honest across decades.
+
+### How much does training change this trajectory?
+
+A lot. Trained adults in their thirties and beyond hold more lean mass, store more glycogen, and recover faster than untrained adults of the same age. The same scale number on a trained body looks and behaves much closer to the younger version of itself.
+
+### Why does the bad-week recovery take longer with age?
+
+Because the body has not changed its rules; it has changed its speed. A heavy weekend that cleared by Wednesday at 22 takes until Sunday at 32. Daily fluctuations are larger and last longer. The fix is not weighing less. It is reading the scale on a longer timescale.
+
+### What hasn't changed across decades?
+
+Energy balance still works. Strength training still builds muscle. Protein still preserves lean mass during a deficit. Sleep still amplifies recovery. Walking still adds free expenditure. The basics did not change. The tolerances around the basics narrowed. The same plan is just less forgiving than it used to be.
+
 ```

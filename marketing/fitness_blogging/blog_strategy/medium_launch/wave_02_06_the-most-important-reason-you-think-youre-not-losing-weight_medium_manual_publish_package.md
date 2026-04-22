@@ -4,19 +4,37 @@
 The Beginning Teaches the Wrong Lesson
 
 ## SEO Title
-The Beginning Teaches the Wrong Lesson
+Why Am I Not Losing Weight Anymore? (It's Not You)
 
 ## Subtitle / Description
-Many people think they are not losing weight because the process failed. More often, the dramatic early phase ended and their patience failed first.
+Why am I not losing weight anymore, after the early weeks worked? Usually the plan didn't break — the early phase just ended. Many people think they are not losing weight because the process failed. More often, the dramatic early phase ended and their patience failed first.
+
+## Meta Description
+Why am I not losing weight anymore? The dramatic first week taught the wrong lesson. Real fat loss runs near 0.5 kg per week — and that's the program.
+
+## Primary Keyword
+why am I not losing weight anymore
+
+## Secondary Keywords
+- weight loss slowed down after first week
+- stopped losing weight on diet
+- not losing weight despite dieting
+- weight loss plateau causes
+- beginning of diet too fast
 
 ## Medium Tags
-- Plateau
-- Patience
 - Weight Loss
 - Dieting
+- Weight Loss Plateau
+- Mindset
+- Patience
 
 ## Canonical URL
-`https://devenira.com/blog/the-most-important-reason-you-think-youre-not-losing-weight`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -39,6 +57,10 @@ It is that their patience failed first.
 That sounds rude. I do not mean it rudely. I mean it accurately.
 
 When people start a diet, they usually get spoiled early. The scale moves fast. The body looks less swollen. Even the suffering feels productive because it is paying rent immediately.
+
+> **Why am I not losing weight anymore?**
+>
+> Often the diet did not stop working. The dramatic early phase ended and patience failed first. Early loss is mostly water and glycogen, which clear in week one. Real fat loss is slower and quieter. People expect week one's pace forever, panic when it slows, and call a normal phase a failure.
 
 ## The Beginning Teaches the Wrong Lesson
 
@@ -98,4 +120,29 @@ Before you decide your body is broken, get one calmer read on what it is actuall
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### How long does it take for weight loss to slow down?
+
+Usually around week three for most diets. Water and glycogen stabilize, novelty fades, and the scale starts reflecting actual body composition change. The new rate is often half or a third of week one, and that is the honest rate, not a problem.
+
+### Should I cut more calories when I stop losing?
+
+Usually no, not as a first move. Run an honest tracking week first — about half the time the stall is logging drift, not adaptation. If tracking is clean, try a one-week diet break before cutting. Most stalls break without escalating the deficit.
+
+### Is my metabolism damaged from dieting too long?
+
+'Damaged' is overstated. Maintenance calories drop modestly as you lose weight (a 70 kg person needs less than an 80 kg one), and NEAT can dip during sustained deficit. Both reverse with a proper diet break. There is no permanent damage in healthy adults.
+
+### What should I track if the scale isn't moving?
+
+Tape measurements at waist, hip, and chest every two weeks. Photos under matched conditions. How clothes fit. Strength trends in the gym. Any of those moving while the scale holds means recomposition, which is real progress the scale is just bad at measuring.
+
+### When should I take a diet break?
+
+When the scale has been flat for three weeks under honest tracking, or when hunger and training fatigue are clearly stacking. Eat at maintenance for 7 to 14 days. NEAT and appetite reset, and the deficit usually starts working again on return.
+
 ```

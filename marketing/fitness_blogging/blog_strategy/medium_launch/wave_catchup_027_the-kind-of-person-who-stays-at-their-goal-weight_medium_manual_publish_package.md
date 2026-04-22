@@ -4,19 +4,37 @@
 The Kind of Person Who Stays at Their Goal Weight
 
 ## SEO Title
-The Kind of Person Who Stays at Their Goal Weight
+How to Stay at Your Goal Weight Long Term
 
 ## Subtitle / Description
 Most people who hold weight off for years share a few quiet traits. None of them are what motivational content says.
 
+## Meta Description
+How to stay at your goal weight long term, not just hit it once. Most maintainers share 4 quiet habits — none of them what motivational content sells.
+
+## Primary Keyword
+how to stay at your goal weight long term
+
+## Secondary Keywords
+- keep weight off after dieting
+- what successful maintainers do
+- national weight control registry habits
+- maintaining weight loss long term
+- long term weight maintenance strategies
+
 ## Medium Tags
-- Maintenance
-- Founder Story
-- Long Game
 - Weight Loss
+- Maintenance Phase
+- Long Game
+- Habits
+- Lifestyle Change
 
 ## Canonical URL
-`https://devenira.com/blog/the-kind-of-person-who-stays-at-their-goal-weight`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,13 +50,17 @@ Most people who hold weight off for years share a few quiet traits. None of them
 ```md
 # The Kind of Person Who Stays at Their Goal Weight
 
-I have met people who held their weight off for five, ten, fifteen years. They do not look like the motivational content suggests. They seem, most of the time, a little bored.
+Here's how to stay at your goal weight long term, in the unglamorous version: it looks more like routine than willpower. I have met people who held their weight off for five, ten, fifteen years. They do not look like the motivational content suggests. They seem, most of the time, a little bored.
 
 I have met people who held their weight off for five, ten, fifteen years.
 
 They do not look like the motivational content suggests.
 
 They do not post. They do not moralize food. They do not seem to be working that hard. They seem, most of the time, a little bored.
+
+> **How do I stay at my goal weight long term?**
+>
+> Become boring. People who hold weight off for years eat similar things most days, train three to four times a week without drama, sleep enough, walk more than average, and stop chasing a goal weight. They have an emergency protocol for small drifts. They do not run on willpower or inspiration. The defaults do the work.
 
 ## What They Do Not Look Like
 
@@ -99,4 +121,29 @@ Not the photo. The ordinary week.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What do successful long-term maintainers actually do?
+
+Eat similar meals most days. Train consistently without treating it as a punishment project. Sleep enough. Walk more than they realize. Weigh less often than during the cut. Tighten quickly without drama if weight drifts up 2 to 3 kg. They do not look like fitness people.
+
+### How is maintenance different from being on a diet?
+
+Maintenance has no finish line, no scale milestone, no trend to chase. The structure stays the same — same meal patterns, same training, same logging — but the deficit goes away. The food gets bigger. The discipline around it does not.
+
+### Should I keep weighing myself in maintenance?
+
+Yes, but less often. Once or twice a week, same morning conditions, weekly average. Daily weighing in maintenance amplifies noise — flat trends do not swallow the spikes the way deficit trends do. Less frequent, longer comparison windows work better.
+
+### What should I do if my weight starts creeping up?
+
+Tighten for two weeks without drama and return to baseline. Most successful maintainers run an emergency protocol when drift hits 2 to 3 kg. The tightening is not a diet. It is a correction. It works because it starts early, before the drift compounds.
+
+### How long until maintenance feels automatic?
+
+Usually 6 to 12 months of consistent practice for the defaults to run on autopilot. Then the program fades from foreground to background. There is no celebration moment. You just notice, weeks later, that you have stopped thinking about food the way you used to.
+
 ```

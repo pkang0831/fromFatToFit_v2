@@ -4,20 +4,37 @@
 How Do I Eat Normally at Social Events
 
 ## SEO Title
-How Do I Eat Normally at Social Events
+How to Eat at Social Events on a Diet
 
 ## Subtitle / Description
 A practical Q&A on how to eat at dinners, parties, and events without overcompensating before or after. Most of the damage is not at the event.
 
+## Meta Description
+How to eat at social events on a diet: the dinner is rarely the problem. The under-eating before and over-correcting after are. Here's the fix.
+
+## Primary Keyword
+how to eat at social events on a diet
+
+## Secondary Keywords
+- eating out while dieting
+- social eating weight loss
+- how to go to a party on a diet
+- diet at restaurants tips
+- eating at dinner party diet
+
 ## Medium Tags
 - Weight Loss
-- Social Eating
-- Food Structure
 - Dieting
-- Restaurants
+- Social Eating
+- Habits
+- Nutrition
 
 ## Canonical URL
-`https://devenira.com/blog/how-do-i-eat-normally-at-social-events`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,13 +50,17 @@ A practical Q&A on how to eat at dinners, parties, and events without overcompen
 ```md
 # How Do I Eat Normally at Social Events
 
-Most people think a dinner out is where the diet breaks. Usually, the dinner is the smallest part of the problem. The damage happens before and after, not at it.
+Here's how to eat at social events on a diet without making the dinner the villain. The damage usually happens around the dinner. Most people think a dinner out is where the diet breaks. Usually, the dinner is the smallest part of the problem. The damage happens before and after, not at it.
 
 Most people think a dinner out is where the diet breaks.
 
 Usually, the dinner is the smallest part of the problem.
 
 The damage usually happens before and after the event, not at it.
+
+> **How do I eat at social events on a diet?**
+>
+> Eat normally around the event, not before and after. Most damage happens in the under-eating before and the over-correcting after, not at the dinner itself. Skip the breakfast-skipping. Skip the morning-after restriction. Arrive not-hungry. Eat what you want at the event. Return to your plan at the next meal, not next Monday.
 
 ## Q: Should I Eat Less During The Day To Save Up For Dinner?
 
@@ -120,4 +141,29 @@ Eat normally around the event. Eat normally at the event. Eat normally the day a
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Should I save calories during the day for the event?
+
+No. Saving calories almost always backfires. You arrive hungry, under-fueled, and with appetite cranked up — the worst possible state for making food choices around a calorie-dense spread. Eat your normal breakfast. Eat your normal lunch. Arrive not-hungry, not-full.
+
+### What should I actually do at the event?
+
+Eat slower than you would at home. Start with vegetables, salad, or protein before the dense carbs and sweets. Drink water between alcoholic drinks. Stop when done, not when the plate is empty. There is no secret move. The slowness is most of it.
+
+### Should I avoid certain foods at the event?
+
+Not categorically. The avoidance frame usually wrecks the night. If you label bread as forbidden and then eat bread, the brain often reads it as the diet is over. Decide bread is fine and one piece stops there. The avoidance framing is more dangerous than any single food.
+
+### What should I do the morning after?
+
+Eat your normal breakfast. Drink water. Do not weigh yourself for three to five days while the sodium clears. Return to your plan at lunch, as if the event was last week. The drastic morning-after restriction is what turns one event into three days off plan.
+
+### How often can I do social events without losing progress?
+
+One a week, handled this way, has almost no effect on a fat-loss phase. Two a week starts compressing the deficit. Three a week is essentially a maintenance phase. The events themselves are not the threshold. Whether the days around them return to plan is the threshold.
+
 ```
