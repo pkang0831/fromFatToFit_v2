@@ -115,7 +115,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'I did not build Devenira because AI is interesting.',
+          "How I lost 50 kg, in one honest sentence: slowly, and mostly in the unglamorous middle. The start wasn't the hard part. I did not build Devenira because AI is interesting.",
           'I built it because the mirror can become a liar when you see it every day.',
           'People like to talk about weight loss as if the hard part is starting. Eat better. Train harder. Stay disciplined.',
           'That is part of it, yes. But for me, the hardest part was never the beginning. It was the middle.',
@@ -234,7 +234,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The mirror is one of the worst places to look for reassurance during body change.',
+          "Why can't I see my weight loss in the mirror, even when the scale and the clothes agree? Daily exposure hides the gradient. The mirror is one of the worst places to look for reassurance during body change.",
           'Not because it always lies. But because it adapts too well.',
           'When you see your body every day, small differences stop feeling like differences. That is why people can be making real progress and still feel stuck.',
           'This is where a lot of diets actually fail. Not in physiology. In interpretation.',
@@ -378,7 +378,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most people do not ruin a good week because of one number.',
+          'Should you weigh yourself every day on a diet? It depends on whether one bad reading derails the rest of the week. Most people do not ruin a good week because of one number.',
           'They ruin it because of the story they attach to that number.',
           'The scale goes up. Panic starts. And suddenly one careful week feels fake.',
           'That is how people turn noise into a conclusion.',
@@ -565,7 +565,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most people try to track transformation with the same two tools: the scale and the mirror.',
+          "Here's how to track body transformation without the scale, with one weekly evidence loop instead of a daily morning verdict. Most people try to track transformation with the same two tools: the scale and the mirror.",
           'The problem is not that those tools are useless. The problem is that people use them badly.',
           'They look too often. They react too quickly. And they ask each tool to do more than it is good at.',
           'That is how progress becomes confusing, even when the process is working.',
@@ -731,7 +731,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Did you really gain body fat from water?',
+          "Short answer on why does the scale go up when I barely eat: the body is holding water, not adding fat. The panic is louder than the math. Why does the scale go up when you're barely eating? Almost always: water, sodium, or a delayed bathroom — not fat. Did you really gain body fat from water?",
           'That is the kind of sentence people say when they are one rude weigh-in away from losing their mind.',
           'You wake up, step on the scale, and get a number that feels insulting. Now your whole morning has a villain.',
           'You start replaying yesterday like security footage. What did I eat? Was it the late snack? Was it the rice? Was it the fact that my body clearly enjoys humiliating me?',
@@ -875,7 +875,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'I used to call anything slower than week one a plateau.',
+          'What counts as a weight loss plateau is narrower than people think. Most slow weeks are not plateaus — just real life. I used to call anything slower than week one a plateau.',
           'That is how impatient people talk when the scale stops flattering them.',
           'Week three arrives, the number barely moves, and suddenly you are acting like the whole plan entered hospice care.',
           'People use the word plateau way too early.',
@@ -1031,7 +1031,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'No, someone losing 5kg in a week is usually not the miracle story your brain thinks it is.',
+          'Is losing 5kg in a week water weight? Almost always — the body cannot legitimately lose that much fat in seven days. No, someone losing 5kg in a week is usually not the miracle story your brain thinks it is.',
           'You know this already, which is what makes it so irritating.',
           'You see the thumbnail. You see the title. You see someone cheerfully announcing that they lost 5kg in a week by doing fasted cardio and eating one meal a day.',
           'And even if you know better, some ugly little part of your mind still says: then why is my progress so boring?',
@@ -1174,7 +1174,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          "The most important reason many people think they are not losing weight is not that the diet failed.",
+          "Why am I not losing weight anymore, after the early weeks worked? Usually the plan didn't break — the early phase just ended. The most important reason many people think they are not losing weight is not that the diet failed.",
           'It is that their patience failed first.',
           'That sounds rude. I do not mean it rudely. I mean it accurately.',
           'When people start a diet, they usually get spoiled early. The scale moves fast. The body looks less swollen. Even the suffering feels productive because it is paying rent immediately.',
@@ -1315,7 +1315,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'This is one of the most awkward moments in weight-loss culture.',
+          "Skinny fat means normal weight but high body fat — and the scale cannot see it. Here's how to read the mismatch. Skinny fat — normal weight but high body fat — is the version of unfit the scale never reports. The number is fine; the composition isn't. This is one of the most awkward moments in weight-loss culture.",
           'Someone says, “I am at a normal weight, but I still hate how my body looks.” And the internet immediately responds like a bored uncle: then just stop dieting, you are already skinny, be grateful.',
           'Very warm. Very helpful. Also not always correct.',
         ],
@@ -1444,7 +1444,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most diets do not end with one giant disaster.',
+          "Here's how to stick to a diet when progress slows down without restarting every Monday. The middle is where most people quit, not the start. Most diets do not end with one giant disaster.",
           'They end with a mood. An ugly little mood. Some version of: what is the point?',
           'That line has killed more progress than birthday cake ever did.',
           'And most of the time, it does not show up because the person suddenly became lazy. It shows up because the story of the diet changed.',
@@ -1586,7 +1586,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'There is a version of me who thought every bad weigh-in meant I was becoming my old self again.',
+          "The body changes slower than the mind during weight loss. This is a progress update from past the point where the head had already moved on. The body changes slower than the mind during weight loss — and most of the time, it's the mind that quits first. There is a version of me who thought every bad weigh-in meant I was becoming my old self again.",
           'That version of me was exhausting.',
           'Not evil. Not lazy. Just permanently one rude scale number away from a full identity crisis.',
           'If you have been reading this series from the start, you already know the pattern: the scale gets loud, appetite gets blamed, food becomes moral, and one bad day starts sounding like a character flaw.',
@@ -1707,7 +1707,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'A lot of people want fat loss to come with a receipt.',
+          "Here's how to know you're losing weight without the scale, with proof that holds up across a week. The receipt is rarely a number. A lot of people want fat loss to come with a receipt.",
           'One clean number. One obvious answer. One cheerful little dashboard that says: yes, congratulations, your body is changing correctly.',
           'Instead, they get this: the scale moves weirdly, the mirror feels moody, and the belly looks different on some days and rude on others.',
           'So now they ask the question I hear constantly: how do I know this is real weight loss and not fake progress?',
@@ -1847,7 +1847,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The binge is over.',
+          "What to do after a binge on a diet: not more restriction, and not another Monday restart. Here's the move that actually recovers the week. The binge is over.",
           'The wrappers are still there. Your stomach feels ridiculous. And now your brain has entered full courtroom mode.',
           'No carbs tomorrow. Two workouts. I need to erase this.',
           'That is usually the second mistake. The first mistake already happened. The second one is trying to punish it out of existence.',
@@ -2020,7 +2020,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'There is a weird kind of diet advice that always sounds impressive online: learn to enjoy hunger.',
+          "Here's how to handle hunger pangs on a diet without treating every signal as a failure of willpower. Most pangs want context, not food. There is a weird kind of diet advice that always sounds impressive online: learn to enjoy hunger.",
           'Right. And while we are at it, should we learn to enjoy airport security and low battery notifications too?',
           'Hunger is not a personality test. You do not win points for making it dramatic.',
         ],
@@ -2162,7 +2162,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'You went to bed tired. Not cute tired. Not “I crushed my workout” tired. The ugly kind.',
+          "Why can't I sleep on a calorie deficit, even when I'm exhausted? Usually because the deficit is bigger than the body wants to admit. You went to bed tired. Not cute tired. Not “I crushed my workout” tired. The ugly kind.",
           'Heavy eyes. No energy. The whole body asking for a refund.',
           'Then 4:00 a.m. shows up and you are wide awake for no respectable reason.',
           'Now you are lying there doing exhausted math: I am eating clean. I am training hard. I am doing everything right. So why does my body feel like it is filing a complaint?',
@@ -2300,7 +2300,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Cheat days have a terrible publicist.',
+          'Are cheat days bad for weight loss? Not for everyone — and the difference says more about the rest of your week than your willpower. Cheat days have a terrible publicist.',
           'They get marketed like a reward. A cute little break. A well-earned treat.',
           'Then half the people who try them end up face-first in a buffet wondering why one meal turned into a full emotional incident.',
           'So now they make the obvious conclusion: I have no self-control.',
@@ -2433,7 +2433,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'This is one of those diet questions people ask with a smile that already sounds guilty.',
+          'Does one bad day ruin a diet? Almost never — but the next three days decide whether one bad day stays one bad day. This is one of those diet questions people ask with a smile that already sounds guilty.',
           'Be honest. If I eat a ridiculous amount in one day, is that actually less damaging than overeating more moderately across several days?',
           'Short answer? Usually, yes.',
           'Longer answer? That fact has ruined a lot of diets when people misunderstand what it means.',
@@ -2573,7 +2573,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'This question usually sounds scientific on the surface.',
+          'Do obese people lose weight slower than others? On the scale, sometimes the opposite — but the fat under it tells a longer story. This question usually sounds scientific on the surface.',
           'Underneath, it is often a fairness question.',
           'If I have been overweight for a long time, am I just stuck with a worse deal? Did I wait too long? Is this going to take forever because I was this size for years?',
           'That is what people really want to know.',
@@ -2714,7 +2714,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The strange part is that dieting often feels easier at the beginning.',
+          "Why is my appetite stronger on a diet, even when I'm eating enough on paper? Restriction makes the brain louder, not just the stomach. The strange part is that dieting often feels easier at the beginning.",
           'That is what confuses people.',
           'The first stretch can feel clean. You are motivated. The rules still feel noble. The meals still feel like evidence that you are finally getting serious.',
           'Then a few weeks later, something uglier starts happening. Food gets louder. Not just hunger. Food.',
@@ -2879,7 +2879,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'You have been showing up.',
+          "Why am I working out but not losing weight? Because exercise reshapes the body more than it shrinks it — and the scale doesn't reward that. You have been showing up.",
           'Four days a week. Sometimes five. The workouts feel hard. Your clothes feel about the same.',
           'That is the part nobody warns you about.',
         ],
@@ -3009,7 +3009,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The before photo is easy. The after photo is easy.',
+          "Why is the middle of weight loss the hardest stretch? The dramatic feedback is gone and the work hasn't ended. The before photo is easy. The after photo is easy.",
           'The six months between them is where everybody quits.',
         ],
       },
@@ -3129,7 +3129,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'This is one of the most useful questions anyone can ask.',
+          "How to tell if my stomach is bloat or fat, without panicking first: bloat comes and goes in hours, fat does not. Here's a cleaner test. Here's how to tell if your stomach is bloat or fat: time it across days, not minutes. Bloat moves; fat doesn't. This is one of the most useful questions anyone can ask.",
           'It is also one of the most mis-answered.',
         ],
       },
@@ -3286,7 +3286,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most people read a plateau as their body firing them.',
+          "Here's how to break a weight loss plateau without escalating to punishment-mode. The fix is rarely more discipline. Most people read a plateau as their body firing them.",
           'It is not.',
           'A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.',
         ],
@@ -3418,7 +3418,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'I spent eight months watching the front of my body in a mirror and thinking nothing was happening.',
+          'Why does my body look different from different angles? Front view rewards bad lighting; back view tells the truth most of the time. I spent eight months watching the front of my body in a mirror and thinking nothing was happening.',
           'Then my brother took a photo of me from behind at a wedding.',
           'It was a different body.',
         ],
@@ -3550,7 +3550,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'This is a check-in, not a before-and-after.',
+          'Past the messy middle of weight loss, the work changes shape. The body keeps moving; the head finally starts to catch up. This is a check-in, not a before-and-after.',
           'Before-and-afters are for people who are finished. I am not finished. What I am is past the messy middle.',
         ],
       },
@@ -3666,7 +3666,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'For most of my life, the workout was a receipt.',
+          "Here's how to stop using exercise as punishment: change what the next training session is paying for. For most of my life, the workout was a receipt.",
           'I overate on Saturday. I earned the treadmill on Monday. I felt bloated after dinner. I did twenty more minutes than I planned. Every session was a small repayment for a small crime.',
           'That kind of training can still produce results. It cannot produce peace.',
         ],
@@ -3788,7 +3788,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most people treat hunger like it is one thing.',
+          'Is maintenance hunger different from diet hunger? Yes — and reading them the same way is a fast route back to regain. Most people treat hunger like it is one thing.',
           'It is not.',
           'The hunger you feel on a diet and the hunger you feel in maintenance are physiologically and behaviorally different. Reading them the same way is one of the main reasons people regain weight within six months of reaching their goal.',
         ],
@@ -3928,7 +3928,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Everyone has that friend.',
+          'Why do some people never gain weight no matter what they eat? Genetics is part of it, but most of the gap is unmeasured behavior. Everyone has that friend.',
           'Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May.',
           'You do not, and you are furious about it.',
         ],
@@ -4065,7 +4065,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'A set point is one of the more misused ideas in dieting conversations.',
+          "How do you know you've reached your set point weight, and not just a slow week? The set point is a slower signal than people use it as. A set point is one of the more misused ideas in dieting conversations.",
           'It is useful when understood correctly. It becomes an excuse when it is not.',
         ],
       },
@@ -4206,7 +4206,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most people weigh themselves at one specific time and treat that number as the truth.',
+          'Why do I weigh more at night than in the morning? Food, water, and salt move through you all day; the morning is just the lowest sample. Most people weigh themselves at one specific time and treat that number as the truth.',
           'It is not the truth. It is one sample.',
           'Morning weight and evening weight are almost always different, and they lie in different directions.',
         ],
@@ -4333,7 +4333,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'I had a clean Monday, Tuesday, and Wednesday of eating.',
+          'Does bad sleep ruin weight loss? Three short nights can make a clean week of eating look like a binge week on the scale. I had a clean Monday, Tuesday, and Wednesday of eating.',
           'By Saturday, the week looked like a disaster.',
           'Three bad nights of sleep were the reason. Not the only reason. The main one.',
         ],
@@ -4461,7 +4461,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Protein gets all the press.',
+          "Do vegetables help you feel full on a diet? Quietly, yes — they're the food that decides whether the day feels survivable. Protein gets all the press.",
           'Fats get the moral arguments. Carbs get the fear. Vegetables get a vague "eat more of them" and then nothing.',
           'The food that quietly decides whether your diet feels tolerable is usually the vegetables.',
         ],
@@ -4625,7 +4625,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'One binge does not wreck a diet.',
+          "Here's how to stop a binge from becoming a binge week. The first 48 hours after the binge are the actual rescue plan. One binge does not wreck a diet.",
           'The week after a binge wrecks a diet.',
           'This is the specific rescue plan.',
         ],
@@ -4775,7 +4775,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'People you have not seen in a few months will notice your body has changed.',
+          'Why do others notice my weight loss before me? Because your brain updates the body image last, not first. People you have not seen in a few months will notice your body has changed.',
           'You will not have noticed yet.',
           'This is not modesty. It is not vanity. It is how your brain is built.',
         ],
@@ -4911,7 +4911,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The first week is where people decide whether the plan is working.',
+          'Why do you lose so much weight the first week of a diet? Most of it is water, glycogen, and a noisier scale — not fat. The first week is where people decide whether the plan is working.',
           'That decision is almost always based on the wrong evidence.',
         ],
       },
@@ -5052,7 +5052,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'At one point in the middle of my transformation, I weighed the same for eight weeks.',
+          "What's the difference between weight loss and fat loss? One moves the scale; the other actually changes how you look. At one point in the middle of my transformation, I weighed the same for eight weeks.",
           'My clothes stopped fitting anyway.',
           'Looser around the waist. Tighter around the shoulders. The same number. A different body.',
           'I spent those eight weeks mostly frustrated because I did not yet understand what was happening.',
@@ -5375,7 +5375,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most people think a dinner out is where the diet breaks.',
+          "Here's how to eat at social events on a diet without making the dinner the villain. The damage usually happens around the dinner. Most people think a dinner out is where the diet breaks.",
           'Usually, the dinner is the smallest part of the problem.',
           'The damage usually happens before and after the event, not at it.',
         ],
@@ -5566,7 +5566,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'I have met people who held their weight off for five, ten, fifteen years.',
+          "Here's how to stay at your goal weight long term, in the unglamorous version: it looks more like routine than willpower. I have met people who held their weight off for five, ten, fifteen years.",
           'They do not look like the motivational content suggests.',
           'They do not post. They do not moralize food. They do not seem to be working that hard. They seem, most of the time, a little bored.',
         ],
@@ -5698,7 +5698,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most diets slow down around month three.',
+          'Why did I stop losing weight at 3 months on a plan that worked in week one? Mostly because the body adapted to it. Most diets slow down around month three.',
           'Not because effort dropped. Not because the plan got worse. Not because willpower collapsed.',
           'The body has simply become better at operating on less.',
         ],
@@ -5868,7 +5868,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real.',
+          "Here's how to tell if you're hungry or bored standing at the open fridge. The cue is almost never in the stomach. If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real.",
           'Most of the time, it is not hunger. It is something else wearing hunger is costume.',
         ],
       },
@@ -6030,7 +6030,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Protein is the only macronutrient the internet agrees on.',
+          'How much protein do I need to lose fat? Less than the influencer math sells, more than the food pyramid ever recommended. Protein is the only macronutrient the internet agrees on.',
           'Unfortunately, the internet also cannot agree on how much of it you actually need.',
           'The answers range from the government recommendation to your bodyweight in grams, three times a day, or you are wasting the diet.',
           'The truth is narrower than both.',
@@ -6147,7 +6147,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'People expect a training session to feel approximately the same from week to week.',
+          "Why are my workouts harder on a cut, even when the weights aren't heavier? Recovery changed, not the bar. People expect a training session to feel approximately the same from week to week.",
           'Once you are in a caloric deficit for more than a few weeks, that is not how it goes.',
         ],
       },
@@ -6307,7 +6307,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'I added 15 kg to my deadlift in my first six weeks of training.',
+          'Why does strength increase before muscle size? The nervous system gets organized weeks before the body looks different. I added 15 kg to my deadlift in my first six weeks of training.',
           'I did not look meaningfully different.',
           'If you were showing up in a mirror expecting week-by-week change, you would think the gym was broken.',
         ],
@@ -6490,7 +6490,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The biggest losses of my own program did not happen on the worst days.',
+          "Here's how to trust slow weight loss progress when the days stop feeling like proof. Most of the work happens in the quiet stretch. The biggest losses of my own program did not happen on the worst days.",
           'They happened on the quiet ones.',
           'I would go three or four weeks without a real check-in. The scale would drift in a fine, unremarkable way. The mirror would do its mirror thing. And somewhere in that gap, almost without noticing, I would stop believing the project was working.',
           'Nothing dramatic. Just a slow corrosion of trust in my own evidence.',
@@ -6649,7 +6649,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'People who would never trust a single weigh-in will completely trust a single photo.',
+          "Why progress photos don't show progress half the time has nothing to do with the body. It's lighting, posture, and last night's dinner. People who would never trust a single weigh-in will completely trust a single photo.",
           'The scale gets warned about every week. "It is just water. It is just sodium. It is just the time of day."',
           'The photo gets treated like court evidence.',
           'That trust is misplaced. Photos lie at least as much as the mirror does. They just lie more convincingly because they look final.',
@@ -6809,7 +6809,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'After about a year of careful eating, I noticed something I did not expect.',
+          'Why does restriction make cravings worse? Usually because the food you forbid becomes the food your brain rehearses. After about a year of careful eating, I noticed something I did not expect.',
           'The foods I missed most were not the foods I had loved most. They were the foods I had been most strict with myself about.',
           'That gap is the whole essay. The craving is rarely about the food. It is about being told no, by yourself, for long enough that the no started to taste like the thing.',
         ],
@@ -6988,7 +6988,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The first time I weighed exactly 75 kg, I was 22 years old.',
+          'Why does the same weight feel different as you age? Same number on the scale, different body underneath it. The first time I weighed exactly 75 kg, I was 22 years old.',
           'The second time I weighed exactly 75 kg, I was around 30.',
           'The number was identical.',
           'The body underneath it was not. Not even close.',
@@ -7174,7 +7174,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The big numbers were not the program.',
+          'Non scale victories weight loss is not a consolation prize. They are the more honest instrument on weeks the scale lies. Non scale victories in weight loss are the boring half of the program — and the half that actually moves the body. The big numbers were not the program.',
           'The 50 kg loss is the headline. The before and after photos are the share image. The progress updates are the posts that get bookmarked.',
           'But the program — the thing that actually moved the body — was almost entirely made of weeks where nothing photogenic happened.',
           'The real program lives between the milestone posts. It lives in the small wins on the boring Wednesdays. Most people quit because they are looking for a Saturday and find a Wednesday.',
@@ -7317,7 +7317,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The diet has a finish line painted on it.',
+          'The first month of maintenance after weight loss feels nothing like the diet. The finish line is gone, and the rules quietly change. The diet has a finish line painted on it.',
           'Maintenance does not.',
           'That single difference is what makes the first month after the cut feel completely unlike anything you spent the cut preparing for.',
           'The food gets easier. The structure does not. The head, which has been organizing itself around a target for months, suddenly has nothing concrete to aim at. The freedom is real, and the freedom is also the problem.',
@@ -7452,7 +7452,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The cleanest day on paper can end at 9 p.m. with you standing at the open fridge.',
+          "Why am I hungry at night but not during the day, even on a clean food day? The evening is where the day's restriction comes due. The cleanest day on paper can end at 9 p.m. with you standing at the open fridge.",
           'You ate well. You hit your protein. You drank water. You walked. The day, on every metric you usually grade it on, was a good day.',
           'And then the evening arrived and tried to undo it.',
           'This is one of the most common questions I get, so the answers are organized as a Q&A. The honest version of the answer is not "you have no discipline." The honest version is closer to: the day and the evening are running on different physiology and different psychology, and almost nothing is wrong with you.',
@@ -7627,7 +7627,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most plateaus are real.',
+          'Am I really in a plateau or am I tracking wrong? Most plateaus are real — but a meaningful share are the food log, not the body. Most plateaus are real.',
           'But "most" hides the more useful truth: a meaningful share of the plateaus people report are not the body refusing to lose weight. They are the tracking refusing to admit what the day actually contained.',
           'This is not a popular framing. It implies a hint of self-blame, which is rarely what someone reaching for the word "plateau" wants to hear. But it is also the version that solves the problem more often than any other intervention, so it is worth saying clearly.',
           'If your scale has been still for three weeks, the first place to look is not the metabolism. It is the food log.',
@@ -7796,7 +7796,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'This is the fourth update.',
+          'Life after 50kg weight loss is quieter than the highlight reel sells it. The dramatic part ends; the body just is. This is the fourth update.',
           'The earlier ones were about the process moving. This one is about the process going quiet.',
           'The numbers below are smaller than the previous update. The relationship to them is different. That difference is what this post is actually about.',
         ],
@@ -7918,7 +7918,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The mirror has too many feelings.',
+          "Why my clothes fit better but scale is the same: body composition is changing even when total weight is not. Here's how to read the gap. Why do my clothes fit better but the scale is the same? Body composition shifted; total mass didn't — and the clothes don't negotiate. The mirror has too many feelings.",
           'The scale has too much noise.',
           'The clothes do not negotiate. They either fit or they do not. They either zip or they do not. The button either closes calmly or it does not. There is no light, no posture, no time of day that changes the answer.',
           'For most of the messy middle of my own program, the most honest record I had of what was happening to my body was a single pair of jeans I owned at the start.',
@@ -8117,7 +8117,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'I had been clean for six weeks.',
+          "Here's how to get back on track after a bad weekend without turning Monday into punishment. The fix isn't dramatic. I had been clean for six weeks.",
           'Then a Friday dinner became a Saturday lunch which became a Saturday night which became a Sunday brunch I do not entirely remember the menu of.',
           'By Monday morning, the scale was up 2.4 kg, my stomach felt slow, and I was fairly sure the program was either ruined or about to be.',
           'Neither was true. The damage was small. What the weekend exposed was the whole story.',
@@ -8318,7 +8318,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'There is a phase in most cuts where the diet is working and the mirror is getting louder.',
+          "Here's how to stop mirror checking on a diet that's actually working: look less, look better, and look in fewer states. There is a phase in most cuts where the diet is working and the mirror is getting louder.",
           'The clothes are looser. The trend is down. The numbers say go. The reflection at 7 a.m. before coffee is having a different conversation entirely.',
           'This is not unusual. It is the moment most people start checking the mirror more, hoping for evidence that catches up to the data. The hope is rational. The behavior is the wrong one. More checking is what makes the mirror louder, not what calms it.',
           'The fix, in a phase like this, is to go on a mirror diet. Reduce the number of checks. Improve the conditions of the ones you do. Lengthen the windows between them.',
@@ -8496,7 +8496,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The question I get most often about food on a cut is some version of "do I have to meal prep on Sundays to make this work?"',
+          'Do I have to meal prep to lose weight? No — but you have to solve the problem meal prep is solving, with or without Sunday containers. The question I get most often about food on a cut is some version of "do I have to meal prep on Sundays to make this work?"',
           'The honest answer is no, you do not have to. The more useful answer is that you have to solve the same underlying problem meal prep is solving, and meal prep is one of three or four ways to do that.',
           'This is a Q&A, partly because the question itself splits in many directions and partly because most of what people call "meal prep" is doing one of several distinct jobs at once.',
         ],
@@ -8675,7 +8675,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The standard move when a cut slows down is to add cardio.',
+          "Why adding cardio to a cut can backfire is rarely about the cardio. It's usually about what the cardio costs everywhere else. The standard move when a cut slows down is to add cardio.",
           'Three sessions a week becomes four. Four becomes six. Forty-minute walks become hour-long runs. The math feels obvious. More movement equals more calories out equals more fat loss.',
           'The math is not wrong. The math is also not the whole picture.',
           'Most cuts that add cardio aggressively in response to a stall do not start losing faster. Many of them stall harder, then break the wrong way. The reasons are partly physiological, partly behavioral, and almost never about the cardio itself being a bad tool.',
@@ -8853,7 +8853,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The advice to "weigh yourself every day" is delivered with the same tone as the advice to "track your sleep" or "log your meals." It sounds like discipline. It sounds like data hygiene.',
+          'The daily weighing eating disorder risk doesn\'t get talked about because the advice sounds disciplined. For some people it isn\'t. The daily weighing eating disorder risk doesn\\'t get talked about because the advice sounds disciplined. For some people it isn\\'t. The advice to "weigh yourself every day" is delivered with the same tone as the advice to "track your sleep" or "log your meals." It sounds like discipline. It sounds like data hygiene.',
           'For a meaningful share of people, it is the trap that wrecks the program.',
           'The myth is that daily weighing produces better information. It does, in a narrow technical sense, and only when the person doing it is reading the seven-day average, ignoring the day-to-day noise, and emotionally insulated against the morning\'s number.',
           'In practice, almost no one in the middle of a cut is emotionally insulated against the morning\'s number. So the discipline becomes the trap.',
@@ -8994,7 +8994,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'There is a move every dieter discovers within the first month.',
+          'Does cutting sodium cause water retention rebound? Often — and the rebound usually erases the drop within a week. There is a move every dieter discovers within the first month.',
           'You eat a salty meal. The scale jumps 1 to 2 kg by morning. You panic. You cut sodium for two days, drink more water, and watch the number drop 1.5 to 2.5 kg.',
           'It feels like discipline. It feels like a system that finally responded to you.',
           'It is mostly water moving around. The body did not lose 1.5 kg of fat in two days. It dropped 1.5 kg of held water that came back as soon as your sodium intake returned to normal.',
@@ -9162,7 +9162,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The appetite came back in week 22 of maintenance.',
+          "When appetite returns during maintenance after weight loss, it isn't failure. It is the body finishing what the cut started. The appetite came back in week 22 of maintenance.",
           'The first 21 weeks had been quiet. The body had settled. The scale was holding. The food choices that had taken months of work to default into were running on autopilot. I had started to think the appetite story was over.',
           'Then a Tuesday in week 22 showed up with the loud, specific, mid-afternoon hunger that I had not felt since the second month of the cut. By Friday, I was eating an extra 600 calories a day without planning to. By the next week, the body was up 0.8 kg.',
           'I almost ran the cut playbook on it. Tighten. Restrict. Punish. That instinct was wrong. The fix was different.',
@@ -9284,7 +9284,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'People treat one bad meal and a slip like they are the same thing.',
+          'Does one bad meal ruin a diet? The meal almost never does. The 48 hours after it usually do. People treat one bad meal and a slip like they are the same thing.',
           'They are not.',
           'One bad meal is one bad meal. Most of them get reabsorbed by a normal week without consequence.',
           'A slip is a behavior pattern that follows the meal. The meal is the trigger. The slip is everything you do in the 48 hours after.',
@@ -9464,7 +9464,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'People assume their appetite scales with their weight.',
+          "Why am I so hungry after lifting weights, even on weeks the scale didn't move? Hunger reads training volume, not body weight. People assume their appetite scales with their weight.",
           'The intuition is that as you get smaller, you should need less food, so you should be less hungry. As you get bigger, the opposite. The relationship feels straightforward.',
           'The intuition is mostly wrong. Appetite, day to day and week to week, scales much more closely with training volume, sleep quality, and the body\'s recent repair workload than with what the scale says you weigh.',
           'This is not a small distinction. It changes what to do when hunger is loud, and it explains why two people at the same weight can have wildly different appetite signals on the same day.',
@@ -9642,7 +9642,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'There was no announcement.',
+          'When does a diet become a lifestyle? Quietly. You usually notice weeks after it has already happened. There was no announcement.',
           'The program did not close out with a milestone post or a summary email or a celebration dinner. There was no "before-and-after" moment. There was no day I marked on a calendar.',
           'What there was, instead, was a Tuesday — sometime in month seven of maintenance — where I noticed I had not consciously thought about my food, my training, or my weight all day. The day was halfway over. I had eaten my normal breakfast, made my normal lunch, gone to my normal training session, and not framed any of it as part of "the program."',
           'The program had stopped being a thing I was running. It had become a default I was living.',
@@ -9803,7 +9803,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Q: My scale has not moved for three weeks, but my jeans fit looser and a friend said I looked different last weekend. Am I imagining one of these, or is both actually possible?',
+          "If your scale won't move but your clothes fit looser, the body is recomposing, not failing. Read both instruments, not just the one with digits. Q: My scale has not moved for three weeks, but my jeans fit looser and a friend said I looked different last weekend. Am I imagining one of these, or is both actually possible?",
           'Both are possible and both are probably real.',
           'The scale is reporting one number. That number is the sum of fat mass, lean mass, water, glycogen, and gut contents at the moment you step on it. Any of those can move in any direction, and a stable scale number can hide meaningful movement inside the sum.',
           'A common pattern during a cut: fat mass continues to decrease, lean mass holds or slightly increases if training is in, and water shifts — from muscle glycogen recovery, from changes in sodium intake, from hormonal fluctuation across the week — bring the total to roughly the same number on weigh-in day. The scale reports "no change." The underlying composition has moved.',
@@ -9911,7 +9911,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'The myth is that the mirror is a neutral judge.',
+          "The mirror lies about body image more than it tells the truth. It runs on yesterday's mood, not today's body. The myth is that the mirror is a neutral judge.",
           'You walk up to it, the glass reflects what is in front of it, and the body you see is the body you have. Whatever it reports, that is the ground truth. If it looks like progress, progress is real. If it looks like nothing has happened, nothing has happened.',
           'Almost nothing about that is how the mirror actually works.',
           'The mirror is the most mood-sensitive instrument in your house. What it shows you is a composite — your body, filtered through last night\'s sleep, yesterday\'s food, this morning\'s first thought, the lighting in the bathroom, and the story you have been telling yourself about your body for the past week. The glass is neutral. The read is not.',
@@ -10023,7 +10023,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'There was a three-month stretch of my own cut where I answered every slow weigh-in the same way.',
+          "Too much cardio stalls fat loss more often than people admit. Here's the week I stopped adding more and the body caught up. There was a three-month stretch of my own cut where I answered every slow weigh-in the same way.",
           'I added a cardio session.',
           'Not intentionally, at first. It happened on a Tuesday after a Monday weigh-in that had not moved. I thought: the number is stuck, the obvious lever is expenditure, I will add a thirty-minute zone-2 walk after dinner. The next Monday\'s number moved. I kept the walk.',
           'The week after that, the number slowed again. I extended the walk to forty-five minutes. The number moved.',
@@ -10137,7 +10137,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'There is a specific kind of rage a person reserves for the lower body.',
+          'Lower body fat feels stubborn because it clears last on a timeline most people quit before reaching. Not a refusal — a pacing problem. There is a specific kind of rage a person reserves for the lower body.',
           'The scale has moved. The face has softened. The waist is smaller. A shirt fits differently. The person standing in front of the mirror can see all of this, and still looks down at the thighs or the hips and feels like nothing has happened.',
           'The word people use next is always the same. Stubborn.',
           'It is a useful word the first time. It names a real thing — the lower body really does clear last in most people. But the word quickly stops being descriptive and starts being accusatory. The thighs become the villain. The program becomes a referendum on whether one body zone is finally cooperating.',
@@ -10256,7 +10256,7 @@ const posts: BlogPost[] = [
       {
         type: 'paragraphs',
         paragraphs: [
-          'Most plateaus I have watched a person run into, including my own, were not the body stalling.',
+          "The weight loss plateau fix is rarely more consistency. It's changing the input because the body has stopped responding to the old one. Most plateaus I have watched a person run into, including my own, were not the body stalling.",
           'They were the body quietly telling the person their input was no longer the thing that moved the output.',
           'The person did not hear it that way. They heard it as failure. They responded with more of what had been working. More days of the same food. More weeks of the same training. More rigor on the same surfaces.',
           'And the body kept not responding.',
