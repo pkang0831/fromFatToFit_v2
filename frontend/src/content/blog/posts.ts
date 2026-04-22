@@ -9791,7 +9791,7 @@ const posts: BlogPost[] = [
     ],
     cluster: 'body-composition',
     schemaType: 'article',
-    heroImage: '/founder/patience-middle-checkin-20250731.jpg',
+    heroImage: '/founder/patience-middle-checkin-20250731.webp',
     heroAlt:
       'Founder patience middle check-in image used to anchor a Q&A about how a stuck scale and a looser waistband coexist during a slow composition change and how the body asks you to read both instruments at once',
     deck:
@@ -9899,7 +9899,7 @@ const posts: BlogPost[] = [
     ],
     cluster: 'mirror',
     schemaType: 'article',
-    heroImage: '/founder/mirror-middle-checkin-20250716.jpg',
+    heroImage: '/founder/mirror-middle-checkin-20250716.webp',
     heroAlt:
       'Founder mirror middle check-in image used to anchor a post that reframes the mirror as a mood-filtered instrument rather than a neutral judge of body change',
     deck:
@@ -10011,7 +10011,7 @@ const posts: BlogPost[] = [
     ],
     cluster: 'exercise',
     schemaType: 'article',
-    heroImage: '/founder/sleep-reflective-window-20241217.jpg',
+    heroImage: '/founder/sleep-reflective-window-20241217.webp',
     heroAlt:
       'Founder lifestyle image of a reflective quiet window-side moment used here to anchor a story about backing off training intensity and letting recovery reveal progress that overtraining had been hiding',
     deck:
@@ -10125,7 +10125,7 @@ const posts: BlogPost[] = [
     ],
     cluster: 'body-composition',
     schemaType: 'article',
-    heroImage: '/founder/body-composition-proof-20251221.jpg',
+    heroImage: '/founder/body-composition-proof-20251221.webp',
     heroAlt:
       'Founder body-composition-proof image used as the anchor for a post about how regional fat clears on different timelines and how lower-body fat is usually late, not refusing',
     deck:
@@ -10244,7 +10244,7 @@ const posts: BlogPost[] = [
     ],
     cluster: 'plateau',
     schemaType: 'article',
-    heroImage: '/founder/start.jpg',
+    heroImage: '/founder/start.webp',
     heroAlt:
       'Founder start-state image used to anchor a post about how the habits that got you moving are not the habits that keep you moving through a plateau',
     deck:
