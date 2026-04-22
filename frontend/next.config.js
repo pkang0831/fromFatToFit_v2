@@ -1,3 +1,5 @@
+const { buildBlogRedirects } = require('./src/content/blog/redirects.js');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /** Strip debug logs in production builds (keep error/warn). */
@@ -56,6 +58,7 @@ const nextConfig = {
       ],
     },
   ],
+  redirects: async () => buildBlogRedirects(),
 }
 
 module.exports = nextConfig
