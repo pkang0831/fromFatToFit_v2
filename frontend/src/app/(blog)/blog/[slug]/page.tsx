@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 
+import { AuthorBox } from '@/components/blog/AuthorBox';
+import { AuthorByline } from '@/components/blog/AuthorByline';
 import { BlogArticleContent } from '@/components/blog/BlogArticleContent';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { BlogShareButtons } from '@/components/blog/BlogShareButtons';
@@ -98,21 +100,17 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               <Link href="/blog" className="transition-colors hover:text-primary">
                 Blog
               </Link>
-              <span className="h-1 w-1 rounded-full bg-white/20" />
               {clusterMeta ? (
                 <>
+                  <span className="h-1 w-1 rounded-full bg-white/20" />
                   <Link
                     href={`/blog/topic/${clusterMeta.slug}`}
                     className="transition-colors hover:text-primary"
                   >
                     {clusterMeta.title}
                   </Link>
-                  <span className="h-1 w-1 rounded-full bg-white/20" />
                 </>
               ) : null}
-              <span>{post.date}</span>
-              <span className="h-1 w-1 rounded-full bg-white/20" />
-              <span>{post.readingTime}</span>
             </div>
 
             <div className="space-y-5">
@@ -131,6 +129,11 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 {post.title}
               </h1>
               <p className="max-w-3xl text-lg leading-8 text-white/62 md:text-xl">{post.deck}</p>
+              <AuthorByline
+                publishedDate={post.date}
+                updatedDate={post.lastModified}
+                readingTime={post.readingTime}
+              />
             </div>
 
             <div className="overflow-hidden rounded-[32px] border border-white/[0.08] bg-white/[0.03]">
@@ -152,6 +155,8 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 <BlogArticleContent sections={post.sections} />
               </div>
             </div>
+
+            <AuthorBox />
 
             <div className="rounded-[24px] border border-white/[0.08] bg-white/[0.02] px-6 py-5">
               <BlogShareButtons
