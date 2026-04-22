@@ -1,10 +1,24 @@
-import type { BlogSection } from '@/content/blog/posts';
+import { getAllBlogPosts, type BlogSection } from '@/content/blog/posts';
+import { buildLinkTargets, linkifyText } from './linkifyText';
 
 interface BlogArticleContentProps {
   sections: BlogSection[];
+  /** Slug of the current post; its keyword phrases are excluded from
+   *  auto-linking so articles never link to themselves. */
+  currentSlug: string;
 }
 
-export function BlogArticleContent({ sections }: BlogArticleContentProps) {
+/**
+ * Max 3 distinct internal links per article (see SEO_AUDIT_20260422.md A6).
+ * Each unique slug is linked at most once per article, so 3 anchors means
+ * 3 different destination posts.
+ */
+const LINK_BUDGET_PER_ARTICLE = 3;
+
+export function BlogArticleContent({ sections, currentSlug }: BlogArticleContentProps) {
+  const targets = buildLinkTargets(getAllBlogPosts(), currentSlug);
+  const linkedSlugs = new Set<string>();
+  const budget = { remaining: LINK_BUDGET_PER_ARTICLE };
   return (
     <div className="space-y-10">
       {sections.map((section, index) => {
@@ -99,7 +113,7 @@ export function BlogArticleContent({ sections }: BlogArticleContentProps) {
             <div className="space-y-5">
               {section.paragraphs.map((paragraph, paragraphIndex) => (
                 <p key={`${index}-${paragraphIndex}`} className="text-lg leading-8 text-white/68">
-                  {paragraph}
+                  {linkifyText(paragraph, targets, linkedSlugs, budget)}
                 </p>
               ))}
             </div>
