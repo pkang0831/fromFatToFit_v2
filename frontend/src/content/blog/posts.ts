@@ -79,7 +79,7 @@ export interface BlogPost {
 }
 
 const posts: BlogPost[] = [
-  {
+{
     slug: 'how-i-lost-50-kg-middle-of-diet',
     mediumUrl: 'https://medium.com/@pkang0831/why-i-built-devenira-for-the-weeks-where-you-want-to-quit-09da9cee9992',
     title: 'Why I Built Devenira for the Weeks Where You Want to Quit',
@@ -88,6 +88,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Most people do not quit because nothing is happening. They quit because panic gets there before proof. This is the story behind Devenira.',
     date: '2026-04-15',
+    lastModified: '2026-04-15',
     readingTime: '8 min read',
     tags: ['Founder Story', 'Weight Loss', 'Transformation', 'Body Image'],
     seoTitle: 'How I Lost 50 kg: Why the Middle of the Diet Is the Hardest',
@@ -102,6 +103,7 @@ const posts: BlogPost[] = [
       'middle of weight loss transformation',
     ],
     cluster: 'founder-story',
+    schemaType: 'article',
     heroImage: '/founder/founder-story-hanok-20260119.webp',
     heroAlt: 'Composed outdoor hanok portrait of pkang after a major transformation, the visual anchor for how I lost 50 kg over five years',
     deck:
@@ -197,7 +199,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'why-cant-i-see-weight-loss-in-the-mirror',
     title: 'Why the Mirror Can Make Real Progress Feel Fake',
     description:
@@ -205,6 +207,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Progress can be real before it feels obvious. The mirror is often the last place to give clear feedback.',
     date: '2026-04-16',
+    lastModified: '2026-04-16',
     readingTime: '6 min read',
     tags: ['Body Image', 'Progress Tracking', 'Weight Loss', 'Dieting'],
     seoTitle: "Why Can't I See My Weight Loss in the Mirror?",
@@ -340,7 +343,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'should-i-weigh-myself-every-day-on-a-diet',
     title: 'One Emotional Weigh-In Can Wreck a Good Week',
     description:
@@ -348,6 +351,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'A single scale increase can ruin a good week if you let panic tell the story. Better interpretation matters as much as better habits.',
     date: '2026-04-17',
+    lastModified: '2026-04-17',
     readingTime: '6 min read',
     tags: ['Scale Weight', 'Fat Loss', 'Dieting', 'Weight Loss'],
     seoTitle: 'Should I Weigh Myself Every Day on a Diet?',
@@ -499,7 +503,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-track-body-transformation-without-the-scale',
     title: 'How to Track Body Transformation Without Obsessing Over the Scale',
     description:
@@ -507,6 +511,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'You do not need more data. You need a better system for judging whether your body is actually changing.',
     date: '2026-04-18',
+    lastModified: '2026-04-18',
     readingTime: '7 min read',
     tags: ['Transformation', 'Progress Photos', 'Body Composition', 'Fat Loss'],
     seoTitle: 'How to Track Body Transformation Without the Scale',
@@ -691,7 +696,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-does-the-scale-go-up-when-i-barely-eat',
     title: 'Why It Feels Like You Gain Weight Even When You Barely Eat',
     description:
@@ -699,6 +704,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'A rude weigh-in can make your whole week feel fake. The real problem is often not the number itself, but the way you read it.',
     date: '2026-04-19',
+    lastModified: '2026-04-19',
     readingTime: '7 min read',
     tags: ['Scale Weight', 'Weight Illusions', 'Dieting', 'Women’s Health'],
     seoTitle: "Why Does the Scale Go Up When You're Barely Eating?",
@@ -834,7 +840,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'what-counts-as-a-weight-loss-plateau',
     title: 'What Actually Counts as a Weight Loss Plateau?',
     description:
@@ -842,6 +848,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'People use the word plateau way too early. Sometimes what they really mean is: I am scared the dramatic part ended.',
     date: '2026-04-20',
+    lastModified: '2026-04-20',
     readingTime: '7 min read',
     tags: ['Plateau', 'Weight Loss', 'Progress Tracking', 'Body Recomposition'],
     seoTitle: "What Counts as a Weight Loss Plateau (and What Doesn't)?",
@@ -989,7 +996,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'is-losing-5kg-in-a-week-water-weight',
     title: 'Why Losing 5kg in a Week Usually Means Water, Not Fat',
     description:
@@ -997,6 +1004,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'When someone says they lost 5kg in a week, the number lands before the context does. That is why these stories scramble people.',
     date: '2026-04-21',
+    lastModified: '2026-04-21',
     readingTime: '7 min read',
     tags: ['Water Weight', 'Rapid Weight Loss', 'Scale Weight', 'Fat Loss'],
     seoTitle: 'Is Losing 5 kg in a Week Water Weight?',
@@ -1131,7 +1139,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-am-i-not-losing-weight-anymore',
     title: "The Most Important Reason You Think You're Not Losing Weight",
     description:
@@ -1139,6 +1147,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Sometimes the diet did not fail. The dramatic part ended, your patience failed first, and the scale got far too much authority.',
     date: '2026-04-22',
+    lastModified: '2026-04-22',
     readingTime: '6 min read',
     tags: ['Plateau', 'Patience', 'Weight Loss', 'Dieting'],
     seoTitle: "Why Am I Not Losing Weight Anymore? (It's Not You)",
@@ -1271,7 +1280,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'skinny-fat-normal-weight-high-body-fat',
     title: 'The Scale Can Say “Normal” and Still Tell You Nothing Useful',
     description:
@@ -1279,6 +1288,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The scale can say normal while the mirror still feels expensive. Weight and body composition are not identical, and chasing smaller can make the wrong problem worse.',
     date: '2026-04-23',
+    lastModified: '2026-04-23',
     readingTime: '6 min read',
     tags: ['Body Image', 'Body Composition', 'Scale Weight', 'Mirror'],
     seoTitle: 'Skinny Fat: Normal Weight but High Body Fat',
@@ -1293,6 +1303,7 @@ const posts: BlogPost[] = [
       'skinny fat signs',
     ],
     cluster: 'scale',
+    schemaType: 'article',
     heroImage: '/founder/body-composition-proof-20251221.webp',
     heroAlt: 'Founder composition proof shot showing how skinny fat normal weight with high body fat hides behind a healthy scale',
     deck:
@@ -1371,7 +1382,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'how-to-stick-to-a-diet-when-progress-slows',
     title: 'The Most Reliable Way to Succeed at Dieting Is Still the Least Dramatic One',
     description:
@@ -1379,6 +1390,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Most diets do not end with one giant disaster. They end with a mood. Usually some version of: what is the point?',
     date: '2026-04-24',
+    lastModified: '2026-04-24',
     readingTime: '7 min read',
     tags: ['Consistency', 'Weight Loss', 'Mindset', 'Dieting'],
     seoTitle: 'How to Stick to a Diet When Progress Slows Down',
@@ -1539,7 +1551,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'progress-update-body-changes-slower-than-mind',
     title: 'Progress Update #2: The Body Changed Slower Than My Head Did',
     description:
@@ -1547,6 +1559,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The body changed, yes. But the bigger win was that my reading of the body finally started catching up.',
     date: '2026-04-25',
+    lastModified: '2026-04-25',
     readingTime: '6 min read',
     tags: ['Founder Story', 'Transformation', 'Progress Update', 'Mindset'],
     seoTitle: 'Weight Loss Progress Update: Body vs Mind',
@@ -1561,6 +1574,7 @@ const posts: BlogPost[] = [
       'body changes faster than mind',
     ],
     cluster: 'founder-story',
+    schemaType: 'article',
     heroImage: '/founder/progress-update-hanok-20260119.webp',
     heroAlt: 'Founder portrait from a personal progress update, capturing how body changes slower than mind during weight loss',
     deck:
@@ -1631,7 +1645,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'how-to-know-youre-losing-weight-without-the-scale',
     title: 'Don’t Trust the Scale—Here’s What Actually Proves You’re Losing Weight',
     description:
@@ -1639,6 +1653,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The scale is one witness. It is not the whole case. If you want proof, look at shape, fit, softness, firmness, and visual change over time.',
     date: '2026-04-26',
+    lastModified: '2026-04-26',
     readingTime: '6 min read',
     tags: ['Scale Weight', 'Progress Tracking', 'Fat Loss', 'Body Image'],
     seoTitle: "How to Know You're Losing Weight Without the Scale",
@@ -1797,7 +1812,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'what-to-do-after-a-binge-on-a-diet',
     title: 'Read This Before You Try to “Fix” Your Diet Slip',
     description:
@@ -1805,6 +1820,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'After a binge, the second mistake is usually trying to punish it out of existence. The real job is understanding the setup.',
     date: '2026-04-27',
+    lastModified: '2026-04-27',
     readingTime: '6 min read',
     tags: ['Binge Eating', 'Diet Slips', 'Recovery', 'Appetite'],
     seoTitle: 'What to Do After a Binge on a Diet (Before You Spiral)',
@@ -1942,7 +1958,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-handle-hunger-pangs-on-a-diet',
     title: 'You Do Not Need to Love Hunger. You Need to Understand It.',
     description:
@@ -1950,6 +1966,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Hunger is not a personality test. The goal is not heroic suffering. The goal is a food pattern that makes appetite less chaotic.',
     date: '2026-04-28',
+    lastModified: '2026-04-28',
     readingTime: '6 min read',
     tags: ['Hunger', 'Dieting', 'Appetite', 'Fasting'],
     seoTitle: 'How to Handle Hunger Pangs on a Diet (Without Hating It)',
@@ -2110,7 +2127,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-cant-i-sleep-on-a-calorie-deficit',
     title: 'If Your Diet Broke Your Sleep, It Is Not Discipline Anymore',
     description:
@@ -2118,6 +2135,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Diet culture loves flattering breakdown. If your plan leaves you exhausted and awake at 4 a.m., that is not a badge of honor.',
     date: '2026-04-29',
+    lastModified: '2026-04-29',
     readingTime: '6 min read',
     tags: ['Sleep', 'Overcorrection', 'Dieting', 'Training Stress'],
     seoTitle: "Why Can't I Sleep on a Calorie Deficit?",
@@ -2247,7 +2265,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'are-cheat-days-bad-for-weight-loss',
     title: 'Cheat Days Do Not Expose Your Character. They Expose Your System.',
     description:
@@ -2255,6 +2273,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Cheat days are not great judges of character. Most of the time they reveal how unstable the weekly setup still is.',
     date: '2026-04-30',
+    lastModified: '2026-04-30',
     readingTime: '6 min read',
     tags: ['Cheat Day', 'Binge Eating', 'Relapse', 'Dieting'],
     seoTitle: 'Are Cheat Days Bad for Weight Loss? Why They Backfire',
@@ -2379,7 +2398,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'does-one-bad-day-ruin-a-diet',
     title: 'You’ve Been Told “One Bad Day Won’t Hurt”—But That’s Only Half the Truth',
     description:
@@ -2387,6 +2406,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'One bad day usually does less damage than several bad days. The danger starts when people hear that and turn it into a strategy.',
     date: '2026-05-01',
+    lastModified: '2026-05-01',
     readingTime: '6 min read',
     tags: ['Cheat Day', 'Binge Eating', 'Habits', 'Weight Loss'],
     seoTitle: 'Does One Bad Day Ruin a Diet? The Honest Answer',
@@ -2518,7 +2538,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'do-obese-people-lose-weight-slower',
     title: 'Do People Who Have Been Obese for Years Lose Weight More Slowly?',
     description:
@@ -2526,6 +2546,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'This question sounds scientific, but underneath it is really a fairness question: am I just stuck with a worse deal because I waited too long?',
     date: '2026-05-02',
+    lastModified: '2026-05-02',
     readingTime: '6 min read',
     tags: ['Long-Term Obesity', 'Weight Loss', 'Habits', 'Mindset'],
     seoTitle: 'Do Obese People Lose Weight Slower Than Others?',
@@ -2658,7 +2679,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-is-my-appetite-stronger-on-a-diet',
     title: 'Why Appetite Feels Stronger the Longer You Diet',
     description:
@@ -2666,6 +2687,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'If food started sounding louder the longer you dieted, that is not always a character problem. Sometimes it is a system problem.',
     date: '2026-05-03',
+    lastModified: '2026-05-03',
     readingTime: '7 min read',
     tags: ['Appetite', 'Dieting', 'Cravings', 'Weight Loss'],
     seoTitle: 'Why Is My Appetite Stronger the Longer I Diet?',
@@ -2822,7 +2844,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-am-i-working-out-but-not-losing-weight',
     title: 'Exercise Is Not Shrinking You the Way You Expected',
     description:
@@ -2830,6 +2852,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Exercise is not a shrinking machine. It is a body-composition machine. The scale catches up last.',
     date: '2026-05-04',
+    lastModified: '2026-05-04',
     readingTime: '5 min read',
     tags: ['Exercise', 'Weight Loss', 'Body Composition', 'Fitness Myths'],
     seoTitle: 'Why Am I Working Out but Not Losing Weight?',
@@ -2951,7 +2974,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-is-the-middle-of-weight-loss-the-hardest',
     title: 'The Unglamorous Middle of a Transformation',
     description:
@@ -2959,6 +2982,7 @@ const posts: BlogPost[] = [
     socialDescription:
       "Why is the middle of weight loss the hardest stretch? The dramatic feedback is gone and the work hasn't ended. The before photo is easy. The after photo is easy. The six months between them is where everybody quits.",
     date: '2026-05-05',
+    lastModified: '2026-05-05',
     readingTime: '6 min read',
     tags: ['Founder Story', 'Transformation', 'Weight Loss', 'Consistency'],
     seoTitle: 'Why Is the Middle of Weight Loss the Hardest?',
@@ -3070,7 +3094,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'is-my-stomach-bloat-or-fat',
     title: 'Is It Bloat or Is It Fat',
     description:
@@ -3078,6 +3102,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The body generally cannot synthesize 1.5 kg of fat in one day. Whatever you are panicking about is almost always water.',
     date: '2026-05-06',
+    lastModified: '2026-05-06',
     readingTime: '5 min read',
     tags: ['Body Composition', 'Scale', 'Water Weight', 'Daily Fluctuation'],
     seoTitle: 'Is My Stomach Bloat or Fat? How to Tell',
@@ -3194,7 +3219,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-break-a-weight-loss-plateau',
     title: 'A Plateau Is a Data Point, Not a Failure',
     description:
@@ -3202,6 +3227,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.',
     date: '2026-05-07',
+    lastModified: '2026-05-07',
     readingTime: '6 min read',
     tags: ['Plateau', 'Consistency', 'Weight Loss', 'Dieting'],
     seoTitle: 'How to Break a Weight Loss Plateau (Without Panicking)',
@@ -3357,7 +3383,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-does-my-body-look-different-from-different-angles',
     title: 'The Body Looks Different From Behind',
     description:
@@ -3365,6 +3391,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Why does my body look different from different angles? Front view rewards bad lighting; back view tells the truth most of the time. I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.',
     date: '2026-05-08',
+    lastModified: '2026-05-08',
     readingTime: '6 min read',
     tags: ['Mirror', 'Body Image', 'Progress Photos', 'Transformation'],
     seoTitle: 'Why Does My Body Look Different From Different Angles?',
@@ -3488,7 +3515,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'past-the-messy-middle-of-weight-loss',
     title: 'Progress Update 3: Past the Messy Middle',
     description:
@@ -3496,6 +3523,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'This is a check-in, not a before-and-after. Before-and-afters are for people who are finished. I am not finished. What I am is past the messy middle.',
     date: '2026-05-09',
+    lastModified: '2026-05-09',
     readingTime: '6 min read',
     tags: ['Progress Update', 'Transformation', 'Founder Story', 'Weight Loss'],
     seoTitle: 'Past the Messy Middle of Weight Loss: A Check-In',
@@ -3510,6 +3538,7 @@ const posts: BlogPost[] = [
       'after the middle phase diet',
     ],
     cluster: 'founder-story',
+    schemaType: 'article',
     heroImage: '/founder/progress-update-hanok-20260119.webp',
     heroAlt: 'Founder composed portrait taken after coming through and now well past the messy middle of weight loss',
     deck:
@@ -3575,7 +3604,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'how-to-stop-using-exercise-as-punishment',
     title: 'When the Workout Becomes Therapy, Not Punishment',
     description:
@@ -3583,6 +3612,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'For most of my life, the workout was a receipt. That kind of training can still produce results. It cannot produce peace.',
     date: '2026-05-10',
+    lastModified: '2026-05-10',
     readingTime: '6 min read',
     tags: ['Exercise', 'Mental Health', 'Body Image', 'Consistency'],
     seoTitle: 'How to Stop Using Exercise as Punishment',
@@ -3723,7 +3753,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'is-maintenance-hunger-different-from-diet-hunger',
     title: 'Hunger in Maintenance Is Different from Hunger on a Diet',
     description:
@@ -3731,6 +3761,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The hunger you feel on a diet and the hunger you feel in maintenance are physiologically different. Reading them the same way is one of the main reasons people regain within six months.',
     date: '2026-05-11',
+    lastModified: '2026-05-11',
     readingTime: '7 min read',
     tags: ['Appetite', 'Maintenance', 'Dieting', 'Weight Loss'],
     seoTitle: 'Is Maintenance Hunger Different From Diet Hunger?',
@@ -3862,7 +3893,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-some-people-never-gain-weight-no-matter-what',
     title: 'The Friend Who Never Diets and Never Gains',
     description:
@@ -3870,6 +3901,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The friend who stays slim without trying is running a set of invisible habits that happen to balance. The interesting question is which of those habits is genuinely learnable for you.',
     date: '2026-05-12',
+    lastModified: '2026-05-12',
     readingTime: '6 min read',
     tags: ['Body Composition', 'NEAT', 'Habits', 'Weight Stability'],
     seoTitle: 'Why Some People Never Gain Weight No Matter What',
@@ -3998,7 +4030,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-do-you-know-youve-reached-set-point',
     title: 'How Do You Know When You Have Reached Your Set Point',
     description:
@@ -4006,6 +4038,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The set point is not a fixed number handed to you at birth. It is not a verdict. It is information.',
     date: '2026-05-13',
+    lastModified: '2026-05-13',
     readingTime: '7 min read',
     tags: ['Set Point', 'Maintenance', 'Weight Loss', 'Body Composition'],
     seoTitle: "How Do You Know You've Reached Your Set Point Weight?",
@@ -4138,7 +4171,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-do-i-weigh-more-at-night',
     title: 'The Scale Lies Differently in the Morning Than in the Evening',
     description:
@@ -4146,6 +4179,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The scale is honest at every time of day. It is just answering a different question each time.',
     date: '2026-05-14',
+    lastModified: '2026-05-14',
     readingTime: '5 min read',
     tags: ['Scale', 'Daily Fluctuation', 'Weight Loss', 'Tracking'],
     seoTitle: 'Why Do I Weigh More at Night Than in the Morning?',
@@ -4264,7 +4298,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'does-bad-sleep-ruin-weight-loss',
     title: 'Sleep Debt Ruins a Week of Dieting in Three Nights',
     description:
@@ -4272,6 +4306,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Three bad nights earlier in the week can crack an honest Friday. Look at your sleep before you look at your willpower.',
     date: '2026-05-15',
+    lastModified: '2026-05-15',
     readingTime: '6 min read',
     tags: ['Sleep', 'Recovery', 'Dieting', 'Appetite'],
     seoTitle: 'Does Bad Sleep Ruin Weight Loss? Yes, and Fast',
@@ -4391,7 +4426,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'do-vegetables-help-you-feel-full-on-a-diet',
     title: 'The Quiet Role Vegetables Play in Staying Full',
     description:
@@ -4399,6 +4434,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'A plate with vegetables is a plate with a different shape. You eat less of the dense stuff without deciding to.',
     date: '2026-05-16',
+    lastModified: '2026-05-16',
     readingTime: '6 min read',
     tags: ['Food Structure', 'Vegetables', 'Satiety', 'Weight Loss'],
     seoTitle: 'Do Vegetables Help You Feel Full on a Diet?',
@@ -4522,7 +4558,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-stop-a-binge-from-becoming-a-binge-week',
     title: 'How Do I Stop a Binge From Becoming a Binge Week',
     description:
@@ -4530,6 +4566,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'One binge is a meal. A binge week is a choice. The choice happens in the 24 hours after.',
     date: '2026-05-17',
+    lastModified: '2026-05-17',
     readingTime: '6 min read',
     tags: ['Binge', 'Cheat Day', 'Recovery', 'Dieting'],
     seoTitle: 'How to Stop a Binge From Becoming a Binge Week',
@@ -4703,7 +4740,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-do-others-notice-my-weight-loss-before-me',
     title: 'You Look Different to Other People Before You Look Different to Yourself',
     description:
@@ -4711,6 +4748,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'You are the least well-positioned observer of your own transformation. Other people are running the opposite experiment.',
     date: '2026-05-18',
+    lastModified: '2026-05-18',
     readingTime: '6 min read',
     tags: ['Mirror', 'Body Image', 'Transformation', 'Self Perception'],
     seoTitle: 'Why Do Others Notice My Weight Loss Before I Do?',
@@ -4838,7 +4876,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-do-you-lose-so-much-weight-first-week',
     title: 'The First Week of Any Diet Is the Most Misleading One',
     description:
@@ -4846,6 +4884,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Week one is calibration. Week two is the first real read. Week three is when the diet starts telling the truth.',
     date: '2026-05-19',
+    lastModified: '2026-05-19',
     readingTime: '6 min read',
     tags: ['Dieting', 'Weight Loss', 'Water Weight', 'Patience'],
     seoTitle: 'Why Do You Lose So Much Weight the First Week of a Diet?',
@@ -4978,7 +5017,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'difference-between-weight-loss-and-fat-loss',
     title: 'Losing Weight Is Not the Same as Getting Leaner',
     description:
@@ -4986,6 +5025,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Getting leaner is a composition story told over months. Losing weight is a mass story told over weeks. Not the same number. Not the same clock.',
     date: '2026-05-20',
+    lastModified: '2026-05-20',
     readingTime: '6 min read',
     tags: ['Body Composition', 'Scale', 'Recomposition', 'Weight Loss'],
     seoTitle: "What's the Difference Between Weight Loss and Fat Loss?",
@@ -5121,7 +5161,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-do-i-gain-back-more-weight-than-i-lost',
     title: 'Why People Gain More Back Than They Lost',
     description:
@@ -5129,6 +5169,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The scariest version of a rebound is not the weight itself. It is the conclusion people draw from it.',
     date: '2026-05-21',
+    lastModified: '2026-05-21',
     readingTime: '7 min read',
     tags: ['Maintenance', 'Rebound', 'Yo-Yo Dieting', 'Weight Loss'],
     seoTitle: 'Why Do I Gain Back More Weight Than I Lost?',
@@ -5267,7 +5308,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-eat-at-social-events-on-a-diet',
     title: 'How Do I Eat Normally at Social Events',
     description:
@@ -5275,6 +5316,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The under-eating before the dinner and the over-correcting after the dinner are the threat. The dinner itself is almost never the problem.',
     date: '2026-05-22',
+    lastModified: '2026-05-22',
     readingTime: '6 min read',
     tags: ['Social Eating', 'Food Structure', 'Dieting', 'Restaurants'],
     seoTitle: 'How to Eat at Social Events on a Diet',
@@ -5457,7 +5499,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-stay-at-your-goal-weight-long-term',
     title: 'The Kind of Person Who Stays at Their Goal Weight',
     description:
@@ -5465,6 +5507,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The kind of person who holds weight off is not a more disciplined version of the person who loses it. It is a quieter version.',
     date: '2026-05-23',
+    lastModified: '2026-05-23',
     readingTime: '6 min read',
     tags: ['Maintenance', 'Founder Story', 'Long Game', 'Weight Loss'],
     seoTitle: 'How to Stay at Your Goal Weight Long Term',
@@ -5620,7 +5663,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-did-i-stop-losing-weight-at-3-months',
     title: 'Why You Stop Losing Weight Around Month Three',
     description:
@@ -5628,6 +5671,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The month-three slowdown is not a failure point. It is the first of several scheduled rest points in a serious loss phase.',
     date: '2026-05-24',
+    lastModified: '2026-05-24',
     readingTime: '7 min read',
     tags: ['Plateau', 'Dieting', 'Metabolic Adaptation', 'Weight Loss'],
     seoTitle: 'Why Did I Stop Losing Weight at 3 Months?',
@@ -5762,7 +5806,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-tell-if-youre-hungry-or-bored',
     title: 'Am I Actually Hungry or Am I Bored',
     description:
@@ -5770,6 +5814,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The craving is specific. The hunger is general. If you would not eat an apple, it is probably not hunger.',
     date: '2026-05-25',
+    lastModified: '2026-05-25',
     readingTime: '7 min read',
     tags: ['Appetite', 'Emotional Eating', 'Cravings', 'Dieting'],
     seoTitle: "How to Tell If You're Hungry or Bored",
@@ -5950,7 +5995,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-much-protein-do-i-need-to-lose-fat',
     title: 'How Much Protein Do I Actually Need to Lose Fat',
     description:
@@ -5958,6 +6003,7 @@ const posts: BlogPost[] = [
     socialDescription:
       '1.6 to 2.2 g/kg per day, split across 3 or 4 meals, from whatever sources you will actually eat. That is the whole rule.',
     date: '2026-05-26',
+    lastModified: '2026-05-26',
     readingTime: '6 min read',
     tags: ['Protein', 'Macronutrients', 'Fat Loss', 'Food Structure'],
     seoTitle: 'How Much Protein Do I Need to Lose Fat?',
@@ -5972,6 +6018,7 @@ const posts: BlogPost[] = [
       'high protein diet for cutting',
     ],
     cluster: 'food-structure',
+    schemaType: 'article',
     heroImage: '/founder/founder-story-hanok-20260119.webp',
     heroAlt: 'Founder portrait framing the basic question of how much protein do I need to lose fat without overthinking it',
     deck:
@@ -6065,7 +6112,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'why-are-my-workouts-harder-on-a-cut',
     title: 'Why Your Workouts Feel Harder When You Are Dieting',
     description:
@@ -6073,6 +6120,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'You are not lifting weaker. You are lifting on fumes. That is the cost of the deficit. Pay it, do not fight it.',
     date: '2026-05-27',
+    lastModified: '2026-05-27',
     readingTime: '7 min read',
     tags: ['Exercise', 'Recovery', 'Dieting', 'Strength Training'],
     seoTitle: 'Why Are My Workouts Harder on a Cut?',
@@ -6224,7 +6272,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-does-strength-increase-before-muscle-size',
     title: 'Why Your Strength Increases Before Your Shape Changes',
     description:
@@ -6232,6 +6280,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Your muscles learn to fire before they learn to grow. The numbers move first. The body moves second.',
     date: '2026-05-28',
+    lastModified: '2026-05-28',
     readingTime: '6 min read',
     tags: ['Strength Training', 'Neural Adaptation', 'Beginner Lifting', 'Body Composition'],
     seoTitle: 'Why Does Strength Increase Before Muscle Size?',
@@ -6379,7 +6428,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-trust-slow-weight-loss-progress',
     title: 'The Quiet Erosion of Not Believing Your Progress',
     description:
@@ -6387,6 +6436,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Belief is a fast daily signal. Results are a slow monthly one. If you wait for results to feed belief, belief will run out. This is what fills the gap.',
     date: '2026-05-29',
+    lastModified: '2026-05-29',
     readingTime: '6 min read',
     tags: ['Founder Story', 'Belief', 'Long Game', 'Weight Loss'],
     seoTitle: 'How to Trust Slow Weight Loss Progress',
@@ -6564,7 +6614,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-progress-photos-dont-show-progress',
     title: 'Progress Photos Can Lie as Much as the Mirror Does',
     description:
@@ -6572,6 +6622,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The body in the photo did not change overnight. The photo did. The mirror lies fast. The photo lies slowly and looks more like proof while it does it.',
     date: '2026-05-30',
+    lastModified: '2026-05-30',
     readingTime: '7 min read',
     tags: ['Mirror', 'Progress Photos', 'Body Image', 'Tracking'],
     seoTitle: "Why Progress Photos Don't Show Progress (and the Fix)",
@@ -6723,7 +6774,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-does-restriction-make-cravings-worse',
     title: 'Is This Craving the Food or the Deprivation Talking',
     description:
@@ -6731,6 +6782,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Real cravings survive permission. Deprivation cravings dissolve in it. The next yes will not feel like food. It will feel like a release.',
     date: '2026-05-31',
+    lastModified: '2026-05-31',
     readingTime: '8 min read',
     tags: ['Cravings', 'Restriction', 'Cheat Day', 'Appetite'],
     seoTitle: 'Why Does Restriction Make Cravings Worse?',
@@ -6901,7 +6953,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-does-the-same-weight-feel-different-as-you-age',
     title: 'The Same Number on the Scale Feels Different at 30 Than at 20',
     description:
@@ -6909,6 +6961,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'A number is a sample. A composition is the body. A decade is a different instrument entirely.',
     date: '2026-06-01',
+    lastModified: '2026-06-01',
     readingTime: '8 min read',
     tags: ['Scale', 'Body Composition', 'Aging', 'Maintenance'],
     seoTitle: 'Why Does the Same Weight Feel Different as You Age?',
@@ -7086,7 +7139,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'non-scale-victories-weight-loss',
     title: 'The Small Wins Between Progress Updates Are the Real Program',
     description:
@@ -7094,6 +7147,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The cheat day was the story. The seven dinners were the program. The drama got logged. The defaults did not.',
     date: '2026-06-02',
+    lastModified: '2026-06-02',
     readingTime: '7 min read',
     tags: ['Habits', 'Long Game', 'Founder Story', 'Weight Loss'],
     seoTitle: 'Non Scale Victories in Weight Loss: The Real Wins',
@@ -7108,6 +7162,7 @@ const posts: BlogPost[] = [
       'celebrate small progress diet',
     ],
     cluster: 'plateau',
+    schemaType: 'article',
     heroImage: '/founder/final-portrait.webp',
     heroAlt: 'Founder portrait at the quiet end-state, showing the small Wednesdays behind non scale victories in weight loss',
     deck:
@@ -7227,7 +7282,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'first-month-of-maintenance-after-weight-loss',
     title: 'The First Month of Maintenance Feels Nothing Like the Diet',
     description:
@@ -7235,6 +7290,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The diet has a finish line painted on it. Maintenance does not. That single difference is what makes the first month feel completely unlike the cut.',
     date: '2026-06-03',
+    lastModified: '2026-06-03',
     readingTime: '8 min read',
     tags: ['Maintenance', 'Weight Loss', 'Habits', 'Long Game'],
     seoTitle: 'The First Month of Maintenance After Weight Loss',
@@ -7249,6 +7305,7 @@ const posts: BlogPost[] = [
       'first 30 days maintenance',
     ],
     cluster: 'maintenance',
+    schemaType: 'article',
     heroImage: '/founder/long-game-founder-20251221.webp',
     heroAlt: 'Founder long-game portrait at the handoff into the first month of maintenance after weight loss, calmer than the cut',
     deck:
@@ -7360,7 +7417,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'why-am-i-hungry-at-night-but-not-during-the-day',
     title: 'Why Does My Hunger Spike at Night When I Was Fine All Day',
     description:
@@ -7368,6 +7425,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Most night-hunger spikes are not psychological. They are scheduling problems wearing psychological clothes. The day was a number. The evening was a person.',
     date: '2026-06-04',
+    lastModified: '2026-06-04',
     readingTime: '8 min read',
     tags: ['Appetite', 'Night Cravings', 'Dieting', 'Sleep'],
     seoTitle: 'Why Am I Hungry at Night but Not During the Day?',
@@ -7534,7 +7592,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'am-i-really-in-a-plateau-or-tracking-wrong',
     title: 'The Plateau That Was Actually an Honesty Problem',
     description:
@@ -7542,6 +7600,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The plateau is sometimes the body. The plateau is often the log. Both are real possibilities. The cheap diagnostic is honesty.',
     date: '2026-06-05',
+    lastModified: '2026-06-05',
     readingTime: '8 min read',
     tags: ['Plateau', 'Tracking', 'Weight Loss', 'Self Awareness'],
     seoTitle: 'Am I Really in a Plateau, or Am I Tracking Wrong?',
@@ -7702,7 +7761,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'life-after-50kg-weight-loss',
     title: 'Progress Update 4: The Body Finally Stopped Being the Loud Thing',
     description:
@@ -7710,6 +7769,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The body finally stopped being the loud thing. The work was not making the body louder. The work was making everything else loud enough that the body did not have to do all the talking.',
     date: '2026-06-06',
+    lastModified: '2026-06-06',
     readingTime: '7 min read',
     tags: ['Progress Update', 'Founder Story', 'Maintenance', 'Transformation'],
     seoTitle: 'Life After 50 kg Weight Loss: The Quiet Phase',
@@ -7724,6 +7784,7 @@ const posts: BlogPost[] = [
       'what maintenance really feels like',
     ],
     cluster: 'founder-story',
+    schemaType: 'article',
     heroImage: '/founder/final-body.webp',
     heroAlt: 'Founder portrait at the post-loss steady state, the visual anchor for what life after 50kg weight loss actually looks like',
     deck:
@@ -7822,7 +7883,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'clothes-fit-better-but-scale-is-the-same',
     title: 'Clothes Tell You the Truth the Mirror Cannot',
     description:
@@ -7830,6 +7891,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The mirror is theatre. The scale is noise. The closet is the receipt. Get a verdict from the closet next time the scale is making you anxious.',
     date: '2026-06-07',
+    lastModified: '2026-06-07',
     readingTime: '7 min read',
     tags: ['Body Composition', 'Mirror', 'Tracking', 'Weight Loss'],
     seoTitle: "Clothes Fit Better but Scale Is the Same: What's Happening",
@@ -7988,7 +8050,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-get-back-on-track-after-a-bad-weekend',
     title: 'The Bad Weekend That Finally Taught Me Something',
     description:
@@ -7996,6 +8058,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'A weekend cannot ruin a program that has a recovery mode. A perfect program with no recovery mode can be ruined by a single Friday.',
     date: '2026-06-08',
+    lastModified: '2026-06-08',
     readingTime: '7 min read',
     tags: ['Cheat Day', 'Binge Recovery', 'Diet Systems', 'Weight Loss'],
     seoTitle: 'How to Get Back on Track After a Bad Diet Weekend',
@@ -8188,7 +8251,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'how-to-stop-mirror-checking-on-a-diet',
     title: 'How to Go on a Mirror Diet When the Real Diet Is Getting Loud',
     description:
@@ -8196,6 +8259,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Look less. Look better. Look in fewer states. Treating the body well sometimes means turning down the loudest instrument in the room.',
     date: '2026-06-09',
+    lastModified: '2026-06-09',
     readingTime: '8 min read',
     tags: ['Mirror', 'Body Image', 'Self Awareness', 'Weight Loss'],
     seoTitle: 'How to Stop Mirror Checking on a Diet',
@@ -8397,7 +8461,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'do-i-have-to-meal-prep-to-lose-weight',
     title: 'Do I Actually Have to Meal Prep to Lose Weight',
     description:
@@ -8405,6 +8469,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The Sunday is not the program. The default is the program. If you have a default you can run on autopilot most weeknights, you do not need a Sunday.',
     date: '2026-06-10',
+    lastModified: '2026-06-10',
     readingTime: '9 min read',
     tags: ['Food Structure', 'Meal Prep', 'Habits', 'Weight Loss'],
     seoTitle: 'Do I Have to Meal Prep to Lose Weight? The Real Answer',
@@ -8575,7 +8640,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-adding-cardio-to-a-cut-backfires',
     title: 'Why Adding Cardio to a Cut Can Backfire Faster Than You Think',
     description:
@@ -8583,6 +8648,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'A stalled cut is rarely a movement deficit. The cardio adds expenditure. The body answers. If the body answers loud enough, the net change is much smaller than the session math implied.',
     date: '2026-06-11',
+    lastModified: '2026-06-11',
     readingTime: '8 min read',
     tags: ['Cardio', 'Exercise', 'Plateau', 'Weight Loss'],
     seoTitle: 'Why Adding Cardio to a Cut Can Backfire',
@@ -8752,7 +8818,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'daily-weighing-eating-disorder-risk',
     title: 'Weighing Yourself Every Day Can Be a Trap, Not a Discipline',
     description:
@@ -8760,6 +8826,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The daily number is not data. It is weather. Reading weather every morning and reacting to it like a forecast about your character is the trap.',
     date: '2026-06-12',
+    lastModified: '2026-06-12',
     readingTime: '9 min read',
     tags: ['Scale', 'Tracking', 'Mindset', 'Weight Loss'],
     seoTitle: 'Daily Weighing: When It Becomes an Eating-Disorder Risk',
@@ -8774,6 +8841,7 @@ const posts: BlogPost[] = [
       'scale obsession eating disorder',
     ],
     cluster: 'scale',
+    schemaType: 'article',
     heroImage: '/founder/scale-rude-before-20240130.webp',
     heroAlt: 'Founder before-state scale image from a morning the weigh-in became weather, framing the daily weighing eating disorder risk',
     deck:
@@ -8891,7 +8959,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'does-cutting-sodium-cause-water-retention',
     title: 'Why Cutting Sodium Too Hard Can Backfire',
     description:
@@ -8899,6 +8967,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'A scale drop from sodium restriction is the body returning to a slightly drier baseline. A scale drop from a deficit is fat loss. Both look the same on the number.',
     date: '2026-06-13',
+    lastModified: '2026-06-13',
     readingTime: '8 min read',
     tags: ['Scale', 'Water Weight', 'Sodium', 'Weight Loss'],
     seoTitle: 'Does Cutting Sodium Cause a Water-Retention Rebound?',
@@ -9058,7 +9127,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'appetite-returns-during-maintenance',
     title: 'The Week My Appetite Came Back During Maintenance',
     description:
@@ -9066,6 +9135,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The cut taught me to override hunger. Maintenance is teaching me to listen to it. The body was probably not failing. It was probably asking for the conversation I stopped having during the cut.',
     date: '2026-06-14',
+    lastModified: '2026-06-14',
     readingTime: '8 min read',
     tags: ['Maintenance', 'Appetite', 'Founder Story', 'Weight Loss'],
     seoTitle: 'Why Appetite Returns During Maintenance After Weight Loss',
@@ -9080,6 +9150,7 @@ const posts: BlogPost[] = [
       'appetite rebound after cut',
     ],
     cluster: 'appetite',
+    schemaType: 'article',
     heroImage: '/founder/weighin-middle-progress-20240801.webp',
     heroAlt: 'Founder mid-progress check-in from the week appetite returns during maintenance after weight loss and asks to be heard',
     deck:
@@ -9178,7 +9249,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'does-one-bad-meal-ruin-a-diet',
     title: 'When Does One Bad Meal Actually Become a Slip',
     description:
@@ -9186,6 +9257,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The meal is the meal. The slip is what you do the morning after. If the morning is intact, the meal stays a meal. The work is at the morning, not at the dinner.',
     date: '2026-06-15',
+    lastModified: '2026-06-15',
     readingTime: '8 min read',
     tags: ['Cheat Day', 'Binge Recovery', 'Diet Systems', 'Weight Loss'],
     seoTitle: 'Does One Bad Meal Ruin a Diet? The Honest Answer',
@@ -9357,7 +9429,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'why-am-i-so-hungry-after-lifting-weights',
     title: 'Your Appetite Scales With Training Volume, Not With Weight',
     description:
@@ -9365,6 +9437,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'Treat the scale as the slow variable. Treat appetite as the fast variable. Do not confuse them. Most diet appetite spikes are not weight problems. They are repair signals.',
     date: '2026-06-16',
+    lastModified: '2026-06-16',
     readingTime: '9 min read',
     tags: ['Appetite', 'Exercise', 'Sleep', 'Recovery'],
     seoTitle: 'Why Am I So Hungry After Lifting Weights?',
@@ -9534,7 +9607,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'when-does-a-diet-become-a-lifestyle',
     title: 'The Day I Realized the Program Was Just My Life Now',
     description:
@@ -9542,6 +9615,7 @@ const posts: BlogPost[] = [
     socialDescription:
       'The program had to disappear for the body to hold. The body was already there. The relationship to it is what took the longest.',
     date: '2026-06-17',
+    lastModified: '2026-06-17',
     readingTime: '8 min read',
     tags: ['Founder Story', 'Maintenance', 'Long Game', 'Habits'],
     seoTitle: 'When Does a Diet Become a Lifestyle?',
@@ -9694,7 +9768,7 @@ const posts: BlogPost[] = [
     
     ],
   },
-  {
+{
     slug: 'my-scale-wont-move-but-my-jeans-fit-looser',
     title: 'My Scale Won\'t Move but My Jeans Fit Looser. What Is Actually Happening?',
     description:
@@ -9702,8 +9776,21 @@ const posts: BlogPost[] = [
     socialDescription:
       'The scale is a summary paragraph. Your clothes are sentences. Both have a place. Reading only the paragraph misses most of the story the sentences were telling.',
     date: '2026-06-22',
+    lastModified: '2026-06-22',
     readingTime: '10 min read',
     tags: ['Body Composition', 'Scale', 'Weight Loss', 'Self Awareness'],
+    seoTitle: 'Scale Won\'t Move but Clothes Fit Looser: Body Recomp Guide',
+    metaDescription:
+      'Scale stuck but clothes fit looser? The body is recomposing — fat down, muscle up. How to read body composition change without losing faith in the plan.',
+    keywords: [
+      'scale wont move clothes fit looser',
+      'body recomposition',
+      'scale vs body composition',
+      'clothes looser but scale same',
+      'body recomp plateau',
+    ],
+    cluster: 'body-composition',
+    schemaType: 'article',
     heroImage: '/founder/patience-middle-checkin-20250731.jpg',
     heroAlt:
       'Founder patience middle check-in image used to anchor a Q&A about how a stuck scale and a looser waistband coexist during a slow composition change and how the body asks you to read both instruments at once',
@@ -9789,7 +9876,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'the-mirror-runs-on-yesterdays-mood-not-todays-body',
     title: 'The Mirror Runs on Yesterday\'s Mood, Not on Today\'s Body',
     description:
@@ -9797,8 +9884,21 @@ const posts: BlogPost[] = [
     socialDescription:
       'The mirror does not show you your body. It shows you your body filtered through whatever you walked up to it carrying. Tape does not have moods.',
     date: '2026-06-23',
+    lastModified: '2026-06-23',
     readingTime: '9 min read',
     tags: ['Mirror', 'Body Image', 'Self Awareness', 'Weight Loss'],
+    seoTitle: 'The Mirror Lies When You\'re in a Bad Mood (Body Image)',
+    metaDescription:
+      'The mirror is not neutral — it runs yesterday\'s mood, not today\'s body. Why body image fluctuates daily, and how to stop trusting the bad-day view.',
+    keywords: [
+      'mirror lies body image',
+      'body dysmorphia diet',
+      'body image changes daily',
+      'why does my body look different every day',
+      'body image weight loss',
+    ],
+    cluster: 'mirror',
+    schemaType: 'article',
     heroImage: '/founder/mirror-middle-checkin-20250716.jpg',
     heroAlt:
       'Founder mirror middle check-in image used to anchor a post that reframes the mirror as a mood-filtered instrument rather than a neutral judge of body change',
@@ -9888,7 +9988,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'the-week-i-stopped-adding-cardio-and-the-body-caught-up',
     title: 'The Week I Stopped Adding Cardio and the Body Caught Up',
     description:
@@ -9896,8 +9996,21 @@ const posts: BlogPost[] = [
     socialDescription:
       'The move that looks like discipline — adding, stacking, doubling — is often the move that costs the program more than it adds. I learned this by accident, on a week I had intended to call a failure.',
     date: '2026-06-21',
+    lastModified: '2026-06-21',
     readingTime: '9 min read',
     tags: ['Founder Story', 'Cardio', 'Recovery', 'Weight Loss', 'Training'],
+    seoTitle: 'Too Much Cardio Stalls Fat Loss: When to Cut Back',
+    metaDescription:
+      'Three months of adding cardio to every slow week stalled my fat loss. The week I stopped, the body caught up. When more cardio backfires on a cut.',
+    keywords: [
+      'too much cardio stalls fat loss',
+      'cardio plateau fat loss',
+      'when to stop adding cardio',
+      'cardio diminishing returns on a cut',
+      'cardio recovery fat loss',
+    ],
+    cluster: 'exercise',
+    schemaType: 'article',
     heroImage: '/founder/sleep-reflective-window-20241217.jpg',
     heroAlt:
       'Founder lifestyle image of a reflective quiet window-side moment used here to anchor a story about backing off training intensity and letting recovery reveal progress that overtraining had been hiding',
@@ -9989,7 +10102,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'why-lower-body-fat-feels-so-stubborn',
     title: 'Why Lower Body Fat Feels So Stubborn',
     description:
@@ -9997,8 +10110,21 @@ const posts: BlogPost[] = [
     socialDescription:
       'Lower-body fat is the last tenant out of the building. If the thighs or hips still feel untouched while the rest of the body is clearly moving, the body is almost certainly not stuck. It is doing the last thing last.',
     date: '2026-06-20',
+    lastModified: '2026-06-20',
     readingTime: '11 min read',
     tags: ['Body Composition', 'Fat Loss', 'Weight Loss', 'Patience', 'Long Game'],
+    seoTitle: 'Why Lower Body Fat Feels Stubborn (and When It Clears)',
+    metaDescription:
+      'Lower-body fat is not resisting — it clears last on a timeline most people quit before reaching. Why hips, thighs, and glutes are slow, and how long it really takes.',
+    keywords: [
+      'lower body fat stubborn',
+      'why is lower body fat slow to lose',
+      'hip and thigh fat loss',
+      'stubborn fat loss timeline',
+      'lower body fat patience',
+    ],
+    cluster: 'body-composition',
+    schemaType: 'article',
     heroImage: '/founder/body-composition-proof-20251221.jpg',
     heroAlt:
       'Founder body-composition-proof image used as the anchor for a post about how regional fat clears on different timelines and how lower-body fat is usually late, not refusing',
@@ -10095,7 +10221,7 @@ const posts: BlogPost[] = [
       },
     ],
   },
-  {
+{
     slug: 'you-are-probably-consistent-at-the-wrong-thing',
     title: 'You Are Probably Consistent at the Wrong Thing',
     description:
@@ -10103,8 +10229,21 @@ const posts: BlogPost[] = [
     socialDescription:
       'Consistency is not a virtue. It is a tool that only works when pointed at the right thing. The body moves on from what was working about once every few months. The program has to move with it.',
     date: '2026-06-19',
+    lastModified: '2026-06-19',
     readingTime: '9 min read',
     tags: ['Plateau', 'Consistency', 'Weight Loss', 'Diet Systems'],
+    seoTitle: 'Plateau Fix: You\'re Consistent at the Wrong Input',
+    metaDescription:
+      'A plateau is usually not a stalled body. It\'s a body responding to the wrong input because you kept doing what used to work. How to change the input, not the intensity.',
+    keywords: [
+      'weight loss plateau fix',
+      'consistent but not losing weight',
+      'plateau wrong input',
+      'how to break a plateau',
+      'plateau input change',
+    ],
+    cluster: 'plateau',
+    schemaType: 'article',
     heroImage: '/founder/start.jpg',
     heroAlt:
       'Founder start-state image used to anchor a post about how the habits that got you moving are not the habits that keep you moving through a plateau',
@@ -10196,7 +10335,6 @@ const posts: BlogPost[] = [
       },
     ],
   },
-
 ];
 
 export function getAllBlogPosts() {
