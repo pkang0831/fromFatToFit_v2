@@ -4,20 +4,37 @@
 How to Go on a Mirror Diet When the Real Diet Is Getting Loud
 
 ## SEO Title
-How to Go on a Mirror Diet When the Real Diet Is Getting Loud
+How to Stop Mirror Checking on a Diet
 
 ## Subtitle / Description
-There is a phase in most cuts where the diet is working and the mirror is getting louder. The fix is to look less, look better, and look in fewer states.
+Here's how to stop mirror checking on a diet that's actually working: look less, look better, and look in fewer states. There is a phase in most cuts where the diet is working and the mirror is getting louder. The fix is to look less, look better, and look in fewer states.
+
+## Meta Description
+How to stop mirror checking on a diet without quitting the bathroom. Fewer checks, cleaner conditions, longer windows. Here's the 3-rule version.
+
+## Primary Keyword
+how to stop mirror checking on a diet
+
+## Secondary Keywords
+- stop body checking weight loss
+- mirror checking anxiety
+- obsessive mirror checking body
+- body checking eating disorder
+- how to stop looking in the mirror
 
 ## Medium Tags
 - Weight Loss
 - Body Image
-- Mirror
-- Self Awareness
-- Mindful Eating
+- Self Image
+- Mindset
+- Body Dysmorphia
 
 ## Canonical URL
-`https://devenira.com/blog/how-to-go-on-a-mirror-diet-when-the-real-diet-is-getting-loud`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -42,6 +59,10 @@ The clothes are looser. The trend is down. The numbers say go. The reflection at
 This is not unusual. It is the moment most people start checking the mirror more, hoping for evidence that catches up to the data. The hope is rational. The behavior is the wrong one. More checking is what makes the mirror louder, not what calms it.
 
 The fix, in a phase like this, is to go on a mirror diet. Reduce the number of checks. Improve the conditions of the ones you do. Lengthen the windows between them.
+
+> **How do I stop mirror checking on a diet?**
+>
+> Go on a mirror diet. Look less, look better, look in fewer states. Cut casual checks down to two a day under structured conditions — same time, same lighting, same posture, ideally morning and fasted. Skip the worst lighting. Skip the bathroom mirror at midnight. Two structured checks beat eight opportunistic ones.
 
 ## What a mirror diet actually looks like
 
@@ -152,4 +173,29 @@ The body is moving. The mirror does not have to be the one that tells you.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Why does more checking make the mirror louder?
+
+Because each check is information that affects the next check. A bad-mood morning loads the next reading. By the seventh check of the day, the mirror is reporting on the trajectory of your mood, not your body. Cutting the count breaks that loop.
+
+### When is the loud mirror phase usually worst?
+
+Somewhere between week six and week twelve of a meaningful cut. By then the body has changed enough that the mirror should be cooperating, but you are also tired, hungry, sleep-thinned, and mood-thinner. The mirror reads all of that and presents it as evidence about the body.
+
+### Should I cover my mirrors during this phase?
+
+If a specific mirror is loudest — the full-length one you walk past ten times a day — yes. Cover it for two or three weeks. Keep one structured mirror up for the morning check. Fewer casual checks does more for body image than any pep talk.
+
+### Isn't this just avoiding my body?
+
+No. A mirror diet is not avoiding the body. It is selecting the instruments giving you useful data this week. The mirror is the noisiest one in the loud phase. Clothes, tape measurements, weekly weight averages, and four-week photos do the work while the mirror calms down.
+
+### When can I come off the mirror diet?
+
+When the loud phase ends. The morning check starts agreeing with the trend. The evening check stops being charged. A passing glance goes back to neutral. The structure can loosen then. If the loud phase comes back, the diet comes back. It is not a permanent setting.
+
 ```

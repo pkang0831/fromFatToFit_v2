@@ -4,20 +4,37 @@
 Am I Actually Hungry or Am I Bored
 
 ## SEO Title
-Am I Actually Hungry or Am I Bored
+How to Tell If You're Hungry or Bored
 
 ## Subtitle / Description
 Most late-afternoon and evening hunger is not hunger. It is signal mismatch. A practical Q&A on how to read yourself.
 
+## Meta Description
+How to tell if you're hungry or bored: the apple test ends the question in 5 seconds. Here's why most late-day hunger isn't hunger at all.
+
+## Primary Keyword
+how to tell if you're hungry or bored
+
+## Secondary Keywords
+- am I hungry or bored
+- boredom eating
+- emotional hunger vs physical hunger
+- how to stop boredom eating
+- hunger cues vs cravings
+
 ## Medium Tags
 - Weight Loss
-- Appetite
+- Hunger
 - Emotional Eating
-- Cravings
-- Dieting
+- Intuitive Eating
+- Mindful Eating
 
 ## Canonical URL
-`https://devenira.com/blog/am-i-actually-hungry-or-am-i-bored`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,11 +50,15 @@ Most late-afternoon and evening hunger is not hunger. It is signal mismatch. A p
 ```md
 # Am I Actually Hungry or Am I Bored
 
-If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real. Most of the time, it is not hunger. It is something else wearing hungers costume.
+Here's how to tell if you're hungry or bored standing at the open fridge. The cue is almost never in the stomach. If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real. Most of the time, it is not hunger. It is something else wearing hungers costume.
 
 If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real.
 
 Most of the time, it is not hunger. It is something else wearing hunger is costume.
+
+> **How do I tell if I'm hungry or just bored?**
+>
+> Run the apple test. Would you eat an apple right now? If yes, you are probably hungry. If no, but you want ice cream, you are probably bored or emotionally eating. Real hunger is general and patient. Boredom eating is specific, urgent, and mouth-based. The craving is specific. The hunger is general.
 
 ## Q: What Does Real Hunger Actually Feel Like?
 
@@ -120,4 +141,29 @@ That is where the behavior changes. Not in the one moment of standing at the fri
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What does real hunger actually feel like?
+
+General. Patient. Stomach-based. Your whole body is mildly under-fueled. Mood and energy dip. Any reasonable meal — a sandwich, leftover rice, a banana — would feel fine. Real hunger grows slowly over 15 to 20 minutes. It does not spike on contact with the kitchen.
+
+### Why does boredom eating usually hit in the afternoon?
+
+Three things stack: decision fatigue from the day, wobbly blood sugar from a light or distant lunch, and looser social structure. You are home, alone, or winding down. Food becomes the most available source of fast pleasure. None of this is a character failure.
+
+### How can I stop boredom eating without restricting?
+
+Wait five minutes. Drink water or tea. Change location — the trigger is often the room, not the stomach. If the pull persists, eat intentionally at the table, not standing at the fridge. Intention is what separates a snack from 40 minutes of unconscious grazing.
+
+### Could my 'boredom eating' actually be under-fueling?
+
+Often, yes. If you are in a real deficit and consistently hungry mid-afternoon, the lunch was probably too light. Move calories there. Protein-forward lunches and larger breakfasts usually fix what looked like an emotional eating pattern.
+
+### Is it ever okay to eat when I'm not hungry?
+
+Yes. Sharing popcorn during a movie is not dietary dysfunction. It is being a person. The problem is unconscious repeated boredom eating that adds 300 to 700 calories a day without registering. The occasional social or comfort eat is fine.
+
 ```

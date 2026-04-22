@@ -4,19 +4,37 @@
 The Scale Can Say “Normal” and Still Tell You Nothing Useful
 
 ## SEO Title
-The Scale Can Say “Normal” and Still Tell You Nothing Useful
+Skinny Fat: Normal Weight but High Body Fat
 
 ## Subtitle / Description
-A normal weight does not guarantee that someone feels lean, strong, or at ease in their body. The scale is often too crude to explain what they are actually struggling with.
+Skinny fat — normal weight but high body fat — is the version of unfit the scale never reports. The number is fine; the composition isn't. A normal weight does not guarantee that someone feels lean, strong, or at ease in their body. The scale is often too crude to explain what they are actually struggling with.
+
+## Meta Description
+Skinny fat: normal weight but high body fat. The scale calls you fine while the mirror calls you soft. Here's why one number can't carry the whole story.
+
+## Primary Keyword
+skinny fat normal weight but high body fat
+
+## Secondary Keywords
+- what is skinny fat
+- normal weight obesity
+- high body fat at normal weight
+- BMI vs body fat percentage
+- skinny fat signs
 
 ## Medium Tags
-- Body Image
+- Weight Loss
 - Body Composition
-- Scale Weight
-- Mirror
+- Body Image
+- Dieting
+- Health
 
 ## Canonical URL
-`https://devenira.com/blog/the-scale-can-say-normal-and-still-tell-you-nothing-useful`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.

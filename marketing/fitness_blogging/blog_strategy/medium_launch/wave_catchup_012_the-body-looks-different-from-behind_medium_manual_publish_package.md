@@ -4,20 +4,37 @@
 The Body Looks Different From Behind
 
 ## SEO Title
-The Body Looks Different From Behind
+Why Does My Body Look Different From Different Angles?
 
 ## Subtitle / Description
 Most people only look at themselves from the front. That is why progress feels invisible. The back view is where the body often changes first.
 
+## Meta Description
+Why does my body look different from different angles? The front view stalls weeks before the back view does. Here's the angle most people never check.
+
+## Primary Keyword
+why does my body look different from different angles
+
+## Secondary Keywords
+- body looks different from behind photos
+- why does my body look different in photos
+- angles change how body looks
+- lighting changes body photo
+- body from different views
+
 ## Medium Tags
 - Weight Loss
-- Mirror
 - Body Image
 - Progress Photos
-- Transformation
+- Self Image
+- Body Composition
 
 ## Canonical URL
-`https://devenira.com/blog/the-body-looks-different-from-behind`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,13 +50,17 @@ Most people only look at themselves from the front. That is why progress feels i
 ```md
 # The Body Looks Different From Behind
 
-I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.
+Why does my body look different from different angles? Front view rewards bad lighting; back view tells the truth most of the time. I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.
 
 I spent eight months watching the front of my body in a mirror and thinking nothing was happening.
 
 Then my brother took a photo of me from behind at a wedding.
 
 It was a different body.
+
+> **Why does my body look different from different angles?**
+>
+> Because most people only ever check the front view. The back can change weeks before the front catches up. Different bodies carry fat differently, and the front view often holds the stubborn lower-belly buffer the longest. The back loses shape first for many people, and the front mirror cannot answer that question.
 
 ## The Front Mirror Lies
 
@@ -94,4 +115,29 @@ Just give the back mirror a turn.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Why doesn't the front mirror catch progress?
+
+Because it shows the same view every morning, and that view is often the slowest one to change. The front holds the deepest fat for many people. The mirror you see most is also the one with the least new information to give you.
+
+### What changes show up in the back view first?
+
+The dip between the shoulder blades. The slope from waist to hip. Whether the lats have any shape. How the glute sits relative to the thigh. Where fat loss is starting. The bra line loosening. None of that is visible in a front mirror.
+
+### How often should I take a back-angle photo?
+
+Every two weeks. Same spot, same lighting, same shirt or no shirt. Save them in a folder and look at them in groups of four. Daily back photos are noise. Two-week comparisons start to show the actual story the front mirror is missing.
+
+### Why does lighting and angle change the verdict so much?
+
+Because a body in the same condition can be photographed thinner or heavier depending on the camera height, the light direction, and posture. Lifting the camera a few centimeters changes the entire silhouette. Holding posture for the photo, or not, changes the waist by 1 to 2 cm.
+
+### What if the back changed but I still feel the same about my body?
+
+That is normal. The head adapts slower than the body. Even after weeks of visible change, the internal image is calibrated against the older version. The fix is not more checking. The fix is letting weeks of dated proof slowly outvote the daily mirror.
+
 ```

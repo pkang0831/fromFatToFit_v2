@@ -4,20 +4,37 @@
 How Do I Stop a Binge From Becoming a Binge Week
 
 ## SEO Title
-How Do I Stop a Binge From Becoming a Binge Week
+How to Stop a Binge From Becoming a Binge Week
 
 ## Subtitle / Description
 One binge does not wreck a diet. The week after a binge wrecks a diet. Here is how to contain it.
 
+## Meta Description
+How to stop a binge from becoming a binge week: the 24 hours after the binge decide. Here's the rescue plan that works without punishment math.
+
+## Primary Keyword
+how to stop a binge from becoming a binge week
+
+## Secondary Keywords
+- how to stop binge eating cycle
+- one binge to binge week
+- restrict binge cycle break
+- weekend binge cycle
+- stop binge eating spiral
+
 ## Medium Tags
 - Weight Loss
-- Binge
-- Cheat Day
-- Recovery
+- Binge Eating
+- Emotional Eating
 - Dieting
+- Food Psychology
 
 ## Canonical URL
-`https://devenira.com/blog/how-do-i-stop-a-binge-from-becoming-a-binge-week`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,13 +50,17 @@ One binge does not wreck a diet. The week after a binge wrecks a diet. Here is h
 ```md
 # How Do I Stop a Binge From Becoming a Binge Week
 
-One binge does not wreck a diet. The week after a binge wrecks a diet. This is the specific rescue plan.
+Here's how to stop a binge from becoming a binge week. The first 48 hours after the binge are the actual rescue plan. One binge does not wreck a diet. The week after a binge wrecks a diet. This is the specific rescue plan.
 
 One binge does not wreck a diet.
 
 The week after a binge wrecks a diet.
 
 This is the specific rescue plan.
+
+> **How do I stop a binge from becoming a binge week?**
+>
+> Eat your normal breakfast the morning after. Drink water. Do not weigh yourself for three to five days. Return to your regular meal plan at lunch, not next Monday. The damage is not the binge. It is the response. Act as if yesterday was yesterday and today is today, because that is literally what they are.
 
 ## Q: What Actually Happened On Binge Day?
 
@@ -106,4 +127,29 @@ One binge is a meal. A binge week is a choice. The choice happens in the 24 hour
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Why does one binge often turn into several days off plan?
+
+Three patterns: hard restriction the morning after drops blood sugar and triggers a second binge; all-or-nothing framing turns one meal into 'the day is ruined'; and obsessive scale-checking reads water weight as fat and confirms failure. Any of those alone stretches the binge.
+
+### Should I cut calories the week after a binge?
+
+No. Your normal deficit absorbs the binge into the weekly total over 7 to 14 days without any extra effort. Trying to compensate with a deeper deficit usually triggers another binge or stress water retention that makes the scale worse, not better.
+
+### How can I tell if another binge is coming?
+
+Common signals: under-eating the day before in compensation, under-sleeping, high-stress day, more than four hours past a regular meal. Eat a real meal with protein and volume. The craving usually drops by half within 30 to 60 minutes if the issue was fuel.
+
+### When should I take a maintenance week instead?
+
+If you have binged twice in seven days, or the plan feels brittle for more than ten days. Eat at maintenance for 7 to 10 days. Hunger settles, the head resets, and a return to deficit becomes possible without another binge. This is intervention, not quitting.
+
+### How long does the scale stay up after a binge?
+
+Three to five days under normal eating. The 1 to 2 kg scale jump is mostly water, sodium, and food still moving through digestion. Real fat addition is usually 0.2 to 0.5 kg, and the deficit absorbs it across the next week without intervention.
+
 ```

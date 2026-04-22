@@ -4,20 +4,37 @@
 You Look Different to Other People Before You Look Different to Yourself
 
 ## SEO Title
-You Look Different to Other People Before You Look Different to Yourself
+Why Do Others Notice My Weight Loss Before I Do?
 
 ## Subtitle / Description
 Other people see your body change before you do. The delay is not vanity. It is how self-perception actually works.
 
+## Meta Description
+Why do others notice my weight loss before me? They run the opposite experiment — months between visits. Here's the perception lag in plain terms.
+
+## Primary Keyword
+why do others notice my weight loss before me
+
+## Secondary Keywords
+- people notice weight loss before self
+- how much weight loss before others notice
+- weight loss face first noticed
+- why can't I see my own weight loss
+- weight loss blind spot perception
+
 ## Medium Tags
 - Weight Loss
-- Mirror
 - Body Image
+- Self Image
+- Progress Photos
 - Transformation
-- Self Perception
 
 ## Canonical URL
-`https://devenira.com/blog/you-look-different-to-other-people-before-yourself`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,13 +50,17 @@ Other people see your body change before you do. The delay is not vanity. It is 
 ```md
 # You Look Different to Other People Before You Look Different to Yourself
 
-People you have not seen in a few months will notice your body has changed. You will not have noticed yet. This is not modesty. It is not vanity. It is how your brain is built.
+Why do others notice my weight loss before me? Because your brain updates the body image last, not first. People you have not seen in a few months will notice your body has changed. You will not have noticed yet. This is not modesty. It is not vanity. It is how your brain is built.
 
 People you have not seen in a few months will notice your body has changed.
 
 You will not have noticed yet.
 
 This is not modesty. It is not vanity. It is how your brain is built.
+
+> **Why do others notice my weight loss before I do?**
+>
+> Self-perception updates slowly. You see your body every morning in the same mirror, so gradual change disappears into familiarity. Someone who has not seen you in three months gets a clean before-and-after read. The internal map usually runs three to six months behind the body. The compliment is data, not flattery.
 
 ## The Gap
 
@@ -96,4 +117,29 @@ Give it time.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### How much weight loss does it take for others to notice?
+
+Roughly 4 to 6 kg for face changes to register, 8 to 10 kg for the body shape. Frequent contacts notice later than people who see you only every few months. The face usually shifts first, which is why family members on video calls often comment before in-person friends.
+
+### Why can't I see my own weight loss in photos?
+
+Single photos are too noisy. Lighting, posture, and time of day can fake an entire month of change in either direction. The internal map also reads new photos through the old self-image, which lags the body. Compare groups of four photos across months, not single shots.
+
+### How long until my own perception catches up?
+
+Usually three to six months past the change, sometimes longer. There is no specific date. People who work with post-weight-loss body image professionally describe the lag as normal. The internal map updates gradually, pulled forward by external evidence and time.
+
+### Should I trust compliments about my weight loss?
+
+Yes, directionally. People may be polite about the magnitude, but if someone you have not seen in three months says you look different, you look different. Outside observers are usually closer to current reality than your own mirror is right now.
+
+### Is body dysmorphia normal after weight loss?
+
+A milder version of it is extremely common. Most people who lose meaningful weight describe a stretch where other people treat them as the new body and they still feel like the old one. That gap is the head catching up. If it persists or distresses, talk to a professional.
+
 ```

@@ -4,20 +4,37 @@
 Weighing Yourself Every Day Can Be a Trap, Not a Discipline
 
 ## SEO Title
-Weighing Yourself Every Day Can Be a Trap, Not a Discipline
+Daily Weighing: When It Becomes an Eating-Disorder Risk
 
 ## Subtitle / Description
-The advice to weigh yourself every day is delivered with the tone of discipline. For a meaningful share of people, it is the trap that wrecks the program.
+The daily weighing eating disorder risk doesn't get talked about because the advice sounds disciplined. For some people it isn't. The advice to weigh yourself every day is delivered with the tone of discipline. For a meaningful share of people, it is the trap that wrecks the program.
+
+## Meta Description
+Daily weighing and eating disorder risk: the same habit is discipline for some and a trap for others. Here are 4 signals that tell you which one you are.
+
+## Primary Keyword
+daily weighing eating disorder risk
+
+## Secondary Keywords
+- when daily weighing becomes unhealthy
+- self weighing disordered eating
+- obsessive scale checking
+- should I stop weighing myself daily
+- scale obsession eating disorder
 
 ## Medium Tags
 - Weight Loss
-- Scale
-- Tracking
-- Self Awareness
+- Scale Anxiety
 - Mental Health
+- Dieting
+- Weight Fluctuation
 
 ## Canonical URL
-`https://devenira.com/blog/weighing-yourself-every-day-can-be-a-trap-not-a-discipline`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.

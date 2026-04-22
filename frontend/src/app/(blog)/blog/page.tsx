@@ -3,12 +3,29 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
-import { getAllBlogPosts } from '@/content/blog/posts';
+import { getAllBlogPosts, getAllClusters } from '@/content/blog/posts';
 
 export const metadata: Metadata = {
-  title: 'Blog',
+  title: 'Weight Loss Blog by pkang — Honest Writing on Diet, Body, Appetite',
   description:
-    'Founder story, body transformation proof, scale interpretation, and weekly check-in thinking from Devenira.',
+    'Honest writing on weight loss, body image, scale anxiety, appetite, and maintenance. By pkang, who lost 50 kg over 5 years.',
+  keywords: [
+    'weight loss blog',
+    'body image writing',
+    'scale anxiety',
+    'appetite during diet',
+    'weight loss maintenance',
+    'pkang',
+  ],
+  alternates: {
+    canonical: 'https://devenira.com/blog',
+  },
+  openGraph: {
+    title: 'Weight Loss Blog — Honest Writing by pkang',
+    description: 'Lost 50 kg over 5 years. Now writing about appetite, body image, and the slow work of reading the body without panic.',
+    type: 'website',
+    url: 'https://devenira.com/blog',
+  },
 };
 
 export default function BlogIndexPage() {
@@ -70,6 +87,25 @@ export default function BlogIndexPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 pb-12">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+            Browse by topic
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {getAllClusters().map((c) => (
+              <Link
+                key={c.slug}
+                href={`/blog/topic/${c.slug}`}
+                className="rounded-full border border-white/[0.1] bg-white/[0.03] px-4 py-2 text-sm text-white/80 transition-colors hover:border-primary/40 hover:text-primary"
+              >
+                {c.title}
+              </Link>
+            ))}
           </div>
         </div>
       </section>

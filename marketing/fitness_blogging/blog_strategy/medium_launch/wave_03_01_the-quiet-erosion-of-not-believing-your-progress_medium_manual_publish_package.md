@@ -4,20 +4,37 @@
 The Quiet Erosion of Not Believing Your Progress
 
 ## SEO Title
-The Quiet Erosion of Not Believing Your Progress
+How to Trust Slow Weight Loss Progress
 
 ## Subtitle / Description
-The biggest losses of my own program did not happen on the worst days. They happened on the quiet ones, in the unremarkable gap between checkpoints where doubt arrived wearing the costume of maturity.
+Here's how to trust slow weight loss progress when the days stop feeling like proof. Most of the work happens in the quiet stretch. The biggest losses of my own program did not happen on the worst days. They happened on the quiet ones, in the unremarkable gap between checkpoints where doubt arrived wearing the costume of maturity.
+
+## Meta Description
+How to trust slow weight loss progress when the scale stops flattering you. The biggest losses happen on quiet weeks, not bad ones. Here's the bridge.
+
+## Primary Keyword
+how to trust slow weight loss progress
+
+## Secondary Keywords
+- can't see my own weight loss progress
+- weight loss self doubt
+- losing motivation mid diet
+- slow progress psychology
+- diet motivation fading
 
 ## Medium Tags
 - Weight Loss
-- Belief
-- Long Game
-- Founder Story
-- Self Improvement
+- Mindset
+- Weight Loss Journey
+- Dieting
+- Habits
 
 ## Canonical URL
-`https://devenira.com/blog/the-quiet-erosion-of-not-believing-your-progress`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -42,6 +59,10 @@ They happened on the quiet ones.
 I would go three or four weeks without a real check-in. The scale would drift in a fine, unremarkable way. The mirror would do its mirror thing. And somewhere in that gap, almost without noticing, I would stop believing the project was working.
 
 Nothing dramatic. Just a slow corrosion of trust in my own evidence.
+
+> **How do I trust slow weight loss progress?**
+>
+> Stop relying on belief and start building evidence belief can fall back on. Weekly photos in matched conditions. A short note about sleep, sodium, and stress alongside each weigh-in. Monthly side-by-side comparisons against your own earlier photos. Belief is a daily signal, but results are a monthly one. Small dated proof closes the gap.
 
 ## What the gap actually is
 
@@ -134,4 +155,29 @@ The work is to keep looking. Not to feel certain.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Why does belief in the program keep fading?
+
+Because results pay out monthly and belief gets hungry daily. The cadence is mismatched. If you wait for the next big checkpoint to feed your belief, belief runs out between checkpoints. Daily noise — water, mood, light — starts running the read instead.
+
+### What's the right cadence for tracking slow progress?
+
+Weekly weigh-ins as the rolling average. Photos every Sunday morning under matched conditions. Tape measurements every two weeks. Monthly comparisons against four-week-old photos. Daily signals are noise; weekly and monthly are signal.
+
+### Should I trust the scale or the photos when they disagree?
+
+Neither alone. When the scale is flat and the photos show change, you are recomposing. When the scale moves and the photos do not, you are losing the wrong tissue. Cross-reference always. The conflict itself is information.
+
+### What do I do on days I don't believe it's working?
+
+Look at the dated proof you already produced. The monthly side-by-side. The four-week notes. Your job is not to feel certain. Your job is to refuse to argue with the evidence you already collected when you were calmer.
+
+### Is slow weight loss actually better than fast?
+
+Usually yes. Slower loss preserves more muscle, produces smaller appetite rebound after the diet ends, and tends to hold longer. Aggressive deficits produce more dramatic rebounds on average. The boring rate is the rate that survives.
+
 ```

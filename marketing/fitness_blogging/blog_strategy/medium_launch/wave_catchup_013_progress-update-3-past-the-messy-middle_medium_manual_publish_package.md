@@ -4,19 +4,37 @@
 Progress Update 3: Past the Messy Middle
 
 ## SEO Title
-Progress Update 3: Past the Messy Middle
+Past the Messy Middle of Weight Loss: A Check-In
 
 ## Subtitle / Description
 The body after the messy middle. What changed, what did not, and what the past four months actually looked like from the inside.
 
+## Meta Description
+Past the messy middle of weight loss: 4 months on, what changed and what didn't. A check-in from the side of the program nobody photographs.
+
+## Primary Keyword
+past the messy middle of weight loss
+
+## Secondary Keywords
+- messy middle transformation over
+- past the hardest part of dieting
+- weight loss journey checkpoint
+- progress update weight loss middle
+- after the middle phase diet
+
 ## Medium Tags
-- Progress Update
+- Weight Loss
+- Weight Loss Journey
 - Transformation
 - Founder Story
-- Weight Loss
+- Long Game
 
 ## Canonical URL
-`https://devenira.com/blog/progress-update-3-past-the-messy-middle`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,7 +50,7 @@ The body after the messy middle. What changed, what did not, and what the past f
 ```md
 # Progress Update 3: Past the Messy Middle
 
-Four months past the messy middle. Down roughly 15 kg from the highest. The head is still catching up to the body. This is what that actually feels like.
+Past the messy middle of weight loss, the work changes shape. The body keeps moving; the head finally starts to catch up. Four months past the messy middle. Down roughly 15 kg from the highest. The head is still catching up to the body. This is what that actually feels like.
 
 This is a check-in, not a before-and-after.
 

@@ -1,0 +1,66 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": "https://devenira.com/blog/how-to-stick-to-a-diet-when-progress-slows#article",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://devenira.com/blog/how-to-stick-to-a-diet-when-progress-slows"
+    },
+    "headline": "The Most Reliable Way to Succeed at Dieting Is Still the Least Dramatic One",
+    "alternativeHeadline": "How to Stick to a Diet When Progress Slows Down",
+    "description": "How to stick to a diet when progress slows down. Most diets don't end with a disaster \u2014 they end with one quiet week that talks you out. Here's the move.",
+    "image": "https://devenira.com/founder/consistency-editorial-20251229.jpg",
+    "datePublished": "2026-04-24",
+    "dateModified": "2026-04-24",
+    "author": {
+      "@type": "Person",
+      "@id": "https://devenira.com/authors/pkang",
+      "name": "pkang",
+      "url": "https://devenira.com/authors/pkang"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "@id": "https://devenira.com/#organization",
+      "name": "Devenira"
+    },
+    "keywords": "how to stick to a diet when progress slows down, why people quit dieting, slow weight loss progress trust, middle of a diet hardest, how to stay consistent on a diet, diet consistency long term",
+    "articleSection": "plateau",
+    "inLanguage": "en"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://devenira.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "https://devenira.com/blog"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "The Most Reliable Way to Succeed at Dieting Is Still the Least Dramatic One",
+        "item": "https://devenira.com/blog/how-to-stick-to-a-diet-when-progress-slows"
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": "[harvested at runtime from sections]"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "The Most Reliable Way to Succeed at Dieting Is Still the Least Dramatic One",
+    "step": "[populated at runtime from howToSteps]"
+  }
+]

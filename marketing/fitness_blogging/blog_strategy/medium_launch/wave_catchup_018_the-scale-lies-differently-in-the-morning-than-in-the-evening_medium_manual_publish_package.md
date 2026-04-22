@@ -4,19 +4,37 @@
 The Scale Lies Differently in the Morning Than in the Evening
 
 ## SEO Title
-The Scale Lies Differently in the Morning Than in the Evening
+Why Do I Weigh More at Night Than in the Morning?
 
 ## Subtitle / Description
 Morning and evening weight are not the same reading. Treating them as one number is how people misread their week.
 
+## Meta Description
+Why do I weigh more at night than in the morning? Up to 2 kg of swing from food, water, and posture. Both readings are honest — different questions.
+
+## Primary Keyword
+why do I weigh more at night than in the morning
+
+## Secondary Keywords
+- morning weight vs evening weight difference
+- best time of day to weigh yourself
+- weight gain overnight morning
+- how much weight fluctuate morning night
+- weigh in morning or night
+
 ## Medium Tags
-- Scale
-- Daily Fluctuation
 - Weight Loss
-- Tracking
+- Weight Fluctuation
+- Scale Anxiety
+- Dieting
+- Nutrition
 
 ## Canonical URL
-`https://devenira.com/blog/the-scale-lies-differently-in-the-morning-than-in-the-evening`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,13 +50,17 @@ Morning and evening weight are not the same reading. Treating them as one number
 ```md
 # The Scale Lies Differently in the Morning Than in the Evening
 
-Most people weigh themselves at one specific time and treat that number as the truth. It is not the truth. It is one sample.
+Why do I weigh more at night than in the morning? Food, water, and salt move through you all day; the morning is just the lowest sample. Most people weigh themselves at one specific time and treat that number as the truth. It is not the truth. It is one sample.
 
 Most people weigh themselves at one specific time and treat that number as the truth.
 
 It is not the truth. It is one sample.
 
 Morning weight and evening weight are almost always different, and they lie in different directions.
+
+> **Why do I weigh more at night than in the morning?**
+>
+> Food, water, and salt have moved through you all day. Evening weight is typically 0.8 to 1.8 kg higher than morning weight. None of that is fat. Morning is the lowest sample because you are mildly dehydrated, your bladder is empty, and you have not eaten. Both readings are honest — they answer different questions.
 
 ## What Morning Weight Actually Shows
 
@@ -89,4 +111,29 @@ If you weigh at multiple times, do not mix them in your head. Evening is a diffe
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What is morning weight actually showing?
+
+The bottom of your daily range. You are lightly dehydrated overnight, you have emptied most of your bladder, and you have not eaten. That is why morning weighing is the most stable reference across days. It is one sample, not a complete picture of the body.
+
+### Why is the gap between morning and evening so wide?
+
+Water retention shifts through the day. Food sits in the digestive tract for hours. Sodium intake peaks around dinner. Carbs bind about 3 grams of water per gram of stored glycogen. A 1.5 kg morning-to-evening swing is normal and means nothing about fat.
+
+### Should I weigh in the morning or the evening?
+
+If you weigh once a day, morning is the cleanest baseline. If you weigh at multiple times, do not mix them in your head. Compare evenings to evenings, mornings to mornings. The scale is not lying at either time. It is answering different questions.
+
+### Is one reading enough to judge progress?
+
+No. One reading tells you almost nothing. Seven readings under the same conditions tell you the shape of the week. Compare this week's average to last week's average, not today's number to yesterday's. Daily numbers are noise. Weekly trends are signal.
+
+### What if my evening weight has been creeping up?
+
+If both your evenings and your mornings are drifting up across two to three weeks under the same conditions, that is real movement. If only your evenings shifted while mornings held, you probably ate saltier or larger dinners that week. Keep the comparison consistent.
+
 ```

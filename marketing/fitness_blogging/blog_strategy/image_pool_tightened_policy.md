@@ -6,35 +6,14 @@ This policy governs hero image selection for batch 13 onward, until either:
 1. New photos are added to `frontend/public/founder/`, OR
 2. The archive at `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/` is restored to the worktree
 
-## Current Pool Status (as of post-batch-15 close + 2026-04-20 archive extraction)
-
-- Total images: **28** (22 previously + 6 fresh from archive, 2 retired at T1 ceiling)
-- Active pool: 26 images (28 − 2 retired)
-- Use distribution: 1 at 4-use (retired from hero rotation via T2 skip-2), 9 at 3-use, 8 at 2-use, 0 at 1-use, **6 at 0-use** (fresh additions 2026-04-20)
-
-### Fresh additions 2026-04-20 (0-use, priority-deploy for batch 16)
-
-| Filename | Lane | Descriptor | Source date |
-|----------|------|------------|-------------|
-| `body-proof-front-20251107.jpg` | C — hard physique proof | body-proof-front | 2025-11-07 |
-| `body-proof-back-20251107.jpg` | C — hard physique proof | body-proof-back | 2025-11-07 |
-| `training-gym-20251128.jpg` | Exercise / training | training-gym | 2025-11-28 |
-| `maintenance-train-20260107.jpg` | A — founder / maintenance | maintenance-train | 2026-01-07 |
-| `maintenance-mirror-20260105.jpg` | A — founder / maintenance | maintenance-mirror | 2026-01-05 |
-| `hunger-cafe-20260119.jpg` | D — lifestyle / hunger | hunger-cafe | 2026-01-19 |
-
-Priority-deploy sequence for batch 16 (posts 77–81): prefer the 6 fresh 0-use images first; they cover the exact priority lanes that drove the pool refresh (lane C body composition, lane A maintenance after `long-game-founder` retirement, lane D hunger, exercise/training). Only after the 0-use pool is spent should batch 16 draw from 2-use or 3-use images.
-
-### Historical Pool Status (as of post-batch-12 close, pre-refresh)
+## Current Pool Status (as of post-batch-12 close)
 
 - Total images: 22
 - Use distribution: 3 images at 4 uses, 6 images at 3 uses, 11 images at 2 uses, 2 images at 1 use, 0 unused
 
-### Retired (T1 5-use ceiling reached — cannot be used again as hero or inline)
-- `long-game-founder-20251221.jpg` — retired after **batch 14 close** at 5-use (T1 ceiling).
-- `body-composition-proof-20251221.jpg` — retired after **batch 15 close** at 5-use (T1 ceiling). Used as hero on post 73 (`why-lower-body-fat-feels-so-stubborn`, Tier A body-composition flagship), the single strongest lane-C match for a regional-clearance argument.
-
 ### 4-use saturation (must skip next 2 publish-eligible slots after each use)
+- `body-composition-proof-20251221.jpg` (last used post 61)
+- `long-game-founder-20251221.jpg` (last used post 57)
 - `plateau-middle-checkin-20250711.jpg` (last used post 59)
 
 ### 3-use approaching saturation
@@ -160,14 +139,14 @@ Approved-post 80 is the §16 mandatory checkpoint. Critical decision point:
 
 ### Critical action item for founder
 
-**ESCALATED post-batch-15 (2026-04-20):** the post-80 mandatory pool refresh point is now **BINDING at batch 16 START**, not at batch 16 close as previously scoped. Batch 15's 8 simultaneous 3→4 use crossings (vs the policy file's pre-batch-15 forecast of 3 crossings) plus the second T1 retirement (`body-composition-proof-20251221.jpg`) means batch 16 starts under materially tighter hero availability than the fallback roadmap projected. Drafting batch 16 without new assets in hand will exhaust the 3-use bucket within the batch and force multiple defensible-but-soft lane-bridge hero assignments.
+The pool can absorb batches 14 and 15 without policy violation. Batch 16 is where the math runs out under no-new-assets.
 
-Add 5–8 founder photos to `frontend/public/founder/` covering these priority lanes (per `blog_cover_mapping_2026-04-16.md` post-30 note), in order of binding pressure:
+Add 5–8 founder photos to `frontend/public/founder/` covering these priority lanes (per `blog_cover_mapping_2026-04-16.md` post-30 note):
 
-1. **Body composition / hard physique proof (lane C)** — **MOST URGENT.** `body-composition-proof-20251221.jpg` retires after batch 15 close at 5-use. The lane is now down to `transformation-proof-20251119.jpg` (3-use) and `scale-proof-20250919.jpg` (4-use, in T2 skip-2 through batch 16). Batch 17's scheduled Tier A slot 83 is `thin-people-can-gain-weight-too-here-is-why-that-matters`, which also needs lane-C imagery — without a fresh lane-C asset by batch 17, that Tier A flagship will face the same T1-ceiling pressure that batch 15's lower-body post just absorbed.
-2. **Maintenance (lane A)** — unchanged from batch 14 escalation. `long-game-founder-20251221.jpg` retired after batch 14; `final-portrait.jpg` is the sole remaining maintenance hero (at 3-use after batch 14, eligible for batch 16 but will hit 4-use immediately on use).
-3. **Plateau / honest middle (lane B)** — `plateau-middle-checkin-20250711.jpg` held at 4-use through all of batches 13–15 by skip-2; still no obvious replacement. `patience-middle-checkin-20250731.jpg` and `mirror-middle-checkin-20250716.jpg` both crossed to 4-use in batch 15 and enter T2 skip-2 for batch 16.
-4. **Hunger / appetite (lane D)** — `hunger-editorial-20260106.jpg` at 3-use saturation; still missing a pure hunger-lane asset.
+1. Hunger / appetite (currently `hunger-editorial-20260106.jpg` is the only one and at 3-use)
+2. Mirror / body image (currently 1 image at 3-use — `mirror-middle-checkin`)
+3. Exercise / training session (no pure training-session asset distinct from milestones)
+4. Maintenance (only `long-game-founder-20251221.jpg` is in-lane, and it's at 4-use)
 
 Or restore the source archive at `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/` and re-extract per the 30-post checkpoint procedure.
 
@@ -177,5 +156,5 @@ Or restore the source archive at `marketing/fitness_blogging/my_past_photos/extr
 |------|----------------|-------------|--------|
 | 2026-04-19 (post-66, post-batch-13) | 66 | 0 at 4-use, 11 at 3-use, 6 at 2-use, 2 at 1-use | Fallback roadmap drafted; batch 14 pre-cleared without 4-use additions |
 | TBD (post-71, post-batch-14) | 71 | 0 at 4-use, 16 at 3-use, 4 at 2-use, 0 at 1-use | start.jpg fully deployed; one round of T1 headroom remaining |
-| 2026-04-20 (post-76, post-batch-15) | 76 | 2 retired, 9 at 4-use, ~9 at 3-use, ~2 at 2-use, 0 at 1-use | Actual pool tighter than forecast due to writer deviation on 4 of 5 pre-cleared slots; batch 16 pre-cleared plan needs re-verification. Post-80 mandatory refresh now BINDING at batch 16 start. |
+| TBD (post-76, post-batch-15) | 76 | 3 at 4-use (new), 13 at 3-use, 1 at 2-use, 0 at 1-use | Last batch under no-new-assets without policy strain |
 | TBD (post-80, post-batch-16) | 80 | mathematically tight | **Mandatory founder action point** |

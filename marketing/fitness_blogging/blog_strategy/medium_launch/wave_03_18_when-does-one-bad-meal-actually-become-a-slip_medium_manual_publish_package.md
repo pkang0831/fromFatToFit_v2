@@ -4,20 +4,37 @@
 When Does One Bad Meal Actually Become a Slip?
 
 ## SEO Title
-When Does One Bad Meal Actually Become a Slip?
+Does One Bad Meal Ruin a Diet? The Honest Answer
 
 ## Subtitle / Description
-People treat one bad meal and a slip like they are the same thing. They are not. The meal is the trigger. The slip is everything you do in the 48 hours after.
+Does one bad meal ruin a diet? The meal almost never does. The 48 hours after it usually do. People treat one bad meal and a slip like they are the same thing. They are not. The meal is the trigger. The slip is everything you do in the 48 hours after.
+
+## Meta Description
+Does one bad meal ruin a diet? The meal is just a meal. The slip is everything you do in the 48 hours after. Here's how to keep the two separate.
+
+## Primary Keyword
+does one bad meal ruin a diet
+
+## Secondary Keywords
+- one bad meal diet damage
+- one cheat meal weight gain
+- diet slip vs binge
+- how to recover from one bad meal
+- one bad meal scale
 
 ## Medium Tags
 - Weight Loss
 - Cheat Day
-- Binge Recovery
-- Diet Systems
-- Self Awareness
+- Binge Eating
+- Dieting
+- Food Psychology
 
 ## Canonical URL
-`https://devenira.com/blog/when-does-one-bad-meal-actually-become-a-slip`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -44,6 +61,10 @@ One bad meal is one bad meal. Most of them get reabsorbed by a normal week witho
 A slip is a behavior pattern that follows the meal. The meal is the trigger. The slip is everything you do in the 48 hours after.
 
 This Q&A is about telling them apart, with the founder-anchored signals that show up between the meal and the slip — and the moves that keep one from becoming the other.
+
+> **Does one bad meal ruin a diet?**
+>
+> No. The meal is the meal. The slip is what you do the morning after. Most 'slips' people remember were normal over-target meals that the system absorbed without consequence. The only way one meal becomes a slip is if the next morning gets shaped like punishment instead of structure. The work is at the morning.
 
 ## Q: What does one bad meal look like that does not become a slip?
 
@@ -156,4 +177,29 @@ The work is at the morning, not at the dinner.
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What's the difference between a bad meal and a slip?
+
+A bad meal is a single over-target meal. A slip is the behavior pattern that follows: skipped breakfast as punishment, larger lunch from blood-sugar drop, snacks from irregular eating, bigger dinner from fatigue. The meal was the trigger. The slip is the next 48 hours.
+
+### How do I tell if my meal is becoming a slip?
+
+Ask one question the morning after: is my first meal today the planned breakfast, or a punishment version of it? Planned breakfast means the system is intact. Skipped or shrunk breakfast means the slip is being set up. Eat the planned breakfast and stop the cycle.
+
+### What about the scale jump after one bad meal?
+
+It is water and gut content, not fat. A 0.6 to 1.2 kg morning-after jump after a high-sodium dinner is almost entirely temporary. Reading it as fat is what triggers the slip. Wait three days under normal eating and the number comes back.
+
+### Should I restart 'tomorrow' or 'Monday' after a slip?
+
+Neither. Restart at the next meal. Days do not restart, meals do. If lunch on day 2 is the meal that started getting punishment-shaped, dinner on day 2 is the meal where you go back to the plan. 'Tomorrow' framing keeps the slip alive through tomorrow.
+
+### Are some meals automatically slips by themselves?
+
+A few cases: a meal eaten in clearly out-of-control binge mode, a meal that triggers same-evening continuation, or a meal that follows weeks of tight restriction. Outside those, most 'bad meals' are ordinary over-target meals that the morning-after handling decides the fate of.
+
 ```

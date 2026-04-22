@@ -4,20 +4,37 @@
 Your Appetite Scales With Training Volume, Not With Weight
 
 ## SEO Title
-Your Appetite Scales With Training Volume, Not With Weight
+Why Am I So Hungry After Lifting Weights?
 
 ## Subtitle / Description
-Appetite is not a function of how much you weigh. It is a function of how much you trained, how you slept, and what your body is rebuilding. The scale is not what your hunger is reading.
+Why am I so hungry after lifting weights, even on weeks the scale didn't move? Hunger reads training volume, not body weight. Appetite is not a function of how much you weigh. It is a function of how much you trained, how you slept, and what your body is rebuilding. The scale is not what your hunger is reading.
+
+## Meta Description
+Why am I so hungry after lifting weights? Appetite tracks training volume and recovery, not body weight. Most diet hunger is a repair signal, not failure.
+
+## Primary Keyword
+why am I so hungry after lifting weights
+
+## Secondary Keywords
+- appetite after workout
+- hungry on training days
+- strength training increases appetite
+- training volume hunger
+- post workout hunger weight loss
 
 ## Medium Tags
 - Weight Loss
 - Appetite
-- Exercise
-- Sleep
+- Hunger
+- Strength Training
 - Recovery
 
 ## Canonical URL
-`https://devenira.com/blog/your-appetite-scales-with-training-volume-not-with-weight`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -42,6 +59,10 @@ The intuition is that as you get smaller, you should need less food, so you shou
 The intuition is mostly wrong. Appetite, day to day and week to week, scales much more closely with training volume, sleep quality, and the body's recent repair workload than with what the scale says you weigh.
 
 This is not a small distinction. It changes what to do when hunger is loud, and it explains why two people at the same weight can have wildly different appetite signals on the same day.
+
+> **Why am I so hungry after lifting weights?**
+>
+> Because appetite tracks training volume and recovery, not body weight. The body's energy demand spikes 6 to 36 hours after a real session and stays elevated through the recovery window. Add a poor night of sleep and the signal climbs further. Most diet hunger is not failure. It is a repair signal asking for fuel.
 
 ## What your appetite is actually responding to
 
@@ -153,4 +174,29 @@ If you keep diagnosing daily hunger as a weight problem, you will keep applying 
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### What variables actually drive day-to-day appetite?
+
+Three matter more than weight. Training volume in the past 24 to 72 hours. Sleep across the past three to five nights. The body's recent repair load. A lifter who trained heavy yesterday and slept six hours will be hungrier than a sedentary person who slept eight.
+
+### When does training-driven hunger actually show up?
+
+Six to 36 hours after the session. A heavy lower-body Monday morning often shows up as elevated hunger Tuesday afternoon and evening. A long Sunday cardio session tends to peak Monday afternoon. Sleep deprivation is faster — usually the same day and the day after a poor night.
+
+### Should I feed training-driven hunger or push through?
+
+Feed it, especially on hard training days. The repair demand is real. Adding 100 to 200 calories of protein-forward food on a heavy session day is not breaking the diet. It is feeding the work the diet is supposed to support. Pushing through usually backfires by week's end.
+
+### How can I tell if my hunger is training, sleep, or actual food shortage?
+
+Track training intensity and a rolling sleep average alongside calories. Within three to four weeks the pattern usually shows. Loud-appetite weeks line up with high training and low sleep. Quiet weeks line up with the opposite. Body weight has almost no week-to-week relationship with how hungry the body feels.
+
+### Why don't more dieters know this?
+
+Because diet narratives frame appetite as a function of body size and willpower. Athletes are taught to read appetite through training and recovery. The first framing maps onto the actual physiology. The second produces 'the diet is failing' diagnoses for what are really hard-training nights.
+
 ```

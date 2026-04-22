@@ -4,19 +4,37 @@
 The First Week of Any Diet Is the Most Misleading One
 
 ## SEO Title
-The First Week of Any Diet Is the Most Misleading One
+Why Do You Lose So Much Weight the First Week of a Diet?
 
 ## Subtitle / Description
 Week one numbers are not the diet working. They are water, glycogen, and novelty. The honest reading starts around week three.
 
+## Meta Description
+Why do you lose so much weight the first week of a diet? Glycogen and water — not fat. The honest reading starts at week 3, not week 1.
+
+## Primary Keyword
+why do you lose so much weight the first week of a diet
+
+## Secondary Keywords
+- first week diet water weight
+- initial weight loss water not fat
+- week 1 diet weight loss fast
+- honeymoon phase weight loss
+- why weight loss slows after week one
+
 ## Medium Tags
-- Dieting
 - Weight Loss
 - Water Weight
-- Patience
+- Dieting
+- Rapid Weight Loss
+- Mindset
 
 ## Canonical URL
-`https://devenira.com/blog/the-first-week-of-any-diet-is-the-most-misleading-one`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,11 +50,15 @@ Week one numbers are not the diet working. They are water, glycogen, and novelty
 ```md
 # The First Week of Any Diet Is the Most Misleading One
 
-The first week is where people decide whether the plan is working. That decision is almost always based on the wrong evidence.
+Why do you lose so much weight the first week of a diet? Most of it is water, glycogen, and a noisier scale — not fat. The first week is where people decide whether the plan is working. That decision is almost always based on the wrong evidence.
 
 The first week is where people decide whether the plan is working.
 
 That decision is almost always based on the wrong evidence.
+
+> **Why do you lose so much weight the first week of a diet?**
+>
+> Mostly water, glycogen, salt balance, and a temporary digestive clearing. A 3 kg drop in week one is often only 0.3 kg of actual fat and 2.7 kg of fluid and food volume. Week two looks like nothing happened, but it is the first honest data point. The real diet starts around day fifteen.
 
 ## What Week One Usually Shows
 
@@ -98,4 +120,29 @@ The real diet begins around day 15.
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### How much of week one's drop is actually fat?
+
+Roughly 0.2 to 0.5 kg for most people in a reasonable deficit. The rest is water from glycogen depletion, lower sodium retention from less processed food, and a one-time empty-out of digestive backlog. Real fat loss in week one is the smallest part of the number.
+
+### Why does week two look like the diet stopped?
+
+Because the water and glycogen drop has stabilized. What moves now is mostly fat, and fat moves slowly. Week two usually shows 0.3 to 0.8 kg loss, sometimes nothing, sometimes a small upward blip. None of that means failure. It means week one was misleading.
+
+### Should I lock in a weekly target based on week one?
+
+No. A week-one target builds the wrong expectation for every week after. Most diets fail at week two because the person was anchored to a 3 kg week and read 0.3 kg as broken. Use the third or fourth week as the basis for what your real rate is.
+
+### Should I weigh daily during week one?
+
+Probably not. Week one is mostly fluid noise. Daily readings during this phase teach you to interpret water shifts as fat changes, which sets up bad habits for the rest of the program. A weekly weigh-in or a rolling average reads the trend more honestly.
+
+### When does the diet start telling the truth?
+
+Around week three. By then the water effects have stabilized, the new eating pattern has become more consistent, and the scale starts reflecting actual body composition change. Almost every serious transformation across coaching contexts follows this pattern: fast week, slow week, honest week.
+
 ```

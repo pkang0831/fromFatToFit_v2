@@ -4,20 +4,37 @@
 Why I Built Devenira for the Weeks Where You Want to Quit
 
 ## SEO Title
-Why I Built Devenira for the Weeks Where You Want to Quit
+How I Lost 50 kg: Why the Middle of the Diet Is the Hardest
 
 ## Subtitle / Description
-I lost 50 kg, but the hardest part was not starting. It was the slow middle where progress was real, but hard to trust. That is why I built Devenira around weekly proof.
+How I lost 50 kg, in one honest sentence: slowly, and mostly in the unglamorous middle. The start wasn't the hard part. I lost 50 kg, but the hardest part was not starting. It was the slow middle where progress was real, but hard to trust. That is why I built Devenira around weekly proof.
+
+## Meta Description
+How I lost 50 kg over 5 years — and why month nine was harder than month one. The fix that worked: weekly proof, not daily panic.
+
+## Primary Keyword
+how I lost 50 kg
+
+## Secondary Keywords
+- lost 50 kg transformation
+- 50 kg weight loss journey
+- slow weight loss success story
+- how to trust slow weight loss
+- middle of weight loss transformation
 
 ## Medium Tags
 - Weight Loss
-- Founder Story
-- Body Image
 - Transformation
+- Weight Loss Journey
+- Founder Story
 - Mindset
 
 ## Canonical URL
-`https://devenira.com/blog/why-i-built-devenira-for-the-weeks-where-you-want-to-quit`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use a founder portrait or a credible transformation image.

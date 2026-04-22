@@ -1,0 +1,60 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": "https://devenira.com/blog/why-does-the-scale-go-up-when-i-barely-eat#article",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://devenira.com/blog/why-does-the-scale-go-up-when-i-barely-eat"
+    },
+    "headline": "Why It Feels Like You Gain Weight Even When You Barely Eat",
+    "alternativeHeadline": "Why Does the Scale Go Up When You're Barely Eating?",
+    "description": "Why does the scale go up when I barely eat? Sodium, glycogen, and a 2 kg overnight swing that has nothing to do with fat. Read it before you cut more.",
+    "image": "https://devenira.com/founder/scale-rude-before-20240130.jpg",
+    "datePublished": "2026-04-19",
+    "dateModified": "2026-04-19",
+    "author": {
+      "@type": "Person",
+      "@id": "https://devenira.com/authors/pkang",
+      "name": "pkang",
+      "url": "https://devenira.com/authors/pkang"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "@id": "https://devenira.com/#organization",
+      "name": "Devenira"
+    },
+    "keywords": "why does the scale go up when I barely eat, why am I gaining weight eating less, daily weight fluctuation 2 to 5 pounds, water retention not fat, scale went up eating clean, weight up overnight without eating",
+    "articleSection": "scale",
+    "inLanguage": "en"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://devenira.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "https://devenira.com/blog"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Why It Feels Like You Gain Weight Even When You Barely Eat",
+        "item": "https://devenira.com/blog/why-does-the-scale-go-up-when-i-barely-eat"
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": "[harvested at runtime from sections]"
+  }
+]

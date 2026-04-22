@@ -4,19 +4,37 @@
 Losing Weight Is Not the Same as Getting Leaner
 
 ## SEO Title
-Losing Weight Is Not the Same as Getting Leaner
+What's the Difference Between Weight Loss and Fat Loss?
 
 ## Subtitle / Description
 You can lose weight and not get leaner. You can get leaner and not lose weight. The scale is telling you one thing, the mirror is telling you another.
 
+## Meta Description
+What's the difference between weight loss and fat loss? You can drop 5 kg without getting leaner. Here's the composition test the scale can't run.
+
+## Primary Keyword
+what's the difference between weight loss and fat loss
+
+## Secondary Keywords
+- weight loss vs fat loss difference
+- losing weight but not leaner
+- getting lean not just skinny
+- fat loss vs body recomposition
+- leaner body same weight
+
 ## Medium Tags
-- Body Composition
-- Scale
-- Recomposition
 - Weight Loss
+- Fat Loss
+- Body Composition
+- Body Recomposition
+- Fitness
 
 ## Canonical URL
-`https://devenira.com/blog/losing-weight-is-not-the-same-as-getting-leaner`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -32,7 +50,7 @@ You can lose weight and not get leaner. You can get leaner and not lose weight. 
 ```md
 # Losing Weight Is Not the Same as Getting Leaner
 
-At one point in the middle of my transformation, I weighed the same for eight weeks. My clothes stopped fitting anyway.
+What's the difference between weight loss and fat loss? One moves the scale; the other actually changes how you look. At one point in the middle of my transformation, I weighed the same for eight weeks. My clothes stopped fitting anyway.
 
 At one point in the middle of my transformation, I weighed the same for eight weeks.
 
@@ -41,6 +59,10 @@ My clothes stopped fitting anyway.
 Looser around the waist. Tighter around the shoulders. The same number. A different body.
 
 I spent those eight weeks mostly frustrated because I did not yet understand what was happening.
+
+> **What is the difference between weight loss and fat loss?**
+>
+> Weight is total mass: water, bone, organ, muscle, fat, food in transit. Fat loss is just the fat portion. You can lose weight and get less lean if you lose mostly muscle, or stay the same weight and get leaner through recomposition. The scale weighs everything. It cannot tell those stories apart.
 
 ## The Two Lines Do Not Always Move Together
 
@@ -108,4 +130,29 @@ They are not the same number and they are not the same clock.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### How can I tell which one I'm doing?
+
+Track three things together: weekly scale average, tape measurements at waist and hip, and photos every two weeks under matched conditions. If the scale moves but measurements do not, you are losing the wrong tissue. If measurements move but the scale does not, you are recomposing.
+
+### Can you gain weight and look leaner?
+
+Yes. If the gain is muscle and the loss is fat, the scale moves up while the body looks visibly leaner. A 70 kg person at 25 percent body fat looks softer than a 72 kg person at 18 percent. The heavier one is the leaner one.
+
+### Why do people lose muscle on a diet?
+
+Two reasons: protein intake is too low, or the deficit is so aggressive the body sheds tissue indiscriminately. Adequate protein (1.6 to 2.2 g/kg) plus resistance training tilts the loss toward fat and away from muscle. Cardio-only severe diets do the opposite.
+
+### Is body recomposition possible at any age?
+
+Yes, though the rate slows with age. Trained adults in their thirties, forties, and beyond still build muscle and lose fat at the same time, just more slowly than beginners. The direction is the same. The clock runs differently.
+
+### Should I care about body fat percentage instead of weight?
+
+For most people, yes. Unless you are an athlete with a weight class, the actual goal is composition, not mass. Track a waist measurement, a clothing size, and photos. Use the scale as one of four signals, not the sentence.
+
 ```

@@ -43,6 +43,54 @@ export function BlogArticleContent({ sections }: BlogArticleContentProps) {
           );
         }
 
+        if (section.type === 'answerBox') {
+          // Featured snippet target. The H3 is visible as the question,
+          // and the p is the 40-60 word direct answer Google is expected
+          // to pluck into position 0. Keep styling minimal and semantic
+          // so Google has no parsing ambiguity.
+          return (
+            <section
+              key={`${section.type}-${index}`}
+              className="rounded-[28px] border border-primary/30 bg-primary/[0.05] px-6 py-6 md:px-8"
+            >
+              <h3 className="text-xl font-semibold tracking-tight text-primary/90 md:text-2xl">
+                {section.question}
+              </h3>
+              <p className="mt-3 text-lg leading-8 text-white/85">{section.answer}</p>
+            </section>
+          );
+        }
+
+        if (section.type === 'faq') {
+          return (
+            <section key={`${section.type}-${index}`} className="space-y-5">
+              {section.title ? (
+                <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                  {section.title}
+                </h2>
+              ) : null}
+              <div className="divide-y divide-white/[0.06] rounded-[28px] border border-white/[0.08] bg-white/[0.03]">
+                {section.items.map((item, itemIndex) => (
+                  <details
+                    key={`${index}-${itemIndex}`}
+                    className="group px-6 py-5 md:px-8"
+                  >
+                    <summary className="cursor-pointer list-none text-lg font-semibold text-white marker:hidden">
+                      <span className="flex items-start justify-between gap-4">
+                        <span>{item.question}</span>
+                        <span className="mt-1 text-primary/80 transition-transform group-open:rotate-45">
+                          +
+                        </span>
+                      </span>
+                    </summary>
+                    <p className="mt-3 text-base leading-7 text-white/72">{item.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          );
+        }
+
         return (
           <section key={`${section.type}-${index}`} className="space-y-5">
             {section.title ? (

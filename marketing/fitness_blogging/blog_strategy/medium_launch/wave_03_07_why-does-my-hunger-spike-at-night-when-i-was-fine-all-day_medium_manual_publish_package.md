@@ -4,20 +4,37 @@
 Why Does My Hunger Spike at Night When I Was Fine All Day?
 
 ## SEO Title
-Why Does My Hunger Spike at Night When I Was Fine All Day?
+Why Am I Hungry at Night but Not During the Day?
 
 ## Subtitle / Description
-The cleanest day on paper can end at 9 p.m. with you standing at the open fridge. The day was a number. The evening was a person. A practical Q&A on the night-hunger spike.
+Why am I hungry at night but not during the day, even on a clean food day? The evening is where the day's restriction comes due. The cleanest day on paper can end at 9 p.m. with you standing at the open fridge. The day was a number. The evening was a person. A practical Q&A on the night-hunger spike.
+
+## Meta Description
+Why am I hungry at night but not during the day? At 9 p.m. you're at the fridge — but your daytime was a number, not a meal. Here's the fix.
+
+## Primary Keyword
+why am I hungry at night but not during the day
+
+## Secondary Keywords
+- night hunger diet
+- late night hunger weight loss
+- evening hunger cravings
+- why am I so hungry at 9pm
+- nighttime hunger diet
 
 ## Medium Tags
 - Weight Loss
-- Cravings
+- Hunger
+- Appetite
 - Dieting
-- Sleep
-- Mindful Eating
+- Cravings
 
 ## Canonical URL
-`https://devenira.com/blog/why-does-my-hunger-spike-at-night-when-i-was-fine-all-day`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -42,6 +59,10 @@ You ate well. You hit your protein. You drank water. You walked. The day, on eve
 And then the evening arrived and tried to undo it.
 
 This is one of the most common questions I get, so the answers are organized as a Q&A. The honest version of the answer is not "you have no discipline." The honest version is closer to: the day and the evening are running on different physiology and different psychology, and almost nothing is wrong with you.
+
+> **Why am I hungry at night but not during the day?**
+>
+> Three things stack in the evening. Caloric debt from the day becomes audible once distractions drop. Decision fatigue lowers self-regulation. And the kitchen is suddenly nearby. Most night spikes are not psychological. They are scheduling problems wearing psychological clothes. A later, protein-forward dinner usually quiets the spike inside two weeks.
 
 ## Q: What does the evening hunger spike actually feel like?
 
@@ -146,4 +167,29 @@ Most night-hunger spikes are not psychological. They are scheduling problems wea
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Why does my hunger hit hardest around 9pm?
+
+By 9pm, the day's intake is mostly behind you and any deficit becomes audible. Self-regulation also runs lowest in late evening, and the kitchen is two rooms away with no work or meetings in the way. The friction is the lowest it has been all day.
+
+### Will eating dinner later actually help?
+
+For most people with evening spikes, yes. Pushing dinner 60 to 90 minutes later shrinks the unfueled gap between dinner and the spike. The same total calories, just redistributed. Two weeks is usually enough to see whether the change quiets the evening.
+
+### Should I plan an evening snack?
+
+If the spike happens at the same time most nights, yes. A planned 150 to 200 calorie protein-forward snack — yogurt, fruit, a small shake — slotted into the daily plan removes the surprise. The spike stops feeling like a fight because the meal is already on the schedule.
+
+### How does sleep affect night cravings?
+
+Sleep-deprived bodies are hungrier the next day, especially in the evening. Three nights of six hours instead of seven and a half routinely produces 200 to 400 calories of extra hunger. Pushing bedtime back is one of the cheapest appetite interventions available.
+
+### What if I tried all this and still spike at night?
+
+Then your daily total is probably too low for your activity. A consistent loud evening signal across several weeks, despite a structurally fine evening, usually means the deficit is too aggressive. Add 150 to 200 calories until the spike loses its edge.
+
 ```

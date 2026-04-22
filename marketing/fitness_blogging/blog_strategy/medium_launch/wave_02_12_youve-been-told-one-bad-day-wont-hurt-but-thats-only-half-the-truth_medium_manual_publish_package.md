@@ -4,19 +4,37 @@
 You’ve Been Told “One Bad Day Won’t Hurt”—But That’s Only Half the Truth
 
 ## SEO Title
-You’ve Been Told “One Bad Day Won’t Hurt”—But That’s Only Half the Truth
+Does One Bad Day Ruin a Diet? The Honest Answer
 
 ## Subtitle / Description
-One bad day usually does less damage than several bad days in a row. The problem is how quickly that technically true idea turns into behaviorally disastrous cheat-day logic.
+Does one bad day ruin a diet? Almost never — but the next three days decide whether one bad day stays one bad day. One bad day usually does less damage than several bad days in a row. The problem is how quickly that technically true idea turns into behaviorally disastrous cheat-day logic.
+
+## Meta Description
+Does one bad day ruin a diet? Mostly no — until 'one bad day' becomes a strategy. Here's the math on 1 bad day vs 3 in a row.
+
+## Primary Keyword
+does one bad day ruin a diet
+
+## Secondary Keywords
+- can one bad day ruin a diet
+- did I ruin my diet in one day
+- one cheat day damage
+- several bad days in a row diet
+- bad day diet recovery
 
 ## Medium Tags
+- Weight Loss
+- Dieting
 - Cheat Day
 - Binge Eating
 - Habits
-- Weight Loss
 
 ## Canonical URL
-`https://devenira.com/blog/youve-been-told-one-bad-day-wont-hurt-but-thats-only-half-the-truth`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -41,6 +59,10 @@ Be honest. If I eat a ridiculous amount in one day, is that actually less damagi
 Short answer? Usually, yes.
 
 Longer answer? That fact has ruined a lot of diets when people misunderstand what it means.
+
+> **Does one bad day ruin a diet?**
+>
+> Usually not. One overshoot day is technically less damaging than several moderate-overshoot days in a row. Body fat is built from patterns, not single events. The real risk is not the bad day. It is the cheat-day expansion that follows: one meal becomes a weekend, the weekend becomes a reset Monday that keeps moving.
 
 ## One Wild Day Is Often Less Damaging Than Stretching the Chaos Out
 
@@ -98,4 +120,29 @@ The problem is that people who need that sentence most are often one step away f
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### How much weight can one bad day actually add?
+
+Maybe 0.2 to 0.5 kg of true fat in extreme cases. The 1 to 2 kg the scale shows the next morning is almost entirely water, glycogen, and food volume from the carbohydrates and sodium. Most of it leaves within three to five days of normal eating.
+
+### Should I skip breakfast the day after a bad day?
+
+No. Skipping breakfast as punishment usually drops blood sugar and triggers a second overeat by late afternoon. Eat your normal breakfast. Return to your normal lunch and dinner. Treat yesterday as yesterday. Do not chain two bad days together by trying to compensate.
+
+### What turns one bad day into a bad week?
+
+Three things: punishment-style restriction the next morning, the all-or-nothing 'I already blew it' framing, and weighing in too soon and reading the water spike as fat. Any of those alone can stretch one meal into five days off plan.
+
+### Are scheduled cheat days a smart strategy?
+
+Sometimes, but they often expand. The cheat meal becomes a cheat day, the cheat day becomes a cheat weekend, and anticipation of the release starts driving weekday behavior. If you find yourself counting down to the cheat day, the system is too tight the rest of the week.
+
+### How long should I wait to weigh in after a bad day?
+
+Three to five days, under your usual conditions. The scale will lie upward for that window because of water and sodium, and reading the lie usually triggers more off-plan eating. Skip the morning weigh-in until the noise has cleared.
+
 ```

@@ -4,20 +4,37 @@
 The Friend Who Never Diets and Never Gains
 
 ## SEO Title
-The Friend Who Never Diets and Never Gains
+Why Some People Never Gain Weight No Matter What
 
 ## Subtitle / Description
 The friend who never diets and never gains is not lucky in the way you think. What is actually going on is usually boring and almost always invisible.
 
+## Meta Description
+Why do some people never gain weight no matter what they eat? Not metabolism, not luck. Here's the boring set of habits hiding underneath.
+
+## Primary Keyword
+why do some people never gain weight no matter what they eat
+
+## Secondary Keywords
+- people who eat anything and stay thin
+- naturally thin people genetics
+- why don't some people gain weight
+- thin friend never diets
+- constitutional thinness obesity resistance
+
 ## Medium Tags
 - Weight Loss
 - Body Composition
-- NEAT
+- Metabolism
 - Habits
-- Weight Stability
+- Health
 
 ## Canonical URL
-`https://devenira.com/blog/the-friend-who-never-diets-and-never-gains`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,13 +50,17 @@ The friend who never diets and never gains is not lucky in the way you think. Wh
 ```md
 # The Friend Who Never Diets and Never Gains
 
-Everyone has that friend. Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May. You do not, and you are furious about it.
+Why do some people never gain weight no matter what they eat? Genetics is part of it, but most of the gap is unmeasured behavior. Everyone has that friend. Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May. You do not, and you are furious about it.
 
 Everyone has that friend.
 
 Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May.
 
 You do not, and you are furious about it.
+
+> **Why do some people never gain weight no matter what they eat?**
+>
+> It is rarely magic metabolism. Naturally lean people usually run a stack of small invisible habits: more standing and fidgeting, similar foods most days, stopping when full, consistent sleep. None of it looks like effort because to them it is not effort. You are comparing your conscious diet to their unconscious default.
 
 ## The Myth
 
@@ -103,4 +124,29 @@ The answer is usually: more of them than you think.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Is it really genetics or are they just hiding the work?
+
+Some genetic factors are real — NEAT, satiety signaling, and gut microbiome vary between people. But most of the gap is invisible habit, not luck. Watch a naturally lean friend for a week and you will see the small structure they are not naming as effort.
+
+### What is NEAT and why does it matter so much?
+
+NEAT is non-exercise activity thermogenesis: fidgeting, standing, walking on phone calls, taking the stairs without thinking about it. NEAT can vary by hundreds of calories per day between people. It is largely unconscious and explains a lot of so-called fast metabolisms.
+
+### Can I learn to eat like a naturally thin person?
+
+Most of it, yes, with about a year of practice. The stand-more, sleep-consistent, do-not-dramatize-food pattern is installable. It does not look like weight loss while it happens. It looks like a different relationship with eating and moving. Five-year maintainers usually built it.
+
+### Do thin people actually eat less than I think?
+
+Often yes, just within a tighter range than they realize. They stop when full, do not finish plates as a default, and rarely snack mindlessly. The total intake looks generous on any single day and adds up to balanced across the week without conscious tracking.
+
+### Is constitutional thinness a real thing?
+
+Yes — a small percentage of people have genuinely high-metabolism, high-NEAT, low-appetite physiology that resists weight gain even when they try. For most people though, the friend who 'eats anything' is running a default pattern, not breaking energy balance.
+
 ```

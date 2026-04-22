@@ -4,19 +4,37 @@
 What Actually Counts as a Weight Loss Plateau?
 
 ## SEO Title
-What Actually Counts as a Weight Loss Plateau?
+What Counts as a Weight Loss Plateau (and What Doesn't)?
 
 ## Subtitle / Description
-A slower scale is not automatically a plateau. Sometimes progress just stopped flattering you and started looking like real life.
+What counts as a weight loss plateau is narrower than people think. Most slow weeks are not plateaus — just real life. A slower scale is not automatically a plateau. Sometimes progress just stopped flattering you and started looking like real life.
+
+## Meta Description
+What counts as a weight loss plateau? Most people call it after 7 days. The honest threshold is 3 weeks of zero trend — and most never get there.
+
+## Primary Keyword
+what counts as a weight loss plateau
+
+## Secondary Keywords
+- weight loss plateau definition
+- how long until it's a plateau
+- am I in a plateau or slow progress
+- how many weeks to call it a plateau
+- weight stall vs plateau
 
 ## Medium Tags
-- Plateau
 - Weight Loss
-- Progress Tracking
-- Body Recomposition
+- Weight Loss Plateau
+- Dieting
+- Plateau
+- Fitness
 
 ## Canonical URL
-`https://devenira.com/blog/what-actually-counts-as-a-weight-loss-plateau`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -41,6 +59,10 @@ That is how impatient people talk when the scale stops flattering them.
 Week three arrives, the number barely moves, and suddenly you are acting like the whole plan entered hospice care.
 
 People use the word plateau way too early.
+
+> **What actually counts as a weight loss plateau?**
+>
+> A real plateau is three weeks of stable weight under the same conditions, with no shape change either. Less than that is noise. Slower progress than week one is not a plateau. One or two flat weigh-ins is not a plateau. Most people use the word way too early and start punishing a plan that is still working.
 
 ## Slower Is Not the Same as Stuck
 
@@ -115,4 +137,29 @@ Before you call it a plateau, get one calmer read on what your body is actually 
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### How long until I can call it a plateau?
+
+Three weeks of stable weight under similar conditions, with no shape change either. Anything shorter is noise. The early water-loss phase fooled people about what real progress looks like, so the second month often gets read as a plateau when it is just adulthood.
+
+### Can the scale stay flat while I'm still losing fat?
+
+Yes. If body fat is going down while a small amount of muscle is going up, the scale shows nothing while the body is still changing. That is why one number should not be treated as a final verdict, especially during training.
+
+### Why does cutting more usually backfire?
+
+Because most plateaus are not actually plateaus, so the harsher response is solving a problem that does not exist. Even on real plateaus, cutting harder tends to drop NEAT, raise appetite, and trigger a binge later in the week. Bolt cutters on an unlocked door.
+
+### Why does week one feel so dramatic compared to week three?
+
+Week one is mostly water, glycogen, and a noisier scale. Motivation is fresh. The body is not yet in any real fat-loss rhythm. By week three, the noise has cleared and the actual rate of loss is what shows. Week one was the bad teacher.
+
+### How should I respond if it is a real plateau?
+
+Run an honest tracking week before changing anything. Check sleep, stress, and unconscious activity drift. Most plateaus break by fixing the variable that drifted, not by cutting calories or adding cardio. A plateau is a report, not a verdict. Read it before reacting.
+
 ```

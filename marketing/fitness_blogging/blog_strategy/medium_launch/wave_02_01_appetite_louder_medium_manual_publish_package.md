@@ -4,20 +4,37 @@
 Why Appetite Feels Stronger the Longer You Diet
 
 ## SEO Title
-Why Appetite Feels Stronger the Longer You Diet
+Why Is My Appetite Stronger the Longer I Diet?
 
 ## Subtitle / Description
-If dieting has made food feel louder, that does not automatically mean you are weak. Appetite often gets more chaotic when the system becomes too restrictive, repetitive, or emotionally brittle.
+Why is my appetite stronger on a diet, even when I'm eating enough on paper? Restriction makes the brain louder, not just the stomach. If dieting has made food feel louder, that does not automatically mean you are weak. Appetite often gets more chaotic when the system becomes too restrictive, repetitive, or emotionally brittle.
+
+## Meta Description
+Why is my appetite stronger on a diet, not weaker? Hunger climbs the longer you cut — leptin drops, ghrelin rises. Here's what to do at week 8.
+
+## Primary Keyword
+why is my appetite stronger on a diet
+
+## Secondary Keywords
+- hunger gets worse the longer you diet
+- appetite increases with weight loss
+- diet fatigue hunger
+- why am I hungrier on a diet
+- food noise while dieting
 
 ## Medium Tags
-- Appetite
-- Dieting
-- Cravings
 - Weight Loss
+- Dieting
+- Appetite
+- Cravings
 - Mindset
 
 ## Canonical URL
-`https://devenira.com/blog/why-appetite-feels-stronger-the-longer-you-diet`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use a reflective founder image rather than a hard-proof transformation shot.
@@ -58,6 +75,10 @@ Maybe I am just weak.
 Maybe I do not want this badly enough.
 
 That explanation is emotionally convenient. It is also often lazy.
+
+> **Why is my appetite stronger the longer I diet?**
+>
+> Because dieting changes hunger signaling over time. Restriction makes ordinary food feel more important than it is. The first weeks run on novelty and momentum. Several weeks in, the system stops cooperating and food gets louder, both in the stomach and in the head. That usually means a pattern problem, not a willpower problem.
 
 ## The Early Phase Feels Easier For Reasons People Misread
 
@@ -152,4 +173,29 @@ That is where better dieting actually starts.
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### Why does the early phase feel easier than the middle?
+
+Because momentum carries the first stretch. The plan is fresh, the rules feel meaningful, and the scale is generous. People often mistake that phase for being disciplined. The harder phase comes later, when the system has had time to argue back.
+
+### What's the difference between hunger and food noise?
+
+Hunger is general, patient, and stomach-based. Any reasonable meal satisfies it. Food noise is loud in the head, specific, and does not quiet down even after eating. Food noise usually points to a system problem — too much restriction, too little variety — not a character flaw.
+
+### Why do cheat meals start feeling so emotional?
+
+Because the rest of the week became joyless. When food gets moralized, ordinary meals turn into anticipation, fantasy, and resentment. The cheat meal stops being a meal and becomes scheduled relief. That is why so many of them turn into binges instead of meals.
+
+### What usually quiets appetite back down?
+
+Meals that are actually satisfying. Less mythology around specific foods. Fewer all-or-nothing swings. A structure you can stay inside without fantasizing about escape all day. Once cravings stop being treated as character verdicts, the system has space to settle.
+
+### Is louder appetite a sign I should quit the diet?
+
+Not automatically. It is a sign the system needs adjustment, not abandonment. A planned diet break, a small calorie bump, or fewer banned foods often fixes it within a couple of weeks. Quitting because of louder appetite usually starts the next round at the same pattern.
+
 ```

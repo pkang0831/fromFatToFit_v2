@@ -4,20 +4,37 @@
 Is It Bloat or Is It Fat
 
 ## SEO Title
-Is It Bloat or Is It Fat
+Is My Stomach Bloat or Fat? How to Tell
 
 ## Subtitle / Description
 A practical guide to distinguishing temporary bloat from real fat gain, so you stop reacting to noise as if it is signal.
 
+## Meta Description
+How to tell if my stomach is bloat or fat: the body can't make 1.5 kg of fat overnight. Here's the 3-question test that ends most morning panic.
+
+## Primary Keyword
+how to tell if my stomach is bloat or fat
+
+## Secondary Keywords
+- is my belly bloat or fat
+- bloating vs belly fat difference
+- how to tell bloat from fat gain
+- stomach swelling vs fat
+- bloat feels hard belly fat soft
+
 ## Medium Tags
 - Weight Loss
-- Body Composition
-- Scale
+- Bloating
 - Water Weight
-- Daily Fluctuation
+- Nutrition
+- Body Image
 
 ## Canonical URL
-`https://devenira.com/blog/is-it-bloat-or-is-it-fat`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -33,11 +50,15 @@ A practical guide to distinguishing temporary bloat from real fat gain, so you s
 ```md
 # Is It Bloat or Is It Fat
 
-This is one of the most useful questions anyone can ask. It is also one of the most mis-answered.
+Here's how to tell if your stomach is bloat or fat: time it across days, not minutes. Bloat moves; fat doesn't. This is one of the most useful questions anyone can ask. It is also one of the most mis-answered.
 
 This is one of the most useful questions anyone can ask.
 
 It is also one of the most mis-answered.
+
+> **How do I tell if my stomach is bloat or fat?**
+>
+> Time it across days, not minutes. Bloat moves; fat does not. The body cannot synthesize 1.5 kg of fat overnight — that would take roughly 11,000 calories above maintenance in a day. Real fat gain is slow, gradual, and survives a normal week. If the spike clears in three days, it was never fat.
 
 ## Q: I Gained 1.5 kg Overnight. Is That Fat?
 
@@ -86,4 +107,29 @@ The honest answer is: it is almost always bloat, and even when it is not, waitin
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
+
+
+## Frequently Asked Questions
+
+### Can I really gain 1.5 kg of fat overnight?
+
+No. That would require roughly 11,000 calories above maintenance in 24 hours, and you would remember doing it. Overnight scale jumps of 1 to 2 kg are almost entirely water, sodium, glycogen, and food still moving through digestion. Fat does not arrive that fast.
+
+### What does real fat gain look like on the scale?
+
+Slow, quiet, and unglamorous. Usually a gradual drift of 0.5 to 1 kg over two to four weeks that does not reverse after a normal day. The daily noise is still there, but the trendline is moving in one direction across multiple weeks.
+
+### How can I tell which is which in the moment?
+
+Usually you cannot, in the moment. That is the point. Wait four days, weigh again under your usual conditions. If the spike has cleared, it was bloat. If it has held across three consecutive measurements under usual conditions, then it is worth looking at.
+
+### What about how the mirror looks?
+
+The mirror is worse than the scale for this. Bloat changes how you look dramatically within hours. Fat changes how you look slowly over weeks. If you thought you looked smaller yesterday and larger today, you are looking at bloat, not at a body change.
+
+### Is it ever worth panicking about a one-day spike?
+
+No. There is no decision you can make on a one-day spike that a calmer decision three days later would not also catch. Over-reacting almost always leads to a binge or skipped meal that does more damage than the original blip. Waiting costs nothing.
+
 ```

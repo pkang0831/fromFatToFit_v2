@@ -1,0 +1,55 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": "https://devenira.com/blog/how-i-lost-50-kg-middle-of-diet#article",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://devenira.com/blog/how-i-lost-50-kg-middle-of-diet"
+    },
+    "headline": "Why I Built Devenira for the Weeks Where You Want to Quit",
+    "alternativeHeadline": "How I Lost 50 kg: Why the Middle of the Diet Is the Hardest",
+    "description": "How I lost 50 kg over 5 years \u2014 and why month nine was harder than month one. The fix that worked: weekly proof, not daily panic.",
+    "image": "https://devenira.com/founder/founder-story-hanok-20260119.jpg",
+    "datePublished": "2026-04-15",
+    "dateModified": "2026-04-15",
+    "author": {
+      "@type": "Person",
+      "@id": "https://devenira.com/authors/pkang",
+      "name": "pkang",
+      "url": "https://devenira.com/authors/pkang"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "@id": "https://devenira.com/#organization",
+      "name": "Devenira"
+    },
+    "keywords": "how I lost 50 kg, lost 50 kg transformation, 50 kg weight loss journey, slow weight loss success story, how to trust slow weight loss, middle of weight loss transformation",
+    "articleSection": "founder-story",
+    "inLanguage": "en"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://devenira.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "https://devenira.com/blog"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Why I Built Devenira for the Weeks Where You Want to Quit",
+        "item": "https://devenira.com/blog/how-i-lost-50-kg-middle-of-diet"
+      }
+    ]
+  }
+]

@@ -4,19 +4,37 @@
 How to Track Body Transformation Without Obsessing Over the Scale
 
 ## SEO Title
-How to Track Body Transformation Without Obsessing Over the Scale
+How to Track Body Transformation Without the Scale
 
 ## Subtitle / Description
-If you want to know whether your body is actually changing, you need a better system than checking the scale and the mirror every day. A simple weekly evidence loop works better.
+Here's how to track body transformation without the scale, with one weekly evidence loop instead of a daily morning verdict. If you want to know whether your body is actually changing, you need a better system than checking the scale and the mirror every day. A simple weekly evidence loop works better.
+
+## Meta Description
+How to track body transformation without the scale: 4 weekly signals more honest than the morning weigh-in. Photos, fit, and 2 you probably skip.
+
+## Primary Keyword
+how to track body transformation without the scale
+
+## Secondary Keywords
+- measuring body transformation
+- track fat loss without scale
+- weekly progress check-in method
+- body transformation tracking tools
+- measuring weight loss progress
 
 ## Medium Tags
-- Transformation
+- Weight Loss
+- Body Recomposition
 - Progress Photos
-- Body Composition
-- Fat Loss
+- Fitness
+- Transformation
 
 ## Canonical URL
-`https://devenira.com/blog/how-to-track-body-transformation-without-obsessing-over-the-scale`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -41,6 +59,10 @@ The problem is not that those tools are useless. The problem is that people use 
 They look too often. They react too quickly. And they ask each tool to do more than it is good at.
 
 That is how progress becomes confusing, even when the process is working.
+
+> **How do I track body transformation without obsessing over the scale?**
+>
+> Build one weekly evidence loop instead of a daily judgment ritual. Take a baseline photo, add weekly progress photos under similar conditions, watch how clothes fit, and use the scale as a supporting metric rather than the main judge. The body usually changes slower than emotion. Weekly tracking gives the body room to tell a real story.
 
 ## What Most People Get Wrong
 
@@ -124,4 +146,29 @@ One scan is a number. Weekly check-ins are proof.
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### How often should I take progress photos?
+
+Once a week, same spot, same lighting, same pose. Save them without analyzing them on the day. Compare in groups of four. Weekly is frequent enough to stay relevant; comparing every four weeks is slow enough to let your body actually show direction.
+
+### Why is daily scale tracking misleading?
+
+Daily readings are mostly water, sodium, and digestive contents — almost everything except fat. The number swings two kilos in a normal day. Reading those swings as fat loss or gain creates emotional volatility with numbers attached, not tracking.
+
+### What should a baseline check-in include?
+
+One honest starting photo, taken under conditions you can repeat. Not a flattering angle. Not your best lighting. Just a clear reference point. Without a baseline, every future photo becomes a guess. With one, every check-in becomes a real comparison.
+
+### What signals are more honest than the scale?
+
+Weekly progress photos under matched conditions. Visual changes in waist, torso, face, and posture. How familiar clothes are fitting. Tape measurements at waist and hip every two weeks. Together those four catch composition shifts the scale silently misses.
+
+### Why do most people quit before they see real progress?
+
+Because they track on a daily timescale and grade emotionally. Daily noise is louder than weekly signal, so the program feels like it is failing while the body is quietly moving. Most people quit not from lack of discipline, but from lack of believable evidence.
+
 ```

@@ -4,19 +4,37 @@
 Don’t Trust the Scale—Here’s What Actually Proves You’re Losing Weight
 
 ## SEO Title
-Don’t Trust the Scale—Here’s What Actually Proves You’re Losing Weight
+How to Know You're Losing Weight Without the Scale
 
 ## Subtitle / Description
-A lot of people want fat loss to come with a receipt. But the scale is one witness, not the whole case. Real proof often shows up in shape, fit, firmness, and repeated visual change.
+Here's how to know you're losing weight without the scale, with proof that holds up across a week. The receipt is rarely a number. A lot of people want fat loss to come with a receipt. But the scale is one witness, not the whole case. Real proof often shows up in shape, fit, firmness, and repeated visual change.
+
+## Meta Description
+How to know you're losing weight without the scale: 5 signals fat loss leaves before the number moves. Clothes, jaw, posture — and 2 most people miss.
+
+## Primary Keyword
+how to know you're losing weight without the scale
+
+## Secondary Keywords
+- signs you are losing fat not water
+- non scale victories weight loss
+- how to tell if losing fat
+- ways to track fat loss
+- visual signs weight loss
 
 ## Medium Tags
-- Scale Weight
-- Progress Tracking
+- Weight Loss
 - Fat Loss
-- Body Image
+- Progress Photos
+- Body Composition
+- Dieting
 
 ## Canonical URL
-`https://devenira.com/blog/dont-trust-the-scale-heres-what-actually-proves-youre-losing-weight`
+**DO NOT set a canonical URL in Medium's story settings.**
+
+Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+
+If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -41,6 +59,10 @@ One clean number. One obvious answer. One cheerful little dashboard that says: y
 Instead, they get this: the scale moves weirdly, the mirror feels moody, and the belly looks different on some days and rude on others.
 
 So now they ask the question I hear constantly: how do I know this is real weight loss and not fake progress?
+
+> **How can I tell I'm losing weight without the scale?**
+>
+> Look at shape, fit, firmness, and where the body is changing. The waistline on familiar clothes loosens before the scale fully cooperates. The upper abdomen feels less pushed out. The lower section softens and shifts. Real fat loss is often visible before it becomes official on a number.
 
 ## Not All Belly Change Looks the Same
 
@@ -98,4 +120,29 @@ Use a better lens. One scan is a number. Weekly check-ins are proof.
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
+
+
+
+## Frequently Asked Questions
+
+### What signals show up before the scale moves?
+
+How clothes fit at the waist. Whether the upper abdomen feels less pushed out. How the lower section sits. Where shape is loosening or shifting. None of these are as neat as a number, but they often arrive earlier than the scale agrees to.
+
+### Why doesn't fat loss look the same on every body?
+
+Because fat does not sit or leave the same way for everyone. Some people carry more around the upper abdomen, some lower, some at the back or thighs. Posture and muscle change how the midsection projects. Waiting for one universal pattern keeps people confused for years.
+
+### Are progress photos more reliable than the mirror?
+
+Usually yes, if the conditions match. The mirror reads through the day's mood. A photo taken in the same light, same posture, same time of day every week strips most of that out. Looked at in groups of four, photos catch what the daily mirror misses.
+
+### What if my clothes look different but the scale hasn't moved?
+
+Your body composition probably shifted. The scale weighs everything at once: water, gut content, muscle, fat. A flat number can mean fat down and a little muscle up. Clothes catch what the scale is silent about. Trust the fit before the number.
+
+### How long should I wait before deciding nothing changed?
+
+Three weeks at minimum. Most weeks contain enough water and digestive noise to fake a stall in either direction. Comparing weekly photos, weekly waist measurements, and a rolling weekly weight average over three weeks tells you whether the body actually held or moved.
+
 ```
