@@ -239,11 +239,9 @@ def publish_one(
         time.sleep(2)
 
         # Medium's import-page URL input has placeholder
-        # "http://www.yoursite.org/your-post" (observed 2026-04-23). It's an
-        # HTML <input type="text"> not type="url", no name attribute, no
-        # data-testid. So we match by placeholder prefix or by being the
-        # first non-search text input.
-        url_input = None
+        # "http://www.yoursite.org/your-post" (observed 2026-04-23). It's a
+        # legacy page hosted in an iframe, so page.content() and top-level
+        # locators don't see it. We must scan every frame.
         selectors = [
             'input[placeholder^="http" i]',              # primary
             'input[placeholder*="yoursite" i]',
@@ -254,22 +252,44 @@ def publish_one(
             'input[name*="url" i]',
             'input[aria-label*="url" i]',
             'input[data-testid*="import" i]',
-            'input:not([type="search"])',                # last resort — any non-search input
+            'input:not([type="search"])',                # last-resort
         ]
-        for sel in selectors:
-            try:
-                candidate = page.locator(sel).first
-                candidate.wait_for(timeout=3000, state="visible")
-                url_input = candidate
-                print(f"  found URL input via selector: {sel}")
+
+        url_input = None
+        target_frame = None
+        all_frames = [page.main_frame] + list(page.frames)
+        # deduplicate while preserving order
+        seen = set()
+        dedup_frames = []
+        for f in all_frames:
+            if id(f) in seen:
+                continue
+            seen.add(id(f))
+            dedup_frames.append(f)
+
+        print(f"  scanning {len(dedup_frames)} frame(s) for URL input...")
+        for fi, frame in enumerate(dedup_frames):
+            frame_url = frame.url or "(about:blank)"
+            for sel in selectors:
+                try:
+                    candidate = frame.locator(sel).first
+                    candidate.wait_for(timeout=1500, state="visible")
+                    url_input = candidate
+                    target_frame = frame
+                    print(f"  found URL input in frame #{fi} ({frame_url[:60]}) via: {sel}")
+                    break
+                except PWTimeout:
+                    continue
+                except Exception:
+                    continue
+            if url_input is not None:
                 break
-            except PWTimeout:
-                continue
-            except Exception:
-                continue
 
         if url_input is None:
-            print("ERROR: could not find URL input on import page. Saving debug artefacts...")
+            print("ERROR: could not find URL input in any frame. Saving debug artefacts...")
+            print("  frames scanned:")
+            for fi, frame in enumerate(dedup_frames):
+                print(f"    #{fi}: {frame.url}")
             _save_debug(page, "import-url-input-missing")
             ctx.close()
             return None
@@ -284,14 +304,22 @@ def publish_one(
             ctx.close()
             return None
 
-        # Click Import button
+        # Click Import button — search the same frame we found the input in
         try:
-            import_btn = page.get_by_role("button", name=re.compile(r"^import$", re.I)).first
+            # Try by role first in the target frame
+            search_frame = target_frame if target_frame else page
+            import_btn = search_frame.get_by_role("button", name=re.compile(r"^import$", re.I)).first
             import_btn.click()
         except Exception as e:
-            print(f"  could not click Import button: {e}")
-            ctx.close()
-            return None
+            print(f"  could not click Import button via role: {e} — trying text selector")
+            try:
+                import_btn = search_frame.locator('button:has-text("Import")').first
+                import_btn.click()
+            except Exception as e2:
+                print(f"  still could not click Import: {e2}")
+                _save_debug(page, "import-button-missing")
+                ctx.close()
+                return None
 
         # Wait for import to complete — the URL changes to /p/<id>/edit
         try:
