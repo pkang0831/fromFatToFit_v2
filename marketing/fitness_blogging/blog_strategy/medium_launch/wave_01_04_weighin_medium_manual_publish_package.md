@@ -40,7 +40,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 - Use an honest mid-process check-in image or a quiet scale-adjacent visual.
 - Goal: recognition, not panic theater.
 - Avoid polished transformation-flex imagery.
-- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/Takeout/Google Photos/Photos from 2024/IMG_1775.JPG`
+- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted/Takeout/Google Photos/Photos from 2024/IMG_1775.JPG`
 
 ## Optional Link Back
 - Use once, at the very end only:

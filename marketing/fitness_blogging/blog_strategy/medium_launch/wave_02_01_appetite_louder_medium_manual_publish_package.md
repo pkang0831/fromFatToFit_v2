@@ -40,7 +40,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 - Use a reflective founder image rather than a hard-proof transformation shot.
 - Goal: internal-state recognition, not gym drama.
 - Avoid raw mirror proof imagery for this one.
-- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/Takeout/Google Photos/Photos from 2026/20260106_120635.jpg`
+- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted/Takeout/Google Photos/Photos from 2026/20260106_120635.jpg`
 
 ## Optional Link Back
 - Use once, at the very end only:

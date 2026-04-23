@@ -40,7 +40,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 - Use an honest rebound-era check-in visual or a conceptual relapse image.
 - Goal: system recognition, not self-condemnation.
 - Avoid polished "after" imagery that makes the article feel preachy.
-- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/Takeout/Google Photos/Photos from 2025/20250719_083352.jpg`
+- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted/Takeout/Google Photos/Photos from 2025/20250719_083352.jpg`
 
 ## Optional Link Back
 - Use once, at the very end only:

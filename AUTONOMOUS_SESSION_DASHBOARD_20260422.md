@@ -59,7 +59,7 @@ All edits local; review the diff before merging.
 | medium | 37 | 55 |
 | low | 24 | 2 |
 
-- Avg body word count: **1054** (Medium sweet spot: 800–1500)
+- Avg body word count: **1036** (Medium sweet spot: 800–1500)
 - Avg H2 count: **7.5** (industry norm: 3–6)
 - Primary kw now in first paragraph: **64/64**
 
