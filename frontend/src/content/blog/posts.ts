@@ -122,6 +122,12 @@ const posts: BlogPost[] = [
         ],
       },
       {
+        type: 'answerBox',
+        question: "How did you lose 50 kg?",
+        answer:
+          "Slowly, and mostly in the unglamorous middle. The start was clear and motivating. The middle was a long stretch where the work was real but the mirror still made it feel fake. The fix that worked was weekly proof of progress instead of daily panic, so doubt stopped being able to overrule a record.",
+      },
+      {
         type: 'quote',
         quote: 'Maybe nothing is changing.',
       },
@@ -1321,6 +1327,12 @@ const posts: BlogPost[] = [
         ],
       },
       {
+        type: 'answerBox',
+        question: "What does 'skinny fat' mean?",
+        answer:
+          "Skinny fat is normal weight with a high body-fat percentage — the version of unfit the scale never reports. The number is fine; the composition is not. People in this category often look thin in clothes and soft out of them, and they need a recomp plan, not more weight loss.",
+      },
+      {
         type: 'paragraphs',
         title: 'A Normal Number and a Satisfying Physique Are Not Identical',
         paragraphs: [
@@ -1592,6 +1604,12 @@ const posts: BlogPost[] = [
           'If you have been reading this series from the start, you already know the pattern: the scale gets loud, appetite gets blamed, food becomes moral, and one bad day starts sounding like a character flaw.',
           'What I did not understand back then was that the body was not the only thing changing. My interpretation of the body had to change too.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "Why does my body change slower than my mind during weight loss?",
+        answer:
+          "Because the mind reads each day as a verdict and the body operates on weeks. Mood, stress, sleep, and one harsh weigh-in update the mind in seconds, while measurable body change takes 7–14 days to show. The gap is normal — and when the head is calmer than the scale, the program survives the middle.",
       },
       {
         type: 'paragraphs',
@@ -3553,6 +3571,12 @@ const posts: BlogPost[] = [
           'Past the messy middle of weight loss, the work changes shape. The body keeps moving; the head finally starts to catch up. This is a check-in, not a before-and-after.',
           'Before-and-afters are for people who are finished. I am not finished. What I am is past the messy middle.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "What happens past the messy middle of weight loss?",
+        answer:
+          "The work changes shape. The body keeps moving on its slow timeline, but the head finally catches up — bad days stop feeling like the program failed, weigh-ins stop rewriting your identity, and the same plan you wanted to renegotiate every week starts running on its own. It is quieter, not finished.",
       },
       {
         type: 'paragraphs',
@@ -6037,6 +6061,12 @@ const posts: BlogPost[] = [
         ],
       },
       {
+        type: 'answerBox',
+        question: "How much protein do I need to lose fat?",
+        answer:
+          "For most people in a deficit, 1.6–2.2 g of protein per kg of bodyweight per day is the evidence-based range that protects muscle and helps appetite. Less than 1.6 g/kg leaves muscle on the table. More than 2.2 g/kg has diminishing returns. Spread it across 3–4 meals so each one carries 30–45 g.",
+      },
+      {
         type: 'list',
         title: 'What Protein Actually Does On A Diet',
         intro: 'Three specific things.',
@@ -7181,6 +7211,12 @@ const posts: BlogPost[] = [
         ],
       },
       {
+        type: 'answerBox',
+        question: "What are non-scale victories in weight loss?",
+        answer:
+          "Non-scale victories are the everyday signals of progress the bathroom scale cannot see — clothes loosening, energy holding through the afternoon, recovery between training sessions, sleep that does not crash, and food noise quieting down. They are not consolation prizes. On weeks the scale lies, they are the more honest instrument.",
+      },
+      {
         type: 'paragraphs',
         title: 'What a Small Win Actually Looks Like',
         paragraphs: [
@@ -7322,6 +7358,12 @@ const posts: BlogPost[] = [
           'That single difference is what makes the first month after the cut feel completely unlike anything you spent the cut preparing for.',
           'The food gets easier. The structure does not. The head, which has been organizing itself around a target for months, suddenly has nothing concrete to aim at. The freedom is real, and the freedom is also the problem.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "What is the first month of maintenance after weight loss like?",
+        answer:
+          "It feels nothing like the diet. The finish line is gone, the rules quietly relax, appetite usually rises, and the rituals that ran the cut lose their rule-of-law feel. Most people read that drift as failure. It is just the mode change every successful diet has to survive — protect structure, not deficit.",
       },
       {
         type: 'paragraphs',
@@ -7800,6 +7842,12 @@ const posts: BlogPost[] = [
           'The earlier ones were about the process moving. This one is about the process going quiet.',
           'The numbers below are smaller than the previous update. The relationship to them is different. That difference is what this post is actually about.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "What is life after 50 kg weight loss like?",
+        answer:
+          "Quieter than the highlight reel sells it. The dramatic part of the transformation ends. The body just is. Weight stops being the most-thought-about thing in the day. Food is still tracked but as habit, not interrogation. Most of the work of the original diet has moved into the part of life you no longer narrate.",
       },
       {
         type: 'paragraphs',
@@ -8860,6 +8908,12 @@ const posts: BlogPost[] = [
         ],
       },
       {
+        type: 'answerBox',
+        question: "Is daily weighing an eating-disorder risk?",
+        answer:
+          "It can be. Daily weighing produces useful information only when the person reads the seven-day average, ignores day-to-day noise, and is emotionally insulated against a single morning's number. For people with restrictive history, body-image distress, or a tendency to let the scale dictate the day, daily weighing reliably fuels disordered patterns.",
+      },
+      {
         type: 'paragraphs',
         title: 'What the Daily Reading is Mostly Measuring',
         paragraphs: [
@@ -9167,6 +9221,12 @@ const posts: BlogPost[] = [
           'Then a Tuesday in week 22 showed up with the loud, specific, mid-afternoon hunger that I had not felt since the second month of the cut. By Friday, I was eating an extra 600 calories a day without planning to. By the next week, the body was up 0.8 kg.',
           'I almost ran the cut playbook on it. Tighten. Restrict. Punish. That instinct was wrong. The fix was different.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "Why does appetite return during maintenance after weight loss?",
+        answer:
+          "Because the body is finishing what the cut started. After weeks at lower body fat, leptin and ghrelin slowly recalibrate upward, and the appetite drive that the deficit suppressed shows up later — sometimes weeks into maintenance. It is not failure of discipline. It is a delayed signal. The fix is structure, not another cut.",
       },
       {
         type: 'paragraphs',
@@ -9812,6 +9872,12 @@ const posts: BlogPost[] = [
         ],
       },
       {
+        type: 'answerBox',
+        question: "Why won't my scale move but my clothes fit looser?",
+        answer:
+          "Because the scale measures one number — the sum of fat, lean tissue, water, glycogen, and gut contents — while clothes measure shape. When fat goes down and lean tissue goes up by similar amounts, the scale stalls and the body still changes. This is recomposition. Trust the tape, the photo, and the jeans.",
+      },
+      {
         type: 'paragraphs',
         title: 'Q: How Is It Possible That I Look Different to Other People but Still Weigh the Same?',
         paragraphs: [
@@ -9918,6 +9984,12 @@ const posts: BlogPost[] = [
           'Most people do not treat the mirror this way. They treat it as evidence. They use the morning mirror check to decide whether the program is working, whether the effort is landing, whether they still believe.',
           'That is almost always a mistake.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "Does the mirror lie about body image?",
+        answer:
+          "Often, yes. The mirror is not a neutral judge. It runs on yesterday's mood, today's lighting, sleep debt, water retention, and the emotional frame you bring to it. The same body can look 'progress' one morning and 'failure' the next. Trust the weekly photo, the tape, and the clothes — not the daily glance.",
       },
       {
         type: 'paragraphs',
@@ -10032,6 +10104,12 @@ const posts: BlogPost[] = [
         ],
       },
       {
+        type: 'answerBox',
+        question: "Can too much cardio stall fat loss?",
+        answer:
+          "Yes. When cardio volume rises faster than the body can recover, the diet becomes an underfueled grind: training quality drops, NEAT (the unconscious movement that burns most calories) silently falls, and recovery stress spikes appetite. The fix is usually less cardio, not more — protect lifting, eat the assigned calories, and let the deficit do its slow work.",
+      },
+      {
         type: 'paragraphs',
         title: 'The Week It Became Obvious',
         paragraphs: [
@@ -10143,6 +10221,12 @@ const posts: BlogPost[] = [
           'It is a useful word the first time. It names a real thing — the lower body really does clear last in most people. But the word quickly stops being descriptive and starts being accusatory. The thighs become the villain. The program becomes a referendum on whether one body zone is finally cooperating.',
           'That is where the trouble starts. Not with the body, which is doing something orderly. With the map, which has stopped being able to read what the body is doing.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "Why does lower body fat feel so stubborn?",
+        answer:
+          "Because lower body fat clears last on a timeline most people quit before reaching. Hips, thighs, and the lower back hold fat for longer biological reasons (distribution, capillary density, hormonal signaling). Once overall body-fat percentage gets low enough, the lower body finally moves — but it is the last stop, not a refusal.",
       },
       {
         type: 'paragraphs',
@@ -10263,6 +10347,12 @@ const posts: BlogPost[] = [
           'The word the person reaches for in this moment is almost always consistency. I just need to stay consistent. My problem is that I am not consistent enough.',
           'I spent a long time believing this too. It took a humiliating amount of time to notice I was being consistent at the wrong thing.',
         ],
+      },
+      {
+        type: 'answerBox',
+        question: "What is the real fix for a weight-loss plateau?",
+        answer:
+          "Usually not more consistency. It is changing the input because the body has stopped responding to the old one. The same calories, the same training, and the same rigor that worked at month one rarely keep working at month four. The plateau fix is recalibration of the lever, not louder execution of the same plan.",
       },
       {
         type: 'paragraphs',
