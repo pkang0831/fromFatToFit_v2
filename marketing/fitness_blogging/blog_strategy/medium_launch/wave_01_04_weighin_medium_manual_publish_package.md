@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # One Emotional Weigh-In Can Wreck a Good Week
 
-The scale is not useless. But one loud reading can trigger a lot of bad decisions if you let it become a verdict instead of a data point.
+Should you weigh yourself every day on a diet? It depends on whether one bad reading derails the rest of the week. The scale is not useless. But one loud reading can trigger a lot of bad decisions if you let it become a verdict instead of a data point.
 
 Most people do not ruin a good week because of one number.
 

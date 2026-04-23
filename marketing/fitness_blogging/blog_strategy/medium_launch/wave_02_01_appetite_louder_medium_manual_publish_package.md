@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why Appetite Feels Stronger the Longer You Diet
 
-If dieting has made food feel louder, that does not automatically mean you are weak. Appetite often gets more chaotic when the system becomes too restrictive, repetitive, or emotionally brittle.
+Why is my appetite stronger on a diet, even when I'm eating enough on paper? Restriction makes the brain louder, not just the stomach. If dieting has made food feel louder, that does not automatically mean you are weak. Appetite often gets more chaotic when the system becomes too restrictive, repetitive, or emotionally brittle.
 
 The strange part is that dieting often feels easier at the beginning.
 

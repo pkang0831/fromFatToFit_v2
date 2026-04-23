@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Most Reliable Way to Succeed at Dieting Is Still the Least Dramatic One
 
-Most people do not quit dieting because they are lazy. They quit because early progress teaches the wrong lesson, later progress gets quieter, and one loud weigh-in starts sounding like proof of failure.
+Here's how to stick to a diet when progress slows down without restarting every Monday. The middle is where most people quit, not the start. Most people do not quit dieting because they are lazy. They quit because early progress teaches the wrong lesson, later progress gets quieter, and one loud weigh-in starts sounding like proof of failure.
 
 Most diets do not end with one giant disaster.
 

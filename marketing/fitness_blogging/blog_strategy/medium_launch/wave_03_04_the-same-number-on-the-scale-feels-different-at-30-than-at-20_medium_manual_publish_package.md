@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Same Number on the Scale Feels Different at 30 Than at 20
 
-The first time I weighed exactly 75 kg, I was 22. The second time I weighed exactly 75 kg, I was around 30. The number was identical. The body underneath it was not. Not even close.
+Why does the same weight feel different as you age? Same number on the scale, different body underneath it. The first time I weighed exactly 75 kg, I was 22. The second time I weighed exactly 75 kg, I was around 30. The number was identical. The body underneath it was not. Not even close.
 
 The first time I weighed exactly 75 kg, I was 22 years old.
 

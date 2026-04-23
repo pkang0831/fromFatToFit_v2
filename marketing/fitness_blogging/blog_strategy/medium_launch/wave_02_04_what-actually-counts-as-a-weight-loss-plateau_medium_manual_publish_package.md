@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # What Actually Counts as a Weight Loss Plateau?
 
-A slower scale is not automatically a plateau. Sometimes progress just stopped flattering you and started looking like real life.
+What counts as a weight loss plateau is narrower than people think. Most slow weeks are not plateaus — just real life. A slower scale is not automatically a plateau. Sometimes progress just stopped flattering you and started looking like real life.
 
 I used to call anything slower than week one a plateau.
 

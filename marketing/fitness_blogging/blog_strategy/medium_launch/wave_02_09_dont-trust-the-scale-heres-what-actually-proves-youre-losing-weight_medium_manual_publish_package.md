@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Don’t Trust the Scale—Here’s What Actually Proves You’re Losing Weight
 
-A lot of people want fat loss to come with a receipt. But the scale is one witness, not the whole case. Real proof often shows up in shape, fit, firmness, and repeated visual change.
+Here's how to know you're losing weight without the scale, with proof that holds up across a week. The receipt is rarely a number. A lot of people want fat loss to come with a receipt. But the scale is one witness, not the whole case. Real proof often shows up in shape, fit, firmness, and repeated visual change.
 
 A lot of people want fat loss to come with a receipt.
 

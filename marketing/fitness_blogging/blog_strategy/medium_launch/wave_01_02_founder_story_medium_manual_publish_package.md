@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why I Built Devenira for the Weeks Where You Want to Quit
 
-I lost 50 kg, but the hardest part was not starting. It was the slow middle where progress was real, but hard to trust. That is why I built Devenira around weekly proof.
+How I lost 50 kg, in one honest sentence: slowly, and mostly in the unglamorous middle. The start wasn't the hard part. I lost 50 kg, but the hardest part was not starting. It was the slow middle where progress was real, but hard to trust. That is why I built Devenira around weekly proof.
 
 I did not build Devenira because AI is interesting.
 

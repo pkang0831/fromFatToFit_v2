@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Clothes Tell You the Truth the Mirror Cannot
 
-The mirror lies fast. The scale is noisy. The clothes do not negotiate. They either fit or they do not. There is no light, no posture, no time of day that changes the answer.
+Why do my clothes fit better but the scale is the same? Body composition shifted; total mass didn't — and the clothes don't negotiate. The mirror lies fast. The scale is noisy. The clothes do not negotiate. They either fit or they do not. There is no light, no posture, no time of day that changes the answer.
 
 The mirror has too many feelings.
 

@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why Does My Hunger Spike at Night When I Was Fine All Day?
 
-The cleanest day on paper can end at 9 p.m. with you standing at the open fridge. The day was a number. The evening was a person. A practical Q&A on the night-hunger spike.
+Why am I hungry at night but not during the day, even on a clean food day? The evening is where the day's restriction comes due. The cleanest day on paper can end at 9 p.m. with you standing at the open fridge. The day was a number. The evening was a person. A practical Q&A on the night-hunger spike.
 
 The cleanest day on paper can end at 9 p.m. with you standing at the open fridge.
 

@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Cheat Days Do Not Expose Your Character. They Expose Your System.
 
-Some people binge on cheat days and some do not. The difference is often not willpower. It is whether the body and the food environment are still primed for rebound.
+Are cheat days bad for weight loss? Not for everyone — and the difference says more about the rest of your week than your willpower. Some people binge on cheat days and some do not. The difference is often not willpower. It is whether the body and the food environment are still primed for rebound.
 
 Cheat days have a terrible publicist.
 

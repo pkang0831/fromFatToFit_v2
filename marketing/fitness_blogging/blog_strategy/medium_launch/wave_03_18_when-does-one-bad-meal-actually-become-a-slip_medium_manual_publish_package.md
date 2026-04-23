@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # When Does One Bad Meal Actually Become a Slip?
 
-People treat one bad meal and a slip like they are the same thing. They are not. The meal is the trigger. The slip is everything you do in the 48 hours after.
+Does one bad meal ruin a diet? The meal almost never does. The 48 hours after it usually do. People treat one bad meal and a slip like they are the same thing. They are not. The meal is the trigger. The slip is everything you do in the 48 hours after.
 
 People treat one bad meal and a slip like they are the same thing.
 

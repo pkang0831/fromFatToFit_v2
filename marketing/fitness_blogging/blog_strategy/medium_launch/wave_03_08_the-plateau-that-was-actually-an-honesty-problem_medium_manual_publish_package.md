@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Plateau That Was Actually an Honesty Problem
 
-Most plateaus are real. But a meaningful share of the plateaus people report are not the body refusing to lose weight. They are the tracking refusing to admit what the day actually contained.
+Am I really in a plateau or am I tracking wrong? Most plateaus are real — but a meaningful share are the food log, not the body. Most plateaus are real. But a meaningful share of the plateaus people report are not the body refusing to lose weight. They are the tracking refusing to admit what the day actually contained.
 
 Most plateaus are real.
 

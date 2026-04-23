@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Is This Craving the Food, or the Deprivation Talking?
 
-After about a year of careful eating, I noticed something I did not expect. The foods I missed most were not the foods I had loved most. They were the foods I had been most strict with myself about.
+Why does restriction make cravings worse? Usually because the food you forbid becomes the food your brain rehearses. After about a year of careful eating, I noticed something I did not expect. The foods I missed most were not the foods I had loved most. They were the foods I had been most strict with myself about.
 
 After about a year of careful eating, I noticed something I did not expect.
 

@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Weighing Yourself Every Day Can Be a Trap, Not a Discipline
 
-The advice to weigh yourself every day is delivered with the tone of discipline. For a meaningful share of people, it is the trap that wrecks the program.
+The daily weighing eating disorder risk doesn't get talked about because the advice sounds disciplined. For some people it isn't. The advice to weigh yourself every day is delivered with the tone of discipline. For a meaningful share of people, it is the trap that wrecks the program.
 
 The advice to "weigh yourself every day" is delivered with the same tone as the advice to "track your sleep" or "log your meals." It sounds like discipline. It sounds like data hygiene.
 
