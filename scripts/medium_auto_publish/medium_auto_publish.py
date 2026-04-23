@@ -212,18 +212,30 @@ def publish_one(
             ctx.close()
             return None
 
-        # Wait for the import page to actually hydrate — "Import your story"
-        # heading appears only after client-side render. Observed 2026-04-23:
-        # `page.content()` immediately after goto returned only the search
-        # input from the top nav, not the import form, because hydration
-        # hadn't happened yet.
-        try:
-            page.wait_for_selector(
-                'h1:has-text("Import your story"), h2:has-text("Import your story"), text="See your story on Medium"',
-                timeout=20000,
-            )
-        except PWTimeout:
-            print("  (import page heading did not appear in 20s — continuing anyway)")
+        # Wait for the import page to actually hydrate. The "See your story
+        # on Medium" heading appears only after client-side render. Observed
+        # 2026-04-23: `page.content()` immediately after goto returned only
+        # the search input from the top nav, not the import form, because
+        # hydration hadn't happened yet.
+        #
+        # Note: we can't comma-combine `text=...` with CSS selectors — it's
+        # a Playwright-specific syntax. Use separate get_by_role / get_by_text
+        # locators and any-of.
+        hydration_markers = [
+            page.get_by_role("heading", name=re.compile(r"See your story on Medium", re.I)),
+            page.get_by_role("heading", name=re.compile(r"Import your story", re.I)),
+            page.get_by_text(re.compile(r"Enter a link to your blog", re.I)),
+        ]
+        hydrated = False
+        for marker in hydration_markers:
+            try:
+                marker.first.wait_for(timeout=8000, state="visible")
+                hydrated = True
+                break
+            except Exception:
+                continue
+        if not hydrated:
+            print("  (none of the hydration markers appeared in 8s each — continuing anyway)")
         time.sleep(2)
 
         # Medium's import-page URL input has placeholder
