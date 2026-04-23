@@ -38,7 +38,7 @@ All edits local; review the diff before merging.
 | Primary kw in first 100 body words | 64/69 | 64/69 |
 | Posts under 1500 words | 55/69 | 55/69 |
 | Posts under 700 words (severe thin) | 3/69 | 3/69 |
-| Hero images > 200 KB | 9/69 | 9/69 |
+| Hero images > 200 KB | 9/69 | 0/69 |
 | MetaDescription > 158 chars | 0/69 | 0/69 |
 | MetaDescription < 120 chars | 0/69 | 0/69 |
 
@@ -83,10 +83,10 @@ All edits local; review the diff before merging.
 | 4 | 14 | Life After 50 kg Weight Loss: The Quiet Phase | `wave_03_09_progress-update-4-the-body-finally-stopped-being-the-loud-thing_medium_manual_publish_package.md` |
 | 5 | 13 | Am I Really in a Plateau, or Am I Tracking Wrong? | `wave_03_08_the-plateau-that-was-actually-an-honesty-problem_medium_manual_publish_package.md` |
 | 6 | 13 | How to Stop a Binge From Becoming a Binge Week | `wave_catchup_021_how-do-i-stop-a-binge-from-becoming-a-binge-week_medium_manual_publish_package.md` |
-| 7 | 13 | Why Does Strength Increase Before Muscle Size? | `wave_catchup_032_why-your-strength-increases-before-your-shape-changes_medium_manual_publish_package.md` |
-| 8 | 12 | Why Can't I See My Weight Loss in the Mirror? | `wave_01_03_mirror_medium_manual_publish_package.md` |
-| 9 | 12 | Should I Weigh Myself Every Day on a Diet? | `wave_01_04_weighin_medium_manual_publish_package.md` |
-| 10 | 12 | Why Is My Appetite Stronger the Longer I Diet? | `wave_02_01_appetite_louder_medium_manual_publish_package.md` |
+| 7 | 12 | Why Can't I See My Weight Loss in the Mirror? | `wave_01_03_mirror_medium_manual_publish_package.md` |
+| 8 | 12 | Should I Weigh Myself Every Day on a Diet? | `wave_01_04_weighin_medium_manual_publish_package.md` |
+| 9 | 12 | Why Is My Appetite Stronger the Longer I Diet? | `wave_02_01_appetite_louder_medium_manual_publish_package.md` |
+| 10 | 12 | Why Does the Scale Go Up When You're Barely Eating? | `wave_02_03_why-it-feels-like-you-gain-weight-even-when-you-barely-eat_medium_manual_publish_package.md` |
 
 ## Engagement-prediction methodology (transparency)
 
@@ -118,22 +118,45 @@ Bands: `high` ≥ 11, `medium` ≥ 8, `low` < 8. After opener injection, band ce
 
 ## Suggested next user actions (when you're back)
 
-1. Review `git diff session/autonomous-3h-20260422 v2/main` (~46 files; ~38 markdown packages + 4 webp + 5 scripts + dashboards).
-2. Open `qa/publish_queue_20260422.md` and pick the next package to publish on Medium. Top recommendation: `wave_catchup_028_why-you-stop-losing-weight-around-month-three`. Question-form title, high-engagement-score, weight-loss-plateau intent (high search volume).
-3. Fix wave_01_01 canonical in Medium (60-sec browser fix).
-4. If you accept the changes, push: `git push v2 session/autonomous-3h-20260422` then open PR.
-5. Optional: `git rm frontend/public/founder/*.bak.webp` to drop the re-encode backups (we kept them for safe revert).
+1. Review `git log v2/main..session/autonomous-3h-20260422` (6 commits, ~80 files).
+2. Open `marketing/.../all_waves_tracker_20260422.md` for the full picture, or `qa/publish_queue_20260422.md` for the top-5-only view.
+3. Top publish recommendation: `wave_catchup_028_why-you-stop-losing-weight-around-month-three`. Score 16, question-form title, weight-loss-plateau intent (high search volume).
+4. Fix wave_01_01 canonical in Medium (60-sec browser fix; see `DECISIONS_REQUIRED.md` § 1).
+5. Truly missing asset: `marketing/fitness_blogging/selected_cut/final_cuts/pkang_0011 1.jpg` referenced from wave_01_01. Restore it or update the package's Recommended asset line.
+6. If you accept the changes, push: `git push v2 session/autonomous-3h-20260422` then open PR.
+7. Optional: `git rm frontend/public/founder/*.bak.webp` to drop the re-encode backups (we kept them for safe revert).
+
+## Engagement-range forecast (30d Medium cold-start)
+
+If you publish all 64 packages on Medium over the next 30 days,
+the heuristic-derived 30-day aggregate range:
+
+| Metric | Low | High |
+|---|---|---|
+| Views | 11,131 | 34,217 |
+| Reads | 3,916 | 12,590 |
+| Claps | 565 | 2,740 |
+
+Methodology + per-package upper-bound ranking in
+`qa/engagement_predictions_20260422.md`.
 
 ## Files to review
 
 ```
-AUTONOMOUS_SESSION_DASHBOARD_20260422.md   <- you are here
-qa/medium_package_audit_20260422.md        <- per-package SEO + engagement detail
-qa/medium_package_audit_20260422.json      <- raw measurements
-qa/publish_queue_20260422.md               <- ranked publish list (Top 5 with full context)
+AUTONOMOUS_SESSION_DASHBOARD_20260422.md             <- you are here
+marketing/.../medium_launch/all_waves_tracker_20260422.md  <- single source-of-truth for all 64 packages
+qa/medium_package_audit_20260422.md                  <- per-package SEO + engagement detail
+qa/medium_package_audit_20260422.json                <- raw measurements
+qa/publish_queue_20260422.md                         <- ranked publish list (Top 5 with full context)
+qa/engagement_predictions_20260422.md                <- per-package views/reads/claps ranges
+qa/engagement_predictions_20260422.json              <- raw range data
 scripts/seo_retrofit/audit_medium_packages_20260422.py
 scripts/seo_retrofit/apply_openers_to_medium_packages_20260422.py
+scripts/seo_retrofit/fix_duplicate_first_para_20260422.py
+scripts/seo_retrofit/fix_stale_asset_paths_20260422.py
 scripts/seo_retrofit/reencode_heavy_webp_20260422.py
 scripts/seo_retrofit/build_publish_queue_20260422.py
+scripts/seo_retrofit/build_unified_wave_tracker_20260422.py
 scripts/seo_retrofit/build_dashboard_20260422.py
+scripts/seo_retrofit/predict_engagement_ranges_20260422.py
 ```
