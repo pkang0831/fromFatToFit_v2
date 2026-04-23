@@ -20,6 +20,7 @@ export interface LinkTarget {
  * automatic title/keyword-based candidates.
  */
 const CURATED_ANCHORS: ReadonlyArray<{ phrase: string; slug: string }> = [
+  // Round 1 — original 27 anchors (2026-04-22 phase B3).
   { phrase: 'sleep debt', slug: 'does-bad-sleep-ruin-weight-loss' },
   { phrase: 'water weight', slug: 'is-losing-5kg-in-a-week-water-weight' },
   { phrase: 'water retention', slug: 'does-cutting-sodium-cause-water-retention' },
@@ -47,6 +48,30 @@ const CURATED_ANCHORS: ReadonlyArray<{ phrase: string; slug: string }> = [
   { phrase: 'body fat percentage', slug: 'why-lower-body-fat-feels-so-stubborn' },
   { phrase: 'calorie deficit', slug: 'why-cant-i-sleep-on-a-calorie-deficit' },
   { phrase: 'protein', slug: 'how-much-protein-do-i-need-to-lose-fat' },
+  // Round 2 — 17 high-frequency phrases (2026-04-22 autonomous-r2).
+  { phrase: 'morning weight', slug: 'daily-weighing-eating-disorder-risk' },
+  { phrase: 'hunger pangs', slug: 'how-to-handle-hunger-pangs-on-a-diet' },
+  { phrase: 'before and after', slug: 'why-progress-photos-dont-show-progress' },
+  { phrase: 'bad weekend', slug: 'how-to-get-back-on-track-after-a-bad-weekend' },
+  { phrase: 'food noise', slug: 'why-is-my-appetite-stronger-on-a-diet' },
+  { phrase: 'too much cardio', slug: 'the-week-i-stopped-adding-cardio-and-the-body-caught-up' },
+  { phrase: 'eating disorder', slug: 'daily-weighing-eating-disorder-risk' },
+  { phrase: 'lifestyle change', slug: 'when-does-a-diet-become-a-lifestyle' },
+  { phrase: 'the messy middle', slug: 'why-is-the-middle-of-weight-loss-the-hardest' },
+  { phrase: 'first month of maintenance', slug: 'first-month-of-maintenance-after-weight-loss' },
+  { phrase: 'cravings', slug: 'why-does-restriction-make-cravings-worse' },
+  { phrase: 'restriction', slug: 'why-does-restriction-make-cravings-worse' },
+  { phrase: 'mirror diet', slug: 'how-to-stop-mirror-checking-on-a-diet' },
+  { phrase: 'different angles', slug: 'why-does-my-body-look-different-from-different-angles' },
+  { phrase: 'exercise as punishment', slug: 'how-to-stop-using-exercise-as-punishment' },
+  { phrase: 'vegetables', slug: 'do-vegetables-help-you-feel-full-on-a-diet' },
+  // Round 2 — additional refined anchors mapping to verified slugs.
+  { phrase: 'first week', slug: 'why-do-you-lose-so-much-weight-first-week' },
+  { phrase: 'night hunger', slug: 'why-am-i-hungry-at-night-but-not-during-the-day' },
+  { phrase: 'gain it back', slug: 'why-do-i-gain-back-more-weight-than-i-lost' },
+  { phrase: 'training volume', slug: 'why-am-i-so-hungry-after-lifting-weights' },
+  { phrase: 'three months', slug: 'why-did-i-stop-losing-weight-at-3-months' },
+  { phrase: 'set point weight', slug: 'how-do-you-know-youve-reached-set-point' },
 ];
 
 /**

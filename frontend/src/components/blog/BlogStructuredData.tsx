@@ -6,7 +6,7 @@ const AUTHOR = {
   '@id': `${SITE_ORIGIN}/authors/pkang`,
   name: 'pkang',
   url: `${SITE_ORIGIN}/authors/pkang`,
-  image: `${SITE_ORIGIN}/founder/founder-story-hanok-20260119.jpg`,
+  image: `${SITE_ORIGIN}/founder/founder-story-hanok-20260119.webp`,
   description:
     'Fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career.',
   knowsAbout: [
