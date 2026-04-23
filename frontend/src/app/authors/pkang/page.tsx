@@ -40,14 +40,14 @@ export const metadata: Metadata = {
       'Lost 50 kg over five years. Wrote about every hard part of it. Now writing about body image, appetite, and honest progress without panic.',
     type: 'profile',
     url: 'https://devenira.com/authors/pkang',
-    images: [{ url: 'https://devenira.com/founder/founder-story-hanok-20260119.webp' }],
+    images: [{ url: 'https://www.devenira.com/founder/founder-story-hanok-20260119.webp' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'pkang — Fitness and Diet Writer',
     description:
       'Lost 50 kg over five years. Now writing about body image, appetite, and honest progress without panic.',
-    images: ['https://devenira.com/founder/founder-story-hanok-20260119.webp'],
+    images: ['https://www.devenira.com/founder/founder-story-hanok-20260119.webp'],
   },
 };
 
@@ -58,7 +58,7 @@ const AUTHOR_JSON_LD = {
   name: 'pkang',
   alternateName: ['P. Kang'],
   url: 'https://devenira.com/authors/pkang',
-  image: 'https://devenira.com/founder/founder-story-hanok-20260119.webp',
+  image: 'https://www.devenira.com/founder/founder-story-hanok-20260119.webp',
   jobTitle: 'Fitness and Diet Writer',
   description:
     'Fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. Writes about appetite, body image, and the slow work of learning how to read the body without panic.',

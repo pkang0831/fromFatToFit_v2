@@ -1,12 +1,16 @@
 import type { BlogPost } from '@/content/blog/posts';
 
 const SITE_ORIGIN = 'https://devenira.com';
+// Image / media URLs must use www — apex 307-redirects and most scrapers
+// (Medium Import-from-URL, OG crawlers) silently drop images fetched via
+// redirects. Canonical / schema @id values stay on apex.
+const MEDIA_ORIGIN = 'https://www.devenira.com';
 const AUTHOR = {
   '@type': 'Person',
   '@id': `${SITE_ORIGIN}/authors/pkang`,
   name: 'pkang',
   url: `${SITE_ORIGIN}/authors/pkang`,
-  image: `${SITE_ORIGIN}/founder/founder-story-hanok-20260119.webp`,
+  image: `${MEDIA_ORIGIN}/founder/founder-story-hanok-20260119.webp`,
   description:
     'Fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career.',
   knowsAbout: [
@@ -62,7 +66,7 @@ export function BlogStructuredData({ post }: BlogStructuredDataProps) {
     headline: post.title,
     alternativeHeadline: post.seoTitle,
     description: post.metaDescription ?? post.description,
-    image: `${SITE_ORIGIN}${post.heroImage}`,
+    image: `${MEDIA_ORIGIN}${post.heroImage}`,
     datePublished: post.date,
     dateModified: post.lastModified ?? post.date,
     author: AUTHOR,
@@ -129,7 +133,7 @@ export function BlogStructuredData({ post }: BlogStructuredDataProps) {
       '@type': 'HowTo',
       name: post.title,
       description: post.metaDescription ?? post.description,
-      image: `${SITE_ORIGIN}${post.heroImage}`,
+      image: `${MEDIA_ORIGIN}${post.heroImage}`,
       step: post.howToSteps.map((step, index) => ({
         '@type': 'HowToStep',
         position: index + 1,
