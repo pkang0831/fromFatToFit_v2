@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     url: 'https://devenira.com/blog',
     images: [
       {
-        url: 'https://devenira.com/founder/founder-story-hanok-20260119.webp',
+        url: 'https://www.devenira.com/founder/founder-story-hanok-20260119.webp',
         alt: 'pkang, fitness and diet writer behind the blog, after a 50 kg transformation',
       },
     ],
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     title: 'Weight Loss Blog — Honest Writing by pkang',
     description:
       'Lost 50 kg over 5 years. Now writing about appetite, body image, and the slow work of reading the body without panic.',
-    images: ['https://devenira.com/founder/founder-story-hanok-20260119.webp'],
+    images: ['https://www.devenira.com/founder/founder-story-hanok-20260119.webp'],
     creator: '@pkang',
   },
 };

@@ -64,14 +64,25 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       url: `https://devenira.com/blog/${post.slug}`,
       publishedTime: post.date,
       modifiedTime: post.lastModified ?? post.date,
-      images: [{ url: `https://devenira.com${post.heroImage}` }],
+      images: [
+        {
+          // MUST use www hostname — apex (devenira.com) 307-redirects to
+          // www which breaks non-redirect-following crawlers like
+          // Medium's Import-from-URL. Keep canonical/authors URLs on
+          // apex though (those are logical identifiers, not fetched).
+          url: `https://www.devenira.com${post.heroImage}`,
+          width: 1600,
+          height: 1000,
+          alt: post.heroAlt,
+        },
+      ],
       authors: ['pkang'],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description: post.socialDescription,
-      images: [`https://devenira.com${post.heroImage}`],
+      images: [`https://www.devenira.com${post.heroImage}`],
       creator: '@pkang',
     },
   };
@@ -153,9 +164,16 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                    Medium importer still failed to carry it.
 
               This version renders a clean
-                <img src="https://devenira.com/founder/..."
+                <img src="https://www.devenira.com/founder/..."
                      width="1600" height="1000">
               that Medium's importer reliably picks up.
+
+              CRITICAL: URL MUST include `www.` subdomain. Apex
+              (https://devenira.com) 307-redirects to www, and
+              Medium's importer doesn't follow redirects — images
+              fetched via apex URLs get silently dropped from the
+              imported story, which we spent three iterations
+              debugging before discovering the redirect (2026-04-23).
 
               Performance cost: the hero webp (~100 KB, already
               orientation-corrected) is served at full size instead of
@@ -165,7 +183,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             */}
             <figure className="relative overflow-hidden rounded-[32px] border border-white/[0.08] bg-white/[0.03]">
               <Image
-                src={`https://devenira.com${post.heroImage}`}
+                src={`https://www.devenira.com${post.heroImage}`}
                 alt={post.heroAlt}
                 width={1600}
                 height={1000}
