@@ -42,6 +42,25 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
+
+def _save_debug(page, tag: str) -> None:
+    """On any error, dump a screenshot + full HTML to /tmp so we can
+    iterate on selectors without the user having to DOM-inspect."""
+    import datetime as dt
+    ts = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    out_dir = Path("/tmp/medium_auto_publish_debug")
+    out_dir.mkdir(exist_ok=True)
+    try:
+        shot = out_dir / f"{ts}-{tag}.png"
+        page.screenshot(path=str(shot), full_page=True)
+        html = out_dir / f"{ts}-{tag}.html"
+        html.write_text(page.content(), encoding="utf-8")
+        print(f"  debug saved: {shot}")
+        print(f"  debug saved: {html}")
+        print(f"  current URL: {page.url}")
+    except Exception as e:
+        print(f"  (could not save debug artefacts: {e})")
+
 ROOT = Path(__file__).resolve().parents[2]
 POSTS_TS = ROOT / "frontend/src/content/blog/posts.ts"
 PACKAGES_DIR = ROOT / "marketing/fitness_blogging/blog_strategy/medium_launch"
@@ -183,17 +202,56 @@ def publish_one(
         # importer always omits.
         print(f"  opening Medium import with URL: {source_url}")
         page.goto("https://medium.com/p/import", wait_until="domcontentloaded")
-        time.sleep(2)
+        time.sleep(3)
 
-        # Find the URL input (it's the only text input on the page)
+        # Verify we didn't get redirected to signin
+        current = page.url
+        if "/m/signin" in current or "/signin" in current:
+            print("ERROR: Medium redirected to signin — session expired or never set up.")
+            print("Run: python3 scripts/medium_auto_publish/medium_auto_publish.py --setup")
+            _save_debug(page, "signin-redirect")
+            ctx.close()
+            return None
+
+        # Medium's import page has evolved over years. Try multiple selector
+        # strategies in order of specificity.
+        url_input = None
+        selectors = [
+            'input[data-testid*="import" i]',
+            'input[type="url"]',
+            'input[placeholder*="URL" i]',
+            'input[placeholder*="url" i]',
+            'input[placeholder*="paste" i]',
+            'input[name*="url" i]',
+            'input[aria-label*="url" i]',
+            'form input[type="text"]',
+            'input[type="text"]',
+        ]
+        for sel in selectors:
+            try:
+                candidate = page.locator(sel).first
+                candidate.wait_for(timeout=3000, state="visible")
+                url_input = candidate
+                print(f"  found URL input via selector: {sel}")
+                break
+            except PWTimeout:
+                continue
+            except Exception:
+                continue
+
+        if url_input is None:
+            print("ERROR: could not find URL input on import page. Saving debug artefacts...")
+            _save_debug(page, "import-url-input-missing")
+            ctx.close()
+            return None
+
         try:
-            url_input = page.locator('input[type="url"], input[placeholder*="URL" i], input[type="text"]').first
-            url_input.wait_for(timeout=15000)
             url_input.click()
             url_input.fill(source_url)
             time.sleep(0.5)
-        except PWTimeout:
-            print("ERROR: could not find URL input on import page")
+        except Exception as e:
+            print(f"ERROR: failed to fill URL input: {e}")
+            _save_debug(page, "import-url-fill-failed")
             ctx.close()
             return None
 
