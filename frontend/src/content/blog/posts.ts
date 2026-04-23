@@ -1396,6 +1396,7 @@ const posts: BlogPost[] = [
   },
 {
     slug: 'how-to-stick-to-a-diet-when-progress-slows',
+    mediumUrl: 'https://medium.com/@pkang0831/the-most-reliable-way-to-succeed-at-dieting-is-still-the-least-dramatic-one-8cce5f25c22f',
     title: 'The Most Reliable Way to Succeed at Dieting Is Still the Least Dramatic One',
     description:
       'Most people do not quit dieting because they are lazy. They quit because early fast results create false expectations, later progress slows, and one noisy weigh-in feels like proof of failure.',
