@@ -137,24 +137,42 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
 
             {/*
-              Hero rendered as a semantic <figure><img> (instead of
-              Next.js Image fill wrapped in absolute positioning)
-              so that content scrapers like Medium's Import-from-URL
-              feature recognise it as a standalone article image
-              and carry it into the imported story as the cover.
-              Using width/height (not fill) preserves Next.js Image
-              optimisation — the rendered <img> still points at
-              /_next/image?url=... with proper srcSet.
+              Hero rendered as <figure><img> with an ABSOLUTE URL +
+              `unoptimized` (bypass Next.js image proxy). Rationale:
+              Medium's Import-from-URL feature fetches the page, finds
+              the first content <img>, and uses it as the story cover
+              ONLY if the `src` is an absolute URL that resolves
+              directly to an image payload without a proxy hop.
+
+              Previous attempts:
+                1. <Image fill> → rendered as <img position:absolute>
+                   inside a wrapper. Medium treated as page chrome and
+                   skipped.
+                2. <Image width height> with Next.js proxy →
+                   <img src="/_next/image?url=..."> relative proxy URL.
+                   Medium importer still failed to carry it.
+
+              This version renders a clean
+                <img src="https://devenira.com/founder/..."
+                     width="1600" height="1000">
+              that Medium's importer reliably picks up.
+
+              Performance cost: the hero webp (~100 KB, already
+              orientation-corrected) is served at full size instead of
+              via Next.js responsive srcSet. Vercel's edge still
+              caches it, and on mobile this is at most ~60 KB extra.
+              Trade is worth it: reliable Medium import on every post.
             */}
             <figure className="relative overflow-hidden rounded-[32px] border border-white/[0.08] bg-white/[0.03]">
               <Image
-                src={post.heroImage}
+                src={`https://devenira.com${post.heroImage}`}
                 alt={post.heroAlt}
                 width={1600}
                 height={1000}
                 className="h-auto w-full object-cover"
                 sizes="(max-width: 1024px) 100vw, 960px"
                 priority
+                unoptimized
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#060609] via-transparent to-transparent" />
             </figure>
