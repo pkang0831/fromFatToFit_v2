@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Don’t Trust the Scale—Here’s What Actually Proves You’re Losing Weight
 
-Here's how to know you're losing weight without the scale, with proof that holds up across a week. The receipt is rarely a number. A lot of people want fat loss to come with a receipt. But the scale is one witness, not the whole case. Real proof often shows up in shape, fit, firmness, and repeated visual change.
+Here's how to know you're losing weight without the scale, with proof that holds up across a week. The receipt is rarely a number.
 
 A lot of people want fat loss to come with a receipt.
 
@@ -120,8 +120,6 @@ Use a better lens. One scan is a number. Weekly check-ins are proof.
 If this piece felt familiar, the rest of my writing lives on [Devenira](https://devenira.com/blog).
 
 I'm pkang, a fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. I write about appetite, body image, and the slow work of learning how to read the body without panic.
-
-
 
 ## Frequently Asked Questions
 

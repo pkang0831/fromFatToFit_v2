@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # How Do You Know When You Have Reached Your Set Point
 
-How do you know you've reached your set point weight, and not just a slow week? The set point is a slower signal than people use it as. A set point is one of the more misused ideas in dieting conversations. It is useful when understood correctly. It becomes an excuse when it is not.
+How do you know you've reached your set point weight, and not just a slow week? The set point is a slower signal than people use it as.
 
 A set point is one of the more misused ideas in dieting conversations.
 
@@ -123,8 +123,6 @@ That sequence, in that order, is what separates people who lose and hold from pe
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

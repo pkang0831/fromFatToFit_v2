@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why Does My Hunger Spike at Night When I Was Fine All Day?
 
-Why am I hungry at night but not during the day, even on a clean food day? The evening is where the day's restriction comes due. The cleanest day on paper can end at 9 p.m. with you standing at the open fridge. The day was a number. The evening was a person. A practical Q&A on the night-hunger spike.
+Why am I hungry at night but not during the day, even on a clean food day? The evening is where the day's restriction comes due.
 
 The cleanest day on paper can end at 9 p.m. with you standing at the open fridge.
 
@@ -167,8 +167,6 @@ Most night-hunger spikes are not psychological. They are scheduling problems wea
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

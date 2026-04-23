@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # How to Go on a Mirror Diet When the Real Diet Is Getting Loud
 
-Here's how to stop mirror checking on a diet that's actually working: look less, look better, and look in fewer states. There is a phase in most cuts where the diet is working and the mirror is getting louder. The fix is to look less, look better, and look in fewer states.
+Here's how to stop mirror checking on a diet that's actually working: look less, look better, and look in fewer states.
 
 There is a phase in most cuts where the diet is working and the mirror is getting louder.
 
@@ -173,8 +173,6 @@ The body is moving. The mirror does not have to be the one that tells you.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

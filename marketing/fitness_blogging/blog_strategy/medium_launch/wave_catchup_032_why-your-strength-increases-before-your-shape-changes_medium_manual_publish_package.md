@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why Your Strength Increases Before Your Shape Changes
 
-Why does strength increase before muscle size? The nervous system gets organized weeks before the body looks different. I added 15 kg to my deadlift in my first six weeks of training. I did not look meaningfully different. If you were showing up in a mirror expecting week-by-week change, you would think the gym was broken.
+Why does strength increase before muscle size? The nervous system gets organized weeks before the body looks different.
 
 I added 15 kg to my deadlift in my first six weeks of training.
 
@@ -145,8 +145,6 @@ If you stay long enough, both move.
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

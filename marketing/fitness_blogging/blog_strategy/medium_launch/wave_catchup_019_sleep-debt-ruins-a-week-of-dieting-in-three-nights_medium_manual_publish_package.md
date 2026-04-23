@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Sleep Debt Ruins a Week of Dieting in Three Nights
 
-Does bad sleep ruin weight loss? Three short nights can make a clean week of eating look like a binge week on the scale. I had a clean Monday, Tuesday, and Wednesday of eating. By Saturday, the week looked like a disaster. Three bad nights of sleep were the reason.
+Does bad sleep ruin weight loss? Three short nights can make a clean week of eating look like a binge week on the scale.
 
 I had a clean Monday, Tuesday, and Wednesday of eating.
 
@@ -113,8 +113,6 @@ Nine times out of ten, the sleep explains it.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

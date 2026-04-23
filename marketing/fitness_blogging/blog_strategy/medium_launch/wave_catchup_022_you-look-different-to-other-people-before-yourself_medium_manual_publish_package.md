@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # You Look Different to Other People Before You Look Different to Yourself
 
-Why do others notice my weight loss before me? Because your brain updates the body image last, not first. People you have not seen in a few months will notice your body has changed. You will not have noticed yet. This is not modesty. It is not vanity. It is how your brain is built.
+Why do others notice my weight loss before me? Because your brain updates the body image last, not first.
 
 People you have not seen in a few months will notice your body has changed.
 
@@ -117,8 +117,6 @@ Give it time.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

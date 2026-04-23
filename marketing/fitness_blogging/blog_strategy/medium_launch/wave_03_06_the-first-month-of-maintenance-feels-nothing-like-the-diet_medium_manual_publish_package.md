@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The First Month of Maintenance Feels Nothing Like the Diet
 
-The first month of maintenance after weight loss feels nothing like the diet. The finish line is gone, and the rules quietly change. The diet has a finish line painted on it. Maintenance does not. That single difference is what makes the first month after the cut feel completely unlike anything you spent the cut preparing for.
+The first month of maintenance after weight loss feels nothing like the diet. The finish line is gone, and the rules quietly change.
 
 The diet has a finish line painted on it.
 
@@ -169,4 +169,5 @@ The structure is not gone. It just stopped looking like a goal.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
 ```

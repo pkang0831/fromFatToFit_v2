@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # When the Workout Becomes Therapy, Not Punishment
 
-Here's how to stop using exercise as punishment: change what the next training session is paying for. For most of my life, the workout was a receipt. I overate on Saturday. I earned the treadmill on Monday. That kind of training can still produce results. It cannot produce peace.
+Here's how to stop using exercise as punishment: change what the next training session is paying for.
 
 For most of my life, the workout was a receipt.
 
@@ -111,8 +111,6 @@ When the workout is maintenance of your nervous system, you train consistently a
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

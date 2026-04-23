@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Kind of Person Who Stays at Their Goal Weight
 
-Here's how to stay at your goal weight long term, in the unglamorous version: it looks more like routine than willpower. I have met people who held their weight off for five, ten, fifteen years. They do not look like the motivational content suggests. They seem, most of the time, a little bored.
+Here's how to stay at your goal weight long term, in the unglamorous version: it looks more like routine than willpower.
 
 I have met people who held their weight off for five, ten, fifteen years.
 
@@ -121,8 +121,6 @@ Not the photo. The ordinary week.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

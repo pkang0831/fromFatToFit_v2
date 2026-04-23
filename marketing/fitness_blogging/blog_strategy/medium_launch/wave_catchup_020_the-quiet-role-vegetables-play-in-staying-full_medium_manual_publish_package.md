@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Quiet Role Vegetables Play in Staying Full
 
-Do vegetables help you feel full on a diet? Quietly, yes — they're the food that decides whether the day feels survivable. Protein gets all the press. Fats get the moral arguments. Carbs get the fear. Vegetables get a vague eat-more-of-them and then nothing. The food that quietly decides whether your diet feels tolerable is usually the vegetables.
+Do vegetables help you feel full on a diet? Quietly, yes — they're the food that decides whether the day feels survivable.
 
 Protein gets all the press.
 
@@ -116,8 +116,6 @@ The vegetables are quietly making the rest of the diet survivable.
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

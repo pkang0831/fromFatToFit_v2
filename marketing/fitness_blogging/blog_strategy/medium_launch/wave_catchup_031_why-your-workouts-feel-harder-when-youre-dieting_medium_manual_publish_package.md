@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why Your Workouts Feel Harder When You Are Dieting
 
-Why are my workouts harder on a cut, even when the weights aren't heavier? Recovery changed, not the bar. People expect a training session to feel approximately the same from week to week. Once you are in a caloric deficit for more than a few weeks, that is not how it goes.
+Why are my workouts harder on a cut, even when the weights aren't heavier? Recovery changed, not the bar.
 
 People expect a training session to feel approximately the same from week to week.
 
@@ -134,8 +134,6 @@ That is the cost of the deficit. Pay it, do not fight it, and do not scale the d
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

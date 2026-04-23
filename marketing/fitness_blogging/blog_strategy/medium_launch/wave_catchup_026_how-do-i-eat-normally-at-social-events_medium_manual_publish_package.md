@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # How Do I Eat Normally at Social Events
 
-Here's how to eat at social events on a diet without making the dinner the villain. The damage usually happens around the dinner. Most people think a dinner out is where the diet breaks. Usually, the dinner is the smallest part of the problem. The damage happens before and after, not at it.
+Here's how to eat at social events on a diet without making the dinner the villain. The damage usually happens around the dinner.
 
 Most people think a dinner out is where the diet breaks.
 
@@ -141,8 +141,6 @@ Eat normally around the event. Eat normally at the event. Eat normally the day a
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

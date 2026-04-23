@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Hunger in Maintenance Is Different from Hunger on a Diet
 
-Is maintenance hunger different from diet hunger? Yes — and reading them the same way is a fast route back to regain. Maintenance hunger is not the same signal as dieting hunger. Reading them the same way is one of the main reasons people regain weight within six months of reaching their goal.
+Is maintenance hunger different from diet hunger? Yes — and reading them the same way is a fast route back to regain.
 
 Most people treat hunger like it is one thing.
 
@@ -118,8 +118,6 @@ Three to four months into maintenance, for most people who hold the weight, hung
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

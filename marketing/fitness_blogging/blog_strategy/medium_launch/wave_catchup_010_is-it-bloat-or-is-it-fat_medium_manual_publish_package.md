@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Is It Bloat or Is It Fat
 
-Here's how to tell if your stomach is bloat or fat: time it across days, not minutes. Bloat moves; fat doesn't. This is one of the most useful questions anyone can ask. It is also one of the most mis-answered.
+Here's how to tell if your stomach is bloat or fat: time it across days, not minutes. Bloat moves; fat doesn't.
 
 This is one of the most useful questions anyone can ask.
 
@@ -107,8 +107,6 @@ The honest answer is: it is almost always bloat, and even when it is not, waitin
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 
