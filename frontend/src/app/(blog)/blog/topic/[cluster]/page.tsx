@@ -86,6 +86,25 @@ export default function ClusterPage({ params }: ClusterPageProps) {
     },
   };
 
+  // Pillar-page FAQPage schema. Aggregated from the answerBox sections on
+  // 4-5 representative posts in the cluster (see scripts/seo_retrofit/
+  // apply_cluster_faq_20260422.py). FAQPage rich result on the pillar URL
+  // expands SERP real-estate massively for the pillar keyword.
+  const faqJsonLd = meta.faqItems && meta.faqItems.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: meta.faqItems.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
+          },
+        })),
+      }
+    : null;
+
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -111,6 +130,12 @@ export default function ClusterPage({ params }: ClusterPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {faqJsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      ) : null}
 
       <section className="px-6 py-16 md:py-24">
         <div className="mx-auto max-w-4xl">
@@ -155,6 +180,37 @@ export default function ClusterPage({ params }: ClusterPageProps) {
               .
             </p>
           )}
+
+          {meta.faqItems && meta.faqItems.length > 0 ? (
+            <section className="mt-20">
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">
+                  FAQ
+                </p>
+                <h2 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                  Common questions on {meta.title.toLowerCase()}
+                </h2>
+                <p className="max-w-3xl text-base leading-7 text-white/62">
+                  Direct answers pulled from the most-read posts in this topic.
+                </p>
+              </div>
+              <div className="mt-8 space-y-3">
+                {meta.faqItems.map((item) => (
+                  <details
+                    key={item.question}
+                    className="group rounded-2xl border border-white/[0.08] bg-white/[0.02] px-5 py-4 transition-colors hover:border-primary/30"
+                  >
+                    <summary className="cursor-pointer list-none text-base font-semibold text-white">
+                      {item.question}
+                    </summary>
+                    <p className="mt-3 text-base leading-7 text-white/70">
+                      {item.answer}
+                    </p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <div className="mt-16 rounded-[32px] border border-primary/20 bg-primary/[0.08] px-6 py-8 md:px-8">
             <div className="mx-auto max-w-3xl space-y-4">
