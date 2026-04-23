@@ -201,8 +201,7 @@ def publish_one(
         # right automatically. We'll then add the cover image that Medium's
         # importer always omits.
         print(f"  opening Medium import with URL: {source_url}")
-        page.goto("https://medium.com/p/import", wait_until="domcontentloaded")
-        time.sleep(3)
+        page.goto("https://medium.com/p/import", wait_until="networkidle", timeout=60000)
 
         # Verify we didn't get redirected to signin
         current = page.url
@@ -213,19 +212,37 @@ def publish_one(
             ctx.close()
             return None
 
-        # Medium's import page has evolved over years. Try multiple selector
-        # strategies in order of specificity.
+        # Wait for the import page to actually hydrate — "Import your story"
+        # heading appears only after client-side render. Observed 2026-04-23:
+        # `page.content()` immediately after goto returned only the search
+        # input from the top nav, not the import form, because hydration
+        # hadn't happened yet.
+        try:
+            page.wait_for_selector(
+                'h1:has-text("Import your story"), h2:has-text("Import your story"), text="See your story on Medium"',
+                timeout=20000,
+            )
+        except PWTimeout:
+            print("  (import page heading did not appear in 20s — continuing anyway)")
+        time.sleep(2)
+
+        # Medium's import-page URL input has placeholder
+        # "http://www.yoursite.org/your-post" (observed 2026-04-23). It's an
+        # HTML <input type="text"> not type="url", no name attribute, no
+        # data-testid. So we match by placeholder prefix or by being the
+        # first non-search text input.
         url_input = None
         selectors = [
-            'input[data-testid*="import" i]',
+            'input[placeholder^="http" i]',              # primary
+            'input[placeholder*="yoursite" i]',
+            'input[placeholder*="your-post" i]',
             'input[type="url"]',
-            'input[placeholder*="URL" i]',
-            'input[placeholder*="url" i]',
             'input[placeholder*="paste" i]',
+            'input[placeholder*="URL" i]',
             'input[name*="url" i]',
             'input[aria-label*="url" i]',
-            'form input[type="text"]',
-            'input[type="text"]',
+            'input[data-testid*="import" i]',
+            'input:not([type="search"])',                # last resort — any non-search input
         ]
         for sel in selectors:
             try:
