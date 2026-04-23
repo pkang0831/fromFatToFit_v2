@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why You Stop Losing Weight Around Month Three
 
-Why did I stop losing weight at 3 months on a plan that worked in week one? Mostly because the body adapted to it. Most diets slow down around month three. Not because effort dropped. Not because the plan got worse. The body has simply become better at operating on less.
+Why did I stop losing weight at 3 months on a plan that worked in week one? Mostly because the body adapted to it.
 
 Most diets slow down around month three.
 
@@ -124,8 +124,6 @@ If you are here, the diet is working. It is asking you to rest before it can kee
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

@@ -40,7 +40,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 - Use a low-polish, honest image that feels like the aftermath of a hard week rather than a transformation ad.
 - Goal: recognition and relief.
 - Avoid polished gym proof or heroic fitness imagery.
-- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/Takeout/Google Photos/Photos from 2025/20250725_074508.jpg`
+- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted/Takeout/Google Photos/Photos from 2025/20250725_074508.jpg`
 
 ## Optional Link Back
 - Use once, at the very end only:

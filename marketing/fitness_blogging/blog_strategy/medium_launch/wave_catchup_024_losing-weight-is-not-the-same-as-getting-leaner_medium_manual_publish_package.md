@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Losing Weight Is Not the Same as Getting Leaner
 
-What's the difference between weight loss and fat loss? One moves the scale; the other actually changes how you look. At one point in the middle of my transformation, I weighed the same for eight weeks. My clothes stopped fitting anyway.
+What's the difference between weight loss and fat loss? One moves the scale; the other actually changes how you look.
 
 At one point in the middle of my transformation, I weighed the same for eight weeks.
 
@@ -130,8 +130,6 @@ They are not the same number and they are not the same clock.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

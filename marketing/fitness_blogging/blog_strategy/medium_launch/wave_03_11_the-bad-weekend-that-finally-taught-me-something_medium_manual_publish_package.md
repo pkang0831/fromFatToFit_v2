@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Bad Weekend That Finally Taught Me Something
 
-I had been clean for six weeks. Then a Friday dinner became a Saturday lunch which became a Saturday night. The damage was small. What the weekend exposed was the whole story.
+Here's how to get back on track after a bad weekend without turning Monday into punishment. The fix isn't dramatic.
 
 I had been clean for six weeks.
 
@@ -165,8 +165,6 @@ Pick the one that bends. The one that breaks does not actually exist; it just hi
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

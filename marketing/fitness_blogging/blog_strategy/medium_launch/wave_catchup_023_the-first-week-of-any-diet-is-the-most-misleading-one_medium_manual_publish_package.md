@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The First Week of Any Diet Is the Most Misleading One
 
-Why do you lose so much weight the first week of a diet? Most of it is water, glycogen, and a noisier scale — not fat. The first week is where people decide whether the plan is working. That decision is almost always based on the wrong evidence.
+Why do you lose so much weight the first week of a diet? Most of it is water, glycogen, and a noisier scale — not fat.
 
 The first week is where people decide whether the plan is working.
 
@@ -120,8 +120,6 @@ The real diet begins around day 15.
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

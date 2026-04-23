@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Progress Update #2: The Body Changed Slower Than My Head Did
 
-The biggest visible change was not actually the most important one. The body changed, yes, but the bigger shift was that panic became less convincing.
+The body changes slower than the mind during weight loss — and most of the time, it's the mind that quits first. The biggest visible change was not actually the most important one. The body changed, yes, but the bigger shift was that panic became less convincing.
 
 There is a version of me who thought every bad weigh-in meant I was becoming my old self again.
 

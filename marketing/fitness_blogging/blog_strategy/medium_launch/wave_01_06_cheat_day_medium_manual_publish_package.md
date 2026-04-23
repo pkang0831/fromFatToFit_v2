@@ -40,7 +40,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 - Use an honest rebound-era check-in visual or a conceptual relapse image.
 - Goal: system recognition, not self-condemnation.
 - Avoid polished "after" imagery that makes the article feel preachy.
-- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted_fresh_20260416/Takeout/Google Photos/Photos from 2025/20250719_083352.jpg`
+- Recommended asset: `marketing/fitness_blogging/my_past_photos/extracted/Takeout/Google Photos/Photos from 2025/20250719_083352.jpg`
 
 ## Optional Link Back
 - Use once, at the very end only:
@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Cheat Days Do Not Expose Your Character. They Expose Your System.
 
-Some people binge on cheat days and some do not. The difference is often not willpower. It is whether the body and the food environment are still primed for rebound.
+Are cheat days bad for weight loss? Not for everyone — and the difference says more about the rest of your week than your willpower. Some people binge on cheat days and some do not. The difference is often not willpower. It is whether the body and the food environment are still primed for rebound.
 
 Cheat days have a terrible publicist.
 

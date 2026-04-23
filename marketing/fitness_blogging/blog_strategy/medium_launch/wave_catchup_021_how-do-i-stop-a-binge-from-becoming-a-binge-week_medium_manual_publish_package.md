@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # How Do I Stop a Binge From Becoming a Binge Week
 
-Here's how to stop a binge from becoming a binge week. The first 48 hours after the binge are the actual rescue plan. One binge does not wreck a diet. The week after a binge wrecks a diet. This is the specific rescue plan.
+Here's how to stop a binge from becoming a binge week. The first 48 hours after the binge are the actual rescue plan.
 
 One binge does not wreck a diet.
 
@@ -127,8 +127,6 @@ One binge is a meal. A binge week is a choice. The choice happens in the 24 hour
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Body Looks Different From Behind
 
-Why does my body look different from different angles? Front view rewards bad lighting; back view tells the truth most of the time. I spent eight months watching the front of my body in a mirror and thinking nothing was happening. Then my brother took a photo of me from behind at a wedding. It was a different body.
+Why does my body look different from different angles? Front view rewards bad lighting; back view tells the truth most of the time.
 
 I spent eight months watching the front of my body in a mirror and thinking nothing was happening.
 
@@ -115,8 +115,6 @@ Just give the back mirror a turn.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

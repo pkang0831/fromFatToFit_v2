@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # You Do Not Need to Love Hunger. You Need to Understand It.
 
-You do not need to enjoy hunger to diet well. You need to understand what kind of hunger you are dealing with, and what kind of food pattern keeps making it louder.
+Here's how to handle hunger pangs on a diet without treating every signal as a failure of willpower. Most pangs want context, not food. You do not need to enjoy hunger to diet well. You need to understand what kind of hunger you are dealing with, and what kind of food pattern keeps making it louder.
 
 There is a weird kind of diet advice that always sounds impressive online: learn to enjoy hunger.
 

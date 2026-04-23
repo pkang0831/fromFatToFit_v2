@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Unglamorous Middle of a Transformation
 
-Why is the middle of weight loss the hardest stretch? The dramatic feedback is gone and the work hasn't ended. The before photo is easy. The after photo is easy. The six months between them is where everybody quits.
+Why is the middle of weight loss the hardest stretch? The dramatic feedback is gone and the work hasn't ended.
 
 The before photo is easy. The after photo is easy.
 
@@ -107,8 +107,6 @@ The after photo is produced by a boring middle. There is no shortcut past it. Th
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

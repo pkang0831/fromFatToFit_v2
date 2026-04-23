@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # A Plateau Is a Data Point, Not a Failure
 
-Here's how to break a weight loss plateau without escalating to punishment-mode. The fix is rarely more discipline. Most people read a plateau as their body firing them. It is not. A plateau is the cleanest feedback your body ever gives you. Most people are too frustrated to read it.
+Here's how to break a weight loss plateau without escalating to punishment-mode. The fix is rarely more discipline.
 
 Most people read a plateau as their body firing them.
 
@@ -116,8 +116,6 @@ The people who break plateaus are almost always the ones who stopped trying to b
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

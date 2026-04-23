@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Progress Photos Can Lie as Much as the Mirror Does
 
-People who would never trust a single weigh-in will completely trust a single photo. They should not. Lighting, posture, and last night's dinner can fake an entire month of progress in either direction.
+Why progress photos don't show progress half the time has nothing to do with the body. It's lighting, posture, and last night's dinner.
 
 People who would never trust a single weigh-in will completely trust a single photo.
 
@@ -157,8 +157,6 @@ The mirror lies fast. The photo lies slowly and looks more like proof while it d
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

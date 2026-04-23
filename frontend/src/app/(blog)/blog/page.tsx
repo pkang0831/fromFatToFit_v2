@@ -17,15 +17,55 @@ export const metadata: Metadata = {
     'weight loss maintenance',
     'pkang',
   ],
+  authors: [{ name: 'pkang', url: 'https://devenira.com/authors/pkang' }],
   alternates: {
     canonical: 'https://devenira.com/blog',
   },
   openGraph: {
     title: 'Weight Loss Blog — Honest Writing by pkang',
-    description: 'Lost 50 kg over 5 years. Now writing about appetite, body image, and the slow work of reading the body without panic.',
+    description:
+      'Lost 50 kg over 5 years. Now writing about appetite, body image, and the slow work of reading the body without panic.',
     type: 'website',
     url: 'https://devenira.com/blog',
+    images: [
+      {
+        url: 'https://devenira.com/founder/founder-story-hanok-20260119.webp',
+        alt: 'pkang, fitness and diet writer behind the blog, after a 50 kg transformation',
+      },
+    ],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Weight Loss Blog — Honest Writing by pkang',
+    description:
+      'Lost 50 kg over 5 years. Now writing about appetite, body image, and the slow work of reading the body without panic.',
+    images: ['https://devenira.com/founder/founder-story-hanok-20260119.webp'],
+    creator: '@pkang',
+  },
+};
+
+// Blog-level JSON-LD: declares this index page as the home of the Blog
+// resource, with the publisher and author resolved to existing nodes
+// (Organization @id, Person @id). Strengthens the topical hub signal.
+const BLOG_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  '@id': 'https://devenira.com/blog#blog',
+  url: 'https://devenira.com/blog',
+  name: 'Devenira Blog',
+  description:
+    'Honest writing on weight loss, body image, scale anxiety, appetite, and maintenance. By pkang, who lost 50 kg over 5 years.',
+  inLanguage: 'en',
+  author: { '@id': 'https://devenira.com/authors/pkang' },
+  publisher: { '@id': 'https://devenira.com/#organization' },
+  about: [
+    'Weight loss',
+    'Body image',
+    'Appetite regulation',
+    'Dieting psychology',
+    'Body recomposition',
+    'Maintenance after weight loss',
+  ],
 };
 
 export default function BlogIndexPage() {
@@ -47,6 +87,10 @@ export default function BlogIndexPage() {
 
   return (
     <div className="bg-[#0a0a0f] text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(BLOG_JSON_LD) }}
+      />
       <section className="relative overflow-hidden px-6 py-20 md:py-28">
         <div
           className="absolute inset-0 opacity-30"

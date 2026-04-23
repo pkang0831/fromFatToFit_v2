@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # If Your Diet Broke Your Sleep, It Is Not Discipline Anymore
 
-If dieting and training hard left you exhausted but unable to sleep, the answer is probably not to become even stricter. Sometimes the plan is not impressive. It is just under-fueling a body asked to do too much.
+Why can't I sleep on a calorie deficit, even when I'm exhausted? Usually because the deficit is bigger than the body wants to admit. If dieting and training hard left you exhausted but unable to sleep, the answer is probably not to become even stricter. Sometimes the plan is not impressive. It is just under-fueling a body asked to do too much.
 
 You went to bed tired. Not cute tired. Not “I crushed my workout” tired. The ugly kind.
 

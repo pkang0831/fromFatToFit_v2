@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Friend Who Never Diets and Never Gains
 
-Why do some people never gain weight no matter what they eat? Genetics is part of it, but most of the gap is unmeasured behavior. Everyone has that friend. Eats whatever. Never seems to gain. Never goes to the gym except in theory. Has the same body in September that they had in May. You do not, and you are furious about it.
+Why do some people never gain weight no matter what they eat? Genetics is part of it, but most of the gap is unmeasured behavior.
 
 Everyone has that friend.
 
@@ -124,8 +124,6 @@ The answer is usually: more of them than you think.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

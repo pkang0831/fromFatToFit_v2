@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why It Feels Like You Gain Weight Even When You Barely Eat
 
-A rude weigh-in can turn one morning into a small identity crisis. But scale weight and fat gain are not always the same story.
+Why does the scale go up when you're barely eating? Almost always: water, sodium, or a delayed bathroom — not fat. A rude weigh-in can turn one morning into a small identity crisis. But scale weight and fat gain are not always the same story.
 
 Did you really gain body fat from water?
 

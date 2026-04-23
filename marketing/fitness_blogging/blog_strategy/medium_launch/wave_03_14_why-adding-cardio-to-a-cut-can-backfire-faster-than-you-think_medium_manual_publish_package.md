@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why Adding Cardio to a Cut Can Backfire Faster Than You Think
 
-Cardio looks like the obvious add when fat loss slows. It often makes things worse, not better. The reasons are physiological, behavioral, and almost never about the cardio itself.
+Why adding cardio to a cut can backfire is rarely about the cardio. It's usually about what the cardio costs everywhere else. Cardio looks like the obvious add when fat loss slows. It often makes things worse, not better. The reasons are physiological, behavioral, and almost never about the cardio itself.
 
 The standard move when a cut slows down is to add cardio.
 

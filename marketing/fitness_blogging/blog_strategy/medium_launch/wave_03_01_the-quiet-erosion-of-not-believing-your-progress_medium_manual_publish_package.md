@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Quiet Erosion of Not Believing Your Progress
 
-The biggest losses of my own program did not happen on the worst days. They happened on the quiet ones, in the unremarkable gap between checkpoints where doubt arrived wearing the costume of maturity.
+Here's how to trust slow weight loss progress when the days stop feeling like proof. Most of the work happens in the quiet stretch.
 
 The biggest losses of my own program did not happen on the worst days.
 
@@ -155,8 +155,6 @@ The work is to keep looking. Not to feel certain.
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

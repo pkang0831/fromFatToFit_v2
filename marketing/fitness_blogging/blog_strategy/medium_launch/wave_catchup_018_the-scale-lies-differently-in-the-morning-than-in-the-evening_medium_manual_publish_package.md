@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Scale Lies Differently in the Morning Than in the Evening
 
-Why do I weigh more at night than in the morning? Food, water, and salt move through you all day; the morning is just the lowest sample. Most people weigh themselves at one specific time and treat that number as the truth. It is not the truth. It is one sample.
+Why do I weigh more at night than in the morning? Food, water, and salt move through you all day; the morning is just the lowest sample.
 
 Most people weigh themselves at one specific time and treat that number as the truth.
 
@@ -111,8 +111,6 @@ If you weigh at multiple times, do not mix them in your head. Evening is a diffe
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

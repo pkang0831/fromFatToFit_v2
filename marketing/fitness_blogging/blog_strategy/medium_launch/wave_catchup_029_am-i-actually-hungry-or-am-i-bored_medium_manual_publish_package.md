@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Am I Actually Hungry or Am I Bored
 
-Here's how to tell if you're hungry or bored standing at the open fridge. The cue is almost never in the stomach. If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real. Most of the time, it is not hunger. It is something else wearing hungers costume.
+Here's how to tell if you're hungry or bored standing at the open fridge. The cue is almost never in the stomach.
 
 If you have ever opened the fridge at 4 p.m., stared into it, and closed it without eating, you already know the question is real.
 
@@ -141,8 +141,6 @@ That is where the behavior changes. Not in the one moment of standing at the fri
 This is one piece of a larger body of writing about scale noise, visual proof, and the messy psychology of dieting.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Beginning Teaches the Wrong Lesson
 
-Many people think they are not losing weight because the process failed. More often, the dramatic early phase ended and their patience failed first.
+Why am I not losing weight anymore, after the early weeks worked? Usually the plan didn't break — the early phase just ended. Many people think they are not losing weight because the process failed. More often, the dramatic early phase ended and their patience failed first.
 
 It is that their patience failed first.
 

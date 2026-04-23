@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why Losing 5kg in a Week Usually Means Water, Not Fat
 
-Rapid weight loss sounds impressive, but most short-term scale drops are driven by water, not miracle fat loss. The timescale matters more than the headline.
+Is losing 5kg in a week water weight? Almost always — the body cannot legitimately lose that much fat in seven days. Rapid weight loss sounds impressive, but most short-term scale drops are driven by water, not miracle fat loss. The timescale matters more than the headline.
 
 No, someone losing 5kg in a week is usually not the miracle story your brain thinks it is.
 

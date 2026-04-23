@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Scale Can Say “Normal” and Still Tell You Nothing Useful
 
-A normal weight does not guarantee that someone feels lean, strong, or at ease in their body. The scale is often too crude to explain what they are actually struggling with.
+Skinny fat — normal weight but high body fat — is the version of unfit the scale never reports. The number is fine; the composition isn't. A normal weight does not guarantee that someone feels lean, strong, or at ease in their body. The scale is often too crude to explain what they are actually struggling with.
 
 This is one of the most awkward moments in weight-loss culture.
 

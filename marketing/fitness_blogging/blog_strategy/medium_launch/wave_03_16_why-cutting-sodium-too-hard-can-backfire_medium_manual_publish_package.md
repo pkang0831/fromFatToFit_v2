@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why Cutting Sodium Too Hard Can Backfire
 
-There is a move every dieter discovers within the first month: cut sodium hard, watch the scale drop. It feels like discipline. It is mostly water moving around, and it teaches you to chase the wrong signal.
+Does cutting sodium cause water retention rebound? Often — and the rebound usually erases the drop within a week.
 
 There is a move every dieter discovers within the first month.
 
@@ -166,8 +166,6 @@ The water comes back. Your relationship with food does not — at least not for 
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
-
-
 
 ## Frequently Asked Questions
 

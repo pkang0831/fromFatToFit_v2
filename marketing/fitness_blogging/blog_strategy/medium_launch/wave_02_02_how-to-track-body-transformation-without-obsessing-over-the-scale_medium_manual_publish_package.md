@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # How to Track Body Transformation Without Obsessing Over the Scale
 
-If you want to know whether your body is actually changing, you need a better system than checking the scale and the mirror every day. A simple weekly evidence loop works better.
+Here's how to track body transformation without the scale, with one weekly evidence loop instead of a daily morning verdict. If you want to know whether your body is actually changing, you need a better system than checking the scale and the mirror every day. A simple weekly evidence loop works better.
 
 Most people try to track transformation with the same two tools: the scale and the mirror.
 

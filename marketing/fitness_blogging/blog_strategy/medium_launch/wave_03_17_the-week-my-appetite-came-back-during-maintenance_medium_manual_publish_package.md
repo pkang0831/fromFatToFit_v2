@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Week My Appetite Came Back During Maintenance
 
-Five months into maintenance, my appetite came back. Not as failure. As a normal part of the body finishing the work the cut started. Here is what that week actually looked like — and what I almost did wrong.
+When appetite returns during maintenance after weight loss, it isn't failure. It is the body finishing what the cut started. Five months into maintenance, my appetite came back. Not as failure. As a normal part of the body finishing the work the cut started. Here is what that week actually looked like — and what I almost did wrong.
 
 The appetite came back in week 22 of maintenance.
 

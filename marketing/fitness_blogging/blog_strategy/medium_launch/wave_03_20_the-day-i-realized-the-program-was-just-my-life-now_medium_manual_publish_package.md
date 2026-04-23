@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Day I Realized the Program Was Just My Life Now
 
-There is a quiet moment when the program stops being a project and starts being your life. The shift is not announced. It is noticed weeks later, by accident.
+When does a diet become a lifestyle? Quietly. You usually notice weeks after it has already happened. There is a quiet moment when the program stops being a project and starts being your life. The shift is not announced. It is noticed weeks later, by accident.
 
 There was no announcement.
 

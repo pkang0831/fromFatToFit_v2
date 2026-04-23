@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # The Small Wins Between Progress Updates Are the Real Program
 
-The big numbers were not the program. The 50 kg loss is the headline. But the program — the thing that actually moved the body — was almost entirely made of weeks where nothing photogenic happened.
+Non scale victories in weight loss are the boring half of the program — and the half that actually moves the body.
 
 The big numbers were not the program.
 
@@ -185,4 +185,5 @@ The Saturdays will take care of themselves.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
 ```

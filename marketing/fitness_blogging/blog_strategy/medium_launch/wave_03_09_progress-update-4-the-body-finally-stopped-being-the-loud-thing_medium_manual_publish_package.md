@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Progress Update 4: The Body Finally Stopped Being the Loud Thing
 
-Four months past the last update. The numbers moved less. The relationship moved more. A founder check-in on the phase where the body finally goes quiet.
+Life after 50kg weight loss is quieter than the highlight reel sells it. The dramatic part ends; the body just is. Four months past the last update. The numbers moved less. The relationship moved more. A founder check-in on the phase where the body finally goes quiet.
 
 This is the fourth update.
 

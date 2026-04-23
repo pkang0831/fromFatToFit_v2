@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # How Much Protein Do I Actually Need to Lose Fat
 
-How much protein do I need to lose fat? Less than the influencer math sells, more than the food pyramid ever recommended. Protein is the only macronutrient the internet agrees on. Unfortunately, the internet also cannot agree on how much of it you actually need. The truth is narrower than both.
+How much protein do I need to lose fat? Less than the influencer math sells, more than the food pyramid ever recommended.
 
 Protein is the only macronutrient the internet agrees on.
 
@@ -134,4 +134,5 @@ The rest is marketing.
 I write about weight loss, appetite, body image, and the slow work of learning how to read the body without panic.
 
 The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+
 ```

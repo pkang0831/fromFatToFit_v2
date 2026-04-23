@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # You’ve Been Told “One Bad Day Won’t Hurt”—But That’s Only Half the Truth
 
-One bad day usually does less damage than several bad days in a row. The problem is how quickly that technically true idea turns into behaviorally disastrous cheat-day logic.
+Does one bad day ruin a diet? Almost never — but the next three days decide whether one bad day stays one bad day. One bad day usually does less damage than several bad days in a row. The problem is how quickly that technically true idea turns into behaviorally disastrous cheat-day logic.
 
 This is one of those diet questions people ask with a smile that already sounds guilty.
 

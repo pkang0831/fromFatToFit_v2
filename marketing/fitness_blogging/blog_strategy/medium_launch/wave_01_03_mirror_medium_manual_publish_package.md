@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Why the Mirror Can Make Real Progress Feel Fake
 
-If you see your body every day, the mirror is often the last place that will give you reassurance. That does not mean progress is not happening. It means the mirror is a terrible historian.
+Why can't I see my weight loss in the mirror, even when the scale and the clothes agree? Daily exposure hides the gradient. If you see your body every day, the mirror is often the last place that will give you reassurance. That does not mean progress is not happening. It means the mirror is a terrible historian.
 
 The mirror is one of the worst places to look for reassurance during body change.
 

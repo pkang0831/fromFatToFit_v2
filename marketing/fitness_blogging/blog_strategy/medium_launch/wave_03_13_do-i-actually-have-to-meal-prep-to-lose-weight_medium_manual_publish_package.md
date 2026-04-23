@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Do I Actually Have to Meal Prep to Lose Weight?
 
-The honest answer is no. The more useful answer is that you have to solve the same underlying problem meal prep is solving — decision fatigue, macro reliability, friction. Sunday is one tool among several.
+Do I have to meal prep to lose weight? No — but you have to solve the problem meal prep is solving, with or without Sunday containers. The honest answer is no. The more useful answer is that you have to solve the same underlying problem meal prep is solving — decision fatigue, macro reliability, friction. Sunday is one tool among several.
 
 The question I get most often about food on a cut is some version of "do I have to meal prep on Sundays to make this work?"
 

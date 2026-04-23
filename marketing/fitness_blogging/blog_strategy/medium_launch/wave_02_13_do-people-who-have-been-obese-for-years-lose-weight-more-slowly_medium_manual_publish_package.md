@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Do People Who Have Been Obese for Years Lose Weight More Slowly?
 
-If weight came on slowly over years, more of it is usually true fat rather than temporary water. That can make the process feel heavier, but it does not mean your body is uniquely cursed.
+Do obese people lose weight slower than others? On the scale, sometimes the opposite — but the fat under it tells a longer story. If weight came on slowly over years, more of it is usually true fat rather than temporary water. That can make the process feel heavier, but it does not mean your body is uniquely cursed.
 
 This question usually sounds scientific on the surface.
 

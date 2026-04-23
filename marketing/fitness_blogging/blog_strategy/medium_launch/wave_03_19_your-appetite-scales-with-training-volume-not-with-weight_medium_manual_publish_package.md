@@ -50,7 +50,7 @@ If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the 
 ```md
 # Your Appetite Scales With Training Volume, Not With Weight
 
-Appetite is not a function of how much you weigh. It is a function of how much you trained, how you slept, and what your body is rebuilding. The scale is not what your hunger is reading.
+Why am I so hungry after lifting weights, even on weeks the scale didn't move? Hunger reads training volume, not body weight. Appetite is not a function of how much you weigh. It is a function of how much you trained, how you slept, and what your body is rebuilding. The scale is not what your hunger is reading.
 
 People assume their appetite scales with their weight.
 
