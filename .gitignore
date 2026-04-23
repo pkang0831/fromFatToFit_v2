@@ -123,3 +123,7 @@ test-results/
 # Offline body-validation models (HF + MediaPipe; large — keep script only)
 backend/models/body_validation/*
 !backend/models/body_validation/import_from_downloads.sh
+
+# Hero webp backups from orientation-fix passes
+frontend/public/founder/*.bak.webp
+frontend/public/founder/*.orient-bak.webp
