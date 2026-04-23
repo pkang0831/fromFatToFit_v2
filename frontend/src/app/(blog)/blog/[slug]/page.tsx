@@ -136,19 +136,28 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
               />
             </div>
 
-            <div className="overflow-hidden rounded-[32px] border border-white/[0.08] bg-white/[0.03]">
-              <div className="relative aspect-[16/10]">
-                <Image
-                  src={post.heroImage}
-                  alt={post.heroAlt}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 960px"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#060609] via-transparent to-transparent" />
-              </div>
-            </div>
+            {/*
+              Hero rendered as a semantic <figure><img> (instead of
+              Next.js Image fill wrapped in absolute positioning)
+              so that content scrapers like Medium's Import-from-URL
+              feature recognise it as a standalone article image
+              and carry it into the imported story as the cover.
+              Using width/height (not fill) preserves Next.js Image
+              optimisation — the rendered <img> still points at
+              /_next/image?url=... with proper srcSet.
+            */}
+            <figure className="relative overflow-hidden rounded-[32px] border border-white/[0.08] bg-white/[0.03]">
+              <Image
+                src={post.heroImage}
+                alt={post.heroAlt}
+                width={1600}
+                height={1000}
+                className="h-auto w-full object-cover"
+                sizes="(max-width: 1024px) 100vw, 960px"
+                priority
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#060609] via-transparent to-transparent" />
+            </figure>
 
             <div className="rounded-[32px] border border-white/[0.08] bg-[#080810] px-6 py-8 md:px-10 md:py-10">
               <div className="mx-auto max-w-3xl">
