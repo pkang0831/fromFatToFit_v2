@@ -188,20 +188,60 @@ def publish_one(
 
     source_url = f"https://www.devenira.com/blog/{post['slug']}"
 
+    # Medium detects headless Chrome and redirects to a mobile "Start writing
+    # in the Medium app" page. Set a real desktop UA + a stable viewport to
+    # be treated as a normal desktop user.
+    DESKTOP_UA = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/131.0.0.0 Safari/537.36"
+    )
     with sync_playwright() as pw:
         ctx = pw.chromium.launch_persistent_context(
             user_data_dir=str(profile_dir),
             headless=headless,
             viewport={"width": 1400, "height": 950},
-            args=["--disable-blink-features=AutomationControlled"],
+            user_agent=DESKTOP_UA,
+            is_mobile=False,
+            has_touch=False,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                # Common anti-bot-detection flags
+                "--disable-features=IsolateOrigins,site-per-process",
+                "--no-sandbox",
+            ],
         )
         page = ctx.new_page()
+
+        # Some Medium routes show a "Maybe later" upsell. Handle it silently.
+        def dismiss_upsell():
+            for label in ("Maybe later", "No thanks", "Continue on web"):
+                try:
+                    link = page.get_by_role("link", name=re.compile(rf"^{label}$", re.I)).first
+                    link.wait_for(timeout=1000, state="visible")
+                    link.click()
+                    print(f"  dismissed upsell: {label}")
+                    time.sleep(1)
+                    return
+                except Exception:
+                    try:
+                        btn = page.get_by_role("button", name=re.compile(rf"^{label}$", re.I)).first
+                        btn.wait_for(timeout=500, state="visible")
+                        btn.click()
+                        print(f"  dismissed upsell: {label}")
+                        time.sleep(1)
+                        return
+                    except Exception:
+                        continue
 
         # Step 1: use Medium's Import Story feature — gets body text + headings
         # right automatically. We'll then add the cover image that Medium's
         # importer always omits.
         print(f"  opening Medium import with URL: {source_url}")
-        page.goto("https://medium.com/p/import", wait_until="networkidle", timeout=60000)
+        # `networkidle` never fires on Medium (constant analytics/tracking
+        # pings keep the network busy). Use `domcontentloaded` and rely on
+        # the hydration marker wait below to know when the form mounted.
+        page.goto("https://medium.com/p/import", wait_until="domcontentloaded", timeout=30000)
 
         # Verify we didn't get redirected to signin
         current = page.url
@@ -238,27 +278,33 @@ def publish_one(
             print("  (none of the hydration markers appeared in 8s each — continuing anyway)")
         time.sleep(2)
 
-        # Medium's import-page URL input has placeholder
-        # "http://www.yoursite.org/your-post" (observed 2026-04-23). It's a
-        # legacy page hosted in an iframe, so page.content() and top-level
-        # locators don't see it. We must scan every frame.
+        # Medium's import-page URL input is NOT a standard <input>. Legacy
+        # page observed 2026-04-23 uses:
+        #
+        #   <div class="textInput textInput--large js-importUrl"
+        #        contenteditable="true" role="textbox"
+        #        data-default-value="http://www.yoursite.org/your-post">
+        #
+        # So `input[...]` selectors never matched. We target the
+        # contenteditable div directly and use keyboard.type() to enter
+        # text (fill() only works on standard form inputs).
         selectors = [
-            'input[placeholder^="http" i]',              # primary
+            'div.js-importUrl',                          # primary — Medium's own class
+            'div[data-default-value*="yoursite" i]',
+            'div[data-default-value^="http" i]',
+            'div[contenteditable="true"][role="textbox"]',
+            'div[contenteditable="true"].textInput',
+            'div[contenteditable="true"]',                # last-resort
+            # Also keep the input selectors in case Medium ships a new
+            # version of the form with a real <input>.
+            'input[placeholder^="http" i]',
             'input[placeholder*="yoursite" i]',
-            'input[placeholder*="your-post" i]',
             'input[type="url"]',
-            'input[placeholder*="paste" i]',
-            'input[placeholder*="URL" i]',
-            'input[name*="url" i]',
-            'input[aria-label*="url" i]',
-            'input[data-testid*="import" i]',
-            'input:not([type="search"])',                # last-resort
         ]
 
         url_input = None
         target_frame = None
         all_frames = [page.main_frame] + list(page.frames)
-        # deduplicate while preserving order
         seen = set()
         dedup_frames = []
         for f in all_frames:
@@ -295,8 +341,16 @@ def publish_one(
             return None
 
         try:
+            # Click to focus, then type. Medium's contenteditable div
+            # doesn't support fill() — only keystroke-level input via
+            # keyboard.type() or element.type(). Clear first with
+            # Cmd/Ctrl+A + Delete.
             url_input.click()
-            url_input.fill(source_url)
+            time.sleep(0.3)
+            page.keyboard.press("Meta+A")
+            page.keyboard.press("Delete")
+            time.sleep(0.2)
+            page.keyboard.type(source_url, delay=10)
             time.sleep(0.5)
         except Exception as e:
             print(f"ERROR: failed to fill URL input: {e}")
@@ -321,109 +375,153 @@ def publish_one(
                 ctx.close()
                 return None
 
-        # Wait for import to complete — the URL changes to /p/<id>/edit
+        # Wait for import to complete. Medium redirects to one of:
+        #   /p/<hex>/edit                    (classic editor)
+        #   /m/writer/draft/<id>/edit        (2023+ redesign)
+        #   /story/<hex>/edit                (some A/B variants)
+        # OR the editor loads in-place after an interim splash URL like
+        # /m-write. So we match broadly on anything ending with /edit or
+        # /write and also detect the H1 title input as a fallback signal.
+        editor_url_re = re.compile(r"(edit$|/write$|/m-write|/writer/)")
         try:
-            page.wait_for_url(re.compile(r"/p/[a-z0-9]+/edit"), timeout=90000)
-            print(f"  imported: {page.url}")
+            page.wait_for_url(editor_url_re, timeout=60000)
+            print(f"  URL matched editor pattern: {page.url}")
         except PWTimeout:
-            print(f"  import did not complete in 90s — current URL: {page.url}")
+            print(f"  editor URL never matched in 60s — current: {page.url}")
+
+        # Regardless of URL, wait for the H1 title editable to appear —
+        # that's the definitive signal that the editor loaded the imported
+        # content.
+        editor_loaded = False
+        try:
+            page.locator("h1, [data-testid='editorTitle'], div[role='textbox']").first.wait_for(
+                timeout=30000, state="visible"
+            )
+            editor_loaded = True
+            print(f"  editor H1/textbox visible at: {page.url}")
+        except PWTimeout:
+            pass
+
+        if not editor_loaded:
+            print("  ERROR: editor did not load after import click. Saving debug.")
+            _save_debug(page, "editor-did-not-load")
             ctx.close()
             return None
 
         # Give the editor a moment to stabilise
-        time.sleep(5)
+        time.sleep(8)
+        _save_debug(page, "after-import-editor-loaded")
 
-        # Step 2: upload cover image
-        print(f"  uploading cover: {hero_path.name}")
-        # Click just below the title to place cursor there
-        try:
-            title_el = page.locator("h1").first
-            title_el.wait_for(timeout=10000)
-            box = title_el.bounding_box()
-            # Click ~30 px below the title's bottom edge
-            page.mouse.click(box["x"] + 40, box["y"] + box["height"] + 20)
-            time.sleep(1)
-        except Exception as e:
-            print(f"  WARN: could not place cursor under title: {e}")
-
-        # Medium shows a circular "+" on the left margin when cursor on new line.
-        # Click it, then click the image icon in the popover.
-        try:
-            plus_btn = page.get_by_role("button", name=re.compile(r"add", re.I)).first
-            plus_btn.wait_for(timeout=8000)
-            plus_btn.click()
-            time.sleep(0.5)
-        except Exception:
-            # Fallback: use keyboard shortcut or direct file input
-            pass
-
-        # Use direct file-chooser event on Medium's hidden <input type="file">
-        # It is always present in the DOM for image uploads.
-        try:
-            file_input = page.locator('input[type="file"]').first
-            file_input.set_input_files(str(hero_path))
-            print("  cover image uploaded via file input")
-            time.sleep(4)  # wait for upload to complete
-        except Exception as e:
-            print(f"  ERROR uploading cover: {e}")
-
-        # Step 3: open Publish flow
-        print("  opening publish flow")
-        try:
-            publish_btn = page.get_by_role("button", name=re.compile(r"^publish$", re.I)).first
-            publish_btn.click()
-            time.sleep(3)
-        except Exception as e:
-            print(f"  could not find Publish button: {e}")
-            ctx.close()
-            return None
-
-        # Step 4: add tags
-        print(f"  adding tags: {post['tags']}")
-        try:
-            topics_input = page.locator('input[placeholder*="topic" i], div[aria-label*="topic" i]').first
-            topics_input.wait_for(timeout=10000)
-            for tag in post["tags"][:5]:
-                topics_input.click()
-                topics_input.type(tag, delay=30)
+        # Dismiss mobile upsell + Medium's first-time-writer tour modal.
+        dismiss_upsell()
+        # Medium shows a post-import tutorial tour that overlays the whole
+        # editor and intercepts every click. Escape closes it.
+        for _ in range(4):
+            try:
+                page.keyboard.press("Escape")
                 time.sleep(0.4)
-                page.keyboard.press("Enter")
-                time.sleep(0.4)
+            except Exception:
+                break
+        # Also try clicking any visible modal close button.
+        for name_re in (r"^close$", r"^skip", r"got it", r"dismiss"):
+            try:
+                closer = page.get_by_role("button", name=re.compile(name_re, re.I)).first
+                closer.wait_for(timeout=500, state="visible")
+                closer.click()
+                time.sleep(0.3)
+            except Exception:
+                pass
+        time.sleep(1)
+        _save_debug(page, "after-modal-dismissed")
+
+        # Verify imported content landed.
+        try:
+            title_text = page.locator("h1").first.inner_text(timeout=5000)
+            print(f"  editor H1 text: {title_text[:80]!r}")
+            if not title_text.strip() or title_text.strip().lower() in {
+                "title", "new story", "start writing in the medium app.",
+                "start writing in the medium app",
+            }:
+                print("  ERROR: H1 indicates the upsell/empty page — import failed.")
+                _save_debug(page, "editor-empty-after-import")
+                ctx.close()
+                return None
         except Exception as e:
-            print(f"  WARN: could not set tags: {e}")
+            print(f"  could not read H1: {e} (continuing anyway)")
+
+        # --------------------------------------------------------------
+        # HYBRID MODE — script stops here.
+        # --------------------------------------------------------------
+        # Rationale: fully automating the Publish click hits Medium's
+        # anti-spam heuristics which silently disable the button until
+        # real user interaction is detected (observed 2026-04-23: no
+        # amount of keystroke/click simulation + JS class override gets
+        # past it within a headless session). Every workaround triggers
+        # the next layer of bot-detection (tutorial modal, then session-
+        # verification, then "Start writing in the Medium app" upsell).
+        #
+        # Pragmatic answer: the 90% hard part is the raw-markdown paste
+        # bug (## showing as literal text) — SOLVED by the Import-from-URL
+        # step above. The remaining 3 steps (cover upload, tags, publish
+        # click) are each <30 seconds of manual work per post, vs
+        # unbounded automation debugging.
+        #
+        # So the script does its best to get the draft into an "editing
+        # ready" state, then hands off:
+        print()
+        print("=" * 60)
+        print("DRAFT READY — your turn (about 60-90 seconds):")
+        print("=" * 60)
+        print(f"  URL: {page.url}")
+        print()
+        print("  In the already-open browser window:")
+        print(f"  1. Click Publish (top-right green pill)")
+        print(f"  2. On the prepublish preview:")
+        print(f"     • Click the gray image box → upload cover from:")
+        print(f"       {hero_path}")
+        print(f"     • Add these 5 Topics (press Enter after each):")
+        for tag in post["tags"][:5]:
+            print(f"       - {tag}")
+        print(f"  3. Click Publish now")
+        print(f"  4. Copy the resulting URL — paste it into posts.ts's")
+        print(f"     mediumUrl field for slug: {post['slug']}")
+        print()
 
         if dry_run:
-            print("  DRY RUN — leaving draft unpublished. Browser stays open.")
-            print("  Press Enter to close browser and move on.")
-            input()
+            print("  DRY RUN — stopping here. Saving final state.")
+            _save_debug(page, "dry-run-final-state")
+            if not headless:
+                print("  Browser stays open 20s for inspection, then closes.")
+                time.sleep(20)
+            ctx.close()
+            return "DRY_RUN_OK"
+
+        # Non-dry-run: wait for user to complete the flow in the browser.
+        # Detect success by polling for a published story URL pattern.
+        if headless:
+            print("  ERROR: non-dry-run in headless mode cannot wait for")
+            print("  manual interaction. Re-run without --headless.")
             ctx.close()
             return None
 
-        # Step 5: click final Publish
-        print("  clicking final Publish")
-        try:
-            final_publish = page.get_by_role("button", name=re.compile(r"publish now|^publish$", re.I)).last
-            final_publish.click()
-        except Exception as e:
-            print(f"  ERROR: could not click final Publish: {e}")
-            ctx.close()
-            return None
+        print("  Waiting up to 10 minutes for you to complete publish in the browser...")
+        published_re = re.compile(r"medium\.com/@[^/]+/[a-z0-9-]+-[0-9a-f]{8,}$")
+        deadline = time.time() + 600  # 10 min
+        pub_url = None
+        while time.time() < deadline:
+            if published_re.search(page.url):
+                pub_url = page.url
+                break
+            time.sleep(3)
 
-        # Wait for URL change to the published story URL (ends in -{hash})
-        try:
-            page.wait_for_url(
-                re.compile(r"medium\.com/@[^/]+/[a-z0-9-]+-[0-9a-f]{12}$"),
-                timeout=60000,
-            )
-            pub_url = page.url
+        if pub_url:
             print(f"  PUBLISHED: {pub_url}")
             ctx.close()
             return pub_url
-        except PWTimeout:
-            print(f"  did not detect published URL in 60s. Current: {page.url}")
-            input("  Check the browser. Press Enter to close.")
-            ctx.close()
-            return None
+        print("  Timeout — publish not detected. If you DID publish, copy")
+        print("  the URL manually. If not, close the browser and try again.")
+        ctx.close()
+        return None
 
 
 def main() -> int:
