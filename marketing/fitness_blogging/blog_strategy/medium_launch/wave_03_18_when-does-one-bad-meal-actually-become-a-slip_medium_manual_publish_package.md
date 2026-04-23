@@ -1,5 +1,56 @@
 # Medium Manual Publish Package
 
+## How to publish on Medium (READ FIRST)
+
+**DO NOT copy-paste the ```md block below into Medium's editor.**
+Medium's editor does not parse markdown — `##`, `#`, `-`, and other
+prefixes will appear as literal characters and destroy the heading
+hierarchy. Observed 2026-04-23: wave_01_01 and wave_01_02 were
+published this way and got 0 views because Medium's feed algorithm
+throttles stories with no heading structure.
+
+### Recommended workflow: Import from URL
+
+1. In Medium: click your avatar → **Stories** → the "…" next to
+   "Write a story" → **Import a story**. (Or visit
+   https://medium.com/p/import directly.)
+2. Paste the owned-site URL:
+   `https://devenira.com/blog/when-does-one-bad-meal-actually-become-a-slip` — exact
+   slug is `when-does-one-bad-meal-actually-become-a-slip` — verify against `posts.ts` (the file name's topic part is a hint, not always the exact slug)
+3. Click **Import**. Medium converts the rendered HTML into its
+   native format; H1/H2/lists/answerBox all transfer cleanly.
+4. Before publishing:
+   - Verify **Title** and **Subtitle** (they come from the page meta
+     but may need the Medium-friendly versions — see **Title** and
+     **Subtitle / Description** sections in this file).
+   - Add the 5 **Medium Tags** from this file exactly.
+   - Verify the **Cover image** is correct (it auto-pulls the hero
+     webp from devenira.com).
+   - **Canonical URL**: clear it per the canonical-flip policy
+     below. Medium may auto-set it during import; clear the field
+     in Story settings → SEO before publishing.
+5. Publish.
+6. Copy the new Medium URL → paste into `posts.ts` for the matching
+   slug (the `mediumUrl:` field) → commit & push.
+
+### Fallback: manual paste (only if import fails)
+
+If Medium's importer rejects the URL (rare — only happens for posts
+that haven't propagated to Vercel yet), use the markdown block below
+but **manually convert each heading**:
+
+- Every line starting with `# X` → delete the `# ` and apply Medium's
+  **Large Heading** (T1) style
+- Every line starting with `## X` → delete the `## ` and apply Medium's
+  **Medium Heading** (T2) style
+- Every line starting with `- X` → delete the `- ` and apply Medium's
+  bulleted-list style
+- `> X` blockquotes → delete `> ` and apply quote style
+
+This is slow and error-prone. Prefer import whenever possible.
+
+---
+
 ## Title
 When Does One Bad Meal Actually Become a Slip?
 
