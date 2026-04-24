@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { getAllBlogPosts, getAllClusters } from '@/content/blog/posts';
+import { SITE_ORIGIN, absoluteUrl } from '@/lib/site';
 
 export const metadata: Metadata = {
   title: 'Weight Loss Blog by pkang — Honest Writing on Diet, Body, Appetite',
@@ -17,19 +18,19 @@ export const metadata: Metadata = {
     'weight loss maintenance',
     'pkang',
   ],
-  authors: [{ name: 'pkang', url: 'https://devenira.com/authors/pkang' }],
+  authors: [{ name: 'pkang', url: absoluteUrl('/authors/pkang') }],
   alternates: {
-    canonical: 'https://devenira.com/blog',
+    canonical: absoluteUrl('/blog'),
   },
   openGraph: {
     title: 'Weight Loss Blog — Honest Writing by pkang',
     description:
       'Lost 50 kg over 5 years. Now writing about appetite, body image, and the slow work of reading the body without panic.',
     type: 'website',
-    url: 'https://devenira.com/blog',
+    url: absoluteUrl('/blog'),
     images: [
       {
-        url: 'https://www.devenira.com/founder/founder-story-hanok-20260119.webp',
+        url: absoluteUrl('/founder/founder-story-hanok-20260119.webp'),
         alt: 'pkang, fitness and diet writer behind the blog, after a 50 kg transformation',
       },
     ],
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
     title: 'Weight Loss Blog — Honest Writing by pkang',
     description:
       'Lost 50 kg over 5 years. Now writing about appetite, body image, and the slow work of reading the body without panic.',
-    images: ['https://www.devenira.com/founder/founder-story-hanok-20260119.webp'],
+    images: [absoluteUrl('/founder/founder-story-hanok-20260119.webp')],
     creator: '@pkang',
   },
 };
@@ -50,14 +51,14 @@ export const metadata: Metadata = {
 const BLOG_JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'Blog',
-  '@id': 'https://devenira.com/blog#blog',
-  url: 'https://devenira.com/blog',
+  '@id': `${SITE_ORIGIN}/blog#blog`,
+  url: absoluteUrl('/blog'),
   name: 'Devenira Blog',
   description:
     'Honest writing on weight loss, body image, scale anxiety, appetite, and maintenance. By pkang, who lost 50 kg over 5 years.',
   inLanguage: 'en',
-  author: { '@id': 'https://devenira.com/authors/pkang' },
-  publisher: { '@id': 'https://devenira.com/#organization' },
+  author: { '@id': `${SITE_ORIGIN}/authors/pkang` },
+  publisher: { '@id': `${SITE_ORIGIN}/#organization` },
   about: [
     'Weight loss',
     'Body image',

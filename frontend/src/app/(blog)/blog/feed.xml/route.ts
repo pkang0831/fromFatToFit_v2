@@ -1,4 +1,5 @@
 import { getAllBlogPosts } from '@/content/blog/posts';
+import { absoluteUrl } from '@/lib/site';
 
 /**
  * RSS feed for the blog at /blog/feed.xml.
@@ -14,7 +15,7 @@ import { getAllBlogPosts } from '@/content/blog/posts';
  */
 export async function GET() {
   const posts = getAllBlogPosts();
-  const siteUrl = 'https://devenira.com';
+  const siteUrl = absoluteUrl();
   const lastBuildDate = new Date().toUTCString();
 
   const xmlEscape = (s: string) =>
@@ -28,7 +29,7 @@ export async function GET() {
   const items = posts
     .slice(0, 50)
     .map((post) => {
-      const link = post.mediumUrl ?? `${siteUrl}/blog/${post.slug}`;
+      const link = `${siteUrl}/blog/${post.slug}`;
       const description = post.metaDescription ?? post.description ?? '';
       const pubDate = new Date(post.date).toUTCString();
       const cluster = post.cluster ? `<category>${xmlEscape(post.cluster)}</category>` : '';

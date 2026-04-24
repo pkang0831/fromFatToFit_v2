@@ -9,6 +9,7 @@ import {
   getAllClusters,
   getBlogPostsByCluster,
 } from '@/content/blog/posts';
+import { SITE_ORIGIN, absoluteUrl } from '@/lib/site';
 
 interface ClusterPageProps {
   params: { cluster: string };
@@ -42,15 +43,15 @@ export function generateMetadata({ params }: ClusterPageProps): Metadata {
     title: meta.seoTitle,
     description: meta.metaDescription,
     keywords: [meta.primaryKeyword, ...meta.secondaryKeywords],
-    authors: [{ name: 'pkang', url: 'https://devenira.com/authors/pkang' }],
+    authors: [{ name: 'pkang', url: absoluteUrl('/authors/pkang') }],
     alternates: {
-      canonical: `https://devenira.com/blog/topic/${meta.slug}`,
+      canonical: absoluteUrl(`/blog/topic/${meta.slug}`),
     },
     openGraph: {
       title: meta.title,
       description: meta.description,
       type: 'website',
-      url: `https://devenira.com/blog/topic/${meta.slug}`,
+      url: absoluteUrl(`/blog/topic/${meta.slug}`),
     },
     twitter: {
       card: 'summary_large_image',
@@ -69,10 +70,10 @@ export default function ClusterPage({ params }: ClusterPageProps) {
   const itemListJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': `https://devenira.com/blog/topic/${meta.slug}`,
+    '@id': absoluteUrl(`/blog/topic/${meta.slug}`),
     name: meta.title,
     description: meta.description,
-    url: `https://devenira.com/blog/topic/${meta.slug}`,
+    url: absoluteUrl(`/blog/topic/${meta.slug}`),
     about: meta.primaryKeyword,
     keywords: [meta.primaryKeyword, ...meta.secondaryKeywords].join(', '),
     mainEntity: {
@@ -80,7 +81,7 @@ export default function ClusterPage({ params }: ClusterPageProps) {
       itemListElement: posts.map((post, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: post.mediumUrl ?? `https://devenira.com/blog/${post.slug}`,
+        url: absoluteUrl(`/blog/${post.slug}`),
         name: post.title,
       })),
     },
@@ -109,13 +110,13 @@ export default function ClusterPage({ params }: ClusterPageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://devenira.com' },
-      { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://devenira.com/blog' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_ORIGIN },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: absoluteUrl('/blog') },
       {
         '@type': 'ListItem',
         position: 3,
         name: meta.title,
-        item: `https://devenira.com/blog/topic/${meta.slug}`,
+        item: absoluteUrl(`/blog/topic/${meta.slug}`),
       },
     ],
   };

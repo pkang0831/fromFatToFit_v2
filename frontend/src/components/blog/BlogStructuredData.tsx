@@ -1,15 +1,11 @@
 import type { BlogPost } from '@/content/blog/posts';
+import { SITE_ORIGIN, MEDIA_ORIGIN, absoluteUrl } from '@/lib/site';
 
-const SITE_ORIGIN = 'https://devenira.com';
-// Image / media URLs must use www — apex 307-redirects and most scrapers
-// (Medium Import-from-URL, OG crawlers) silently drop images fetched via
-// redirects. Canonical / schema @id values stay on apex.
-const MEDIA_ORIGIN = 'https://www.devenira.com';
 const AUTHOR = {
   '@type': 'Person',
-  '@id': `${SITE_ORIGIN}/authors/pkang`,
+  '@id': absoluteUrl('/authors/pkang'),
   name: 'pkang',
-  url: `${SITE_ORIGIN}/authors/pkang`,
+  url: absoluteUrl('/authors/pkang'),
   image: `${MEDIA_ORIGIN}/founder/founder-story-hanok-20260119.webp`,
   description:
     'Fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career.',
@@ -55,8 +51,8 @@ interface BlogStructuredDataProps {
  * HowTo carousel, article byline snippet). See seo_optimization_rules.md.
  */
 export function BlogStructuredData({ post }: BlogStructuredDataProps) {
-  const url = `${SITE_ORIGIN}/blog/${post.slug}`;
-  const mainUrl = post.mediumUrl ?? url;
+  const url = absoluteUrl(`/blog/${post.slug}`);
+  const mainUrl = url;
 
   const article = {
     '@context': 'https://schema.org',

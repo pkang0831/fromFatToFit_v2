@@ -9,6 +9,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GoogleAnalytics } from '@/components/Analytics';
 import { BrandLogo } from '@/components/brand/BrandLogo';
+import { SITE_ORIGIN } from '@/lib/site';
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -23,7 +24,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://devenira.com'),
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
     default: 'Devenira — See Proof Your Cut Is Working, Weekly',
     template: '%s | Devenira',
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://devenira.com',
+    url: SITE_ORIGIN,
     siteName: 'Devenira',
     title: 'Devenira — The Mirror Lies. Your Weekly Check-in Doesn\u2019t.',
     description: 'AI body check-in that shows the gap closing every week. Free first scan, no sign-up.',

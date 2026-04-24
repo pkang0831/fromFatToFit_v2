@@ -10428,12 +10428,26 @@ const posts: BlogPost[] = [
   },
 ];
 
+function getTodayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function isPublishedBlogPost(post: BlogPost) {
+  return post.date <= getTodayIsoDate();
+}
+
 export function getAllBlogPosts() {
-  return [...posts].sort((a, b) => (a.date < b.date ? 1 : -1));
+  return [...posts]
+    .filter(isPublishedBlogPost)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 export function getBlogPostBySlug(slug: string) {
-  return posts.find((post) => post.slug === slug);
+  const post = posts.find((candidate) => candidate.slug === slug);
+  if (!post || !isPublishedBlogPost(post)) {
+    return undefined;
+  }
+  return post;
 }
 
 export function getRelatedBlogPosts(slug: string, limit = 3) {

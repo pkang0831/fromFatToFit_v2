@@ -17,6 +17,7 @@ import {
   getBlogPostBySlug,
   getRelatedBlogPosts,
 } from '@/content/blog/posts';
+import { SITE_ORIGIN, absoluteUrl } from '@/lib/site';
 
 interface BlogPostPageProps {
   params: {
@@ -44,16 +45,12 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   // while search-facing surfaces use seoTitle / metaDescription when present.
   // See marketing/fitness_blogging/blog_strategy/seo_optimization_rules.md.
   //
-  // Canonical strategy: when a Medium URL is set, canonical points there so
-  // Google concentrates ranking signals on Medium (DR ~95) rather than this
-  // low-authority domain. Self-canonical is used as the fallback for drafts
-  // and for pillar/cluster pages that never have a Medium sibling.
-  const canonicalUrl = post.mediumUrl ?? `https://devenira.com/blog/${post.slug}`;
+  const canonicalUrl = absoluteUrl(`/blog/${post.slug}`);
   return {
     title: post.seoTitle ?? post.title,
     description: post.metaDescription ?? post.description,
     keywords: post.keywords,
-    authors: [{ name: 'pkang', url: 'https://devenira.com/authors/pkang' }],
+    authors: [{ name: 'pkang', url: absoluteUrl('/authors/pkang') }],
     alternates: {
       canonical: canonicalUrl,
     },
@@ -61,7 +58,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       title: post.title,
       description: post.socialDescription,
       type: 'article',
-      url: `https://devenira.com/blog/${post.slug}`,
+      url: canonicalUrl,
       publishedTime: post.date,
       modifiedTime: post.lastModified ?? post.date,
       images: [
@@ -70,7 +67,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
           // www which breaks non-redirect-following crawlers like
           // Medium's Import-from-URL. Keep canonical/authors URLs on
           // apex though (those are logical identifiers, not fetched).
-          url: `https://www.devenira.com${post.heroImage}`,
+          url: `${SITE_ORIGIN}${post.heroImage}`,
           width: 1600,
           height: 1000,
           alt: post.heroAlt,
@@ -82,7 +79,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       card: 'summary_large_image',
       title: post.title,
       description: post.socialDescription,
-      images: [`https://www.devenira.com${post.heroImage}`],
+      images: [`${SITE_ORIGIN}${post.heroImage}`],
       creator: '@pkang',
     },
   };
@@ -98,7 +95,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
   const relatedPosts = getRelatedBlogPosts(post.slug, 2);
   const clusterMeta = post.cluster ? CLUSTERS[post.cluster] : undefined;
 
-  const shareUrl = post.mediumUrl ?? `https://devenira.com/blog/${post.slug}`;
+  const shareUrl = absoluteUrl(`/blog/${post.slug}`);
 
   return (
     <div className="bg-[#0a0a0f] text-white">
@@ -183,7 +180,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             */}
             <figure className="relative overflow-hidden rounded-[32px] border border-white/[0.08] bg-white/[0.03]">
               <Image
-                src={`https://www.devenira.com${post.heroImage}`}
+                src={`${SITE_ORIGIN}${post.heroImage}`}
                 alt={post.heroAlt}
                 width={1600}
                 height={1000}

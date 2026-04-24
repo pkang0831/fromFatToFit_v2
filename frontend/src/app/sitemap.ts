@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getAllBlogPosts, getAllClusters } from '@/content/blog/posts';
+import { SITE_ORIGIN, absoluteUrl } from '@/lib/site';
 
 /**
  * Sitemap priority strategy:
@@ -27,29 +28,28 @@ function postPriority(post: { slug: string; sections: { type: string }[] }) {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://devenira.com';
   const blogEntries = getAllBlogPosts().map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
+    url: absoluteUrl(`/blog/${post.slug}`),
     lastModified: new Date(post.lastModified ?? post.date),
     changeFrequency: 'monthly' as const,
     priority: postPriority(post),
   }));
   const topicEntries = getAllClusters().map((cluster) => ({
-    url: `${baseUrl}/blog/topic/${cluster.slug}`,
+    url: absoluteUrl(`/blog/topic/${cluster.slug}`),
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.85,
   }));
 
   return [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
-    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
-    { url: `${baseUrl}/authors/pkang`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.65 },
-    { url: `${baseUrl}/login`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${baseUrl}/register`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
-    { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
-    { url: `${baseUrl}/disclaimer`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { url: SITE_ORIGIN, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
+    { url: absoluteUrl('/blog'), lastModified: new Date(), changeFrequency: 'weekly', priority: 0.9 },
+    { url: absoluteUrl('/authors/pkang'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.65 },
+    { url: absoluteUrl('/login'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    { url: absoluteUrl('/register'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    { url: absoluteUrl('/terms'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { url: absoluteUrl('/privacy'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { url: absoluteUrl('/disclaimer'), lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
     ...topicEntries,
     ...blogEntries,
   ];

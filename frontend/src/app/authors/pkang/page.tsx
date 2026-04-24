@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { getAllBlogPosts } from '@/content/blog/posts';
+import { SITE_ORIGIN, absoluteUrl } from '@/lib/site';
 
 /**
  * Author page for pkang.
@@ -32,41 +33,41 @@ export const metadata: Metadata = {
     'founder devenira',
   ],
   alternates: {
-    canonical: 'https://devenira.com/authors/pkang',
+    canonical: absoluteUrl('/authors/pkang'),
   },
   openGraph: {
     title: 'pkang — Fitness and Diet Writer',
     description:
       'Lost 50 kg over five years. Wrote about every hard part of it. Now writing about body image, appetite, and honest progress without panic.',
     type: 'profile',
-    url: 'https://devenira.com/authors/pkang',
-    images: [{ url: 'https://www.devenira.com/founder/founder-story-hanok-20260119.webp' }],
+    url: absoluteUrl('/authors/pkang'),
+    images: [{ url: absoluteUrl('/founder/founder-story-hanok-20260119.webp') }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'pkang — Fitness and Diet Writer',
     description:
       'Lost 50 kg over five years. Now writing about body image, appetite, and honest progress without panic.',
-    images: ['https://www.devenira.com/founder/founder-story-hanok-20260119.webp'],
+    images: [absoluteUrl('/founder/founder-story-hanok-20260119.webp')],
   },
 };
 
 const AUTHOR_JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'Person',
-  '@id': 'https://devenira.com/authors/pkang',
+  '@id': absoluteUrl('/authors/pkang'),
   name: 'pkang',
   alternateName: ['P. Kang'],
-  url: 'https://devenira.com/authors/pkang',
-  image: 'https://www.devenira.com/founder/founder-story-hanok-20260119.webp',
+  url: absoluteUrl('/authors/pkang'),
+  image: absoluteUrl('/founder/founder-story-hanok-20260119.webp'),
   jobTitle: 'Fitness and Diet Writer',
   description:
     'Fitness and diet writer who lost 50 kg over five years and later turned that transformation into a professional modelling career. Writes about appetite, body image, and the slow work of learning how to read the body without panic.',
   worksFor: {
     '@type': 'Organization',
-    '@id': 'https://devenira.com/#organization',
+    '@id': `${SITE_ORIGIN}/#organization`,
     name: 'Devenira',
-    url: 'https://devenira.com',
+    url: SITE_ORIGIN,
   },
   knowsAbout: [
     'Weight loss',
