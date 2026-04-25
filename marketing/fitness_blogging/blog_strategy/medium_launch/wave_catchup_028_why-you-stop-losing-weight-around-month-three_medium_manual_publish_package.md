@@ -15,8 +15,8 @@ throttles stories with no heading structure.
    "Write a story" → **Import a story**. (Or visit
    https://medium.com/p/import directly.)
 2. Paste the owned-site URL:
-   `https://devenira.com/blog/why-you-stop-losing-weight-around-month-three` — exact
-   slug is `why-you-stop-losing-weight-around-month-three` — verify against `posts.ts` (the file name's topic part is a hint, not always the exact slug)
+   `https://www.devenira.com/blog/why-did-i-stop-losing-weight-at-3-months` — exact
+   slug is `why-did-i-stop-losing-weight-at-3-months` — verify against `posts.ts` (the file name's topic part is a hint, not always the exact slug)
 3. Click **Import**. Medium converts the rendered HTML into its
    native format; H1/H2/lists/answerBox all transfer cleanly.
 4. Before publishing:
@@ -26,9 +26,9 @@ throttles stories with no heading structure.
    - Add the 5 **Medium Tags** from this file exactly.
    - Verify the **Cover image** is correct (it auto-pulls the hero
      webp from devenira.com).
-   - **Canonical URL**: clear it per the canonical-flip policy
-     below. Medium may auto-set it during import; clear the field
-     in Story settings → SEO before publishing.
+  - **Canonical URL**: set it to the owned-site URL below.
+    Medium may leave this blank after import; if so, add it
+    manually in Story settings → SEO before publishing.
 5. Publish.
 6. Copy the new Medium URL → paste into `posts.ts` for the matching
    slug (the `mediumUrl:` field) → commit & push.
@@ -81,11 +81,11 @@ why did I stop losing weight at 3 months
 - Long Game
 
 ## Canonical URL
-**DO NOT set a canonical URL in Medium's story settings.**
+Set this exact canonical URL in Medium's story settings:
 
-Rationale (2026-04-21 canonical flip): devenira.com is a new-domain site with effectively zero Domain Rating. Pointing Medium's canonical at it redirects Medium's DR ~95 authority into a site that cannot rank, so both pages lose. Leaving Medium self-canonical means Medium keeps its ranking power while the owned-site mirror re-points its own canonical to Medium via `generateMetadata` (see `seo_optimization_rules.md`).
+`https://www.devenira.com/blog/why-did-i-stop-losing-weight-at-3-months`
 
-If Medium ever auto-sets canonical during an Import-from-URL workflow, edit the story settings and clear the canonical field before publishing.
+Rationale: current SEO strategy is to strengthen Devenira's owned-site URLs, not let Medium become the primary canonical surface for these articles.
 
 ## Cover Direction
 - Use the owned-site hero image family already assigned to this post.
@@ -174,7 +174,7 @@ If you are here, the diet is working. It is asking you to rest before it can kee
 
 If this piece felt familiar, the rest of this writing lives inside the Devenira world.
 
-The fuller body of this writing lives at [Devenira](https://devenira.com/blog).
+The fuller body of this writing lives at [Devenira](https://www.devenira.com/blog).
 
 ## Frequently Asked Questions
 

@@ -5695,8 +5695,8 @@ const posts: BlogPost[] = [
       'Around month three, most diets slow down for reasons that are not about effort. Here is what is actually happening and why the fix is not cutting more.',
     socialDescription:
       'The month-three slowdown is not a failure point. It is the first of several scheduled rest points in a serious loss phase.',
-    date: '2026-05-24',
-    lastModified: '2026-05-24',
+    date: '2026-04-25',
+    lastModified: '2026-04-25',
     readingTime: '7 min read',
     tags: ['Plateau', 'Dieting', 'Metabolic Adaptation', 'Weight Loss'],
     seoTitle: 'Why Did I Stop Losing Weight at 3 Months?',
