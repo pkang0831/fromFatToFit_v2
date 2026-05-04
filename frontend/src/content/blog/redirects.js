@@ -83,6 +83,15 @@ const blogSlugRedirects = [
   { from: 'why-the-mirror-can-make-real-progress-feel-fake', to: 'why-cant-i-see-weight-loss-in-the-mirror' },
   { from: 'why-i-built-devenira-for-the-weeks-where-you-want-to-quit', to: 'how-i-lost-50-kg-middle-of-diet' },
   { from: 'the-most-reliable-way-to-succeed-at-dieting-is-still-the-least-dramatic-one', to: 'how-to-stick-to-a-diet-when-progress-slows' },
+  // Short "import friendly" slugs used in Medium manual publish packages (`devenira.com/blog/...`).
+  // These are not generateStaticParams slugs; without redirects they 404 on production.
+  { from: 'consistency', to: 'how-to-stick-to-a-diet-when-progress-slows' },
+  { from: 'founder-story', to: 'how-i-lost-50-kg-middle-of-diet' },
+  { from: 'mirror', to: 'why-cant-i-see-weight-loss-in-the-mirror' },
+  { from: 'weighin', to: 'should-i-weigh-myself-every-day-on-a-diet' },
+  { from: 'binge-repair', to: 'what-to-do-after-a-binge-on-a-diet' },
+  { from: 'cheat-day', to: 'are-cheat-days-bad-for-weight-loss' },
+  { from: 'appetite-louder', to: 'why-is-my-appetite-stronger-on-a-diet' },
   // Add entries as slugs change. Example:
   // { from: 'old-slug-name', to: 'new-seo-optimized-slug' },
 ];
