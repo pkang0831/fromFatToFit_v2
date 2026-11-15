@@ -6,7 +6,7 @@ import inspect
 from datetime import date
 from unittest.mock import Mock, AsyncMock, patch
 from fastapi import HTTPException
-from app.services.food_decision_service import FoodDecisionService
+from app.domains.food.decision import FoodDecisionService
 
 
 class TestFoodDecisionService:
@@ -174,7 +174,7 @@ class TestFoodDecisionService:
     @pytest.mark.asyncio
     async def test_find_alternatives(self, service, mock_db):
         """Test alternative food suggestions"""
-        with patch('app.services.food_database_service.get_food_database') as mock_food_db:
+        with patch('app.domains.food.database.get_food_database') as mock_food_db:
             # Mock food database
             mock_food_db.return_value.foods = [
                 {
@@ -239,8 +239,8 @@ class TestFoodDecisionLogic:
 class TestFoodDecisionRouter:
     @pytest.mark.asyncio
     async def test_should_i_eat_increments_food_scan_usage_after_success(self):
-        from app.routers.food_decision import should_i_eat
-        from app.schemas.food_decision_schemas import ShouldIEatRequest
+        from app.domains.food.decision_router import should_i_eat
+        from app.domains.food.decision_schemas import ShouldIEatRequest
 
         endpoint = inspect.unwrap(should_i_eat)
         decision_payload = {
@@ -271,21 +271,21 @@ class TestFoodDecisionRouter:
             },
         }
 
-        with patch('app.routers.food_decision.get_supabase', return_value=Mock()), \
-             patch('app.routers.food_decision.check_premium_status', new=AsyncMock(return_value=False)), \
-             patch('app.routers.food_decision.check_usage_limit', new=AsyncMock(return_value={
+        with patch('app.domains.food.decision_router.get_supabase', return_value=Mock()), \
+             patch('app.domains.food.decision_router.check_premium_status', new=AsyncMock(return_value=False)), \
+             patch('app.domains.food.decision_router.check_usage_limit', new=AsyncMock(return_value={
                  'allowed': True,
                  'current_count': 0,
                  'limit': 5,
                  'remaining': 5,
              })), \
-             patch('app.routers.food_decision.increment_usage', new=AsyncMock()) as mock_increment_usage, \
-             patch('app.routers.food_decision.openai_service.analyze_food_image', new=AsyncMock(return_value={
+             patch('app.domains.food.decision_router.increment_usage', new=AsyncMock()) as mock_increment_usage, \
+             patch('app.domains.food.decision_router.openai_provider.analyze_food_image', new=AsyncMock(return_value={
                  'items': [{'name': 'Diet Coke', 'calories': 0, 'protein': 0, 'carbs': 0, 'fat': 0}],
                  'confidence': 'high',
              })), \
-             patch('app.routers.food_decision.FoodDecisionService.should_i_eat', new=AsyncMock(return_value=decision_payload)), \
-             patch('app.routers.food_decision._generate_ai_advice', new=AsyncMock(return_value='Looks good.')):
+             patch('app.domains.food.decision_router.FoodDecisionService.should_i_eat', new=AsyncMock(return_value=decision_payload)), \
+             patch('app.domains.food.decision_router._generate_ai_advice', new=AsyncMock(return_value='Looks good.')):
             response = await endpoint(Mock(), ShouldIEatRequest(image_base64='abc123'), {'id': 'user-1'})
 
         assert response.decision == 'green'
@@ -293,14 +293,14 @@ class TestFoodDecisionRouter:
 
     @pytest.mark.asyncio
     async def test_should_i_eat_returns_402_when_food_scan_limit_is_reached(self):
-        from app.routers.food_decision import should_i_eat
-        from app.schemas.food_decision_schemas import ShouldIEatRequest
+        from app.domains.food.decision_router import should_i_eat
+        from app.domains.food.decision_schemas import ShouldIEatRequest
 
         endpoint = inspect.unwrap(should_i_eat)
 
-        with patch('app.routers.food_decision.get_supabase', return_value=Mock()), \
-             patch('app.routers.food_decision.check_premium_status', new=AsyncMock(return_value=False)), \
-             patch('app.routers.food_decision.check_usage_limit', new=AsyncMock(side_effect=Exception('Usage limit exceeded for food_scan. Upgrade to premium for unlimited access.'))):
+        with patch('app.domains.food.decision_router.get_supabase', return_value=Mock()), \
+             patch('app.domains.food.decision_router.check_premium_status', new=AsyncMock(return_value=False)), \
+             patch('app.domains.food.decision_router.check_usage_limit', new=AsyncMock(side_effect=Exception('Usage limit exceeded for food_scan. Upgrade to premium for unlimited access.'))):
             with pytest.raises(HTTPException) as exc:
                 await endpoint(Mock(), ShouldIEatRequest(image_base64='abc123'), {'id': 'user-1'})
 
@@ -309,20 +309,20 @@ class TestFoodDecisionRouter:
 
     @pytest.mark.asyncio
     async def test_should_i_eat_returns_422_when_no_food_detected(self):
-        from app.routers.food_decision import should_i_eat
-        from app.schemas.food_decision_schemas import ShouldIEatRequest
+        from app.domains.food.decision_router import should_i_eat
+        from app.domains.food.decision_schemas import ShouldIEatRequest
 
         endpoint = inspect.unwrap(should_i_eat)
 
-        with patch('app.routers.food_decision.get_supabase', return_value=Mock()), \
-             patch('app.routers.food_decision.check_premium_status', new=AsyncMock(return_value=False)), \
-             patch('app.routers.food_decision.check_usage_limit', new=AsyncMock(return_value={
+        with patch('app.domains.food.decision_router.get_supabase', return_value=Mock()), \
+             patch('app.domains.food.decision_router.check_premium_status', new=AsyncMock(return_value=False)), \
+             patch('app.domains.food.decision_router.check_usage_limit', new=AsyncMock(return_value={
                  'allowed': True,
                  'current_count': 0,
                  'limit': 5,
                  'remaining': 5,
              })), \
-             patch('app.routers.food_decision.openai_service.analyze_food_image', new=AsyncMock(return_value={
+             patch('app.domains.food.decision_router.openai_provider.analyze_food_image', new=AsyncMock(return_value={
                  'items': [],
                  'confidence': 'low',
              })):

@@ -11077,7 +11077,7 @@ export interface ClusterMeta {
   secondaryKeywords: string[];
   // Optional aggregated FAQ items shown on the pillar page (and emitted as
   // FAQPage JSON-LD). Harvested from answerBox sections of representative
-  // posts in the cluster — see scripts/seo_retrofit/apply_cluster_faq_20260422.py.
+  // posts in the cluster.
   faqItems?: Array<{ question: string; answer: string }>;
 }
 

@@ -13,13 +13,12 @@ import Image from 'next/image';
 import { Upload, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { importLabelMapPng, type SegmentationExport, type LabelMap } from '@/lib/segmentation';
+import { API_URL } from '@/lib/api/baseUrl';
 
 const BodyMaskEditor = dynamic(
-  () => import('@/components/features/BodyMaskEditor'),
+  () => import('@/components/features/body/BodyMaskEditor'),
   { ssr: false },
 );
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 type Phase = 'upload' | 'segmenting' | 'editing';
 

@@ -254,9 +254,9 @@ Every 30 days:
 
 1. **Re-rerun the SEO audits**:
    ```
-   python3 scripts/seo_retrofit/audit_title_pixels.py
-   python3 scripts/seo_retrofit/audit_first_paragraph.py
-   python3 scripts/seo_retrofit/audit_blog_performance.py
+   python3 marketing/tools/seo/audit_title_pixels.py
+   python3 marketing/tools/seo/audit_first_paragraph.py
+   python3 marketing/tools/seo/audit_blog_performance.py
    ```
 2. **Pull GSC top-10 queries** and check if any post is showing well for unintended keywords (= add that keyword to its `keywords` array)
 3. **Pull GSC zero-click queries** (high impressions, zero clicks) — re-write their SEO title or meta

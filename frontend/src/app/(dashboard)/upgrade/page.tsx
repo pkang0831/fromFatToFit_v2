@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Crown, Check, Sparkles, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
-import { useSubscription } from '@/lib/hooks/useSubscription';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { paymentApi } from '@/lib/api/services';
 import { trackEvent } from '@/lib/analytics';

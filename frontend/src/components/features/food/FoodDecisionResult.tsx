@@ -1,0 +1,265 @@
+'use client';
+
+import { CheckCircle, AlertTriangle, XCircle, AlertCircle, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Progress } from '@/components/ui/Progress';
+
+interface DecisionReason {
+  type: string;
+  message: string;
+  severity: 'info' | 'warning' | 'critical';
+}
+
+interface FoodItem {
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  serving_size?: string;
+  sodium?: number;
+  sugar?: number;
+}
+
+interface ImpactAnalysis {
+  calories_used_percentage: number;
+  remaining_calories: number;
+  remaining_protein: number;
+  remaining_carbs: number;
+  remaining_fat: number;
+}
+
+interface AlternativeFood {
+  food_id: string;
+  name: string;
+  category: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  reason: string;
+}
+
+interface ShouldIEatResponse {
+  decision: 'green' | 'yellow' | 'red';
+  decision_text: string;
+  food_items: FoodItem[];
+  total_calories: number;
+  total_protein: number;
+  total_carbs: number;
+  total_fat: number;
+  total_sodium?: number;
+  total_sugar?: number;
+  impact: ImpactAnalysis;
+  reasons: DecisionReason[];
+  ai_advice: string;
+  alternatives?: AlternativeFood[];
+  confidence: string;
+}
+
+interface Props {
+  result: ShouldIEatResponse;
+  onEatAnyway: () => void;
+  onFindAlternative: () => void;
+}
+
+export function FoodDecisionResult({ result, onEatAnyway, onFindAlternative }: Props) {
+  const decisionConfig = {
+    green: {
+      icon: CheckCircle,
+      bgGradient: 'bg-gradient-to-br from-green-400 to-green-600',
+      textColor: 'text-white',
+      iconColor: 'text-white',
+      title: 'Great Choice! 👍',
+    },
+    yellow: {
+      icon: AlertTriangle,
+      bgGradient: 'bg-gradient-to-br from-yellow-400 to-orange-500',
+      textColor: 'text-white',
+      iconColor: 'text-white',
+      title: 'Use Caution ⚠️',
+    },
+    red: {
+      icon: XCircle,
+      bgGradient: 'bg-gradient-to-br from-red-400 to-red-600',
+      textColor: 'text-white',
+      iconColor: 'text-white',
+      title: 'Think Again 🚫',
+    },
+  };
+
+  const config = decisionConfig[result.decision];
+  const Icon = config.icon;
+
+  return (
+    <div className="space-y-6">
+      {/* Decision Header with Gradient */}
+      <Card className={`${config.bgGradient} shadow-2xl border-0`}>
+        <CardContent className="p-8">
+          <div className="flex flex-col items-center text-center">
+            <Icon className={`h-20 w-20 ${config.iconColor} animate-pulse mb-4`} />
+            <h2 className={`text-3xl font-bold ${config.textColor} mb-2`}>
+              {config.title}
+            </h2>
+            <p className={`text-lg ${config.textColor} opacity-90`}>
+              {result.decision_text}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Food Items */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Food Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {result.food_items.map((item, idx) => (
+              <div key={idx} className="flex justify-between py-2 border-b dark:border-gray-700 last:border-0">
+                <span className="font-medium text-gray-900 dark:text-white">{item.name}</span>
+                <span className="text-gray-600 dark:text-gray-400">{item.calories.toFixed(0)} kcal</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between py-3 mt-2 font-bold text-lg border-t-2 dark:border-gray-700 text-gray-900 dark:text-white">
+            <span>Total</span>
+            <span>{result.total_calories.toFixed(0)} kcal</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 mt-3 text-sm text-center">
+            <div>
+              <div className="text-gray-600 dark:text-gray-400">Protein</div>
+              <div className="font-semibold text-gray-900 dark:text-white">{result.total_protein.toFixed(1)}g</div>
+            </div>
+            <div>
+              <div className="text-gray-600 dark:text-gray-400">Carbs</div>
+              <div className="font-semibold text-gray-900 dark:text-white">{result.total_carbs.toFixed(1)}g</div>
+            </div>
+            <div>
+              <div className="text-gray-600 dark:text-gray-400">Fat</div>
+              <div className="font-semibold text-gray-900 dark:text-white">{result.total_fat.toFixed(1)}g</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Impact Analysis */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Impact Analysis</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <div className="flex justify-between mb-2 text-gray-900 dark:text-white">
+              <span>Today&apos;s Calorie Usage</span>
+              <span className="font-bold">
+                {result.impact.calories_used_percentage.toFixed(0)}%
+              </span>
+            </div>
+            <Progress value={result.impact.calories_used_percentage} className="h-3" />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+              <div className="text-gray-600 dark:text-gray-400">Remaining Calories</div>
+              <div className="font-bold text-lg text-gray-900 dark:text-white">{result.impact.remaining_calories.toFixed(0)} kcal</div>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+              <div className="text-gray-600 dark:text-gray-400">Remaining Protein</div>
+              <div className="font-bold text-lg text-gray-900 dark:text-white">{result.impact.remaining_protein.toFixed(0)}g</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reasons */}
+      {result.reasons.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Detailed Analysis</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {result.reasons.map((reason, idx) => (
+              <div
+                key={idx}
+                className={`flex items-start gap-2 p-3 rounded-lg ${
+                  reason.severity === 'critical'
+                    ? 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800'
+                    : reason.severity === 'warning'
+                    ? 'bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800'
+                    : 'bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800'
+                }`}
+              >
+                <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-gray-800 dark:text-gray-200">{reason.message}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI Advice */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-2 border-blue-200 dark:border-blue-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-blue-600" />
+            AI Coach Advice
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-800 dark:text-gray-200 leading-relaxed">{result.ai_advice}</p>
+        </CardContent>
+      </Card>
+
+      {/* Alternatives (if yellow/red) */}
+      {result.alternatives && result.alternatives.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>How About These Instead?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {result.alternatives.map((alt, idx) => (
+              <button
+                key={idx}
+                className="w-full text-left p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition"
+                onClick={() => onFindAlternative()}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="font-semibold text-lg text-gray-900 dark:text-white">{alt.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{alt.category}</div>
+                    <div className="flex gap-3 mt-2 text-sm text-gray-700 dark:text-gray-300">
+                      <span>{alt.calories.toFixed(0)} kcal</span>
+                      <span>Protein {alt.protein.toFixed(1)}g</span>
+                    </div>
+                    <p className="text-sm text-blue-700 dark:text-blue-400 mt-2">💡 {alt.reason}</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-4">
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={onFindAlternative}
+          className="flex-1"
+        >
+          Find Other Food
+        </Button>
+        <Button
+          size="lg"
+          onClick={onEatAnyway}
+          className="flex-1"
+        >
+          {result.decision === 'green' ? 'Eat This' : 'Eat Anyway'}
+        </Button>
+      </div>
+    </div>
+  );
+}

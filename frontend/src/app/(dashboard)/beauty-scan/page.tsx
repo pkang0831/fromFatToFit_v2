@@ -11,9 +11,9 @@ import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/compo
 import { beautyApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import type { FaceDetectionResult } from '@/lib/utils/faceDetection';
-import { FaceOverlay } from '@/components/features/FaceOverlay';
-import { FeatureRatings } from '@/components/features/FeatureRatings';
-import { ShapeProbabilities } from '@/components/features/ShapeProbabilities';
+import { FaceOverlay } from '@/components/features/face/FaceOverlay';
+import { FeatureRatings } from '@/components/features/face/FeatureRatings';
+import { ShapeProbabilities } from '@/components/features/face/ShapeProbabilities';
 import type { BeautyAnalysis, StyledImage } from '@/types/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 

@@ -46,7 +46,7 @@ Required environment variables:
 
 ### 4. Set Up Supabase Database
 
-Run the SQL schema in `supabase_schema.sql` in your Supabase SQL editor to create all required tables.
+Apply `db/schema.sql` and then every file in `db/migrations/` in numeric order in the Supabase SQL editor. See `db/README.md`.
 
 ### 5. Run Development Server
 
@@ -113,28 +113,34 @@ API documentation: `http://localhost:8000/docs`
 ```
 backend/
 ├── app/
-│   ├── main.py           # FastAPI app
-│   ├── config.py         # Configuration
-│   ├── database.py       # Supabase client
-│   ├── routers/          # API endpoints
-│   ├── services/         # Business logic
-│   ├── middleware/       # Auth middleware
-│   └── schemas/          # Pydantic models
-├── requirements.txt
-└── .env
+│   ├── main.py            # FastAPI app, middleware, router registration
+│   ├── core/              # config, Supabase clients, auth dependency, rate limit, upstream error mapping
+│   ├── domains/           # one package per feature: router.py, schemas.py, service modules
+│   │   ├── auth/  guest/  body/  transformation/  checkins/  progress_photos/
+│   │   ├── proof_shares/  challenge/  home/  dashboard/  food/  workout/  weight/
+│   │   ├── fasting/  streaks/  goal_plan/  coach/  billing/  notifications/
+│   │   └── analytics/  style/  assets/
+│   ├── integrations/      # external providers
+│   │   ├── llm/           # OpenAI, Anthropic, Gemini, Grok calls + shared prompts
+│   │   └── replicate/     # Replicate HTTP client, image models, SAM-2
+│   └── vision/            # local CPU models: human parser, photo quality, moderation
+├── scripts/               # one-off operational scripts (backfill, transcript ingest, smoke test)
+├── tests/
+└── requirements.txt
 ```
+
+Dependencies point inward: `domains` may use `integrations`, `vision`, and `core`;
+`integrations` and `vision` only use `core`.
 
 ### Adding New Features
 
-1. Create Pydantic schemas in `app/schemas/`
-2. Add business logic in `app/services/`
-3. Create router endpoints in `app/routers/`
-4. Register router in `app/main.py`
+1. Create `app/domains/<feature>/` with `router.py`, `schemas.py`, and service modules
+2. Put calls to third-party APIs in `app/integrations/`
+3. Register the router in `app/main.py`
 
 ## Testing
 
 ```bash
-# Run tests (when implemented)
 pytest
 ```
 

@@ -4,11 +4,11 @@ import { useState, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, Upload, X, Crown, Zap, Search, PieChart, ThumbsUp } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
-import { useSubscription } from '@/lib/hooks/useSubscription';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { foodApi, foodDecisionApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
-import { FoodDecisionResult } from '@/components/features/FoodDecisionResult';
-import { FoodRecommendations } from '@/components/features/FoodRecommendations';
+import { FoodDecisionResult } from '@/components/features/food/FoodDecisionResult';
+import { FoodRecommendations } from '@/components/features/food/FoodRecommendations';
 import type { FoodAnalysisResponse, FoodItem } from '@/types/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 

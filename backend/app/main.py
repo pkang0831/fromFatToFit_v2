@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -8,16 +8,42 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from contextlib import asynccontextmanager
+from urllib.parse import urlsplit
 import logging
 import asyncio
 
-from .config import settings
-from .rate_limit import limiter
-from .routers import auth, food, workout, body, payments, dashboard, food_database, food_decision, weight, notifications, chat, beauty, fashion, guest, goal_planner, seven_day_challenge, streaks, progress_photos, proof_shares, fasting, home, retention_analytics, weekly_checkins, assets
-from .services.notification_service import (
+from app.core.config import settings
+from app.core.rate_limit import limiter
+from app.domains.analytics import router as analytics
+from app.domains.assets import router as assets
+from app.domains.auth import router as auth
+from app.domains.billing import router as billing
+from app.domains.body import editor_router as body_editor
+from app.domains.body import router as body
+from app.domains.challenge import router as challenge
+from app.domains.checkins import router as checkins
+from app.domains.coach import router as coach
+from app.domains.dashboard import router as dashboard
+from app.domains.fasting import router as fasting
+from app.domains.food import database_router as food_database
+from app.domains.food import decision_router as food_decision
+from app.domains.food import router as food
+from app.domains.goal_plan import router as goal_plan
+from app.domains.guest import router as guest
+from app.domains.home import router as home
+from app.domains.notifications import router as notifications
+from app.domains.notifications.reminders import (
     get_weekly_proof_reminder_status,
     run_weekly_proof_reminder_scheduler,
 )
+from app.domains.progress_photos import router as progress_photos
+from app.domains.proof_shares import router as proof_shares
+from app.domains.streaks import router as streaks
+from app.domains.style import beauty_router as beauty
+from app.domains.style import fashion_router as fashion
+from app.domains.transformation import router as transformation
+from app.domains.weight import router as weight
+from app.domains.workout import router as workout
 
 logging.basicConfig(
     level=logging.INFO if not settings.is_production else logging.WARNING,
@@ -80,13 +106,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=()"
         if settings.is_production:
+            model_origin = "{0.scheme}://{0.netloc}".format(urlsplit(settings.human_body_model_url))
             response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 "img-src 'self' data: blob: https:; "
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ajax.googleapis.com; "
                 "style-src 'self' 'unsafe-inline'; "
-                "connect-src 'self' https://*.supabase.co https://api.stripe.com https://api.openai.com https://api.replicate.com; "
+                f"connect-src 'self' {model_origin} https://*.supabase.co https://api.stripe.com https://api.openai.com https://api.replicate.com; "
                 "frame-src https://js.stripe.com;"
             )
         return response
@@ -144,22 +171,24 @@ app.include_router(food_database.router, prefix="/api/food-database", tags=["Foo
 app.include_router(food_decision.router)
 app.include_router(workout.router, prefix="/api/workout", tags=["Workouts"])
 app.include_router(body.router, prefix="/api/body", tags=["Body Analysis"])
-app.include_router(payments.router, prefix="/api/payments", tags=["Payments"])
+app.include_router(transformation.router, prefix="/api/body", tags=["Body Transformation"])
+app.include_router(body_editor.router, prefix="/api/body", tags=["Body Editor"])
+app.include_router(billing.router, prefix="/api/payments", tags=["Payments"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(weight.router, prefix="/api", tags=["Weight Tracking"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
-app.include_router(chat.router, prefix="/api/chat", tags=["AI Coach Chat"])
+app.include_router(coach.router, prefix="/api/chat", tags=["AI Coach Chat"])
 app.include_router(beauty.router, prefix="/api/beauty", tags=["Beauty Analysis"])
 app.include_router(fashion.router, prefix="/api/fashion", tags=["Fashion Styling"])
 app.include_router(guest.router, prefix="/api/guest", tags=["Guest (No Auth)"])
-app.include_router(goal_planner.router, prefix="/api/goal-plan", tags=["Goal Planner"])
-app.include_router(seven_day_challenge.router, prefix="/api/challenge", tags=["7-Day Challenge"])
+app.include_router(goal_plan.router, prefix="/api/goal-plan", tags=["Goal Planner"])
+app.include_router(challenge.router, prefix="/api/challenge", tags=["7-Day Challenge"])
 app.include_router(home.router, prefix="/api/home", tags=["Home"])
 app.include_router(assets.router, prefix="/api", tags=["Assets"])
-app.include_router(retention_analytics.router, prefix="/api/analytics", tags=["Retention Analytics"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Retention Analytics"])
 app.include_router(streaks.router, tags=["Streaks"])
 app.include_router(progress_photos.router, tags=["Progress Photos"])
-app.include_router(weekly_checkins.router, tags=["Weekly Check-ins"])
+app.include_router(checkins.router, tags=["Weekly Check-ins"])
 app.include_router(proof_shares.router, tags=["Proof Shares"])
 app.include_router(fasting.router, tags=["Fasting"])
 

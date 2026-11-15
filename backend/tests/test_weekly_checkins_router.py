@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
-from app.schemas.weekly_checkin_schemas import (
+from app.domains.checkins.schemas import (
     BodyObservation,
     EstimatedBodyFatRange,
     GoalWeighting,
@@ -14,7 +14,7 @@ from app.schemas.weekly_checkin_schemas import (
     VisualObservations,
     WeeklyCheckinCreateRequest,
 )
-from app.services.weekly_checkin_scoring import compute_derived_scores
+from app.domains.checkins.scoring import compute_derived_scores
 
 
 def _run(coro):
@@ -169,7 +169,7 @@ def _observation(
 
 
 def test_analyze_weekly_checkin_saves_first_report():
-    from app.routers.weekly_checkins import analyze_weekly_checkin
+    from app.domains.checkins.router import analyze_weekly_checkin
     handler = getattr(analyze_weekly_checkin, "__wrapped__", analyze_weekly_checkin)
 
     supabase = _FakeSupabase(
@@ -194,14 +194,14 @@ def test_analyze_weekly_checkin_saves_first_report():
     check_usage_limit = AsyncMock(return_value={"remaining": 1})
 
     with (
-        patch("app.routers.weekly_checkins.get_supabase", return_value=supabase),
-        patch("app.routers.weekly_checkins.check_premium_status", new=AsyncMock(return_value=False)),
-        patch("app.routers.weekly_checkins.check_usage_limit", new=check_usage_limit),
-        patch("app.routers.weekly_checkins.increment_usage", new=AsyncMock()) as increment_usage,
-        patch("app.routers.weekly_checkins._ensure_safe_weekly_photo", new=AsyncMock()),
-        patch("app.routers.weekly_checkins.analyze_weekly_checkin_image", new=AsyncMock(return_value=observation)),
+        patch("app.domains.checkins.router.get_supabase", return_value=supabase),
+        patch("app.domains.checkins.router.check_premium_status", new=AsyncMock(return_value=False)),
+        patch("app.domains.checkins.router.check_usage_limit", new=check_usage_limit),
+        patch("app.domains.checkins.router.increment_usage", new=AsyncMock()) as increment_usage,
+        patch("app.domains.checkins.router._ensure_safe_weekly_photo", new=AsyncMock()),
+        patch("app.domains.checkins.router.analyze_weekly_checkin_image", new=AsyncMock(return_value=observation)),
         patch(
-            "app.routers.weekly_checkins.upload_progress_image",
+            "app.domains.checkins.router.upload_progress_image",
             return_value={"storage_bucket": "progress-photos-private", "storage_key": "user-1/checkin.jpg"},
         ),
         ):
@@ -223,7 +223,7 @@ def test_analyze_weekly_checkin_saves_first_report():
 
 
 def test_analyze_weekly_checkin_compares_against_previous_report():
-    from app.routers.weekly_checkins import analyze_weekly_checkin
+    from app.domains.checkins.router import analyze_weekly_checkin
     handler = getattr(analyze_weekly_checkin, "__wrapped__", analyze_weekly_checkin)
 
     previous_observation = _observation(
@@ -286,14 +286,14 @@ def test_analyze_weekly_checkin_compares_against_previous_report():
     check_usage_limit = AsyncMock()
 
     with (
-        patch("app.routers.weekly_checkins.get_supabase", return_value=supabase),
-        patch("app.routers.weekly_checkins.check_premium_status", new=AsyncMock(return_value=True)),
-        patch("app.routers.weekly_checkins.check_usage_limit", new=check_usage_limit),
-        patch("app.routers.weekly_checkins.increment_usage", new=AsyncMock()) as increment_usage,
-        patch("app.routers.weekly_checkins._ensure_safe_weekly_photo", new=AsyncMock()),
-        patch("app.routers.weekly_checkins.analyze_weekly_checkin_image", new=AsyncMock(return_value=current_observation)),
+        patch("app.domains.checkins.router.get_supabase", return_value=supabase),
+        patch("app.domains.checkins.router.check_premium_status", new=AsyncMock(return_value=True)),
+        patch("app.domains.checkins.router.check_usage_limit", new=check_usage_limit),
+        patch("app.domains.checkins.router.increment_usage", new=AsyncMock()) as increment_usage,
+        patch("app.domains.checkins.router._ensure_safe_weekly_photo", new=AsyncMock()),
+        patch("app.domains.checkins.router.analyze_weekly_checkin_image", new=AsyncMock(return_value=current_observation)),
         patch(
-            "app.routers.weekly_checkins.upload_progress_image",
+            "app.domains.checkins.router.upload_progress_image",
             return_value={"storage_bucket": "progress-photos-private", "storage_key": "user-1/checkin-2.jpg"},
         ),
         ):
@@ -315,8 +315,8 @@ def test_analyze_weekly_checkin_compares_against_previous_report():
 
 
 def test_analyze_weekly_checkin_blocks_free_users_when_limit_is_exhausted():
-    from app.routers.weekly_checkins import analyze_weekly_checkin
-    from app.services.usage_limiter import UsageLimitExceeded
+    from app.domains.checkins.router import analyze_weekly_checkin
+    from app.domains.billing.usage import UsageLimitExceeded
 
     handler = getattr(analyze_weekly_checkin, "__wrapped__", analyze_weekly_checkin)
     supabase = _FakeSupabase(
@@ -330,12 +330,12 @@ def test_analyze_weekly_checkin_blocks_free_users_when_limit_is_exhausted():
     check_usage_limit = AsyncMock(side_effect=UsageLimitExceeded("body_fat_scan exhausted"))
 
     with (
-        patch("app.routers.weekly_checkins.get_supabase", return_value=supabase),
-        patch("app.routers.weekly_checkins.check_premium_status", new=AsyncMock(return_value=False)),
-        patch("app.routers.weekly_checkins.check_usage_limit", new=check_usage_limit),
-        patch("app.routers.weekly_checkins.increment_usage", new=AsyncMock()) as increment_usage,
-        patch("app.routers.weekly_checkins._ensure_safe_weekly_photo", new=AsyncMock()) as ensure_safe_photo,
-        patch("app.routers.weekly_checkins.upload_progress_image") as upload_progress_image,
+        patch("app.domains.checkins.router.get_supabase", return_value=supabase),
+        patch("app.domains.checkins.router.check_premium_status", new=AsyncMock(return_value=False)),
+        patch("app.domains.checkins.router.check_usage_limit", new=check_usage_limit),
+        patch("app.domains.checkins.router.increment_usage", new=AsyncMock()) as increment_usage,
+        patch("app.domains.checkins.router._ensure_safe_weekly_photo", new=AsyncMock()) as ensure_safe_photo,
+        patch("app.domains.checkins.router.upload_progress_image") as upload_progress_image,
     ):
         with pytest.raises(HTTPException) as exc:
             _run(

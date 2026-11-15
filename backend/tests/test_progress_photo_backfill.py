@@ -28,7 +28,7 @@ def _update_chain():
 
 
 def test_backfill_dry_run_reports_migrations_without_writes():
-    from app.services.progress_photo_backfill import backfill_legacy_progress_photos
+    from app.domains.progress_photos.backfill import backfill_legacy_progress_photos
 
     legacy_rows = [
         {"id": "photo-1", "user_id": "user-1", "image_base64": "abc", "storage_key": None, "created_at": "2026-03-01T00:00:00Z"},
@@ -38,7 +38,7 @@ def test_backfill_dry_run_reports_migrations_without_writes():
     supabase = MagicMock()
     supabase.table.side_effect = [_select_chain([_result(legacy_rows), _result([])])]
 
-    with patch("app.services.progress_photo_backfill.get_supabase", return_value=supabase):
+    with patch("app.domains.progress_photos.backfill.get_supabase", return_value=supabase):
         summary = backfill_legacy_progress_photos(dry_run=True, batch_size=10)
 
     assert summary["migrated"] == 2
@@ -48,7 +48,7 @@ def test_backfill_dry_run_reports_migrations_without_writes():
 
 
 def test_backfill_uploads_and_nulls_legacy_blob_by_default():
-    from app.services.progress_photo_backfill import backfill_legacy_progress_photos
+    from app.domains.progress_photos.backfill import backfill_legacy_progress_photos
 
     legacy_rows = [
         {"id": "photo-1", "user_id": "user-1", "image_base64": "abc", "storage_key": None, "created_at": "2026-03-01T00:00:00Z"},
@@ -58,7 +58,7 @@ def test_backfill_uploads_and_nulls_legacy_blob_by_default():
     supabase = MagicMock()
     supabase.table.side_effect = [select_chain, update_chain, select_chain]
 
-    with patch("app.services.progress_photo_backfill.get_supabase", return_value=supabase):
+    with patch("app.domains.progress_photos.backfill.get_supabase", return_value=supabase):
         summary = backfill_legacy_progress_photos(
             batch_size=10,
             upload_fn=lambda user_id, image_base64: {
@@ -76,7 +76,7 @@ def test_backfill_uploads_and_nulls_legacy_blob_by_default():
 
 
 def test_backfill_can_keep_legacy_blob_when_requested():
-    from app.services.progress_photo_backfill import backfill_legacy_progress_photos
+    from app.domains.progress_photos.backfill import backfill_legacy_progress_photos
 
     legacy_rows = [
         {"id": "photo-1", "user_id": "user-1", "image_base64": "abc", "storage_key": None, "created_at": "2026-03-01T00:00:00Z"},
@@ -86,7 +86,7 @@ def test_backfill_can_keep_legacy_blob_when_requested():
     supabase = MagicMock()
     supabase.table.side_effect = [select_chain, update_chain, select_chain]
 
-    with patch("app.services.progress_photo_backfill.get_supabase", return_value=supabase):
+    with patch("app.domains.progress_photos.backfill.get_supabase", return_value=supabase):
         summary = backfill_legacy_progress_photos(
             batch_size=10,
             keep_legacy=True,
@@ -102,7 +102,7 @@ def test_backfill_can_keep_legacy_blob_when_requested():
 
 
 def test_backfill_tracks_failures_and_continues():
-    from app.services.progress_photo_backfill import backfill_legacy_progress_photos
+    from app.domains.progress_photos.backfill import backfill_legacy_progress_photos
 
     legacy_rows = [
         {"id": "photo-1", "user_id": "user-1", "image_base64": "abc", "storage_key": None, "created_at": "2026-03-01T00:00:00Z"},
@@ -121,7 +121,7 @@ def test_backfill_tracks_failures_and_continues():
             "storage_key": f"{user_id}/photo.jpg",
         }
 
-    with patch("app.services.progress_photo_backfill.get_supabase", return_value=supabase):
+    with patch("app.domains.progress_photos.backfill.get_supabase", return_value=supabase):
         summary = backfill_legacy_progress_photos(batch_size=10, upload_fn=_upload)
 
     assert summary["migrated"] == 1
@@ -131,7 +131,7 @@ def test_backfill_tracks_failures_and_continues():
 
 
 def test_backfill_validates_arguments():
-    from app.services.progress_photo_backfill import backfill_legacy_progress_photos
+    from app.domains.progress_photos.backfill import backfill_legacy_progress_photos
 
     with pytest.raises(ValueError):
         backfill_legacy_progress_photos(batch_size=0)

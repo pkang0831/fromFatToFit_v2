@@ -16,8 +16,8 @@ Set these in Vercel Dashboard > Project Settings > Environment Variables:
 | `NEXT_PUBLIC_API_URL` | `https://your-backend-url.com/api` | Backend API URL |
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://rstsbnkemgeqhrxerksn.supabase.co` | Supabase project |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `sb_publishable_...` | Supabase anon key |
-| `NEXT_PUBLIC_APP_URL` | `https://devenira.com` | Your custom domain |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_live_...` | Stripe publishable key |
+| `NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY` | same as backend `VAPID_PUBLIC_KEY` | Web push opt-in |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | `G-...` | Google Analytics 4 (optional) |
 
 ### 3. Custom Domain
 1. Vercel Dashboard > Project > Settings > Domains

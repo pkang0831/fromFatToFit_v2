@@ -10,8 +10,8 @@ import { guestApi } from '@/lib/api/services';
 import { compressAndConvertToBase64 } from '@/lib/utils/image';
 import { formatApiError } from '@/lib/utils/apiError';
 import { trackEvent } from '@/lib/analytics';
-import { BodyCaptureGuide } from '@/components/features/BodyCaptureGuide';
-import { BodyScanPoseGuide } from '@/components/features/BodyScanPoseGuide';
+import { BodyCaptureGuide } from '@/components/features/body/BodyCaptureGuide';
+import { BodyScanPoseGuide } from '@/components/features/body/BodyScanPoseGuide';
 import { IDEAL_BODY_SCAN_POSE_IMAGE } from '@/lib/constants/bodyScanGuide';
 
 type Step = 'upload' | 'details' | 'analyzing' | 'result';

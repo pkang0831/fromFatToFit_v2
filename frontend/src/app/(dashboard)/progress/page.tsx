@@ -5,11 +5,11 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
-import WeightLogForm from '@/components/features/WeightLogForm';
-import GoalSettingForm from '@/components/features/GoalSettingForm';
+import WeightLogForm from '@/components/features/weight/WeightLogForm';
+import GoalSettingForm from '@/components/features/goals/GoalSettingForm';
 
 const GoalProjectionChart = dynamic(
-  () => import('@/components/features/GoalProjectionChart'),
+  () => import('@/components/charts/GoalProjectionChart'),
   { loading: () => <div className="h-[400px] bg-surfaceAlt animate-pulse rounded-lg" />, ssr: false }
 );
 import { Modal } from '@/components/ui/Modal';

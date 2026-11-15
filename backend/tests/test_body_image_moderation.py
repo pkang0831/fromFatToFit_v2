@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from app.schemas.body_schemas import BodyScanRequest, GuestScanRequest, RegionTransformRequest
-from app.services.body_image_moderation import enforce_body_image_moderation
-from app.services.body_photo_quality import BodyPhotoQualityResult
+from app.domains.body.schemas import BodyScanRequest, GuestScanRequest, RegionTransformRequest
+from app.vision.moderation import enforce_body_image_moderation
+from app.vision.photo_quality import BodyPhotoQualityResult
 
 
 def _run(coro):
@@ -58,7 +58,7 @@ class TestModerationService:
 
     def test_authenticated_blocks_missing_sensitive_consent(self):
         with patch(
-            "app.services.body_image_moderation._get_user_moderation_profile",
+            "app.vision.moderation._get_user_moderation_profile",
             return_value={
                 "user_id": "user-1",
                 "age": 28,
@@ -84,7 +84,7 @@ class TestModerationService:
 
     def test_authenticated_allows_consented_single_subject_upload(self):
         with patch(
-            "app.services.body_image_moderation._get_user_moderation_profile",
+            "app.vision.moderation._get_user_moderation_profile",
             return_value={
                 "user_id": "user-1",
                 "age": 28,
@@ -110,17 +110,17 @@ class TestModerationService:
 
 class TestBlockedUploadsNeverReachVendor:
     def test_guest_body_scan_blocked_before_vendor_upload(self):
-        from app.routers.guest import guest_body_scan
+        from app.domains.guest.router import guest_body_scan
 
         fn = getattr(guest_body_scan, "__wrapped__", guest_body_scan)
         vendor = AsyncMock()
 
         with (
             patch(
-                "app.routers.guest._require_safe_body_photo",
+                "app.domains.guest.router.require_safe_body_photo",
                 AsyncMock(side_effect=HTTPException(status_code=422, detail={"code": "ownership_confirmation_required"})),
             ),
-            patch("app.routers.guest.estimate_body_fat_with_fallback", vendor),
+            patch("app.domains.guest.router.estimate_body_fat_with_fallback", vendor),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 _run(
@@ -140,14 +140,14 @@ class TestBlockedUploadsNeverReachVendor:
         vendor.assert_not_called()
 
     def test_guest_body_scan_safe_upload_reaches_vendor(self):
-        from app.routers.guest import guest_body_scan
+        from app.domains.guest.router import guest_body_scan
 
         fn = getattr(guest_body_scan, "__wrapped__", guest_body_scan)
         vendor = AsyncMock(return_value={"body_fat_percentage": 18.4, "confidence": "high"})
 
         with (
-            patch("app.routers.guest._require_safe_body_photo", AsyncMock(return_value=_quality_result())),
-            patch("app.routers.guest.estimate_body_fat_with_fallback", vendor),
+            patch("app.domains.guest.router.require_safe_body_photo", AsyncMock(return_value=_quality_result())),
+            patch("app.domains.guest.router.estimate_body_fat_with_fallback", vendor),
         ):
             result = _run(
                 fn(
@@ -166,17 +166,17 @@ class TestBlockedUploadsNeverReachVendor:
         vendor.assert_awaited_once()
 
     def test_estimate_bodyfat_blocked_before_vendor_upload(self):
-        from app.routers.body import estimate_bodyfat
+        from app.domains.body.router import estimate_bodyfat
 
         fn = getattr(estimate_bodyfat, "__wrapped__", estimate_bodyfat)
         vendor = AsyncMock()
 
         with (
             patch(
-                "app.routers.body._require_safe_body_photo",
+                "app.domains.body.router.require_safe_body_photo",
                 AsyncMock(side_effect=HTTPException(status_code=422, detail={"code": "multiple_people_detected"})),
             ),
-            patch("app.routers.body.estimate_body_fat_with_fallback", vendor),
+            patch("app.domains.body.router.estimate_body_fat_with_fallback", vendor),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 _run(
@@ -197,7 +197,7 @@ class TestBlockedUploadsNeverReachVendor:
         vendor.assert_not_called()
 
     def test_transformation_blocked_before_vendor_upload(self):
-        from app.routers.body import generate_transformation_journey
+        from app.domains.transformation.router import generate_transformation_journey
 
         fn = getattr(generate_transformation_journey, "__wrapped__", generate_transformation_journey)
         bf_vendor = AsyncMock()
@@ -205,11 +205,11 @@ class TestBlockedUploadsNeverReachVendor:
 
         with (
             patch(
-                "app.routers.body._require_safe_body_photo",
+                "app.domains.transformation.router.require_safe_body_photo",
                 AsyncMock(side_effect=HTTPException(status_code=422, detail={"code": "multiple_people_detected"})),
             ),
-            patch("app.routers.body.estimate_body_fat_with_fallback", bf_vendor),
-            patch("app.services.realvis_service.generate_realvis_journey", realvis_vendor),
+            patch("app.domains.transformation.router.estimate_body_fat_with_fallback", bf_vendor),
+            patch("app.domains.transformation.realvis_pipeline.generate_realvis_journey", realvis_vendor),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 _run(
@@ -232,17 +232,17 @@ class TestBlockedUploadsNeverReachVendor:
         realvis_vendor.assert_not_called()
 
     def test_enhancement_blocked_before_openai_upload(self):
-        from app.routers.body import generate_body_enhancement
+        from app.domains.transformation.router import generate_body_enhancement
 
         fn = getattr(generate_body_enhancement, "__wrapped__", generate_body_enhancement)
         vendor = AsyncMock()
 
         with (
             patch(
-                "app.routers.body._require_safe_body_photo",
+                "app.domains.transformation.router.require_safe_body_photo",
                 AsyncMock(side_effect=HTTPException(status_code=422, detail={"code": "ownership_confirmation_required"})),
             ),
-            patch("app.routers.body.openai_service.generate_body_enhancement", vendor),
+            patch("app.domains.transformation.router.openai_provider.generate_body_enhancement", vendor),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 _run(
@@ -264,17 +264,17 @@ class TestBlockedUploadsNeverReachVendor:
         vendor.assert_not_called()
 
     def test_region_transform_blocked_before_replicate_upload(self):
-        from app.routers.body import transform_body_region
+        from app.domains.body.editor_router import transform_body_region
 
         fn = getattr(transform_body_region, "__wrapped__", transform_body_region)
         vendor = AsyncMock()
 
         with (
             patch(
-                "app.routers.body._require_safe_body_photo",
+                "app.domains.body.editor_router.require_safe_body_photo",
                 AsyncMock(side_effect=HTTPException(status_code=422, detail={"code": "ownership_confirmation_required"})),
             ),
-            patch("app.routers.body.replicate_service.controlnet_transform_region", vendor),
+            patch("app.domains.body.editor_router.image_models.controlnet_transform_region", vendor),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 _run(

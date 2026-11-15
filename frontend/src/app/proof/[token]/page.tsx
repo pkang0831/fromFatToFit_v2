@@ -7,9 +7,8 @@ import { ArrowRight, CalendarClock, Shield, Target } from 'lucide-react';
 
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { getRetentionSessionId } from '@/lib/analytics';
+import { API_URL } from '@/lib/api/baseUrl';
 import type { PublicProofShareResponse } from '@/types/api';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 function formatDate(date: string | null) {
   if (!date) return 'Unknown';
@@ -36,7 +35,7 @@ export default function PublicProofSharePage() {
     setLoading(true);
     setUnavailable(false);
 
-    const url = new URL(`${API_BASE}/proof-shares/public/${encodeURIComponent(token)}`);
+    const url = new URL(`${API_URL}/proof-shares/public/${encodeURIComponent(token)}`);
     if (sessionId) {
       url.searchParams.set('session_id', sessionId);
     }

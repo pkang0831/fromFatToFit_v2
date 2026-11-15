@@ -9,7 +9,7 @@ interface BlogArticleContentProps {
 }
 
 /**
- * Max 3 distinct internal links per article (see SEO_AUDIT_20260422.md A6).
+ * Max 3 distinct internal links per article (see docs/archive/2026-04-seo-session/SEO_AUDIT_20260422.md A6).
  * Each unique slug is linked at most once per article, so 3 anchors means
  * 3 different destination posts.
  */

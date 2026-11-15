@@ -21,15 +21,15 @@ AI-powered health and wellness application with calorie tracking, body analysis,
 ## Architecture
 
 ```
-fromFatToFit/
+fromFatToFit_v2/
 ├── backend/             # FastAPI (Python)
 │   ├── app/
-│   │   ├── routers/     # API endpoints
-│   │   ├── services/    # Business logic & AI providers
-│   │   ├── schemas/     # Pydantic models
-│   │   ├── middleware/   # Auth middleware
-│   │   └── models/      # DB models
-│   ├── supabase_schema.sql
+│   │   ├── core/        # Config, Supabase clients, auth dependency
+│   │   ├── domains/     # One package per feature (router, schemas, services)
+│   │   ├── integrations/ # OpenAI, Anthropic, Gemini, Grok, Replicate
+│   │   └── vision/      # Local CPU vision models
+│   ├── db/              # schema.sql + numbered migrations
+│   ├── scripts/         # One-off maintenance scripts (transcript ingest, QA user)
 │   └── requirements.txt
 │
 ├── frontend/            # Next.js (React/TypeScript)
@@ -46,8 +46,11 @@ fromFatToFit/
 │       ├── services/    # API clients
 │       └── theme/       # Design system
 │
-├── docs/                # Documentation & migration SQL
-└── start_local.sh       # Launch backend + frontend locally
+├── tests/               # Playwright API/E2E tests, HTTP sweep, fixtures
+├── scripts/             # Dev tooling (Bitwarden .env pull/check)
+├── docs/                # Setup, deploy, design and QA docs (old reports in docs/archive/)
+├── marketing/           # Blog strategy, drafts, Medium/SEO tools
+└── content/transcripts/ # YouTube transcripts for the coach RAG ingest
 ```
 
 ## Tech Stack
@@ -67,23 +70,25 @@ fromFatToFit/
 - [Supabase](https://supabase.com) account
 - OpenAI API key
 
-### Quick Start
+### Local env files
 
-```bash
-# Clone and launch both backend + frontend
-./start_local.sh
+Secrets live in Bitwarden (`Devenira backend .env`, `Devenira frontend .env.local`).
+With the Bitwarden CLI installed (`winget install Bitwarden.CLI`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\pull-secrets.ps1   # writes backend/.env, frontend/.env.local
+powershell -ExecutionPolicy Bypass -File scripts\check-secrets.ps1  # compares Bitwarden notes with .env.example
 ```
 
-### Manual Setup
+Without Bitwarden, copy `backend/.env.example` and `frontend/.env.local.example` and fill them in.
 
 #### Backend
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env   # Edit with your keys
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -92,7 +97,6 @@ uvicorn app.main:app --reload --port 8000
 ```bash
 cd frontend
 npm install
-cp .env.local.example .env.local   # Edit with your API URL
 npm run dev
 ```
 

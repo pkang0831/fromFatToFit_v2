@@ -160,16 +160,16 @@ def _base_tables():
 
 
 def test_create_and_revoke_proof_share_flow():
-    from app.routers.proof_shares import create_proof_share, list_proof_shares, revoke_proof_share
-    from app.schemas.proof_share_schemas import CreateProofShareRequest
+    from app.domains.proof_shares.router import create_proof_share, list_proof_shares, revoke_proof_share
+    from app.domains.proof_shares.schemas import CreateProofShareRequest
 
     supabase = _FakeSupabase(_base_tables())
     log_event = AsyncMock()
 
     with (
-        patch("app.routers.proof_shares.get_supabase", return_value=supabase),
-        patch("app.routers.proof_shares.log_retention_event", log_event),
-        patch("app.routers.proof_shares.token_urlsafe", return_value="token-123"),
+        patch("app.domains.proof_shares.router.get_supabase", return_value=supabase),
+        patch("app.domains.proof_shares.router.log_retention_event", log_event),
+        patch("app.domains.proof_shares.router.token_urlsafe", return_value="token-123"),
     ):
         created = _run(create_proof_share(
             CreateProofShareRequest(
@@ -204,7 +204,7 @@ def test_create_and_revoke_proof_share_flow():
 
 
 def test_public_share_view_returns_proxy_image_and_logs_view():
-    from app.routers.proof_shares import get_public_proof_share
+    from app.domains.proof_shares.router import get_public_proof_share
 
     tables = _base_tables()
     tables["proof_shares"] = [{
@@ -227,8 +227,8 @@ def test_public_share_view_returns_proxy_image_and_logs_view():
     log_event = AsyncMock()
 
     with (
-        patch("app.routers.proof_shares.get_supabase", return_value=supabase),
-        patch("app.routers.proof_shares.log_retention_event", log_event),
+        patch("app.domains.proof_shares.router.get_supabase", return_value=supabase),
+        patch("app.domains.proof_shares.router.log_retention_event", log_event),
     ):
         result = _run(get_public_proof_share("public-token", session_id="anon-session-1"))
 
@@ -245,7 +245,7 @@ def test_public_share_view_returns_proxy_image_and_logs_view():
 
 
 def test_revoked_token_denies_anonymous_access():
-    from app.routers.proof_shares import get_public_proof_share
+    from app.domains.proof_shares.router import get_public_proof_share
 
     tables = _base_tables()
     tables["proof_shares"] = [{
@@ -259,7 +259,7 @@ def test_revoked_token_denies_anonymous_access():
     }]
     supabase = _FakeSupabase(tables)
 
-    with patch("app.routers.proof_shares.get_supabase", return_value=supabase):
+    with patch("app.domains.proof_shares.router.get_supabase", return_value=supabase):
         try:
             _run(get_public_proof_share("revoked-token"))
             assert False, "expected HTTPException"
@@ -268,7 +268,7 @@ def test_revoked_token_denies_anonymous_access():
 
 
 def test_deleted_asset_denies_public_share_access():
-    from app.routers.proof_shares import get_public_proof_share
+    from app.domains.proof_shares.router import get_public_proof_share
 
     tables = _base_tables()
     tables["progress_photos"] = []
@@ -283,7 +283,7 @@ def test_deleted_asset_denies_public_share_access():
     }]
     supabase = _FakeSupabase(tables)
 
-    with patch("app.routers.proof_shares.get_supabase", return_value=supabase):
+    with patch("app.domains.proof_shares.router.get_supabase", return_value=supabase):
         try:
             _run(get_public_proof_share("missing-asset"))
             assert False, "expected HTTPException"
@@ -292,7 +292,7 @@ def test_deleted_asset_denies_public_share_access():
 
 
 def test_public_image_proxy_hides_private_signed_url():
-    from app.routers.proof_shares import get_public_proof_share_image
+    from app.domains.proof_shares.router import get_public_proof_share_image
 
     tables = _base_tables()
     tables["proof_shares"] = [{
@@ -308,9 +308,9 @@ def test_public_image_proxy_hides_private_signed_url():
     fake_client = _FakeAsyncClient(_FakeHttpxResponse())
 
     with (
-        patch("app.routers.proof_shares.get_supabase", return_value=supabase),
-        patch("app.routers.proof_shares.build_progress_photo_url", return_value="https://signed.example/private-photo"),
-        patch("app.routers.proof_shares.httpx.AsyncClient", return_value=fake_client),
+        patch("app.domains.proof_shares.router.get_supabase", return_value=supabase),
+        patch("app.domains.proof_shares.router.build_progress_photo_url", return_value="https://signed.example/private-photo"),
+        patch("app.domains.proof_shares.router.httpx.AsyncClient", return_value=fake_client),
     ):
         response = _run(get_public_proof_share_image("image-token"))
 
@@ -320,7 +320,7 @@ def test_public_image_proxy_hides_private_signed_url():
 
 
 def test_referred_try_redirect_logs_event():
-    from app.routers.proof_shares import start_referred_try
+    from app.domains.proof_shares.router import start_referred_try
 
     tables = _base_tables()
     tables["proof_shares"] = [{
@@ -336,8 +336,8 @@ def test_referred_try_redirect_logs_event():
     log_event = AsyncMock()
 
     with (
-        patch("app.routers.proof_shares.get_supabase", return_value=supabase),
-        patch("app.routers.proof_shares.log_retention_event", log_event),
+        patch("app.domains.proof_shares.router.get_supabase", return_value=supabase),
+        patch("app.domains.proof_shares.router.log_retention_event", log_event),
     ):
         response = _run(start_referred_try("try-token", session_id="anon-session-2"))
 

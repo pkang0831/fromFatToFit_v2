@@ -50,7 +50,7 @@ The project is already structured. Verify the structure:
 
 1. In Supabase dashboard, go to **SQL Editor**
 2. Click "New query"
-3. Copy the entire contents of `backend/supabase_schema.sql`
+3. Copy the entire contents of `backend/db/schema.sql` (then each file in `backend/db/migrations/` in order)
 4. Paste into the SQL editor
 5. Click "Run" (green play button)
 6. Verify: Go to **Table Editor** - you should see tables like `user_profiles`, `food_logs`, etc.

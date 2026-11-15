@@ -5,10 +5,6 @@ export function formatDate(date: string | Date, formatStr: string = 'yyyy-MM-dd'
   return format(dateObj, formatStr);
 }
 
-export function formatDateTime(date: string | Date): string {
-  return formatDate(date, 'MMM d, yyyy h:mm a');
-}
-
 export function formatDateShort(date: string | Date): string {
   return formatDate(date, 'MMM d');
 }
@@ -46,9 +42,4 @@ export function formatLocalDate(dateString: string, options?: Intl.DateTimeForma
 /** Format date in local locale (alias for formatLocalDate for compatibility) */
 export function formatLocalDateKR(dateString: string, options?: Intl.DateTimeFormatOptions): string {
   return formatLocalDate(dateString, options);
-}
-
-export function getRelativeTime(date: string | Date): string {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  return formatDistance(dateObj, new Date(), { addSuffix: true });
 }

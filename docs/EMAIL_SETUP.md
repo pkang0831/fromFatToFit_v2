@@ -107,11 +107,8 @@ Go to **Project Settings > Auth > SMTP Settings** and configure:
 | Postmark | 100 emails/month | Create server > Get API token |
 | AWS SES | 62,000 emails/month | Verify domain > Get SMTP credentials |
 
-## Environment Variable
+## Redirect URLs
 
-Add to Vercel if using custom SMTP:
-```
-NEXT_PUBLIC_APP_URL=https://devenira.com
-```
-
-This is used in Supabase's redirect URLs for email confirmation links.
+Email confirmation links redirect to the URLs configured in Supabase
+(Authentication > URL Configuration). The frontend's own origin is fixed in
+`frontend/src/lib/site.ts` (`SITE_ORIGIN`); no environment variable is needed.

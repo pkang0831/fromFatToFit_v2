@@ -45,25 +45,6 @@ export function convertToGrams(amount: number, unit: WeightUnit): number {
 }
 
 /**
- * Convert grams to any weight unit
- */
-export function convertFromGrams(grams: number, targetUnit: WeightUnit): number {
-  const conversion = WEIGHT_UNITS[targetUnit];
-  if (!conversion) {
-    throw new Error(`Unknown unit: ${targetUnit}`);
-  }
-  return grams / conversion.toGrams;
-}
-
-/**
- * Format weight with unit
- */
-export function formatWeight(amount: number, unit: WeightUnit): string {
-  const rounded = Math.round(amount * 10) / 10; // Round to 1 decimal
-  return `${rounded}${unit}`;
-}
-
-/**
  * Calculate nutrition based on amount and base nutrition per 100g
  */
 export interface NutritionPer100g {

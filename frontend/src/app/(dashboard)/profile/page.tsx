@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { User as UserIcon, Crown, LogOut, Settings, Bell, Coins, Camera, Scan, BarChart3, Sparkles, Dumbbell, Play, AlertTriangle, Trash2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Select, Badge, Modal } from '@/components/ui';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubscription } from '@/lib/hooks/useSubscription';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { TOUR_START_EVENT, resetAllTours } from '@/components/tour/FeatureTour';
 import { paymentApi } from '@/lib/api/services';
 import { formatDateLong } from '@/lib/utils/date';

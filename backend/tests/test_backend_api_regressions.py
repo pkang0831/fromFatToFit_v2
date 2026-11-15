@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from fastapi import HTTPException
 
-from app.schemas.food_schemas import FoodLogCreate
-from app.schemas.payment_schemas import VerifyPurchaseRequest
+from app.domains.food.schemas import FoodLogCreate
+from app.domains.billing.schemas import VerifyPurchaseRequest
 
 
 def _run(coro):
@@ -240,7 +240,7 @@ class _AnalyticsSupabase:
 
 
 def test_calorie_balance_trend_handles_partial_profile_defaults():
-    from app.services.analytics import get_calorie_balance_trend
+    from app.domains.dashboard.stats import get_calorie_balance_trend
 
     profile = {
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -253,8 +253,8 @@ def test_calorie_balance_trend_handles_partial_profile_defaults():
     }
 
     with (
-        patch("app.services.analytics.get_food_trend_data", new=AsyncMock(return_value=[])),
-        patch("app.services.analytics.get_workout_trend_data", new=AsyncMock(return_value=[])),
+        patch("app.domains.dashboard.stats.get_food_trend_data", new=AsyncMock(return_value=[])),
+        patch("app.domains.dashboard.stats.get_workout_trend_data", new=AsyncMock(return_value=[])),
     ):
         result = _run(get_calorie_balance_trend("user-1", days=7, profile=profile))
 
@@ -263,7 +263,7 @@ def test_calorie_balance_trend_handles_partial_profile_defaults():
 
 
 def test_get_food_trend_data_falls_back_to_food_logs_when_daily_summaries_fail():
-    from app.services.analytics import get_food_trend_data
+    from app.domains.dashboard.stats import get_food_trend_data
 
     today = date.today()
     start_date = today - timedelta(days=2)
@@ -289,7 +289,7 @@ def test_get_food_trend_data_falls_back_to_food_logs_when_daily_summaries_fail()
         failing_tables={"daily_summaries"},
     )
 
-    with patch("app.services.analytics.get_supabase", return_value=supabase):
+    with patch("app.domains.dashboard.stats.get_supabase", return_value=supabase):
         trend = _run(get_food_trend_data("user-1", days=3, calorie_goal_override=1800))
 
     assert len(trend) == 3
@@ -303,7 +303,7 @@ def test_get_food_trend_data_falls_back_to_food_logs_when_daily_summaries_fail()
 
 
 def test_get_food_trend_data_repairs_missing_and_degraded_summary_days_from_food_logs():
-    from app.services.analytics import get_food_trend_data
+    from app.domains.dashboard.stats import get_food_trend_data
 
     today = date.today()
     day_one = today - timedelta(days=2)
@@ -347,7 +347,7 @@ def test_get_food_trend_data_repairs_missing_and_degraded_summary_days_from_food
         ],
     )
 
-    with patch("app.services.analytics.get_supabase", return_value=supabase):
+    with patch("app.domains.dashboard.stats.get_supabase", return_value=supabase):
         trend = _run(get_food_trend_data("user-1", days=3, calorie_goal_override=2000))
 
     assert [point["date"] for point in trend] == [
@@ -365,10 +365,10 @@ def test_get_food_trend_data_repairs_missing_and_degraded_summary_days_from_food
 
 
 def test_weekly_checkin_latest_returns_503_when_storage_not_provisioned():
-    from app.routers.weekly_checkins import get_latest_weekly_checkin
+    from app.domains.checkins.router import get_latest_weekly_checkin
 
     with patch(
-        "app.routers.weekly_checkins._load_previous_checkin",
+        "app.domains.checkins.router._load_previous_checkin",
         new=AsyncMock(side_effect=Exception('relation "weekly_checkins" does not exist')),
     ):
         with pytest.raises(HTTPException) as exc:
@@ -378,15 +378,15 @@ def test_weekly_checkin_latest_returns_503_when_storage_not_provisioned():
 
 
 def test_update_food_log_recalculates_original_and_new_dates():
-    from app.routers.food import update_food_log
+    from app.domains.food.router import update_food_log
 
     supabase = _FoodSupabase()
     recalc = AsyncMock()
 
     with (
-        patch("app.routers.food.get_supabase", return_value=supabase),
-        patch("app.routers.food.calculate_daily_summary", new=recalc),
-        patch("app.routers.food.invalidate_calorie_balance_cache"),
+        patch("app.domains.food.router.get_supabase", return_value=supabase),
+        patch("app.domains.food.router.calculate_daily_summary", new=recalc),
+        patch("app.domains.food.router.invalidate_calorie_balance_cache"),
     ):
         response = _run(
             update_food_log(
@@ -412,14 +412,14 @@ def test_update_food_log_recalculates_original_and_new_dates():
 
 
 def test_verify_purchase_transient_failure_returns_502_without_downgrade_write():
-    from app.routers.payments import verify_purchase
+    from app.domains.billing.router import verify_purchase
 
     with (
         patch(
-            "app.routers.payments.verify_revenuecat_purchase",
+            "app.domains.billing.router.verify_revenuecat_purchase",
             new=AsyncMock(return_value={"status": "verification_error", "is_valid": False}),
         ),
-        patch("app.routers.payments._upsert_external_subscription", new=AsyncMock()) as upsert_subscription,
+        patch("app.domains.billing.router._upsert_external_subscription", new=AsyncMock()) as upsert_subscription,
     ):
         with pytest.raises(HTTPException) as exc:
             _run(
@@ -434,11 +434,11 @@ def test_verify_purchase_transient_failure_returns_502_without_downgrade_write()
 
 
 def test_usage_limits_endpoint_shape_uses_first_month_boosts():
-    from app.services.usage_limiter import get_all_usage_limits
+    from app.domains.billing.usage import get_all_usage_limits
 
     with (
-        patch("app.services.usage_limiter.get_supabase", return_value=_UsageSupabase()),
-        patch("app.services.usage_limiter._is_first_month", new=AsyncMock(return_value=True)),
+        patch("app.domains.billing.usage.get_supabase", return_value=_UsageSupabase()),
+        patch("app.domains.billing.usage._is_first_month", new=AsyncMock(return_value=True)),
     ):
         result = _run(get_all_usage_limits("user-1", is_premium=False))
 
@@ -448,7 +448,7 @@ def test_usage_limits_endpoint_shape_uses_first_month_boosts():
 
 
 def test_food_trend_data_falls_back_to_food_logs_when_daily_summaries_are_missing():
-    from app.services.analytics import get_food_trend_data
+    from app.domains.dashboard.stats import get_food_trend_data
 
     today = date.today().isoformat()
     supabase = _AnalyticsSupabase(
@@ -465,7 +465,7 @@ def test_food_trend_data_falls_back_to_food_logs_when_daily_summaries_are_missin
         ],
     )
 
-    with patch("app.services.analytics.get_supabase", return_value=supabase):
+    with patch("app.domains.dashboard.stats.get_supabase", return_value=supabase):
         trend = _run(get_food_trend_data("user-1", days=1))
 
     assert trend == [
@@ -481,7 +481,7 @@ def test_food_trend_data_falls_back_to_food_logs_when_daily_summaries_are_missin
 
 
 def test_food_trend_data_prefers_food_log_rollup_when_daily_summaries_are_partial():
-    from app.services.analytics import get_food_trend_data
+    from app.domains.dashboard.stats import get_food_trend_data
 
     today = date.today().isoformat()
     supabase = _AnalyticsSupabase(
@@ -507,7 +507,7 @@ def test_food_trend_data_prefers_food_log_rollup_when_daily_summaries_are_partia
         ],
     )
 
-    with patch("app.services.analytics.get_supabase", return_value=supabase):
+    with patch("app.domains.dashboard.stats.get_supabase", return_value=supabase):
         trend = _run(get_food_trend_data("user-1", days=2))
 
     today_row = next(item for item in trend if item["date"] == today)

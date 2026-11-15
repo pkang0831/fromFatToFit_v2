@@ -13,7 +13,7 @@ import { SkeletonStats, SkeletonList } from '@/components/ui/Skeleton';
 import { fetchExerciseGif } from '@/lib/api/exercisedb';
 
 const MuscleMap = dynamic(
-  () => import('@/components/features/MuscleMap').then(m => m.MuscleMap),
+  () => import('@/components/features/workouts/MuscleMap').then(m => m.MuscleMap),
   { loading: () => <div className="h-[200px] bg-surfaceAlt animate-pulse rounded-lg" />, ssr: false }
 );
 

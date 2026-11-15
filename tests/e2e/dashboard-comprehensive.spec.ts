@@ -7,13 +7,13 @@ import path from 'path';
  * Requires:
  *   E2E_EMAIL, E2E_PASSWORD  (Supabase email/password user with onboarding_completed)
  *   Backend + Frontend running (Playwright webServer handles this)
- *   sample_image.jpg at project root
+ *   tests/fixtures/sample_image.jpg
  */
 
 const email = process.env.E2E_EMAIL?.trim();
 const password = process.env.E2E_PASSWORD;
 const canRun = Boolean(email && password);
-const SAMPLE_IMAGE = path.resolve(__dirname, '../../sample_image.jpg');
+const SAMPLE_IMAGE = path.resolve(__dirname, '../fixtures/sample_image.jpg');
 
 /* ── helpers ─────────────────────────────────────────────────────────── */
 

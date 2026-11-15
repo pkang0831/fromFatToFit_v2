@@ -28,7 +28,6 @@ A comprehensive Next.js web application for tracking nutrition, workouts, and bo
 - **State Management**: React Context API
 - **HTTP Client**: Axios
 - **Charts**: Recharts
-- **Forms**: React Hook Form + Zod
 - **Icons**: Lucide React
 - **Image Processing**: browser-image-compression
 
@@ -49,13 +48,8 @@ npm install
 
 2. Configure environment variables:
 
-Create a `.env.local` file:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
+Run `scripts\pull-secrets.ps1` from the repo root (Bitwarden), or copy
+`.env.local.example` to `.env.local` and fill it in.
 
 3. Run the development server:
 

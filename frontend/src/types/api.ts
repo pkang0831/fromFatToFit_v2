@@ -186,14 +186,6 @@ export interface RegionNotes {
   shoulders: string;
 }
 
-export interface BodyObservation {
-  image_quality: ImageQualityObservation;
-  observations: VisualObservations;
-  estimated_ranges: EstimatedBodyFatRange;
-  qualitative_summary: string[];
-  region_notes: RegionNotes;
-}
-
 export interface DerivedScores {
   leanness_score: number;
   definition_score: number;
@@ -334,10 +326,6 @@ export interface FoodLog extends FoodLogCreate {
   id: string;
   user_id: string;
   created_at: string;
-}
-
-export interface FoodAnalysisRequest {
-  image_base64: string;
 }
 
 export interface FoodItem {
@@ -604,21 +592,6 @@ export interface TransformationJourneyResponse {
   scan_id?: string;
 }
 
-export interface EnhancementResponse {
-  original_image_url: string;
-  enhanced_image_url: string;
-  enhancement_level: string;
-  scan_id: string;
-}
-
-export interface BodyScanHistoryItem {
-  id: string;
-  scan_type: 'bodyfat' | 'percentile' | 'transformation' | 'enhancement';
-  date: string;
-  result_summary: string;
-  image_url?: string;
-}
-
 export interface ScanHistoryPoint {
   date: string;
   bf: number;
@@ -685,18 +658,6 @@ export interface UsageLimitsResponse {
 }
 
 // Dashboard types
-export interface QuickStatsResponse {
-  today_calories: number;
-  calorie_goal: number;
-  calorie_progress: number;
-  today_protein: number;
-  workouts_this_week: number;
-  tdee: number;
-  workout_calories: number;
-  total_burned: number;
-  premium_status: boolean;
-}
-
 export interface CalorieBalanceTrendPoint {
   date: string;
   consumed: number;
@@ -720,12 +681,6 @@ export interface CalorieBalanceTrendResponse {
 export interface WeightLogCreate {
   date: string;
   weight_kg: number;
-  body_fat_percentage?: number;
-  notes?: string;
-}
-
-export interface WeightLogUpdate {
-  weight_kg?: number;
   body_fat_percentage?: number;
   notes?: string;
 }
@@ -778,36 +733,6 @@ export interface GoalProjectionResponse {
   actual_projection_data: ProjectionPoint[];
   on_track: boolean;
   message: string;
-}
-
-// SAM Segmentation & Region Transform types
-export interface SegmentRequest {
-  image_base64: string;
-  click_x: number;
-  click_y: number;
-}
-
-export interface SegmentResponse {
-  mask_base64: string;
-  body_part_guess: string;
-  mask_area_pct: number;
-}
-
-export interface RegionTransformRequest {
-  image_base64: string;
-  mask_base64: string;
-  body_part: string;
-  goal: string;
-  gender?: string;
-  intensity?: string;
-  ownership_confirmed?: boolean;
-}
-
-export interface RegionTransformResponse {
-  transformed_image_url: string;
-  body_part: string;
-  goal: string;
-  direction: string;
 }
 
 // Beauty Analysis types
@@ -930,9 +855,4 @@ export interface FashionRecommendResponse {
   season: string;
   outfits: OutfitRecommendation[];
   credits_used: number;
-}
-
-// Generic API error
-export interface APIError {
-  detail: string;
 }

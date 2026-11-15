@@ -41,11 +41,7 @@ test.describe('Home Re-entry Surface @regression', () => {
 
     await expect(page).toHaveURL(/\/home/);
     await expect(page.getByText(/next action/i)).toBeVisible();
-    await expect(
-      page.getByRole('button', {
-        name: /save your plan|check in today|start first scan|do weekly check-in|upload progress proof|review your proof/i,
-      }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /upload weekly progress photo/i })).toBeVisible();
     await expect(page.getByText(/current goal/i)).toBeVisible();
     await expect(page.getByText(/^journey$/i)).toBeVisible();
     await expect(page.getByText(/^progress proof$/i)).toBeVisible();

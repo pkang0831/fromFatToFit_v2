@@ -88,8 +88,7 @@ export default function ClusterPage({ params }: ClusterPageProps) {
   };
 
   // Pillar-page FAQPage schema. Aggregated from the answerBox sections on
-  // 4-5 representative posts in the cluster (see scripts/seo_retrofit/
-  // apply_cluster_faq_20260422.py). FAQPage rich result on the pillar URL
+  // 4-5 representative posts in the cluster. FAQPage rich result on the pillar URL
   // expands SERP real-estate massively for the pillar keyword.
   const faqJsonLd = meta.faqItems && meta.faqItems.length > 0
     ? {

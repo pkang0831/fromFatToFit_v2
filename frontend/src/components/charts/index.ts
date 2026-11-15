@@ -1,1 +1,0 @@
-export { BellCurveChart } from './BellCurveChart';

@@ -5,21 +5,21 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Camera, TrendingUp, Utensils, Clock, Plus, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
-import { MealCard } from '@/components/features/MealCard';
+import { MealCard } from '@/components/features/food/MealCard';
 import { foodApi } from '@/lib/api/services';
 import { getTodayString, formatDateLong, formatLocalDateKR, formatDate, parseLocalDate } from '@/lib/utils/date';
 import { useLanguage } from '@/contexts/LanguageContext';
 import dynamic from 'next/dynamic';
 import type { DailySummaryResponse, TrendResponse, RecentFoodItem } from '@/types/api';
 
-const CalorieTrendChart = dynamic(() => import('@/components/features/CalorieTrendChart'), {
+const CalorieTrendChart = dynamic(() => import('@/components/charts/CalorieTrendChart'), {
   loading: () => <div className="h-[300px] bg-surfaceAlt animate-pulse rounded-lg" />,
   ssr: false,
 });
 
 /** Barcode scanner + units + autocomplete — defer to shrink initial /calories JS. */
 const FoodLogForm = dynamic(
-  () => import('@/components/features/FoodLogForm').then((m) => m.FoodLogForm),
+  () => import('@/components/features/food/FoodLogForm').then((m) => m.FoodLogForm),
   {
     loading: () => (
       <Card variant="outlined" className="animate-pulse">

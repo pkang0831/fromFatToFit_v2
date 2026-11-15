@@ -24,7 +24,7 @@ import {
 
 const HologramBodyScanner = dynamic(
   () =>
-    import('@/components/features/HologramBodyScanner').then((module) => ({
+    import('@/components/features/body/HologramBodyScanner').then((module) => ({
       default: module.HologramBodyScanner,
     })),
   {
