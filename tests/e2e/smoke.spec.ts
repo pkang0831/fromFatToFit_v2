@@ -117,7 +117,7 @@ test.describe('Smoke Tests @smoke', () => {
       await koButton.click();
       await page.waitForTimeout(500);
 
-      await expect(page.locator('h1')).toContainText(/미래 몸/);
+      await expect(page.locator('h1')).toContainText(/바뀐 것 같나요/);
 
       await langButton.scrollIntoViewIfNeeded();
       await langButton.click();
@@ -125,7 +125,7 @@ test.describe('Smoke Tests @smoke', () => {
       await enButton.click();
       await page.waitForTimeout(500);
 
-      await expect(page.locator('h1')).toContainText(/Future Body/);
+      await expect(page.locator('h1')).toContainText(/Think you changed/);
     });
   });
 
