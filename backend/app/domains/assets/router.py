@@ -1,41 +1,12 @@
-from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, Response
+from html import escape
 
-from app.core.config import BACKEND_DIR
+from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
+
+from app.core.config import settings
 
 
 router = APIRouter()
-
-REPO_ROOT = BACKEND_DIR.parent
-HUMAN_BODY_MODEL_CANDIDATES = [
-    REPO_ROOT / "frontend" / "public" / "assets" / "human-converted.glb",
-]
-
-
-def _load_human_body_model() -> bytes | None:
-    for candidate in HUMAN_BODY_MODEL_CANDIDATES:
-        if candidate.exists():
-            return candidate.read_bytes()
-    return None
-
-
-@router.get("/assets/human-body-model")
-async def get_human_body_model() -> Response:
-    buffer = _load_human_body_model()
-    if buffer is None:
-        searched = ", ".join(str(path) for path in HUMAN_BODY_MODEL_CANDIDATES)
-        return Response(
-            content=f"Missing required asset. Looked for: {searched}",
-            status_code=404,
-            media_type="text/plain; charset=utf-8",
-            headers={"Cache-Control": "no-store"},
-        )
-
-    return Response(
-        content=buffer,
-        media_type="model/gltf-binary",
-        headers={"Cache-Control": "public, max-age=3600"},
-    )
 
 
 @router.get("/assets/human-body-preview", response_class=HTMLResponse)
@@ -174,7 +145,7 @@ async def get_human_body_preview() -> HTMLResponse:
       <div class="halo"></div>
       <model-viewer
         id="viewer"
-        src="/api/assets/human-body-model"
+        src="__MODEL_URL__"
         camera-controls
         disable-pan
         interaction-prompt="none"
@@ -221,6 +192,6 @@ async def get_human_body_preview() -> HTMLResponse:
     </script>
   </body>
 </html>
-        """.strip(),
+        """.strip().replace("__MODEL_URL__", escape(settings.human_body_model_url)),
         headers={"Cache-Control": "no-store"},
     )

@@ -8,6 +8,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from contextlib import asynccontextmanager
+from urllib.parse import urlsplit
 import logging
 import asyncio
 
@@ -105,13 +106,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(self), microphone=(), geolocation=()"
         if settings.is_production:
+            model_origin = "{0.scheme}://{0.netloc}".format(urlsplit(settings.human_body_model_url))
             response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
             response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 "img-src 'self' data: blob: https:; "
                 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ajax.googleapis.com; "
                 "style-src 'self' 'unsafe-inline'; "
-                "connect-src 'self' https://*.supabase.co https://api.stripe.com https://api.openai.com https://api.replicate.com; "
+                f"connect-src 'self' {model_origin} https://*.supabase.co https://api.stripe.com https://api.openai.com https://api.replicate.com; "
                 "frame-src https://js.stripe.com;"
             )
         return response

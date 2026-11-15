@@ -305,7 +305,6 @@ class ApiSweep:
         # Root and assets
         self.call(name="root", method="GET", path_template="/", expected_statuses={200})
         self.call(name="health", method="GET", path_template="/health", expected_statuses={200})
-        self.call(name="assets_model", method="GET", path_template="/api/assets/human-body-model", expected_statuses={200})
         self.call(name="assets_preview", method="GET", path_template="/api/assets/human-body-preview", expected_statuses={200})
 
         # Auth

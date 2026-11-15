@@ -89,6 +89,9 @@ class Settings(BaseSettings):
     vapid_public_key: str = ""
     vapid_claims_email: str = "mailto:noreply@devenira.com"
 
+    # 3D body model for the mobile WebView preview; served as a static file by the frontend (Vercel)
+    human_body_model_url: str = "https://www.devenira.com/assets/human-converted.glb"
+
     # Fashn human parser (SegFormer) — default pulls from Hugging Face Hub
     fashn_human_parser_model: str = "fashn-ai/fashn-human-parser"
     # Dev-only: if HTTPS to huggingface.co fails (corporate MITM / cert issues), set True.
