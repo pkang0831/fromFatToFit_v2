@@ -153,7 +153,7 @@ GET    /api/weight/projection       - 목표 달성 예상 조회
 ### 1. 데이터베이스 마이그레이션
 ```bash
 # Supabase SQL Editor에서 실행
-ADD_WEIGHT_TRACKING_AND_GOALS.sql
+backend/db/migrations/002_add_weight_tracking_and_goals.sql
 ```
 
 ### 2. 백엔드 시작

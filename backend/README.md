@@ -46,7 +46,7 @@ Required environment variables:
 
 ### 4. Set Up Supabase Database
 
-Run the SQL schema in `supabase_schema.sql` in your Supabase SQL editor to create all required tables.
+Apply `db/schema.sql` and then every file in `db/migrations/` in numeric order in the Supabase SQL editor. See `db/README.md`.
 
 ### 5. Run Development Server
 

@@ -114,7 +114,7 @@ def main() -> int:
             client.table("user_profiles").insert(row).execute()
             print("Profiles: inserted user_profiles row.")
     except Exception as e:  # noqa: BLE001
-        print("Profiles: failed (run docs/sql/SUPABASE_QA_USER_PROFILE.sql if columns differ):", e, file=sys.stderr)
+        print("Profiles: failed (run backend/db/manual/qa_user_profile.sql if columns differ):", e, file=sys.stderr)
         return 1
 
     print("Done. Use NEXT_PUBLIC_ENABLE_EMAIL_LOGIN=true and log in at /login.")

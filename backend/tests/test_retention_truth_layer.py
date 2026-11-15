@@ -291,10 +291,10 @@ def test_calculate_body_percentile_logs_scan_success_with_weekly_reminder_contex
 
 def test_proof_loop_analytics_sql_defines_required_views_and_attribution_filters():
     sql = (
-        Path(__file__).resolve().parents[2]
-        / "docs"
-        / "sql"
-        / "ADD_PROOF_LOOP_ANALYTICS.sql"
+        Path(__file__).resolve().parents[1]
+        / "db"
+        / "migrations"
+        / "020_add_proof_loop_analytics.sql"
     ).read_text()
 
     assert "CREATE TABLE IF NOT EXISTS funnel_events" in sql

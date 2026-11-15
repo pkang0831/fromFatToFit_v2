@@ -24,12 +24,11 @@ AI-powered health and wellness application with calorie tracking, body analysis,
 fromFatToFit/
 ├── backend/             # FastAPI (Python)
 │   ├── app/
-│   │   ├── routers/     # API endpoints
-│   │   ├── services/    # Business logic & AI providers
-│   │   ├── schemas/     # Pydantic models
-│   │   ├── middleware/   # Auth middleware
-│   │   └── models/      # DB models
-│   ├── supabase_schema.sql
+│   │   ├── core/        # Config, Supabase clients, auth dependency
+│   │   ├── domains/     # One package per feature (router, schemas, services)
+│   │   ├── integrations/ # OpenAI, Anthropic, Gemini, Grok, Replicate
+│   │   └── vision/      # Local CPU vision models
+│   ├── db/              # schema.sql + numbered migrations
 │   └── requirements.txt
 │
 ├── frontend/            # Next.js (React/TypeScript)

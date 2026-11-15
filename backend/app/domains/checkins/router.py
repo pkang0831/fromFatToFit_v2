@@ -144,7 +144,7 @@ async def get_latest_weekly_checkin(current_user: dict = Depends(get_current_use
         if "weekly_checkins" in message and ("relation" in message or "does not exist" in message):
             raise HTTPException(
                 status_code=503,
-                detail="Weekly check-in storage is not provisioned yet. Apply backend/supabase_weekly_checkins.sql first.",
+                detail="Weekly check-in storage is not provisioned yet. Apply backend/db/migrations/025_weekly_checkins.sql first.",
             ) from exc
         logger.error("Failed to load latest weekly check-in: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to load weekly check-in") from exc
@@ -289,7 +289,7 @@ async def analyze_weekly_checkin(
         if "weekly_checkins" in message and ("relation" in message or "does not exist" in message):
             raise HTTPException(
                 status_code=503,
-                detail="Weekly check-in storage is not provisioned yet. Apply backend/supabase_weekly_checkins.sql first.",
+                detail="Weekly check-in storage is not provisioned yet. Apply backend/db/migrations/025_weekly_checkins.sql first.",
             ) from exc
         if is_hf_or_body_model_unavailable(exc) or is_openai_unavailable(exc):
             raise body_model_service_unavailable("Weekly check-in analysis is temporarily unavailable because required AI models are not available on this server.")

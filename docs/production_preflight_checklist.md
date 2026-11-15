@@ -20,7 +20,7 @@
 
 ## Database / Supabase
 
-- Apply [supabase_weekly_checkins.sql](/Users/RBIPK031/.cursor/worktrees/fromFatToFit/hhu/backend/supabase_weekly_checkins.sql)
+- Apply `backend/db/migrations/025_weekly_checkins.sql`
 - Confirm `weekly_checkins` table exists in production
 - Confirm RLS policy is active and scoped to `auth.uid() = user_id`
 - Confirm `progress_photos` relation exists and matches FK assumptions

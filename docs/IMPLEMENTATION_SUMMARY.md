@@ -156,7 +156,7 @@ CREATE TABLE user_food_preferences (
 );
 ```
 
-**Migration Required**: Run `backend/supabase_schema.sql` in Supabase SQL Editor
+**Migration Required**: Run `backend/db/schema.sql` in Supabase SQL Editor
 
 ---
 
@@ -421,7 +421,7 @@ REDIS_URL=redis://localhost:6379       # For distributed caching
 ### 1. Database Migration
 ```bash
 # Run in Supabase SQL Editor
-psql -f backend/supabase_schema.sql
+psql -f backend/db/schema.sql
 ```
 
 ### 2. Backend Deployment
