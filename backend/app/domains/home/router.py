@@ -153,12 +153,6 @@ def _get_prompt_state(scan_count: int, last_scan_date: str | None) -> str:
     return "overdue"
 
 
-def _format_date_label(value: str | None) -> str:
-    if not value:
-        return "Not yet"
-    return datetime.fromisoformat(value.replace("Z", "+00:00")).strftime("%b %-d")
-
-
 def _get_saved_target_bf(saved_plan: dict | None) -> float | None:
     if not saved_plan:
         return None

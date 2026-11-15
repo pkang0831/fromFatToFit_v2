@@ -258,50 +258,12 @@ async def get_push_subscriptions(user_id: str, access_token: str | None = None) 
     return result.data or []
 
 
-async def check_weekly_scan_reminder(user_id: str) -> bool:
-    """
-    Check if user should receive a weekly body scan reminder.
-    Returns True if reminder was sent.
-    """
-    try:
-        prefs = await get_notification_preferences(user_id)
-        if not prefs.get("push_weekly_body_scan", True):
-            return False
-
-        supabase = get_supabase()
-        scans = supabase.table("body_scans").select("created_at").eq(
-            "user_id", user_id
-        ).in_("scan_type", ["bodyfat", "percentile"]).order(
-            "created_at", desc=True
-        ).limit(1).execute()
-
-        if not scans.data:
-            return False
-
-        last_scan = datetime.fromisoformat(scans.data[0]["created_at"].replace("Z", "+00:00"))
-        days_since = (datetime.now(last_scan.tzinfo) - last_scan).days
-
-        if days_since >= 7:
-            await send_push_notification(
-                user_id,
-                "Your weekly scan is ready!",
-                "Come back and see how your gap to goal has changed.",
-                {"action": "body-scan"},
-            )
-            return True
-
-        return False
-    except Exception as e:
-        logger.error(f"Error checking scan reminder for {user_id}: {e}")
-        return False
-
-
 def _vapid_ready() -> bool:
     return bool(settings.vapid_private_key and settings.vapid_public_key)
 
 
 def _send_webpush(sub_data: Dict[str, Any], payload_str: str) -> None:
-    from pywebpush import webpush, WebPushException  # type: ignore[import]
+    from pywebpush import webpush  # type: ignore[import]
 
     webpush(
         subscription_info=sub_data,

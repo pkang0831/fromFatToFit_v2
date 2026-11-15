@@ -164,8 +164,3 @@ def get_food_database() -> FoodDatabaseService:
     return _food_db_service
 
 
-def reload_food_database():
-    """Reload food database (useful for testing/updates)"""
-    global _food_db_service
-    _food_db_service = FoodDatabaseService()
-    return _food_db_service

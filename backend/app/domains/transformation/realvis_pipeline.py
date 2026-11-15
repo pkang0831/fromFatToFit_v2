@@ -18,7 +18,6 @@ import logging
 import math
 import time
 from dataclasses import dataclass
-from typing import Any, Optional
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageOps

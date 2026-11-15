@@ -54,11 +54,6 @@ class PreferenceCache:
             del self.timestamps[user_id]
         logger.debug(f"Cache INVALIDATE for user {user_id}")
     
-    def clear_all(self):
-        """Clear entire cache"""
-        self.cache.clear()
-        self.timestamps.clear()
-        logger.info("Cache CLEARED")
 
 
 # Global cache instance

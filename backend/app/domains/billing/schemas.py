@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 from datetime import datetime
 
 
@@ -65,14 +65,6 @@ class BillingPortalSessionResponse(BaseModel):
     url: str
 
 
-class UsageLimitResponse(BaseModel):
-    feature_type: str
-    current_count: int
-    limit: int
-    remaining: int
-    is_premium: bool
-
-
 class CreditBalanceResponse(BaseModel):
     monthly_credits: int
     bonus_credits: int
@@ -87,6 +79,3 @@ class BuyCreditPackRequest(BaseModel):
     cancel_url: str
 
 
-class WebhookEvent(BaseModel):
-    type: str
-    data: Dict[str, Any]

@@ -44,37 +44,6 @@ def _validate_prompt(prompt: str) -> str:
     return prompt
 
 
-def compute_gradual_steps(current_bf: float, target_bf: float) -> list[float]:
-    """Return BF% targets in ≤MAX_BF_STEP increments, always from original.
-
-    Example: compute_gradual_steps(15.5, 6.0) → [13.0, 11.0, 9.0, 7.0, 6.0]
-    """
-    if abs(current_bf - target_bf) <= MAX_BF_STEP:
-        return [round(target_bf, 1)]
-
-    going_down = target_bf < current_bf
-    steps: list[float] = []
-    cursor = current_bf
-
-    while True:
-        if going_down:
-            nxt = cursor - MAX_BF_STEP
-            if nxt <= target_bf:
-                steps.append(round(target_bf, 1))
-                break
-            steps.append(round(nxt, 1))
-            cursor = nxt
-        else:
-            nxt = cursor + MAX_BF_STEP
-            if nxt >= target_bf:
-                steps.append(round(target_bf, 1))
-                break
-            steps.append(round(nxt, 1))
-            cursor = nxt
-
-    return steps
-
-
 # ── Identity & guardrails ────────────────────────────────────────────────────
 
 _IDENTITY_LOCK = (

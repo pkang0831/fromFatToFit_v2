@@ -164,7 +164,7 @@ def _extract_json(raw: str) -> Dict[str, Any]:
         if match:
             content = match.group()
         else:
-            raise ValueError(f"No JSON found in response")
+            raise ValueError("No JSON found in response")
 
     return json.loads(content)
 

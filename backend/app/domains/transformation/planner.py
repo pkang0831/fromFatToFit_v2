@@ -16,6 +16,8 @@ from app.domains.transformation.models import (
     TransformationStage,
     TransformationPlan,
     StageNutritionSnapshot,
+    NutritionPlan,
+    WorkoutPlan,
 )
 from app.domains.transformation.prompts import render_stage_prompt
 from app.domains.transformation.nutrition_plan import build_nutrition_plan

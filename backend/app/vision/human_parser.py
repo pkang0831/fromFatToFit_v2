@@ -42,7 +42,7 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from app.core.config import settings
-from app.vision.image_utils import load_and_normalize_image, lm_visible
+from app.vision.image_utils import lm_visible
 from app.vision.segmentation import (
     CandidateSegment,
     SegmentationResult,
@@ -179,7 +179,6 @@ def _get_parser():
     """Lazy-load the SegFormer model + processor (CPU)."""
     global _processor, _model
     if _model is None:
-        import torch
         from transformers import SegformerImageProcessor, SegformerForSemanticSegmentation
 
         # Must run before any Hub HTTP — sets httpx verify=False when HF_HUB_DISABLE_SSL_VERIFICATION=true

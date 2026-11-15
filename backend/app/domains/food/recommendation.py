@@ -1,7 +1,7 @@
 """
 Food Recommendation Service - Hybrid rule-based + AI recommendations
 """
-from typing import List, Dict, Optional
+from typing import List, Optional
 from datetime import date
 import logging
 

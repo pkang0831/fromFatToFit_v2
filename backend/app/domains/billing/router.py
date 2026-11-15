@@ -1,20 +1,17 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from starlette.requests import Request
 import logging
-from typing import Dict, Any
 from app.domains.billing.schemas import (
     CreateCheckoutSessionRequest,
     CheckoutSessionResponse,
     VerifyPurchaseRequest,
     SubscriptionResponse,
-    UsageLimitResponse,
     BuyCreditPackRequest,
     CreditBalanceResponse,
     SubscriptionDiagnosticsResponse,
     BillingPortalSessionRequest,
     BillingPortalSessionResponse,
 )
-from app.core.database import get_supabase
 from app.core.auth import get_current_user
 from app.domains.billing.service import (
     create_checkout_session,

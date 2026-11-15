@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from datetime import date, timedelta
+from datetime import date
 from supabase import Client
 from app.core.auth import get_current_user, get_user_db
 import logging

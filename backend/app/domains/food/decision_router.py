@@ -232,7 +232,7 @@ async def recommend_foods(
         food_db = get_food_database()
         
         recommendation_service = FoodRecommendationService(
-            supabase, food_db, openai_service
+            supabase, food_db, openai_provider
         )
         
         result = await recommendation_service.recommend_foods(

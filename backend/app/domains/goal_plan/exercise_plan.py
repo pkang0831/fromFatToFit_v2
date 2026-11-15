@@ -10,7 +10,7 @@ import math
 import logging
 from typing import Optional
 
-from app.domains.goal_plan.calorie_calculator import MET_VALUES, CalorieCalculator
+from app.domains.goal_plan.calorie_calculator import MET_VALUES
 
 logger = logging.getLogger(__name__)
 

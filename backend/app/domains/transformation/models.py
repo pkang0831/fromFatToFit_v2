@@ -110,8 +110,3 @@ class TransformationPlan:
     disclaimer: str
 
 
-@dataclass
-class JourneyResult:
-    plan: TransformationPlan
-    stage_images: list[dict]
-    scan_id: Optional[str] = None

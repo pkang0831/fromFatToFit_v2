@@ -10,7 +10,7 @@ import logging
 
 from app.core.auth import get_current_user
 from app.core.rate_limit import limiter
-from app.core.database import get_supabase, get_user_supabase
+from app.core.database import get_user_supabase
 from app.domains.goal_plan.schemas import (
     TierRequest,
     TierComparisonResponse,

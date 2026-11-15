@@ -63,23 +63,6 @@ async def search_similar_chunks(query: str, top_k: int = TOP_K) -> List[Dict[str
     return result.data if result.data else []
 
 
-async def search_similar_chunks_direct(query: str, top_k: int = TOP_K) -> List[Dict[str, Any]]:
-    """Fallback: fetch all and sort in Python (for when the RPC isn't set up yet)."""
-    query_embedding = await embed_query(query)
-    supabase = get_supabase()
-
-    result = supabase.rpc("match_transcript_chunks", {
-        "query_embedding": query_embedding,
-        "match_count": top_k,
-    }).execute()
-
-    if result.data:
-        return result.data
-
-    logger.warning("RPC match_transcript_chunks not found, returning empty results")
-    return []
-
-
 async def generate_answer(
     query: str,
     user_context: Optional[Dict[str, Any]] = None,

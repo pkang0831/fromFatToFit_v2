@@ -63,19 +63,6 @@ class PercentileResponse(BaseModel):
     usage_remaining: int
 
 
-class TransformationResponse(BaseModel):
-    original_image_url: str = ""
-    transformed_image_url: str
-    current_bf: Optional[float] = None
-    target_bf: Optional[float] = None
-    direction: Optional[str] = None
-    muscle_gain_estimate: Optional[str] = None
-    estimated_timeline_weeks: int = 0
-    recommendations: List[str] = []
-    progress_frames: Optional[List[str]] = None
-    scan_id: Optional[str] = None
-
-
 class EnhancementResponse(BaseModel):
     original_image_url: str
     enhanced_image_url: str

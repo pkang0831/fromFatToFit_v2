@@ -6,7 +6,6 @@ import logging
 import time
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import date, datetime, timedelta
-from decimal import Decimal
 from app.core.database import get_supabase, get_user_supabase
 from app.domains.weight.schemas import (
     WeightLogCreate,
@@ -204,7 +203,7 @@ class WeightTrackingService:
         try:
             supabase = get_user_supabase(access_token) if access_token else get_supabase()
             
-            result = supabase.table("weight_logs")\
+            supabase.table("weight_logs")\
                 .delete()\
                 .eq("id", log_id)\
                 .eq("user_id", user_id)\

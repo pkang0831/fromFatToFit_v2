@@ -29,8 +29,3 @@ def get_daily_cost(day: Optional[str] = None) -> float:
     day = day or date.today().isoformat()
     return _daily_costs.get(day, 0)
 
-def get_cost_summary() -> dict:
-    return {
-        "today": get_daily_cost(),
-        "costs_by_day": dict(_daily_costs),
-    }

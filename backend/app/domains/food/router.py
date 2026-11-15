@@ -1,9 +1,7 @@
-from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File, Body
+from fastapi import APIRouter, HTTPException, status, Depends, Body
 from starlette.requests import Request
 import logging
 from datetime import date, datetime
-from typing import List
-import base64
 import json
 from app.domains.food.schemas import (
     FoodLogCreate,
@@ -83,7 +81,7 @@ async def analyze_food_photo(
         
         # Check usage limit
         try:
-            usage_info = await check_usage_limit(current_user["id"], "food_scan", is_premium)
+            await check_usage_limit(current_user["id"], "food_scan", is_premium)
         except Exception as usage_error:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,

@@ -38,10 +38,10 @@ async def analyze_food_image(
             # Hybrid strategy based on user tier
             if user_tier == "premium":
                 provider = "claude"  # Best accuracy for premium users
-                logger.info(f"🏆 Using Claude Sonnet for premium user")
+                logger.info("🏆 Using Claude Sonnet for premium user")
             else:
                 provider = "gemini"  # Most cost-effective for free users
-                logger.info(f"💰 Using Gemini Flash for free user")
+                logger.info("💰 Using Gemini Flash for free user")
         else:
             provider = settings.ai_provider
             logger.info(f"🔧 Using configured provider: {provider}")
@@ -64,7 +64,7 @@ async def analyze_food_image(
         
         # Fallback to OpenAI if primary provider fails
         if provider != "openai":
-            logger.warning(f"⚠️ Falling back to OpenAI GPT-4o")
+            logger.warning("⚠️ Falling back to OpenAI GPT-4o")
             try:
                 result = await analyze_food_image_openai(image_base64)
                 result["provider"] = f"{provider}_fallback_openai"
@@ -76,33 +76,3 @@ async def analyze_food_image(
             raise e
 
 
-async def get_provider_stats() -> Dict[str, Any]:
-    """
-    Get statistics about AI provider usage and costs
-    
-    Returns:
-        Dictionary with provider statistics
-    """
-    return {
-        "current_strategy": settings.ai_provider,
-        "providers": {
-            "openai": {
-                "name": "OpenAI GPT-4o",
-                "cost_per_image": 0.003,
-                "speed": "medium",
-                "accuracy": "high"
-            },
-            "gemini": {
-                "name": "Google Gemini Flash",
-                "cost_per_image": 0.0005,
-                "speed": "fast",
-                "accuracy": "high"
-            },
-            "claude": {
-                "name": "Anthropic Claude Sonnet",
-                "cost_per_image": 0.004,
-                "speed": "medium",
-                "accuracy": "very_high"
-            }
-        }
-    }

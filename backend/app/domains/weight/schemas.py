@@ -4,7 +4,6 @@ Weight Tracking Schemas
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import date, datetime
-from decimal import Decimal
 
 
 class WeightLogCreate(BaseModel):

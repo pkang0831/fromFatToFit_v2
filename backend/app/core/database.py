@@ -33,11 +33,6 @@ def get_supabase() -> Client:
     return create_client(settings.supabase_url, settings.supabase_service_key)
 
 
-def get_supabase_admin() -> Client:
-    """Alias for get_supabase()."""
-    return get_supabase()
-
-
 def get_user_supabase(access_token: str) -> Client:
     """Fresh client scoped to a user's JWT (satisfies RLS)."""
     _ensure_settings()

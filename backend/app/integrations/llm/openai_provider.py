@@ -3,7 +3,7 @@ import io
 import json
 import re
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any
 from openai import OpenAI
 from app.core.config import settings
 from app.integrations.llm.prompts import FOOD_ANALYSIS_PROMPT
@@ -237,72 +237,6 @@ Return ONLY valid JSON (no markdown):
         raise ValueError(f"Failed to parse OpenAI response: {str(e)}")
     except Exception as e:
         logger.error(f"Error estimating body fat: {e}")
-        raise
-
-
-async def generate_body_transformation(
-    image_base64: str,
-    target_bf_reduction: float,
-    gender: str = "male"
-) -> str:
-    """
-    Generate body transformation preview using GPT Image (gpt-image-1).
-    Uses image editing to realistically modify the user's actual photo.
-    
-    Args:
-        image_base64: Base64 encoded current body image
-        target_bf_reduction: Target body fat % reduction
-        gender: User's gender for context-aware editing
-        
-    Returns:
-        Base64 data URL of the transformed image
-    """
-    try:
-        intensity = "subtly" if target_bf_reduction <= 3 else "moderately" if target_bf_reduction <= 6 else "noticeably"
-        
-        muscle_detail = (
-            "Define abdominal muscles and obliques clearly with realistic lighting and shadows. "
-            "Enhance muscle separation in arms, shoulders, and chest."
-        ) if gender == "male" else (
-            "Define a toned, athletic midsection with subtle muscle definition. "
-            "Enhance overall body tone in arms, shoulders, and waist."
-        )
-
-        prompt = (
-            f"This is a professional fitness coaching visualization for health tracking purposes. "
-            f"Keep the exact same person, face, skin tone, hair, clothing, pose, and background environment. "
-            f"Reduce body fat {intensity} — approximately {target_bf_reduction}% body fat reduction. "
-            f"Reduce subcutaneous fat especially in the midsection and waist area. "
-            f"{muscle_detail} "
-            f"Keep proportions believable and anatomically correct. "
-            f"Maintain the exact same lighting, camera angle, and photo quality. "
-            f"Do NOT change the face, skin color, tattoos, or any background elements. "
-            f"The result must look like a realistic fitness progress photo of the same person."
-        )
-
-        image_bytes = base64.b64decode(image_base64)
-        image_file = io.BytesIO(image_bytes)
-        image_file.name = "body_photo.png"
-
-        response = _get_client().images.edit(
-            model="gpt-image-1",
-            image=image_file,
-            prompt=prompt,
-            size="1024x1024",
-            quality="high",
-        )
-
-        result_b64 = response.data[0].b64_json
-        return f"data:image/png;base64,{result_b64}"
-
-    except Exception as e:
-        error_str = str(e).lower()
-        if "moderation" in error_str or "safety" in error_str or "blocked" in error_str:
-            raise ValueError(
-                "The image was flagged by OpenAI's safety filter. "
-                "Try a photo with a shirt/tank top on, or taken from a different angle."
-            )
-        logger.error(f"Error generating transformation: {e}")
         raise
 
 

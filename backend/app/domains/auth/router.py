@@ -8,7 +8,6 @@ from app.domains.auth.schemas import (
     TokenResponse,
     UserResponse,
     PasswordReset,
-    PasswordUpdate,
     AccountDeletionResponse,
     PendingRegistrationResponse,
     PendingRegistrationUser,

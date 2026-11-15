@@ -66,46 +66,6 @@ def _match_orientation(transformed_b64: str, target_w: int, target_h: int) -> st
     return base64.b64encode(buf.getvalue()).decode()
 
 
-async def _generate_single_image(
-    data_uri: str, prompt: str, aspect: str,
-    orig_w: int, orig_h: int, api_key: str,
-) -> str:
-    """Single FLUX Kontext Pro image generation. Returns base64 data URI."""
-    create_url = f"{REPLICATE_MODELS_API}/{FLUX_KONTEXT_MODEL}/predictions"
-    prediction = curl_json("POST", create_url, api_key, {
-        "input": {
-            "prompt": prompt,
-            "input_image": data_uri,
-            "aspect_ratio": aspect,
-            "safety_tolerance": 5,
-            "output_format": "jpg",
-            "output_quality": 90,
-        },
-    })
-
-    poll_url = prediction.get("urls", {}).get("get")
-    if not poll_url:
-        raise RuntimeError(f"No poll URL in prediction response: {prediction}")
-
-    result = await poll_prediction(poll_url, api_key, max_polls=60, interval=3.0)
-
-    output = result.get("output")
-    if not output:
-        raise RuntimeError("No output from FLUX Kontext")
-
-    output_url = (
-        output if isinstance(output, str)
-        else output[0] if isinstance(output, list)
-        else None
-    )
-    if not output_url:
-        raise RuntimeError(f"Unexpected output format: {type(output)}")
-
-    transformed_b64 = download_to_base64(output_url)
-    transformed_b64 = _match_orientation(transformed_b64, orig_w, orig_h)
-    return image_to_data_uri(transformed_b64, "jpeg")
-
-
 async def generate_transformation_image(
     image_base64: str,
     prompt: str,
@@ -233,7 +193,6 @@ async def run_realvis_img2img(
     Uses our custom Cog model with the exact same pipeline as the Colab notebook.
     Guarded by a semaphore to prevent overwhelming Replicate with concurrent requests.
     """
-    import time as _time
 
     sem = _get_replicate_semaphore()
     async with sem:

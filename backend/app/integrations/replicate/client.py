@@ -7,7 +7,6 @@ Falls back to curl subprocess when available (corporate proxy workaround).
 
 import asyncio
 import base64
-import io
 import json
 import logging
 import os

@@ -8,7 +8,6 @@ from app.domains.body.schemas import (
     BodyScanRequest,
     BodyFatEstimateResponse,
     PercentileResponse,
-    TransformationResponse,
     EnhancementResponse,
     BodyScanHistoryItem,
     SegmentRequest,
@@ -33,13 +32,12 @@ from app.domains.body.schemas import (
 )
 from app.core.database import get_supabase
 from app.core.auth import get_current_user
-from app.integrations.llm import openai_provider, grok_provider, anthropic_provider, gemini_provider
+from app.integrations.llm import anthropic_provider, gemini_provider, grok_provider, openai_provider
 from app.integrations.replicate import image_models
 from app.integrations.replicate.sam import segment_body_part
 from app.vision.photo_quality import analyze_body_photo_quality
 from app.domains.body.analysis import calculate_percentile, generate_recommendations
 from app.domains.transformation.planner import build_plan
-from app.domains.transformation.prompts import render_stage_prompt
 from app.domains.transformation.models import MuscleGainSpec
 from app.vision.moderation import enforce_body_image_moderation
 from app.domains.transformation.telemetry import (
@@ -89,34 +87,6 @@ def _select_user_profile(supabase, user_id: str, columns: str):
 
 def _update_user_profile(supabase, user_id: str, data: dict):
     return supabase.table("user_profiles").update(data).eq("user_id", user_id).execute()
-
-
-async def _require_body_photo_quality(
-    image_base64: str,
-    framing: str = "upper_body",
-) -> None:
-    """Raise 422 if the image fails framing / frontal pose checks."""
-    result = await analyze_body_photo_quality(image_base64, framing=framing)
-    if result.ok:
-        return
-    raise HTTPException(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        detail={
-            "error": "body_photo_quality",
-            "messages": result.messages,
-            "failure_codes": result.failure_codes,
-            "body_area_ratio": round(result.body_area_ratio, 4),
-            "bbox_area_ratio": round(result.bbox_area_ratio, 4),
-            "mask_fill_ratio": round(result.mask_fill_ratio, 4),
-            "is_front_facing": result.is_front_facing,
-            "pose_detected": result.pose_detected,
-            "is_shirtless": result.is_shirtless,
-            "brightness": round(result.brightness, 1),
-            "framing": result.framing,
-            "min_body_area_ratio": round(result.min_body_area_ratio, 4),
-            "min_mask_fill_ratio": round(result.min_mask_fill_ratio, 4),
-        },
-    )
 
 
 async def _require_safe_body_photo(
@@ -211,38 +181,38 @@ async def estimate_body_fat_with_fallback(image_base64: str, gender: str, age: i
     # Define provider order based on primary
     if primary_provider == "gemini":
         providers = [
-            ("Gemini", gemini_body_service),
-            ("OpenAI", openai_service),
-            ("Grok", grok_service),
-            ("Claude", claude_service)
+            ("Gemini", gemini_provider),
+            ("OpenAI", openai_provider),
+            ("Grok", grok_provider),
+            ("Claude", anthropic_provider)
         ]
     elif primary_provider == "openai":
         providers = [
-            ("OpenAI", openai_service),
-            ("Gemini", gemini_body_service),
-            ("Grok", grok_service),
-            ("Claude", claude_service)
+            ("OpenAI", openai_provider),
+            ("Gemini", gemini_provider),
+            ("Grok", grok_provider),
+            ("Claude", anthropic_provider)
         ]
     elif primary_provider == "grok":
         providers = [
-            ("Grok", grok_service),
-            ("Gemini", gemini_body_service),
-            ("OpenAI", openai_service),
-            ("Claude", claude_service)
+            ("Grok", grok_provider),
+            ("Gemini", gemini_provider),
+            ("OpenAI", openai_provider),
+            ("Claude", anthropic_provider)
         ]
     elif primary_provider == "claude":
         providers = [
-            ("Claude", claude_service),
-            ("Gemini", gemini_body_service),
-            ("OpenAI", openai_service),
-            ("Grok", grok_service)
+            ("Claude", anthropic_provider),
+            ("Gemini", gemini_provider),
+            ("OpenAI", openai_provider),
+            ("Grok", grok_provider)
         ]
     else:  # default to gemini
         providers = [
-            ("Gemini", gemini_body_service),
-            ("OpenAI", openai_service),
-            ("Grok", grok_service),
-            ("Claude", claude_service)
+            ("Gemini", gemini_provider),
+            ("OpenAI", openai_provider),
+            ("Grok", grok_provider),
+            ("Claude", anthropic_provider)
         ]
     
     last_error = None
@@ -300,7 +270,7 @@ async def estimate_bodyfat(
         # Check usage limit — if free scans exhausted, try credit deduction
         used_credits = False
         try:
-            usage_info = await check_usage_limit(current_user["id"], "body_fat_scan", is_premium)
+            await check_usage_limit(current_user["id"], "body_fat_scan", is_premium)
         except Exception:
             credit_info = await get_credit_balance(current_user["id"], is_premium)
             cost = credit_info["credit_costs"].get("body_fat_scan", 10)
@@ -407,7 +377,7 @@ async def calculate_body_percentile(
         # Check usage limit — if free scans exhausted, try credit deduction
         used_credits = False
         try:
-            usage_info = await check_usage_limit(current_user["id"], "percentile_scan", is_premium)
+            await check_usage_limit(current_user["id"], "percentile_scan", is_premium)
         except Exception:
             credit_info = await get_credit_balance(current_user["id"], is_premium)
             cost = credit_info["credit_costs"].get("percentile_scan", 10)

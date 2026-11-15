@@ -1,7 +1,7 @@
 """
 Food Decision Service - Determines if user should eat a food
 """
-from typing import Dict, List, Optional
+from typing import List
 from datetime import date
 import logging
 

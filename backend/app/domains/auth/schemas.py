@@ -68,10 +68,6 @@ class PasswordReset(BaseModel):
     email: EmailStr
 
 
-class PasswordUpdate(BaseModel):
-    new_password: str = Field(..., min_length=8)
-
-
 class AccountDeletionResponse(BaseModel):
     message: str
     deleted_immediately: list[str]

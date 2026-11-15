@@ -168,5 +168,3 @@ class WeeklyCheckinAnalysisResponse(BaseModel):
     hologram_visualization: HologramVisualization
 
 
-class HomeWeeklyAnalysisSummary(BaseModel):
-    latest: Optional[WeeklyCheckinAnalysisResponse] = None

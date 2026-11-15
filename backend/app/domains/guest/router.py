@@ -53,7 +53,6 @@ def _hash_ip(request: Request) -> str:
 async def _check_guest_scan_limit(request: Request) -> None:
     """Enforce lifetime scan cap per fingerprint via Supabase."""
     fp = _build_fingerprint(request)
-    ip_h = _hash_ip(request)
 
     try:
         supabase = get_supabase()
