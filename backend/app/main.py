@@ -31,7 +31,7 @@ from app.domains.goal_plan import router as goal_plan
 from app.domains.guest import router as guest
 from app.domains.home import router as home
 from app.domains.notifications import router as notifications
-from app.domains.notifications.service import (
+from app.domains.notifications.reminders import (
     get_weekly_proof_reminder_status,
     run_weekly_proof_reminder_scheduler,
 )

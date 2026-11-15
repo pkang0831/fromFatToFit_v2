@@ -3,14 +3,18 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 import logging
 from typing import Dict, Any
 from app.core.auth import get_current_user
-from app.domains.notifications.service import (
+from app.domains.notifications.preferences import (
     get_notification_preferences,
     update_notification_preferences,
+)
+from app.domains.notifications.push import (
     save_push_subscription,
     remove_push_subscription,
+)
+from app.domains.notifications.reminder_webhooks import process_resend_webhook
+from app.domains.notifications.reminders import (
     get_weekly_proof_reminder_status_for_user,
     mark_weekly_proof_reminder_opened,
-    process_resend_webhook,
     unsubscribe_weekly_proof_reminder,
 )
 from app.core.rate_limit import limiter
