@@ -9,9 +9,7 @@ from app.domains.transformation.planner import (
     build_plan,
     MIN_BF_MALE,
     MIN_BF_FEMALE,
-    MAX_BF,
 )
-from app.domains.transformation.prompts import render_stage_prompt
 
 
 # ── Mode classification ────────────────────────────────────────────────────

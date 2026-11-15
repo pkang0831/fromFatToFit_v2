@@ -36,7 +36,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.domains.transformation.planner import build_plan
 from app.domains.transformation.models import MuscleGainSpec
-from app.domains.transformation.prompts import render_stage_prompt
 
 
 def _make_test_image_b64() -> str:

@@ -5,7 +5,7 @@ import hmac
 from datetime import datetime, timezone
 from math import floor
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 from fastapi import status
 from starlette.requests import Request
