@@ -14,7 +14,7 @@ def _run(coro):
 
 
 def test_get_current_user_returns_fallback_when_profile_lookup_fails():
-    from app.middleware.auth_middleware import get_current_user
+    from app.core.auth import get_current_user
 
     auth_client = MagicMock()
     auth_client.auth.get_user.return_value = SimpleNamespace(
@@ -32,7 +32,7 @@ def test_get_current_user_returns_fallback_when_profile_lookup_fails():
     query.execute.side_effect = Exception("profiles unavailable")
     db_client.table.return_value = query
 
-    with patch("app.middleware.auth_middleware.create_client", side_effect=[auth_client, db_client]):
+    with patch("app.core.auth.create_client", side_effect=[auth_client, db_client]):
         current_user = _run(get_current_user("Bearer token-123"))
 
     assert current_user["id"] == "user-123"
@@ -43,7 +43,7 @@ def test_get_current_user_returns_fallback_when_profile_lookup_fails():
 
 
 def test_get_current_user_rejects_missing_authorization_header():
-    from app.middleware.auth_middleware import get_current_user
+    from app.core.auth import get_current_user
 
     try:
         _run(get_current_user(None))
@@ -55,8 +55,8 @@ def test_get_current_user_rejects_missing_authorization_header():
 
 
 def test_get_current_user_accepts_stub_test_login_token():
-    from app.middleware.auth_middleware import get_current_user
-    from app.config import settings
+    from app.core.auth import get_current_user
+    from app.core.config import settings
 
     with (
         patch.object(settings, "enable_test_login", True),

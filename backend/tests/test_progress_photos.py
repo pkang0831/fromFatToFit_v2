@@ -33,7 +33,7 @@ def _user():
 
 
 def test_upload_progress_photo_persists_storage_metadata_only():
-    from app.routers.progress_photos import upload_progress_photo
+    from app.domains.progress_photos.router import upload_progress_photo
 
     inserted_row = {
         "id": "photo-1",
@@ -52,16 +52,16 @@ def test_upload_progress_photo_persists_storage_metadata_only():
     supabase.table.return_value = chain
 
     with (
-        patch("app.routers.progress_photos.get_supabase", return_value=supabase),
+        patch("app.domains.progress_photos.router.get_supabase", return_value=supabase),
         patch(
-            "app.routers.progress_photos.upload_progress_image",
+            "app.domains.progress_photos.router.upload_progress_image",
             return_value={
                 "storage_bucket": "progress-photos-private",
                 "storage_key": "user-123/photo-1.jpg",
             },
         ),
         patch(
-            "app.routers.progress_photos.build_progress_photo_url",
+            "app.domains.progress_photos.router.build_progress_photo_url",
             return_value="https://signed.example/photo-1",
         ),
     ):
@@ -82,7 +82,7 @@ def test_upload_progress_photo_persists_storage_metadata_only():
 
 
 def test_list_progress_photos_returns_signed_urls_for_storage_rows():
-    from app.routers.progress_photos import get_progress_photos
+    from app.domains.progress_photos.router import get_progress_photos
 
     row = {
         "id": "photo-1",
@@ -99,9 +99,9 @@ def test_list_progress_photos_returns_signed_urls_for_storage_rows():
     supabase.table.return_value = chain
 
     with (
-        patch("app.routers.progress_photos.get_supabase", return_value=supabase),
+        patch("app.domains.progress_photos.router.get_supabase", return_value=supabase),
         patch(
-            "app.routers.progress_photos.build_progress_photo_url",
+            "app.domains.progress_photos.router.build_progress_photo_url",
             return_value="https://signed.example/photo-1",
         ),
     ):
@@ -112,7 +112,7 @@ def test_list_progress_photos_returns_signed_urls_for_storage_rows():
 
 
 def test_get_progress_photo_returns_signed_url_for_storage_rows():
-    from app.routers.progress_photos import get_progress_photo
+    from app.domains.progress_photos.router import get_progress_photo
 
     row = {
         "id": "photo-1",
@@ -131,9 +131,9 @@ def test_get_progress_photo_returns_signed_url_for_storage_rows():
     supabase.table.return_value = chain
 
     with (
-        patch("app.routers.progress_photos.get_supabase", return_value=supabase),
+        patch("app.domains.progress_photos.router.get_supabase", return_value=supabase),
         patch(
-            "app.routers.progress_photos.build_progress_photo_url",
+            "app.domains.progress_photos.router.build_progress_photo_url",
             return_value="https://signed.example/photo-1",
         ),
     ):
@@ -144,7 +144,7 @@ def test_get_progress_photo_returns_signed_url_for_storage_rows():
 
 
 def test_compare_progress_photos_returns_ordered_signed_urls_and_metrics():
-    from app.routers.progress_photos import compare_photos
+    from app.domains.progress_photos.router import compare_photos
 
     older = {
         "id": "photo-1",
@@ -175,9 +175,9 @@ def test_compare_progress_photos_returns_ordered_signed_urls_and_metrics():
     supabase.table.return_value = chain
 
     with (
-        patch("app.routers.progress_photos.get_supabase", return_value=supabase),
+        patch("app.domains.progress_photos.router.get_supabase", return_value=supabase),
         patch(
-            "app.routers.progress_photos.build_progress_photo_url",
+            "app.domains.progress_photos.router.build_progress_photo_url",
             side_effect=[
                 "https://signed.example/photo-1",
                 "https://signed.example/photo-2",
@@ -195,7 +195,7 @@ def test_compare_progress_photos_returns_ordered_signed_urls_and_metrics():
 
 
 def test_delete_progress_photo_removes_storage_then_row():
-    from app.routers.progress_photos import delete_progress_photo
+    from app.domains.progress_photos.router import delete_progress_photo
 
     existing = {
         "id": "photo-1",
@@ -207,8 +207,8 @@ def test_delete_progress_photo_removes_storage_then_row():
     supabase.table.return_value = chain
 
     with (
-        patch("app.routers.progress_photos.get_supabase", return_value=supabase),
-        patch("app.routers.progress_photos.delete_progress_image") as delete_storage,
+        patch("app.domains.progress_photos.router.get_supabase", return_value=supabase),
+        patch("app.domains.progress_photos.router.delete_progress_image") as delete_storage,
     ):
         result = _run(delete_progress_photo("photo-1", current_user=_user()))
 
@@ -218,7 +218,7 @@ def test_delete_progress_photo_removes_storage_then_row():
 
 
 def test_get_progress_photo_legacy_row_returns_data_url_fallback():
-    from app.routers.progress_photos import get_progress_photo
+    from app.domains.progress_photos.router import get_progress_photo
 
     row = {
         "id": "legacy-photo",
@@ -236,7 +236,7 @@ def test_get_progress_photo_legacy_row_returns_data_url_fallback():
     supabase = MagicMock()
     supabase.table.return_value = chain
 
-    with patch("app.routers.progress_photos.get_supabase", return_value=supabase):
+    with patch("app.domains.progress_photos.router.get_supabase", return_value=supabase):
         result = _run(get_progress_photo("legacy-photo", current_user=_user()))
 
     assert result["image_url"] == "data:image/jpeg;base64,bGVnYWN5"

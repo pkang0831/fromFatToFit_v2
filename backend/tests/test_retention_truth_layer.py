@@ -92,11 +92,11 @@ class _FakeSupabase:
 
 
 def test_log_retention_event_persists_append_only_funnel_row():
-    from app.services.retention_event_service import log_retention_event
+    from app.domains.analytics.events import log_retention_event
 
     supabase = _FakeSupabase({"funnel_events": []})
 
-    with patch("app.services.retention_event_service.get_supabase", return_value=supabase):
+    with patch("app.domains.analytics.events.get_supabase", return_value=supabase):
         event = _run(log_retention_event(
             None,
             "share_viewed",
@@ -133,7 +133,7 @@ def test_log_retention_event_persists_append_only_funnel_row():
 
 
 def test_funnel_summary_endpoints_read_expected_views():
-    from app.routers.retention_analytics import (
+    from app.domains.analytics.router import (
         get_daily_funnel_snapshot,
         get_entry_state_performance,
         get_reminder_open_to_proof,
@@ -164,8 +164,8 @@ def test_funnel_summary_endpoints_read_expected_views():
     fake_settings = type("Settings", (), {"is_production": False, "analytics_admin_emails_list": []})()
 
     with (
-        patch("app.services.retention_event_service.get_supabase", return_value=supabase),
-        patch("app.routers.retention_analytics.settings", fake_settings),
+        patch("app.domains.analytics.events.get_supabase", return_value=supabase),
+        patch("app.domains.analytics.router.settings", fake_settings),
     ):
         assert _run(get_daily_funnel_snapshot({"id": "user-1"}))[0]["scan_success_count"] == 3
         assert _run(get_weekly_cohort_by_source({"id": "user-1"}))[0]["source"] == "weekly_reminder"
@@ -182,8 +182,8 @@ def test_funnel_summary_endpoints_read_expected_views():
 
 def test_capture_retention_event_rejects_server_truth_events_from_clients():
     from fastapi import HTTPException
-    from app.routers.retention_analytics import capture_retention_event
-    from app.schemas.home_schemas import RetentionEventRequest
+    from app.domains.analytics.router import capture_retention_event
+    from app.domains.home.schemas import RetentionEventRequest
 
     request = RetentionEventRequest(
         event_name="purchase_completed",
@@ -202,11 +202,11 @@ def test_capture_retention_event_rejects_server_truth_events_from_clients():
 
 def test_funnel_views_require_admin_access_in_production():
     from fastapi import HTTPException
-    from app.routers.retention_analytics import get_daily_funnel_snapshot
+    from app.domains.analytics.router import get_daily_funnel_snapshot
 
     fake_settings = type("Settings", (), {"is_production": True, "analytics_admin_emails_list": ["ops@devenira.com"]})()
 
-    with patch("app.routers.retention_analytics.settings", fake_settings):
+    with patch("app.domains.analytics.router.settings", fake_settings):
         try:
             _run(get_daily_funnel_snapshot({"id": "user-1", "email": "member@example.com"}))
         except HTTPException as exc:
@@ -216,11 +216,11 @@ def test_funnel_views_require_admin_access_in_production():
 
 
 def test_log_retention_event_dedupes_on_dedupe_key():
-    from app.services.retention_event_service import log_retention_event
+    from app.domains.analytics.events import log_retention_event
 
     supabase = _FakeSupabase({"funnel_events": []})
 
-    with patch("app.services.retention_event_service.get_supabase", return_value=supabase):
+    with patch("app.domains.analytics.events.get_supabase", return_value=supabase):
         _run(log_retention_event(
             "user-1",
             "purchase_completed",
@@ -238,26 +238,26 @@ def test_log_retention_event_dedupes_on_dedupe_key():
 
 
 def test_calculate_body_percentile_logs_scan_success_with_weekly_reminder_context():
-    from app.routers.body import calculate_body_percentile
-    from app.schemas.body_schemas import BodyScanRequest
+    from app.domains.body.router import calculate_body_percentile
+    from app.domains.body.schemas import BodyScanRequest
 
     supabase = _FakeSupabase({"body_scans": []})
     log_event = AsyncMock()
 
     with (
-        patch("app.routers.body._require_safe_body_photo", AsyncMock()),
-        patch("app.routers.body.check_premium_status", AsyncMock(return_value=False)),
-        patch("app.routers.body.check_usage_limit", AsyncMock(return_value={"remaining": 1})),
-        patch("app.routers.body.estimate_body_fat_with_fallback", AsyncMock(return_value={"body_fat_percentage": 18.2, "confidence": "high"})),
-        patch("app.routers.body.calculate_percentile", return_value={
+        patch("app.domains.body.router._require_safe_body_photo", AsyncMock()),
+        patch("app.domains.body.router.check_premium_status", AsyncMock(return_value=False)),
+        patch("app.domains.body.router.check_usage_limit", AsyncMock(return_value={"remaining": 1})),
+        patch("app.domains.body.router.estimate_body_fat_with_fallback", AsyncMock(return_value={"body_fat_percentage": 18.2, "confidence": "high"})),
+        patch("app.domains.body.router.calculate_percentile", return_value={
             "percentile": 72.0,
             "rank_text": "top 28%",
             "comparison_group": "men 25-34",
             "distribution_data": {"mean": 20.0},
         }),
-        patch("app.routers.body.get_supabase", return_value=supabase),
-        patch("app.routers.body.increment_usage", AsyncMock()),
-        patch("app.routers.body.log_retention_event", log_event),
+        patch("app.domains.body.router.get_supabase", return_value=supabase),
+        patch("app.domains.body.router.increment_usage", AsyncMock()),
+        patch("app.domains.body.router.log_retention_event", log_event),
     ):
         response = _run(calculate_body_percentile(
             Request({"type": "http", "method": "POST", "path": "/body/percentile", "headers": []}),

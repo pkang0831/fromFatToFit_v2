@@ -113,7 +113,7 @@ def _past_iso(days=1):
 
 
 def test_create_checkout_session_creates_and_links_stable_customer():
-    from app.services.payment_service import create_checkout_session
+    from app.domains.billing.service import create_checkout_session
 
     supabase = _FakeSupabase({
         "user_profiles": [{
@@ -129,9 +129,9 @@ def test_create_checkout_session_creates_and_links_stable_customer():
     created_customer = SimpleNamespace(id="cus_123")
 
     with (
-        patch("app.services.payment_service.get_supabase", return_value=supabase),
-        patch("app.services.payment_service.stripe.Customer.create", return_value=created_customer) as create_customer,
-        patch("app.services.payment_service.stripe.checkout.Session.create", return_value=checkout_session) as create_session,
+        patch("app.domains.billing.service.get_supabase", return_value=supabase),
+        patch("app.domains.billing.service.stripe.Customer.create", return_value=created_customer) as create_customer,
+        patch("app.domains.billing.service.stripe.checkout.Session.create", return_value=checkout_session) as create_session,
     ):
         result = _run(create_checkout_session(
             user_id="user-123",
@@ -149,7 +149,7 @@ def test_create_checkout_session_creates_and_links_stable_customer():
 
 
 def test_handle_stripe_webhook_skips_duplicate_processed_event():
-    from app.services.payment_service import handle_stripe_webhook
+    from app.domains.billing.service import handle_stripe_webhook
 
     supabase = _FakeSupabase({
         "stripe_webhook_events": [{
@@ -174,9 +174,9 @@ def test_handle_stripe_webhook_skips_duplicate_processed_event():
     }
 
     with (
-        patch("app.services.payment_service.get_supabase", return_value=supabase),
-        patch("app.services.payment_service.stripe.Webhook.construct_event", return_value=event),
-        patch("app.services.payment_service.handle_checkout_completed", AsyncMock()) as handle_checkout,
+        patch("app.domains.billing.service.get_supabase", return_value=supabase),
+        patch("app.domains.billing.service.stripe.Webhook.construct_event", return_value=event),
+        patch("app.domains.billing.service.handle_checkout_completed", AsyncMock()) as handle_checkout,
     ):
         result = _run(handle_stripe_webhook(b"{}", "sig"))
 
@@ -185,7 +185,7 @@ def test_handle_stripe_webhook_skips_duplicate_processed_event():
 
 
 def test_subscription_diagnostics_cancel_at_period_end_keeps_entitlement_but_allows_deletion():
-    from app.services.payment_service import _derive_subscription_diagnostics
+    from app.domains.billing.service import _derive_subscription_diagnostics
 
     diagnostics = _derive_subscription_diagnostics(
         {
@@ -216,7 +216,7 @@ def test_subscription_diagnostics_cancel_at_period_end_keeps_entitlement_but_all
 
 
 def test_subscription_diagnostics_blocks_unresolved_billing_and_resume_state():
-    from app.services.payment_service import _derive_subscription_diagnostics
+    from app.domains.billing.service import _derive_subscription_diagnostics
 
     past_due = _derive_subscription_diagnostics(
         {
@@ -263,7 +263,7 @@ def test_subscription_diagnostics_blocks_unresolved_billing_and_resume_state():
 
 
 def test_subscription_diagnostics_flags_profile_mismatch_without_subscription_row():
-    from app.services.payment_service import _derive_subscription_diagnostics
+    from app.domains.billing.service import _derive_subscription_diagnostics
 
     diagnostics = _derive_subscription_diagnostics(
         {
@@ -282,7 +282,7 @@ def test_subscription_diagnostics_flags_profile_mismatch_without_subscription_ro
 
 
 def test_handle_subscription_updated_upserts_and_reconciles_profile_flag():
-    from app.services.payment_service import handle_subscription_updated, get_subscription_diagnostics
+    from app.domains.billing.service import handle_subscription_updated, get_subscription_diagnostics
 
     supabase = _FakeSupabase({
         "user_profiles": [{
@@ -307,7 +307,7 @@ def test_handle_subscription_updated_upserts_and_reconciles_profile_flag():
         "metadata": {"user_id": "user-123"},
     }
 
-    with patch("app.services.payment_service.get_supabase", return_value=supabase):
+    with patch("app.domains.billing.service.get_supabase", return_value=supabase):
         _run(handle_subscription_updated(
             subscription_data,
             event_id="evt_sub_updated",
@@ -326,7 +326,7 @@ def test_handle_subscription_updated_upserts_and_reconciles_profile_flag():
 
 
 def test_handle_checkout_completed_subscription_awards_upgrade_delta_after_reconciliation():
-    from app.services.payment_service import handle_checkout_completed
+    from app.domains.billing.service import handle_checkout_completed
 
     supabase = _FakeSupabase({
         "user_profiles": [{
@@ -359,10 +359,10 @@ def test_handle_checkout_completed_subscription_awards_upgrade_delta_after_recon
     }
 
     with (
-        patch("app.services.payment_service.get_supabase", return_value=supabase),
-        patch("app.services.payment_service.stripe.Subscription.retrieve", return_value=subscription),
-        patch("app.services.usage_limiter.add_credits", add_credits),
-        patch("app.services.payment_service.log_retention_event", log_event),
+        patch("app.domains.billing.service.get_supabase", return_value=supabase),
+        patch("app.domains.billing.service.stripe.Subscription.retrieve", return_value=subscription),
+        patch("app.domains.billing.usage.add_credits", add_credits),
+        patch("app.domains.billing.service.log_retention_event", log_event),
     ):
         _run(handle_checkout_completed(session_data, event_id="evt_checkout", event_created=int(datetime.now(timezone.utc).timestamp())))
 
@@ -376,13 +376,13 @@ def test_handle_checkout_completed_subscription_awards_upgrade_delta_after_recon
 
 
 def test_verify_purchase_logs_deduped_purchase_completed_event():
-    from app.routers.payments import verify_purchase
-    from app.schemas.payment_schemas import VerifyPurchaseRequest
+    from app.domains.billing.router import verify_purchase
+    from app.domains.billing.schemas import VerifyPurchaseRequest
 
     log_event = AsyncMock()
 
     with (
-        patch("app.routers.payments.verify_revenuecat_purchase", AsyncMock(return_value={
+        patch("app.domains.billing.router.verify_revenuecat_purchase", AsyncMock(return_value={
             "is_valid": True,
             "status": "active",
             "entitlement_id": "premium_access",
@@ -390,9 +390,9 @@ def test_verify_purchase_logs_deduped_purchase_completed_event():
             "end_date": "2026-04-30T00:00:00Z",
             "auto_renew": True,
         })),
-        patch("app.routers.payments._upsert_external_subscription", AsyncMock()),
-        patch("app.routers.payments.get_subscription_diagnostics", AsyncMock(return_value={"premium_status": True, "deletion_blocked": True})),
-        patch("app.routers.payments.log_retention_event", log_event),
+        patch("app.domains.billing.router._upsert_external_subscription", AsyncMock()),
+        patch("app.domains.billing.router.get_subscription_diagnostics", AsyncMock(return_value={"premium_status": True, "deletion_blocked": True})),
+        patch("app.domains.billing.router.log_retention_event", log_event),
     ):
         _run(verify_purchase(
             VerifyPurchaseRequest(receipt_token="receipt-1", platform="ios"),

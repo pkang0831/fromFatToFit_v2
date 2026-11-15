@@ -267,7 +267,7 @@ class ApiSweep:
     def _prepare_qa_state(self) -> None:
         try:
             from app.database import get_supabase
-            from app.services.usage_limiter import add_credits, ensure_credit_record
+            from app.domains.billing.usage import add_credits, ensure_credit_record
         except Exception:
             return
 

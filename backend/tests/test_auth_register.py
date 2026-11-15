@@ -14,7 +14,7 @@ def _run(coro):
 
 
 def test_insert_user_profile_resilient_retries_with_legacy_safe_payload():
-    from app.routers.auth import _insert_user_profile_resilient
+    from app.domains.auth.router import _insert_user_profile_resilient
 
     insert_chain = MagicMock()
     insert_chain.insert.return_value = insert_chain
@@ -52,8 +52,8 @@ def test_insert_user_profile_resilient_retries_with_legacy_safe_payload():
 
 
 def test_register_logs_register_completed_with_proof_share_attribution():
-    from app.routers.auth import register
-    from app.schemas.auth_schemas import UserRegister
+    from app.domains.auth.router import register
+    from app.domains.auth.schemas import UserRegister
 
     auth_client = MagicMock()
     auth_client.auth.sign_up.return_value = SimpleNamespace(
@@ -73,10 +73,10 @@ def test_register_logs_register_completed_with_proof_share_attribution():
     db.table.return_value = share_chain
 
     with (
-        patch("app.routers.auth.get_supabase_auth", return_value=auth_client),
-        patch("app.routers.auth.get_supabase", return_value=db),
-        patch("app.routers.auth._insert_user_profile_resilient"),
-        patch("app.routers.auth.log_retention_event", AsyncMock()) as log_event,
+        patch("app.domains.auth.router.get_supabase_auth", return_value=auth_client),
+        patch("app.domains.auth.router.get_supabase", return_value=db),
+        patch("app.domains.auth.router._insert_user_profile_resilient"),
+        patch("app.domains.auth.router.log_retention_event", AsyncMock()) as log_event,
     ):
         response = _run(register(
             Request({"type": "http", "method": "POST", "path": "/auth/register", "headers": []}),
@@ -107,8 +107,8 @@ def test_register_logs_register_completed_with_proof_share_attribution():
 
 
 def test_register_drops_unverified_proof_share_attribution():
-    from app.routers.auth import register
-    from app.schemas.auth_schemas import UserRegister
+    from app.domains.auth.router import register
+    from app.domains.auth.schemas import UserRegister
 
     auth_client = MagicMock()
     auth_client.auth.sign_up.return_value = SimpleNamespace(
@@ -125,10 +125,10 @@ def test_register_drops_unverified_proof_share_attribution():
     db.table.return_value = share_chain
 
     with (
-        patch("app.routers.auth.get_supabase_auth", return_value=auth_client),
-        patch("app.routers.auth.get_supabase", return_value=db),
-        patch("app.routers.auth._insert_user_profile_resilient"),
-        patch("app.routers.auth.log_retention_event", AsyncMock()) as log_event,
+        patch("app.domains.auth.router.get_supabase_auth", return_value=auth_client),
+        patch("app.domains.auth.router.get_supabase", return_value=db),
+        patch("app.domains.auth.router._insert_user_profile_resilient"),
+        patch("app.domains.auth.router.log_retention_event", AsyncMock()) as log_event,
     ):
         _run(register(
             Request({"type": "http", "method": "POST", "path": "/auth/register", "headers": []}),
@@ -155,8 +155,8 @@ def test_register_drops_unverified_proof_share_attribution():
 
 
 def test_register_sessionless_confirmation_flow_returns_pending_response_and_still_persists_profile():
-    from app.routers.auth import register
-    from app.schemas.auth_schemas import UserRegister
+    from app.domains.auth.router import register
+    from app.domains.auth.schemas import UserRegister
 
     auth_client = MagicMock()
     auth_client.auth.sign_up.return_value = SimpleNamespace(
@@ -173,10 +173,10 @@ def test_register_sessionless_confirmation_flow_returns_pending_response_and_sti
     db.table.return_value = query
 
     with (
-        patch("app.routers.auth.get_supabase_auth", return_value=auth_client),
-        patch("app.routers.auth.get_supabase", return_value=db),
-        patch("app.routers.auth._insert_user_profile_resilient") as insert_profile,
-        patch("app.routers.auth.log_retention_event", AsyncMock()) as log_event,
+        patch("app.domains.auth.router.get_supabase_auth", return_value=auth_client),
+        patch("app.domains.auth.router.get_supabase", return_value=db),
+        patch("app.domains.auth.router._insert_user_profile_resilient") as insert_profile,
+        patch("app.domains.auth.router.log_retention_event", AsyncMock()) as log_event,
     ):
         response = _run(register(
             Request({"type": "http", "method": "POST", "path": "/auth/register", "headers": []}),
@@ -201,8 +201,8 @@ def test_register_sessionless_confirmation_flow_returns_pending_response_and_sti
 
 
 def test_test_login_bootstraps_user_when_sign_in_returns_no_session():
-    from app.routers.auth import test_login
-    from app.config import settings
+    from app.domains.auth.router import test_login
+    from app.core.config import settings
 
     auth_client = MagicMock()
     user = SimpleNamespace(id="user-123", email="e2e@devenira.test")
@@ -226,10 +226,10 @@ def test_test_login_bootstraps_user_when_sign_in_returns_no_session():
         patch.object(settings, "supabase_service_key", "sb_secret_test"),
         patch.object(settings, "test_login_email", "e2e@devenira.test"),
         patch.object(settings, "test_login_password", "DeneviraE2E123!"),
-        patch("app.routers.auth.create_client", return_value=auth_client),
-        patch("app.routers.auth.get_supabase", return_value=db),
-        patch("app.routers.auth._insert_user_profile_resilient"),
-        patch("app.routers.auth._build_token_response", return_value="ok") as build_response,
+        patch("app.domains.auth.router.create_client", return_value=auth_client),
+        patch("app.domains.auth.router.get_supabase", return_value=db),
+        patch("app.domains.auth.router._insert_user_profile_resilient"),
+        patch("app.domains.auth.router._build_token_response", return_value="ok") as build_response,
     ):
         result = _run(test_login())
 
@@ -240,8 +240,8 @@ def test_test_login_bootstraps_user_when_sign_in_returns_no_session():
 
 
 def test_test_login_repairs_existing_user_when_session_is_still_missing():
-    from app.routers.auth import test_login
-    from app.config import settings
+    from app.domains.auth.router import test_login
+    from app.core.config import settings
 
     auth_client = MagicMock()
     existing_user = SimpleNamespace(id="user-123", email="e2e@devenira.test")
@@ -267,10 +267,10 @@ def test_test_login_repairs_existing_user_when_session_is_still_missing():
         patch.object(settings, "supabase_service_key", "sb_secret_test"),
         patch.object(settings, "test_login_email", "e2e@devenira.test"),
         patch.object(settings, "test_login_password", "DeneviraE2E123!"),
-        patch("app.routers.auth.create_client", return_value=auth_client),
-        patch("app.routers.auth.get_supabase", return_value=db),
-        patch("app.routers.auth._insert_user_profile_resilient"),
-        patch("app.routers.auth._build_token_response", return_value="ok") as build_response,
+        patch("app.domains.auth.router.create_client", return_value=auth_client),
+        patch("app.domains.auth.router.get_supabase", return_value=db),
+        patch("app.domains.auth.router._insert_user_profile_resilient"),
+        patch("app.domains.auth.router._build_token_response", return_value="ok") as build_response,
     ):
         result = _run(test_login())
 
@@ -282,8 +282,8 @@ def test_test_login_repairs_existing_user_when_session_is_still_missing():
 
 
 def test_test_login_returns_tokens_even_if_profile_bootstrap_fails():
-    from app.routers.auth import test_login
-    from app.config import settings
+    from app.domains.auth.router import test_login
+    from app.core.config import settings
 
     auth_client = MagicMock()
     user = SimpleNamespace(id="user-123", email="e2e@devenira.test")
@@ -304,8 +304,8 @@ def test_test_login_returns_tokens_even_if_profile_bootstrap_fails():
         patch.object(settings, "supabase_service_key", "sb_secret_test"),
         patch.object(settings, "test_login_email", "e2e@devenira.test"),
         patch.object(settings, "test_login_password", "DeneviraE2E123!"),
-        patch("app.routers.auth.create_client", return_value=auth_client),
-        patch("app.routers.auth.get_supabase", return_value=db),
+        patch("app.domains.auth.router.create_client", return_value=auth_client),
+        patch("app.domains.auth.router.get_supabase", return_value=db),
     ):
         response = _run(test_login())
 
@@ -315,8 +315,8 @@ def test_test_login_returns_tokens_even_if_profile_bootstrap_fails():
 
 
 def test_test_login_returns_stub_session_when_supabase_settings_are_missing():
-    from app.routers.auth import test_login
-    from app.config import settings
+    from app.domains.auth.router import test_login
+    from app.core.config import settings
 
     with (
         patch.object(settings, "enable_test_login", True),

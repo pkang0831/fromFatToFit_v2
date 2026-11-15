@@ -2,8 +2,8 @@
 
 import pytest
 
-from app.services.transformation_types import TransformationMode, MuscleGainSpec
-from app.services.transformation_planner import (
+from app.domains.transformation.models import TransformationMode, MuscleGainSpec
+from app.domains.transformation.planner import (
     classify_mode,
     estimate_timeline_weeks,
     build_plan,
@@ -11,7 +11,7 @@ from app.services.transformation_planner import (
     MIN_BF_FEMALE,
     MAX_BF,
 )
-from app.services.transformation_prompts import render_stage_prompt
+from app.domains.transformation.prompts import render_stage_prompt
 
 
 # ── Mode classification ────────────────────────────────────────────────────

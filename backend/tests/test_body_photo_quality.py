@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from app.services.body_photo_quality import (
+from app.vision.photo_quality import (
     evaluate_frontal_pose,
     strip_data_uri_prefix,
     _messages_for_failures,
@@ -13,7 +13,7 @@ from app.services.body_photo_quality import (
     MIN_BODY_BRIGHTNESS,
     MIN_SHIRTLESS_RATIO,
 )
-from app.services.segmenter_interface import SegmentationResult
+from app.vision.segmentation import SegmentationResult
 
 
 def _lm(x: float, y: float, visibility: float = 0.95, z: float = 0.0):
@@ -194,7 +194,7 @@ class TestComputeShirtlessRatio:
         return lms
 
     def test_fully_shirtless(self):
-        from app.services.fashn_human_parser import _compute_shirtless_ratio
+        from app.vision.human_parser import _compute_shirtless_ratio
         img_w, img_h = 100, 200
         fashn_map = np.zeros((img_h, img_w), dtype=np.uint8)
         fashn_map[40:140, 25:75] = 16  # torso (bare skin)
@@ -203,7 +203,7 @@ class TestComputeShirtlessRatio:
         assert result["shirtless_ratio"] >= 0.9
 
     def test_fully_clothed(self):
-        from app.services.fashn_human_parser import _compute_shirtless_ratio
+        from app.vision.human_parser import _compute_shirtless_ratio
         img_w, img_h = 100, 200
         fashn_map = np.zeros((img_h, img_w), dtype=np.uint8)
         fashn_map[40:140, 25:75] = 3  # top (clothing)
@@ -212,7 +212,7 @@ class TestComputeShirtlessRatio:
         assert result["shirtless_ratio"] == 0.0
 
     def test_mixed_skin_and_clothing(self):
-        from app.services.fashn_human_parser import _compute_shirtless_ratio
+        from app.vision.human_parser import _compute_shirtless_ratio
         img_w, img_h = 100, 200
         fashn_map = np.zeros((img_h, img_w), dtype=np.uint8)
         fashn_map[40:90, 25:75] = 16  # upper half: skin
@@ -222,13 +222,13 @@ class TestComputeShirtlessRatio:
         assert 0.3 <= result["shirtless_ratio"] <= 0.7
 
     def test_no_landmarks_returns_inconclusive(self):
-        from app.services.fashn_human_parser import _compute_shirtless_ratio
+        from app.vision.human_parser import _compute_shirtless_ratio
         fashn_map = np.zeros((200, 100), dtype=np.uint8)
         result = _compute_shirtless_ratio(fashn_map, None, 100, 200)
         assert result["shirtless_ratio"] == -1.0
 
     def test_empty_roi_returns_inconclusive(self):
-        from app.services.fashn_human_parser import _compute_shirtless_ratio
+        from app.vision.human_parser import _compute_shirtless_ratio
         img_w, img_h = 100, 200
         fashn_map = np.zeros((img_h, img_w), dtype=np.uint8)  # all background
         lms = self._make_landmarks()

@@ -30,8 +30,8 @@ def _summary(entry_state: str, scan_count: int = 1, photo_count: int = 0):
 
 
 def test_build_weekly_proof_reminder_path_matches_supported_states():
-    from app.services.notification_service import build_weekly_proof_reminder_path
-    from app.config import settings
+    from app.domains.notifications.service import build_weekly_proof_reminder_path
+    from app.core.config import settings
 
     with patch.object(settings, "weekly_scan_upload_first_handoff_enabled", False):
         assert build_weekly_proof_reminder_path("progress_proof") == (
@@ -45,8 +45,8 @@ def test_build_weekly_proof_reminder_path_matches_supported_states():
 
 
 def test_build_weekly_proof_reminder_path_routes_eligible_weekly_scan_to_upload_first():
-    from app.services.notification_service import build_weekly_proof_reminder_path
-    from app.config import settings
+    from app.domains.notifications.service import build_weekly_proof_reminder_path
+    from app.core.config import settings
 
     with patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True):
         assert build_weekly_proof_reminder_path("weekly_scan", progress_photo_count=1) == (
@@ -56,7 +56,7 @@ def test_build_weekly_proof_reminder_path_routes_eligible_weekly_scan_to_upload_
 
 
 def test_weekly_proof_candidate_allows_opted_in_progress_proof_user():
-    from app.services.notification_service import _build_weekly_proof_candidate
+    from app.domains.notifications.service import _build_weekly_proof_candidate
 
     candidate = _build_weekly_proof_candidate(
         profile={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
@@ -78,8 +78,8 @@ def test_weekly_proof_candidate_allows_opted_in_progress_proof_user():
 
 
 def test_weekly_proof_candidate_routes_eligible_weekly_scan_user_to_upload_first_when_flag_enabled():
-    from app.services.notification_service import _build_weekly_proof_candidate
-    from app.config import settings
+    from app.domains.notifications.service import _build_weekly_proof_candidate
+    from app.core.config import settings
 
     with patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True):
         candidate = _build_weekly_proof_candidate(
@@ -102,8 +102,8 @@ def test_weekly_proof_candidate_routes_eligible_weekly_scan_user_to_upload_first
 
 
 def test_weekly_proof_candidate_keeps_weekly_scan_journey_for_ineligible_user():
-    from app.services.notification_service import _build_weekly_proof_candidate
-    from app.config import settings
+    from app.domains.notifications.service import _build_weekly_proof_candidate
+    from app.core.config import settings
 
     with patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True):
         candidate = _build_weekly_proof_candidate(
@@ -123,7 +123,7 @@ def test_weekly_proof_candidate_keeps_weekly_scan_journey_for_ineligible_user():
 
 
 def test_weekly_proof_candidate_respects_opt_out():
-    from app.services.notification_service import _build_weekly_proof_candidate
+    from app.domains.notifications.service import _build_weekly_proof_candidate
 
     candidate = _build_weekly_proof_candidate(
         profile={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
@@ -137,7 +137,7 @@ def test_weekly_proof_candidate_respects_opt_out():
 
 
 def test_weekly_proof_candidate_excludes_deleted_user():
-    from app.services.notification_service import _build_weekly_proof_candidate
+    from app.domains.notifications.service import _build_weekly_proof_candidate
 
     candidate = _build_weekly_proof_candidate(
         profile={
@@ -156,8 +156,8 @@ def test_weekly_proof_candidate_excludes_deleted_user():
 
 
 def test_weekly_proof_candidate_respects_cooldown():
-    from app.services.notification_service import _build_weekly_proof_candidate
-    from app.config import settings
+    from app.domains.notifications.service import _build_weekly_proof_candidate
+    from app.core.config import settings
 
     now = __import__("datetime").datetime(2026, 3, 31, tzinfo=__import__("datetime").timezone.utc)
     recent_sent = {"sent_at": "2026-03-29T12:00:00+00:00", "status": "sent"}
@@ -175,8 +175,8 @@ def test_weekly_proof_candidate_respects_cooldown():
 
 
 def test_weekly_proof_status_requires_provider_readiness():
-    from app.services.notification_service import get_weekly_proof_reminder_status
-    from app.config import settings
+    from app.domains.notifications.service import get_weekly_proof_reminder_status
+    from app.core.config import settings
 
     with (
         patch.object(settings, "enable_weekly_proof_reminders", True),
@@ -190,26 +190,26 @@ def test_weekly_proof_status_requires_provider_readiness():
 
 
 def test_weekly_proof_user_status_reports_eligible_user():
-    from app.services.notification_service import get_weekly_proof_reminder_status_for_user
+    from app.domains.notifications.service import get_weekly_proof_reminder_status_for_user
 
     with (
         patch(
-            "app.services.notification_service.get_weekly_proof_reminder_status",
+            "app.domains.notifications.service.get_weekly_proof_reminder_status",
             return_value={"active": True, "channel": "email", "reason": None, "cooldown_hours": 72},
         ),
         patch(
-            "app.services.notification_service.get_notification_preferences",
+            "app.domains.notifications.service.get_notification_preferences",
             AsyncMock(return_value={"email_weekly_summary": True}),
         ),
         patch(
-            "app.services.notification_service._get_weekly_proof_profile",
+            "app.domains.notifications.service._get_weekly_proof_profile",
             return_value={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
         ),
         patch(
-            "app.services.notification_service._get_home_summary_for_user",
+            "app.domains.notifications.service._get_home_summary_for_user",
             AsyncMock(return_value=_summary("progress_proof", scan_count=2, photo_count=1)),
         ),
-        patch("app.services.notification_service._get_latest_weekly_reminder_event", return_value=None),
+        patch("app.domains.notifications.service._get_latest_weekly_reminder_event", return_value=None),
     ):
         status = _run(get_weekly_proof_reminder_status_for_user("user-1"))
 
@@ -230,19 +230,19 @@ def test_weekly_proof_user_status_reports_eligible_user():
 
 
 def test_weekly_proof_user_status_reports_preferences_disabled():
-    from app.services.notification_service import get_weekly_proof_reminder_status_for_user
+    from app.domains.notifications.service import get_weekly_proof_reminder_status_for_user
 
     with (
         patch(
-            "app.services.notification_service.get_weekly_proof_reminder_status",
+            "app.domains.notifications.service.get_weekly_proof_reminder_status",
             return_value={"active": True, "channel": "email", "reason": None, "cooldown_hours": 72},
         ),
         patch(
-            "app.services.notification_service.get_notification_preferences",
+            "app.domains.notifications.service.get_notification_preferences",
             AsyncMock(return_value={"email_weekly_summary": False}),
         ),
         patch(
-            "app.services.notification_service._get_weekly_proof_profile",
+            "app.domains.notifications.service._get_weekly_proof_profile",
             return_value={"user_id": "user-1", "email": "user@example.com", "onboarding_completed": True},
         ),
     ):
@@ -261,17 +261,17 @@ def test_weekly_proof_user_status_reports_preferences_disabled():
 
 
 def test_evaluate_weekly_proof_reminder_candidates_filters_ineligible_users():
-    from app.services.notification_service import evaluate_weekly_proof_reminder_candidates
+    from app.domains.notifications.service import evaluate_weekly_proof_reminder_candidates
 
     with (
-        patch("app.services.notification_service.get_weekly_proof_reminder_status", return_value={"active": True, "channel": "email", "reason": None}),
-        patch("app.services.notification_service._list_candidate_profiles", return_value=[
+        patch("app.domains.notifications.service.get_weekly_proof_reminder_status", return_value={"active": True, "channel": "email", "reason": None}),
+        patch("app.domains.notifications.service._list_candidate_profiles", return_value=[
             {"user_id": "eligible-user", "email": "eligible@example.com", "onboarding_completed": True},
             {"user_id": "no-email", "email": "", "onboarding_completed": True},
             {"user_id": "no-scan", "email": "noscan@example.com", "onboarding_completed": True},
         ]),
         patch(
-            "app.services.notification_service.get_notification_preferences",
+            "app.domains.notifications.service.get_notification_preferences",
             AsyncMock(side_effect=[
                 {"email_weekly_summary": True},
                 {"email_weekly_summary": True},
@@ -279,14 +279,14 @@ def test_evaluate_weekly_proof_reminder_candidates_filters_ineligible_users():
             ]),
         ),
         patch(
-            "app.services.notification_service._get_home_summary_for_user",
+            "app.domains.notifications.service._get_home_summary_for_user",
             AsyncMock(side_effect=[
                 _summary("progress_proof", scan_count=1, photo_count=0),
                 _summary("progress_proof", scan_count=1, photo_count=0),
                 _summary("progress_proof", scan_count=0, photo_count=0),
             ]),
         ),
-        patch("app.services.notification_service._get_latest_weekly_reminder_event", return_value=None),
+        patch("app.domains.notifications.service._get_latest_weekly_reminder_event", return_value=None),
     ):
         candidates = _run(evaluate_weekly_proof_reminder_candidates())
 
@@ -295,8 +295,8 @@ def test_evaluate_weekly_proof_reminder_candidates_filters_ineligible_users():
 
 
 def test_send_weekly_proof_email_builds_tracking_link_and_returns_message_id():
-    from app.services.notification_service import _send_weekly_proof_email
-    from app.config import settings
+    from app.domains.notifications.service import _send_weekly_proof_email
+    from app.core.config import settings
 
     candidate = {
         "email": "user@example.com",
@@ -309,7 +309,7 @@ def test_send_weekly_proof_email_builds_tracking_link_and_returns_message_id():
     with (
         patch.object(settings, "public_api_url", "https://api.denevira.test/api"),
         patch.object(settings, "smtp_from_email", "hello@denevira.test"),
-        patch("app.services.notification_service.asyncio.to_thread", AsyncMock(return_value=None)) as to_thread,
+        patch("app.domains.notifications.service.asyncio.to_thread", AsyncMock(return_value=None)) as to_thread,
     ):
         provider_message_id = _run(_send_weekly_proof_email(candidate, "event-1"))
 
@@ -322,7 +322,7 @@ def test_send_weekly_proof_email_builds_tracking_link_and_returns_message_id():
 
 
 def test_run_weekly_proof_reminder_job_marks_sent_and_logs_analytics():
-    from app.services.notification_service import run_weekly_proof_reminder_job
+    from app.domains.notifications.service import run_weekly_proof_reminder_job
 
     candidate = {
         "user_id": "user-1",
@@ -342,14 +342,14 @@ def test_run_weekly_proof_reminder_job_marks_sent_and_logs_analytics():
     }
 
     with (
-        patch("app.services.notification_service.get_weekly_proof_reminder_status", return_value={"active": True, "channel": "email", "reason": None}),
-        patch("app.services.notification_service._claim_weekly_proof_job_run", return_value={"job_key": "weekly_proof:123"}),
-        patch("app.services.notification_service._finish_weekly_proof_job_run") as finish_job,
-        patch("app.services.notification_service.evaluate_weekly_proof_reminder_candidates", AsyncMock(return_value=[candidate])),
-        patch("app.services.notification_service._create_reminder_event", return_value={"id": "event-1"}),
-        patch("app.services.notification_service._send_weekly_proof_email", AsyncMock(return_value="<message-id>")),
-        patch("app.services.notification_service._update_reminder_event") as update_event,
-        patch("app.services.notification_service.log_retention_event", AsyncMock()) as log_event,
+        patch("app.domains.notifications.service.get_weekly_proof_reminder_status", return_value={"active": True, "channel": "email", "reason": None}),
+        patch("app.domains.notifications.service._claim_weekly_proof_job_run", return_value={"job_key": "weekly_proof:123"}),
+        patch("app.domains.notifications.service._finish_weekly_proof_job_run") as finish_job,
+        patch("app.domains.notifications.service.evaluate_weekly_proof_reminder_candidates", AsyncMock(return_value=[candidate])),
+        patch("app.domains.notifications.service._create_reminder_event", return_value={"id": "event-1"}),
+        patch("app.domains.notifications.service._send_weekly_proof_email", AsyncMock(return_value="<message-id>")),
+        patch("app.domains.notifications.service._update_reminder_event") as update_event,
+        patch("app.domains.notifications.service.log_retention_event", AsyncMock()) as log_event,
     ):
         result = _run(run_weekly_proof_reminder_job())
 
@@ -368,12 +368,12 @@ def test_run_weekly_proof_reminder_job_marks_sent_and_logs_analytics():
 
 
 def test_run_weekly_proof_reminder_job_skips_when_already_claimed():
-    from app.services.notification_service import run_weekly_proof_reminder_job
+    from app.domains.notifications.service import run_weekly_proof_reminder_job
 
     with (
-        patch("app.services.notification_service.get_weekly_proof_reminder_status", return_value={"active": True, "channel": "email", "reason": None}),
-        patch("app.services.notification_service._claim_weekly_proof_job_run", return_value=None),
-        patch("app.services.notification_service.evaluate_weekly_proof_reminder_candidates", AsyncMock()) as evaluate_candidates,
+        patch("app.domains.notifications.service.get_weekly_proof_reminder_status", return_value={"active": True, "channel": "email", "reason": None}),
+        patch("app.domains.notifications.service._claim_weekly_proof_job_run", return_value=None),
+        patch("app.domains.notifications.service.evaluate_weekly_proof_reminder_candidates", AsyncMock()) as evaluate_candidates,
     ):
         result = _run(run_weekly_proof_reminder_job())
 
@@ -383,11 +383,11 @@ def test_run_weekly_proof_reminder_job_skips_when_already_claimed():
 
 
 def test_open_weekly_proof_reminder_marks_open_and_redirects():
-    from app.routers.notifications import open_weekly_proof_reminder
+    from app.domains.notifications.router import open_weekly_proof_reminder
     request = Request({"type": "http", "method": "GET", "path": "/api/notifications/reminders/open/event-1", "headers": []})
 
     with patch(
-        "app.routers.notifications.mark_weekly_proof_reminder_opened",
+        "app.domains.notifications.router.mark_weekly_proof_reminder_opened",
         AsyncMock(
             return_value=(
                 "https://app.denevira.test/progress?tab=photos&focus=upload&from=weekly_reminder"
@@ -413,17 +413,17 @@ def test_open_weekly_proof_reminder_marks_open_and_redirects():
 
 
 def test_mark_weekly_proof_reminder_opened_updates_event_and_logs():
-    from app.services.notification_service import mark_weekly_proof_reminder_opened
-    from app.config import settings
+    from app.domains.notifications.service import mark_weekly_proof_reminder_opened
+    from app.core.config import settings
 
     with (
         patch.object(settings, "public_app_url", "https://app.denevira.test"),
         patch(
-            "app.services.notification_service._get_reminder_event",
+            "app.domains.notifications.service._get_reminder_event",
             return_value={"id": "event-1", "user_id": "user-1", "channel": "email", "entry_state": "weekly_scan"},
         ),
-        patch("app.services.notification_service._update_reminder_event") as update_event,
-        patch("app.services.notification_service.log_retention_event", AsyncMock()) as log_event,
+        patch("app.domains.notifications.service._update_reminder_event") as update_event,
+        patch("app.domains.notifications.service.log_retention_event", AsyncMock()) as log_event,
     ):
         redirect_url = _run(
             mark_weekly_proof_reminder_opened(
@@ -446,7 +446,7 @@ def test_mark_weekly_proof_reminder_opened_updates_event_and_logs():
 
 
 def test_process_resend_webhook_updates_delivered_status():
-    from app.services.notification_service import process_resend_webhook
+    from app.domains.notifications.service import process_resend_webhook
 
     payload = {
         "type": "email.delivered",
@@ -458,14 +458,14 @@ def test_process_resend_webhook_updates_delivered_status():
     }
 
     with (
-        patch("app.services.notification_service.verify_resend_webhook", return_value=payload),
-        patch("app.services.notification_service._record_reminder_webhook_event", return_value={"svix_id": "msg_1"}),
+        patch("app.domains.notifications.service.verify_resend_webhook", return_value=payload),
+        patch("app.domains.notifications.service._record_reminder_webhook_event", return_value={"svix_id": "msg_1"}),
         patch(
-            "app.services.notification_service._resolve_reminder_event_for_webhook",
+            "app.domains.notifications.service._resolve_reminder_event_for_webhook",
             return_value={"id": "event-1", "user_id": "user-1", "status": "sent", "recipient_email": "user@example.com"},
         ),
-        patch("app.services.notification_service._update_reminder_event") as update_event,
-        patch("app.services.notification_service._update_reminder_webhook_event") as update_webhook_event,
+        patch("app.domains.notifications.service._update_reminder_event") as update_event,
+        patch("app.domains.notifications.service._update_reminder_webhook_event") as update_webhook_event,
     ):
         result = _run(process_resend_webhook("{}", {"svix-id": "msg_1"}))
 
@@ -478,7 +478,7 @@ def test_process_resend_webhook_updates_delivered_status():
 
 
 def test_process_resend_webhook_updates_opt_out_on_unsubscribe():
-    from app.services.notification_service import process_resend_webhook
+    from app.domains.notifications.service import process_resend_webhook
 
     payload = {
         "type": "contact.updated",
@@ -490,15 +490,15 @@ def test_process_resend_webhook_updates_opt_out_on_unsubscribe():
     }
 
     with (
-        patch("app.services.notification_service.verify_resend_webhook", return_value=payload),
-        patch("app.services.notification_service._record_reminder_webhook_event", return_value={"svix_id": "msg_2"}),
+        patch("app.domains.notifications.service.verify_resend_webhook", return_value=payload),
+        patch("app.domains.notifications.service._record_reminder_webhook_event", return_value={"svix_id": "msg_2"}),
         patch(
-            "app.services.notification_service._resolve_reminder_event_for_webhook",
+            "app.domains.notifications.service._resolve_reminder_event_for_webhook",
             return_value={"id": "event-2", "user_id": "user-2", "status": "sent", "recipient_email": "user@example.com"},
         ),
-        patch("app.services.notification_service._update_reminder_event") as update_event,
-        patch("app.services.notification_service._disable_weekly_proof_reminders_for_user", AsyncMock()) as disable_prefs,
-        patch("app.services.notification_service._update_reminder_webhook_event") as update_webhook_event,
+        patch("app.domains.notifications.service._update_reminder_event") as update_event,
+        patch("app.domains.notifications.service._disable_weekly_proof_reminders_for_user", AsyncMock()) as disable_prefs,
+        patch("app.domains.notifications.service._update_reminder_webhook_event") as update_webhook_event,
     ):
         result = _run(process_resend_webhook("{}", {"svix-id": "msg_2"}))
 
@@ -509,7 +509,7 @@ def test_process_resend_webhook_updates_opt_out_on_unsubscribe():
 
 
 def test_process_resend_webhook_ignores_duplicate_svix_id():
-    from app.services.notification_service import process_resend_webhook
+    from app.domains.notifications.service import process_resend_webhook
 
     payload = {
         "type": "email.delivered",
@@ -517,9 +517,9 @@ def test_process_resend_webhook_ignores_duplicate_svix_id():
     }
 
     with (
-        patch("app.services.notification_service.verify_resend_webhook", return_value=payload),
-        patch("app.services.notification_service._record_reminder_webhook_event", return_value=None),
-        patch("app.services.notification_service._resolve_reminder_event_for_webhook") as resolve_event,
+        patch("app.domains.notifications.service.verify_resend_webhook", return_value=payload),
+        patch("app.domains.notifications.service._record_reminder_webhook_event", return_value=None),
+        patch("app.domains.notifications.service._resolve_reminder_event_for_webhook") as resolve_event,
     ):
         result = _run(process_resend_webhook("{}", {"svix-id": "msg_dup"}))
 
@@ -530,10 +530,10 @@ def test_process_resend_webhook_ignores_duplicate_svix_id():
 def test_process_resend_webhook_surfaces_verification_cause():
     import pytest
 
-    from app.services.notification_service import process_resend_webhook
+    from app.domains.notifications.service import process_resend_webhook
 
     with patch(
-        "app.services.notification_service.verify_resend_webhook",
+        "app.domains.notifications.service.verify_resend_webhook",
         side_effect=RuntimeError("No matching signature found"),
     ):
         with pytest.raises(ValueError) as exc_info:
@@ -543,8 +543,8 @@ def test_process_resend_webhook_surfaces_verification_cause():
 
 
 def test_verify_resend_webhook_accepts_webhook_header_names():
-    from app.services.notification_service import verify_resend_webhook
-    from app.config import settings
+    from app.domains.notifications.service import verify_resend_webhook
+    from app.core.config import settings
 
     payload = '{"type":"email.sent"}'
     timestamp = datetime(2026, 3, 31, 20, 0, 0, tzinfo=timezone.utc)
@@ -570,7 +570,7 @@ def test_verify_resend_webhook_accepts_webhook_header_names():
 
     with (
         patch.object(settings, "resend_webhook_secret", secret),
-        patch("app.services.notification_service.datetime") as mock_datetime,
+        patch("app.domains.notifications.service.datetime") as mock_datetime,
     ):
         mock_datetime.now.return_value = frozen_now
         mock_datetime.fromtimestamp.side_effect = datetime.fromtimestamp

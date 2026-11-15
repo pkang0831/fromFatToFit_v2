@@ -92,7 +92,7 @@ def _iso_days_ago(days: int) -> str:
 
 
 def test_home_summary_defaults_to_plan_setup_for_empty_user():
-    from app.routers.home import get_home_summary
+    from app.domains.home.router import get_home_summary
 
     supabase = _FakeSupabase({
         "user_profiles": [{"user_id": "user-1", "target_body_fat_percentage": None, "goal_image_url": None}],
@@ -103,7 +103,7 @@ def test_home_summary_defaults_to_plan_setup_for_empty_user():
         "seven_day_checkins": [],
     })
 
-    with patch("app.routers.home.get_supabase", return_value=supabase):
+    with patch("app.domains.home.router.get_supabase", return_value=supabase):
         summary = _run(get_home_summary({"id": "user-1"}))
 
     assert summary.entry_state == "plan_setup"
@@ -116,7 +116,7 @@ def test_home_summary_defaults_to_plan_setup_for_empty_user():
 
 
 def test_home_summary_surfaces_weekly_scan_and_progress_context():
-    from app.routers.home import get_home_summary
+    from app.domains.home.router import get_home_summary
 
     supabase = _FakeSupabase({
         "user_profiles": [{
@@ -157,7 +157,7 @@ def test_home_summary_surfaces_weekly_scan_and_progress_context():
         "seven_day_checkins": [],
     })
 
-    with patch("app.routers.home.get_supabase", return_value=supabase):
+    with patch("app.domains.home.router.get_supabase", return_value=supabase):
         summary = _run(get_home_summary({"id": "user-1"}))
 
     assert summary.entry_state == "weekly_scan"
@@ -173,7 +173,7 @@ def test_home_summary_surfaces_weekly_scan_and_progress_context():
 
 
 def test_home_summary_progress_proof_cta_routes_to_upload_focus():
-    from app.routers.home import get_home_summary
+    from app.domains.home.router import get_home_summary
 
     supabase = _FakeSupabase({
         "user_profiles": [{
@@ -199,7 +199,7 @@ def test_home_summary_progress_proof_cta_routes_to_upload_focus():
         "seven_day_checkins": [],
     })
 
-    with patch("app.routers.home.get_supabase", return_value=supabase):
+    with patch("app.domains.home.router.get_supabase", return_value=supabase):
         summary = _run(get_home_summary({"id": "user-1"}))
 
     assert summary.entry_state == "progress_proof"
@@ -209,7 +209,7 @@ def test_home_summary_progress_proof_cta_routes_to_upload_focus():
 
 
 def test_home_summary_review_progress_cta_routes_to_compare_focus():
-    from app.routers.home import get_home_summary
+    from app.domains.home.router import get_home_summary
 
     supabase = _FakeSupabase({
         "user_profiles": [{
@@ -238,7 +238,7 @@ def test_home_summary_review_progress_cta_routes_to_compare_focus():
         "seven_day_checkins": [],
     })
 
-    with patch("app.routers.home.get_supabase", return_value=supabase):
+    with patch("app.domains.home.router.get_supabase", return_value=supabase):
         summary = _run(get_home_summary({"id": "user-1"}))
 
     assert summary.entry_state == "review_progress"
@@ -248,8 +248,8 @@ def test_home_summary_review_progress_cta_routes_to_compare_focus():
 
 
 def test_home_summary_returns_stub_payload_in_secretless_test_login_mode():
-    from app.routers.home import get_home_summary
-    from app.config import settings
+    from app.domains.home.router import get_home_summary
+    from app.core.config import settings
 
     with (
         patch.object(settings, "enable_test_login", True),
@@ -269,8 +269,8 @@ def test_home_summary_returns_stub_payload_in_secretless_test_login_mode():
 
 
 def test_home_summary_routes_weekly_reminder_weekly_scan_users_to_upload_first_when_eligible():
-    from app.routers.home import get_home_summary
-    from app.config import settings
+    from app.domains.home.router import get_home_summary
+    from app.core.config import settings
 
     supabase = _FakeSupabase({
         "user_profiles": [{
@@ -307,7 +307,7 @@ def test_home_summary_routes_weekly_reminder_weekly_scan_users_to_upload_first_w
     })
 
     with (
-        patch("app.routers.home.get_supabase", return_value=supabase),
+        patch("app.domains.home.router.get_supabase", return_value=supabase),
         patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True),
     ):
         summary = _run(get_home_summary({"id": "user-1"}, source="weekly_reminder"))
@@ -322,8 +322,8 @@ def test_home_summary_routes_weekly_reminder_weekly_scan_users_to_upload_first_w
 
 
 def test_home_summary_keeps_weekly_scan_journey_for_ineligible_weekly_reminder_users():
-    from app.routers.home import get_home_summary
-    from app.config import settings
+    from app.domains.home.router import get_home_summary
+    from app.core.config import settings
 
     supabase = _FakeSupabase({
         "user_profiles": [{
@@ -353,7 +353,7 @@ def test_home_summary_keeps_weekly_scan_journey_for_ineligible_weekly_reminder_u
     })
 
     with (
-        patch("app.routers.home.get_supabase", return_value=supabase),
+        patch("app.domains.home.router.get_supabase", return_value=supabase),
         patch.object(settings, "weekly_scan_upload_first_handoff_enabled", True),
     ):
         summary = _run(get_home_summary({"id": "user-1"}, source="weekly_reminder"))
@@ -368,12 +368,12 @@ def test_home_summary_keeps_weekly_scan_journey_for_ineligible_weekly_reminder_u
 
 
 def test_retention_event_sink_logs_authenticated_events():
-    from app.routers.retention_analytics import capture_retention_event
-    from app.schemas.home_schemas import RetentionEventRequest
+    from app.domains.analytics.router import capture_retention_event
+    from app.domains.home.schemas import RetentionEventRequest
 
     supabase = _FakeSupabase({"funnel_events": []})
 
-    with patch("app.services.retention_event_service.get_supabase", return_value=supabase):
+    with patch("app.domains.analytics.events.get_supabase", return_value=supabase):
         result = _run(capture_retention_event(
             RetentionEventRequest(
                 event_name="history_viewed",

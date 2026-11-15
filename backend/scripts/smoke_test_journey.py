@@ -34,9 +34,9 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app.services.transformation_planner import build_plan
-from app.services.transformation_types import MuscleGainSpec
-from app.services.transformation_prompts import render_stage_prompt
+from app.domains.transformation.planner import build_plan
+from app.domains.transformation.models import MuscleGainSpec
+from app.domains.transformation.prompts import render_stage_prompt
 
 
 def _make_test_image_b64() -> str:
@@ -103,7 +103,7 @@ def run_plan_only(scenario: dict) -> dict:
 
 async def run_with_images(scenario: dict, image_b64: str) -> dict:
     """Run planner + Replicate image generation."""
-    from app.services import replicate_service
+    from app.integrations.replicate import image_models
 
     plan = build_plan(
         current_bf=scenario["current_bf"],
@@ -120,7 +120,7 @@ async def run_with_images(scenario: dict, image_b64: str) -> dict:
     ]
 
     t0 = time.monotonic()
-    results = await replicate_service.generate_journey_images(image_b64, prompts)
+    results = await image_models.generate_journey_images(image_b64, prompts)
     total_ms = round((time.monotonic() - t0) * 1000, 1)
 
     return {

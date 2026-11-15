@@ -1,4 +1,4 @@
-from app.schemas.weekly_checkin_schemas import (
+from app.domains.checkins.schemas import (
     BodyObservation,
     EstimatedBodyFatRange,
     GoalWeighting,
@@ -6,7 +6,7 @@ from app.schemas.weekly_checkin_schemas import (
     RegionNotes,
     VisualObservations,
 )
-from app.services.weekly_checkin_scoring import (
+from app.domains.checkins.scoring import (
     build_hologram_visualization,
     build_regional_visualization,
     classify_weekly_status,

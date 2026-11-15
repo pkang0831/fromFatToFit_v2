@@ -1,0 +1,120 @@
+from fastapi import APIRouter, HTTPException, Request, status, Depends
+import logging
+from typing import Dict, Any
+from app.core.auth import get_current_user
+from app.domains.dashboard.stats import get_dashboard_stats, get_calorie_balance_trend
+from app.core.rate_limit import limiter
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+
+
+@router.get("")
+@limiter.limit("60/minute")
+async def get_dashboard(request: Request, current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
+    try:
+        dashboard_data = await get_dashboard_stats(
+            current_user["id"],
+            access_token=current_user.get("access_token"),
+        )
+        return {
+            "user": {
+                "name": current_user.get("full_name", "User"),
+                "email": current_user["email"],
+                "premium_status": current_user.get("premium_status", False),
+                "calorie_goal": current_user.get("calorie_goal")
+            },
+            "today": dashboard_data["today"],
+            "trends": {
+                "food_7d": dashboard_data["food_trend_7d"],
+                "workout_30d": dashboard_data["workout_trend_30d"]
+            },
+            "stats": dashboard_data["stats"]
+        }
+    except Exception as e:
+        logger.error(f"Error getting dashboard: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to load dashboard data")
+
+
+@router.get("/quick-stats")
+@limiter.limit("60/minute")
+async def get_quick_stats(request: Request, current_user: dict = Depends(get_current_user)) -> Dict[str, Any]:
+    try:
+        from datetime import date, timedelta
+        from app.domains.dashboard.stats import calculate_daily_summary
+        from app.domains.goal_plan.calorie_calculator import CalorieCalculator
+        from app.core.database import get_supabase, get_user_supabase
+
+        today = date.today()
+        access_token = current_user.get("access_token")
+        supabase = get_user_supabase(access_token) if access_token else get_supabase()
+        daily_summary = await calculate_daily_summary(
+            current_user["id"],
+            today,
+            access_token=access_token,
+        )
+
+        profile_result = supabase.table("user_profiles").select(
+            "weight_kg, height_cm, age, gender, activity_level"
+        ).eq("user_id", current_user["id"]).limit(1).execute()
+
+        profile_data = profile_result.data[0] if profile_result.data else {}
+        tdee = CalorieCalculator.calculate_tdee(
+            profile_data.get('weight_kg') or current_user.get('weight_kg') or 70.0,
+            profile_data.get('height_cm') or current_user.get('height_cm') or 170.0,
+            profile_data.get('age') or current_user.get('age') or 30,
+            profile_data.get('gender') or current_user.get('gender') or 'male',
+            profile_data.get('activity_level') or current_user.get('activity_level') or 'moderate',
+        )
+
+        workout_calories_result = supabase.table("workout_logs").select(
+            "calories_burned"
+        ).eq("user_id", current_user["id"]).eq('"date"', today.isoformat()).execute()
+
+        workout_calories = sum(
+            float(log.get('calories_burned', 0) or 0) for log in workout_calories_result.data
+        ) if workout_calories_result.data else 0.0
+
+        total_burned = tdee + workout_calories
+
+        week_start = today - timedelta(days=today.weekday())
+        workout_result = supabase.table("workout_logs").select("id").eq(
+            "user_id", current_user["id"]
+        ).gte('"date"', week_start.isoformat()).execute()
+        workouts_this_week = len(workout_result.data) if workout_result.data else 0
+
+        calorie_goal = float(current_user.get("calorie_goal") or 2000)
+        total_calories = float(daily_summary.get("total_calories", 0))
+        calorie_progress = (total_calories / calorie_goal * 100) if calorie_goal > 0 else 0
+
+        return {
+            "today_calories": total_calories,
+            "calorie_goal": calorie_goal,
+            "calorie_progress": min(100, round(calorie_progress, 1)),
+            "today_protein": float(daily_summary.get("total_protein", 0)),
+            "workouts_this_week": workouts_this_week,
+            "tdee": round(tdee, 1),
+            "workout_calories": round(workout_calories, 1),
+            "total_burned": round(total_burned, 1),
+            "premium_status": current_user.get("premium_status", False)
+        }
+    except Exception as e:
+        logger.error(f"Error getting quick stats: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to load quick stats")
+
+
+@router.get("/calorie-balance-trend")
+@limiter.limit("30/minute")
+async def get_calorie_balance_trend_endpoint(
+    request: Request, days: int = 7, current_user: dict = Depends(get_current_user)
+) -> Dict[str, Any]:
+    try:
+        trend_data = await get_calorie_balance_trend(
+            current_user["id"],
+            days,
+            profile=current_user,
+        )
+        return trend_data
+    except Exception as e:
+        logger.error(f"Error getting calorie balance trend: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to load calorie balance trend")

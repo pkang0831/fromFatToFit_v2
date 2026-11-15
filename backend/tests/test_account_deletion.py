@@ -27,7 +27,7 @@ def _progress_chain(data):
 
 
 def test_delete_user_account_cleans_progress_photo_storage_and_deletes_auth_user():
-    from app.services.account_deletion import delete_user_account
+    from app.domains.auth.account_deletion import delete_user_account
 
     progress_chain = _progress_chain([
         {"storage_bucket": "progress-photos-private", "storage_key": "user-1/photo-1.jpg"},
@@ -45,9 +45,9 @@ def test_delete_user_account_cleans_progress_photo_storage_and_deletes_auth_user
     supabase.auth.admin = auth_admin
 
     with (
-        patch("app.services.account_deletion.get_supabase", return_value=supabase),
+        patch("app.domains.auth.account_deletion.get_supabase", return_value=supabase),
         patch(
-            "app.services.account_deletion.get_subscription_diagnostics",
+            "app.domains.auth.account_deletion.get_subscription_diagnostics",
             AsyncMock(return_value={"deletion_blocked": False}),
         ),
     ):
@@ -60,7 +60,7 @@ def test_delete_user_account_cleans_progress_photo_storage_and_deletes_auth_user
 
 
 def test_delete_user_account_blocks_when_subscription_row_is_active():
-    from app.services.account_deletion import delete_user_account
+    from app.domains.auth.account_deletion import delete_user_account
 
     progress_chain = _progress_chain([])
 
@@ -74,9 +74,9 @@ def test_delete_user_account_blocks_when_subscription_row_is_active():
     supabase.auth.admin = auth_admin
 
     with (
-        patch("app.services.account_deletion.get_supabase", return_value=supabase),
+        patch("app.domains.auth.account_deletion.get_supabase", return_value=supabase),
         patch(
-            "app.services.account_deletion.get_subscription_diagnostics",
+            "app.domains.auth.account_deletion.get_subscription_diagnostics",
             AsyncMock(return_value={
                 "deletion_blocked": True,
                 "deletion_block_reason": "active_billing_requires_cancellation",
@@ -91,7 +91,7 @@ def test_delete_user_account_blocks_when_subscription_row_is_active():
     storage_bucket.remove.assert_not_called()
 
 def test_delete_user_account_blocks_when_billing_state_is_mismatched():
-    from app.services.account_deletion import delete_user_account
+    from app.domains.auth.account_deletion import delete_user_account
 
     progress_chain = _progress_chain([])
 
@@ -101,9 +101,9 @@ def test_delete_user_account_blocks_when_billing_state_is_mismatched():
     }[table_name]
 
     with (
-        patch("app.services.account_deletion.get_supabase", return_value=supabase),
+        patch("app.domains.auth.account_deletion.get_supabase", return_value=supabase),
         patch(
-            "app.services.account_deletion.get_subscription_diagnostics",
+            "app.domains.auth.account_deletion.get_subscription_diagnostics",
             AsyncMock(return_value={
                 "deletion_blocked": True,
                 "deletion_block_reason": "billing_state_mismatch_requires_reconciliation",
@@ -118,7 +118,7 @@ def test_delete_user_account_blocks_when_billing_state_is_mismatched():
 
 
 def test_delete_user_account_stops_if_storage_cleanup_fails():
-    from app.services.account_deletion import delete_user_account
+    from app.domains.auth.account_deletion import delete_user_account
 
     progress_chain = _progress_chain([
         {"storage_bucket": "progress-photos-private", "storage_key": "user-1/photo-1.jpg"},
@@ -135,9 +135,9 @@ def test_delete_user_account_stops_if_storage_cleanup_fails():
     supabase.auth.admin = auth_admin
 
     with (
-        patch("app.services.account_deletion.get_supabase", return_value=supabase),
+        patch("app.domains.auth.account_deletion.get_supabase", return_value=supabase),
         patch(
-            "app.services.account_deletion.get_subscription_diagnostics",
+            "app.domains.auth.account_deletion.get_subscription_diagnostics",
             AsyncMock(return_value={"deletion_blocked": False}),
         ),
     ):

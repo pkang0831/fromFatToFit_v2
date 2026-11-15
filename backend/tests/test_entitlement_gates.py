@@ -28,10 +28,10 @@ def _future_iso(days: int = 30) -> str:
 
 
 def test_check_premium_status_never_grants_from_stale_profile_fallback():
-    from app.services.payment_service import check_premium_status
+    from app.domains.billing.service import check_premium_status
 
     with patch(
-        "app.services.payment_service.get_subscription_diagnostics",
+        "app.domains.billing.service.get_subscription_diagnostics",
         AsyncMock(side_effect=RuntimeError("diagnostics unavailable")),
     ):
         result = _run(check_premium_status("user-123"))
@@ -40,12 +40,12 @@ def test_check_premium_status_never_grants_from_stale_profile_fallback():
 
 
 def test_verify_purchase_upserts_revenuecat_subscription_and_returns_reconciled_truth():
-    from app.routers.payments import verify_purchase
-    from app.schemas.payment_schemas import VerifyPurchaseRequest
+    from app.domains.billing.router import verify_purchase
+    from app.domains.billing.schemas import VerifyPurchaseRequest
 
     with (
         patch(
-            "app.routers.payments.verify_revenuecat_purchase",
+            "app.domains.billing.router.verify_revenuecat_purchase",
             AsyncMock(return_value={
                 "is_valid": True,
                 "status": "active",
@@ -55,9 +55,9 @@ def test_verify_purchase_upserts_revenuecat_subscription_and_returns_reconciled_
                 "entitlement_id": "premium_access",
             }),
         ),
-        patch("app.routers.payments._upsert_external_subscription", AsyncMock()) as upsert_external,
+        patch("app.domains.billing.router._upsert_external_subscription", AsyncMock()) as upsert_external,
         patch(
-            "app.routers.payments.get_subscription_diagnostics",
+            "app.domains.billing.router.get_subscription_diagnostics",
             AsyncMock(return_value={
                 "premium_status": True,
                 "deletion_blocked": True,
@@ -79,13 +79,13 @@ def test_verify_purchase_upserts_revenuecat_subscription_and_returns_reconciled_
 
 
 def test_beauty_gate_reads_authoritative_subscription_truth_for_credit_balance():
-    from app.routers.beauty import analyze_beauty, BeautyAnalyzeRequest
+    from app.domains.style.beauty_router import analyze_beauty, BeautyAnalyzeRequest
 
     with (
-        patch("app.routers.beauty.check_premium_status", AsyncMock(return_value=True)),
-        patch("app.routers.beauty.get_credit_balance", AsyncMock(return_value={"total_credits": 100})) as get_balance,
-        patch("app.routers.beauty.beauty_service.analyze_face", AsyncMock(return_value={"styling_suggestions": []})),
-        patch("app.routers.beauty.deduct_credits", AsyncMock()),
+        patch("app.domains.style.beauty_router.check_premium_status", AsyncMock(return_value=True)),
+        patch("app.domains.style.beauty_router.get_credit_balance", AsyncMock(return_value={"total_credits": 100})) as get_balance,
+        patch("app.domains.style.beauty_router.beauty.analyze_face", AsyncMock(return_value={"styling_suggestions": []})),
+        patch("app.domains.style.beauty_router.deduct_credits", AsyncMock()),
     ):
         _run(analyze_beauty(
             request=_request("/api/beauty/analyze"),
@@ -97,13 +97,13 @@ def test_beauty_gate_reads_authoritative_subscription_truth_for_credit_balance()
 
 
 def test_fashion_gate_reads_authoritative_subscription_truth_for_credit_balance():
-    from app.routers.fashion import recommend_fashion, FashionRecommendRequest
+    from app.domains.style.fashion_router import recommend_fashion, FashionRecommendRequest
 
     with (
-        patch("app.routers.fashion.check_premium_status", AsyncMock(return_value=False)),
-        patch("app.routers.fashion.get_credit_balance", AsyncMock(return_value={"total_credits": 100})) as get_balance,
-        patch("app.routers.fashion.fashion_service.recommend_outfits", AsyncMock(return_value={"outfits": []})),
-        patch("app.routers.fashion.deduct_credits", AsyncMock()),
+        patch("app.domains.style.fashion_router.check_premium_status", AsyncMock(return_value=False)),
+        patch("app.domains.style.fashion_router.get_credit_balance", AsyncMock(return_value={"total_credits": 100})) as get_balance,
+        patch("app.domains.style.fashion_router.fashion.recommend_outfits", AsyncMock(return_value={"outfits": []})),
+        patch("app.domains.style.fashion_router.deduct_credits", AsyncMock()),
     ):
         _run(recommend_fashion(
             request=_request("/api/fashion/recommend"),

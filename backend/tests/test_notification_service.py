@@ -11,7 +11,7 @@ def _run(coro):
 
 
 def test_get_notification_preferences_normalizes_legacy_row():
-    from app.services.notification_service import get_notification_preferences
+    from app.domains.notifications.service import get_notification_preferences
 
     result = MagicMock()
     result.data = [{
@@ -29,7 +29,7 @@ def test_get_notification_preferences_normalizes_legacy_row():
     supabase = MagicMock()
     supabase.table.return_value = chain
 
-    with patch("app.services.notification_service.get_supabase", return_value=supabase):
+    with patch("app.domains.notifications.service.get_supabase", return_value=supabase):
         prefs = _run(get_notification_preferences("user-123"))
 
     assert prefs["email_weekly_summary"] is False
@@ -40,7 +40,7 @@ def test_get_notification_preferences_normalizes_legacy_row():
 
 
 def test_update_notification_preferences_falls_back_to_legacy_columns():
-    from app.services.notification_service import update_notification_preferences
+    from app.domains.notifications.service import update_notification_preferences
 
     update_chain = MagicMock()
     update_chain.eq.return_value = update_chain
@@ -53,9 +53,9 @@ def test_update_notification_preferences_falls_back_to_legacy_columns():
     supabase.table.return_value = table_chain
 
     with (
-        patch("app.services.notification_service.get_supabase", return_value=supabase),
+        patch("app.domains.notifications.service.get_supabase", return_value=supabase),
         patch(
-            "app.services.notification_service.get_notification_preferences",
+            "app.domains.notifications.service.get_notification_preferences",
             AsyncMock(side_effect=[
                 {
                     "email_weekly_summary": True,
