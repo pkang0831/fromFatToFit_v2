@@ -3,7 +3,6 @@ export * from './Card';
 export * from './Input';
 export * from './Badge';
 export * from './Modal';
-export * from './ProgressBar';
 export * from './progress';
 export * from './ConfirmDialog';
 export * from './ProcessingOverlay';

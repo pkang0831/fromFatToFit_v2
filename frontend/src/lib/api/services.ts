@@ -6,8 +6,6 @@ import type {
   User,
   FoodLogCreate,
   FoodLog,
-  FoodAnalysisRequest,
-  FoodAnalysisResponse,
   BeautyAnalyzeRequest,
   BeautyAnalyzeResponse,
   FashionRecommendRequest,
@@ -22,25 +20,16 @@ import type {
   BodyScanRequest,
   BodyPhotoQualityRequest,
   BodyPhotoQualityResponse,
-  BodyFatEstimateResponse,
   PercentileResponse,
   TransformationJourneyResponse,
-  EnhancementResponse,
-  BodyScanHistoryItem,
   AccountDeletionResponse,
-  SegmentRequest,
-  SegmentResponse,
-  RegionTransformRequest,
-  RegionTransformResponse,
   CreateCheckoutSessionRequest,
   CheckoutSessionResponse,
   SubscriptionResponse,
   BillingPortalSessionResponse,
   UsageLimitsResponse,
-  QuickStatsResponse,
   CalorieBalanceTrendResponse,
   WeightLogCreate,
-  WeightLogUpdate,
   WeightLog,
   GoalUpdate,
   GoalProjectionResponse,
@@ -88,9 +77,6 @@ export const authApi = {
 
   deleteAccount: () =>
     api.delete<AccountDeletionResponse>('/auth/account'),
-
-  resetPassword: (email: string) =>
-    api.post('/auth/reset-password', { email }),
 };
 
 // Food API
@@ -100,9 +86,6 @@ export const foodApi = {
 
   updateLog: (logId: string, data: FoodLogCreate) =>
     api.put<FoodLog>(`/food/log/${logId}`, data),
-
-  analyzePhoto: (data: FoodAnalysisRequest) =>
-    api.post<FoodAnalysisResponse>('/food/analyze-photo', data),
 
   getDailyFood: (date: string) =>
     api.get<DailySummaryResponse>(`/food/daily/${date}`),
@@ -115,9 +98,6 @@ export const foodApi = {
 
   deleteLog: (logId: string) =>
     api.delete(`/food/log/${logId}`),
-
-  logNatural: (text: string, mealType: string, date?: string) =>
-    api.post('/food/log-natural', { text, meal_type: mealType, date }),
 };
 
 // Workout API
@@ -142,12 +122,6 @@ export const workoutApi = {
   getTrends: (days: number = 30) =>
     api.get<WorkoutTrendResponse>('/workout/trends', { params: { days } }),
 
-  analyzeForm: (videoBase64: string, exerciseName: string) =>
-    api.post('/workout/analyze-form', {
-      video_base64: videoBase64,
-      exercise_name: exerciseName,
-    }),
-
   deleteLog: (logId: string) =>
     api.delete(`/workout/log/${logId}`),
 };
@@ -157,41 +131,20 @@ export const bodyApi = {
   validatePhoto: (data: BodyPhotoQualityRequest) =>
     api.post<BodyPhotoQualityResponse>('/body/validate-photo', data),
 
-  estimateBodyFat: (data: BodyScanRequest) =>
-    api.post<BodyFatEstimateResponse>('/body/estimate-bodyfat', data),
-
   calculatePercentile: (data: BodyScanRequest) =>
     api.post<PercentileResponse>('/body/percentile', data),
 
   generateTransformation: (data: BodyScanRequest) =>
     api.post<TransformationJourneyResponse>('/body/transformation', data),
 
-  generateEnhancement: (data: BodyScanRequest) =>
-    api.post<EnhancementResponse>('/body/enhancement', data),
-
-  getScanHistory: () =>
-    api.get<BodyScanHistoryItem[]>('/body/scans/history'),
-
-  segmentBodyPart: (data: SegmentRequest) =>
-    api.post<SegmentResponse>('/body/segment', data),
-
-  transformRegion: (data: RegionTransformRequest) =>
-    api.post<RegionTransformResponse>('/body/transform-region', data),
-
   getGapToGoal: () =>
     api.get<import('@/types/api').GapToGoalResponse>('/body/gap-to-goal'),
-
-  saveGoal: (data: { goal_image_url: string; target_bf: number }) =>
-    api.patch('/body/save-goal', data),
 };
 
 // Payment API
 export const paymentApi = {
   createCheckoutSession: (data: CreateCheckoutSessionRequest) =>
     api.post<CheckoutSessionResponse>('/payments/create-checkout-session', data),
-
-  verifyPurchase: (receiptToken: string, platform: 'ios' | 'android') =>
-    api.post('/payments/verify-purchase', { receipt_token: receiptToken, platform }),
 
   getSubscriptionStatus: () =>
     api.get<SubscriptionResponse>('/payments/subscription'),
@@ -211,12 +164,6 @@ export const paymentApi = {
 
 // Dashboard API
 export const dashboardApi = {
-  getDashboard: () =>
-    api.get('/dashboard'),
-
-  getQuickStats: () =>
-    api.get<QuickStatsResponse>('/dashboard/quick-stats'),
-
   getCalorieBalanceTrend: (days: number = 7) =>
     api.get<CalorieBalanceTrendResponse>('/dashboard/calorie-balance-trend', {
       params: { days }
@@ -233,9 +180,6 @@ export const homeApi = {
 export const weeklyCheckinsApi = {
   analyze: (data: WeeklyCheckinCreateRequest) =>
     api.post<WeeklyCheckinAnalysisResponse>('/weekly-checkins/analyze', data),
-
-  getLatest: () =>
-    api.get<WeeklyCheckinAnalysisResponse>('/weekly-checkins/latest'),
 };
 
 export const analyticsApi = {
@@ -270,21 +214,6 @@ export const foodDatabaseApi = {
     api.get('/food-database/search', { 
       params: { q: query, limit, category } 
     }),
-
-  getFoodDetails: (foodId: string) =>
-    api.get(`/food-database/${foodId}`),
-
-  getCategories: () =>
-    api.get('/food-database/categories'),
-
-  calculateNutrition: (foodId: string, amountGrams: number) =>
-    api.post('/food-database/calculate', { 
-      food_id: foodId, 
-      amount_grams: amountGrams 
-    }),
-
-  getDatabaseStats: () =>
-    api.get('/food-database/stats/overview'),
 
   lookupBarcode: (barcode: string) =>
     api.get(`/food-database/barcode/${barcode}`),
@@ -335,15 +264,6 @@ export const notificationApi = {
 export const weightApi = {
   createLog: (data: WeightLogCreate) =>
     api.post<WeightLog>('/weight/log', data),
-
-  getLogs: (days: number = 30) =>
-    api.get<WeightLog[]>('/weight/logs', { params: { days } }),
-
-  updateLog: (logId: string, data: WeightLogUpdate) =>
-    api.patch<WeightLog>(`/weight/log/${logId}`, data),
-
-  deleteLog: (logId: string) =>
-    api.delete(`/weight/log/${logId}`),
 
   updateGoals: (goals: GoalUpdate) =>
     api.patch('/weight/goals', goals),
@@ -412,15 +332,8 @@ export const proofShareApi = {
   revoke: (shareId: string) => api.delete<{ message: string }>(`/proof-shares/${shareId}`),
 };
 
-// Streak API
-export const streakApi = {
-  getStreak: () => api.get('/streaks'),
-  checkIn: () => api.post('/streaks/check-in'),
-};
-
 // Fasting API
 export const fastingApi = {
-  getPresets: () => api.get('/fasting/presets'),
   getCurrent: () => api.get('/fasting/current'),
   startFast: (protocol: string, targetHours?: number) =>
     api.post('/fasting/start', { protocol, target_hours: targetHours }),
@@ -461,24 +374,6 @@ export const goalPlanApi = {
     protein_pct?: number;
     fat_pct?: number;
   }) => api.post('/goal-plan/macros', data),
-
-  suggestFoods: (data: {
-    protein_g: number;
-    carb_g: number;
-    fat_g: number;
-    priority?: string;
-    categories?: string[];
-    limit?: number;
-  }) => api.post('/goal-plan/foods', data),
-
-  composeDishes: (data: {
-    ingredients: { food_id: string; amount_g: number }[];
-    target_calories?: number;
-    target_protein_g?: number;
-    target_carb_g?: number;
-    target_fat_g?: number;
-    meals_per_day?: number;
-  }) => api.post('/goal-plan/dishes', data),
 
   recommendMeals: (data: {
     daily_calories: number;

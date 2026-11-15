@@ -76,35 +76,3 @@ export function ProfileIcon(props: AppIconProps) {
     </IconBase>
   );
 }
-
-export function ProgressPhotoIcon(props: AppIconProps) {
-  return (
-    <IconBase {...props}>
-      <rect x="4.5" y="6" width="12.5" height="11" rx="2.8" />
-      <circle cx="9.1" cy="9.2" r="1.15" />
-      <path d="M7.2 15.2 10.1 12.1 12.6 14.4 15.1 11.3 17 13.2" />
-      <path d="M18.2 7.5h3.3" />
-      <path d="M19.85 5.85v3.3" />
-    </IconBase>
-  );
-}
-
-export function CompareChangesIcon(props: AppIconProps) {
-  return (
-    <IconBase {...props}>
-      <rect x="4.5" y="6" width="7.5" height="11.5" rx="2.2" />
-      <rect x="12" y="7.5" width="7.5" height="11.5" rx="2.2" />
-      <path d="M9 12h6" />
-      <path d="M12.8 9.8 15 12l-2.2 2.2" />
-    </IconBase>
-  );
-}
-
-export function SaveCheckInIcon(props: AppIconProps) {
-  return (
-    <IconBase {...props}>
-      <circle cx="12" cy="12" r="8" />
-      <path d="M8.2 12.3 10.7 14.8 15.9 9.6" />
-    </IconBase>
-  );
-}

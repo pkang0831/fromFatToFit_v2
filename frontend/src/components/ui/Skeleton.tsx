@@ -10,12 +10,6 @@ export function SkeletonStats({ count = 4 }: { count?: number }) {
   );
 }
 
-export function SkeletonChart() {
-  return (
-    <div className="h-64 rounded-2xl bg-surfaceAlt dark:bg-white/[0.04] skeleton-shimmer" />
-  );
-}
-
 export function SkeletonCard() {
   return (
     <div className="h-32 rounded-2xl bg-surfaceAlt dark:bg-white/[0.04] skeleton-shimmer" />
