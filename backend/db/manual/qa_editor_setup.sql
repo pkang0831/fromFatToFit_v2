@@ -8,7 +8,7 @@
 --
 -- ① Auth 사용자 만들기 (둘 중 하나)
 --    A) Dashboard → Authentication → Users → Add user → Email / Password 입력
---    B) 로컬에서: scripts/supabase_create_qa_email_user.py (SERVICE_ROLE + QA_EMAIL/QA_PASSWORD)
+--    B) 로컬에서: backend/scripts/supabase_create_qa_email_user.py (SERVICE_ROLE + QA_EMAIL/QA_PASSWORD)
 --
 -- ② 이 파일의 이메일만 본인 QA 계정으로 바꾼 뒤, 아래 블록을 순서대로 실행
 --

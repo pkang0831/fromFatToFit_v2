@@ -42,7 +42,7 @@ type HologramMaterial = THREE.ShaderMaterial & {
   };
 };
 
-const HUMAN_MODEL_URL = '/api/assets/human-body-model';
+const HUMAN_MODEL_URL = '/assets/human-converted.glb';
 const TARGET_HEIGHT = 3.45;
 
 const hologramVertexShader = `

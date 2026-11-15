@@ -8,7 +8,6 @@ router = APIRouter()
 
 REPO_ROOT = BACKEND_DIR.parent
 HUMAN_BODY_MODEL_CANDIDATES = [
-    REPO_ROOT / "human-converted.glb",
     REPO_ROOT / "frontend" / "public" / "assets" / "human-converted.glb",
 ]
 

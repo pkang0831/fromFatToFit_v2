@@ -1,7 +1,7 @@
 -- Run in Supabase → SQL Editor
 -- Use when: auth.users 에는 있는데 public.user_profiles 행이 없어서 앱이 비는 경우
 -- (이메일/비밀번호 계정은 대시보드 Authentication → Users 로 만들거나
---  scripts/supabase_create_qa_email_user.py 로 만드는 것을 권장)
+--  backend/scripts/supabase_create_qa_email_user.py 로 만드는 것을 권장)
 
 -- 1) 특정 이메일에 대해 프로필이 없으면 한 줄 삽입
 INSERT INTO public.user_profiles (
