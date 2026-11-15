@@ -74,6 +74,7 @@ if (-not $SkipBackend) {
     }
     Check "auth required (/api/auth/me)" "$ApiBase/api/auth/me" @(401, 403)
     Check "public proof share 404" "$ApiBase/api/proof-shares/public/smoke-test-invalid-token" @(404)
+    Check "API schema hidden (/openapi.json)" "$ApiBase/openapi.json" @(404)
     Check "CORS / CSP headers present" "$ApiBase/health" @(200) {
         param($r)
         if (-not $r.Headers["X-Content-Type-Options"]) { "security headers missing" }
