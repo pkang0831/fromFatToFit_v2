@@ -14,8 +14,6 @@ from ..schemas.body_schemas import (
     StageDescriptorResponse, StageNutritionSnapshotResponse,
     NutritionPlanResponse, WorkoutPlanResponse,
     AutoSegmentRequest, AutoSegmentResponse, SegClassInfo, CandidateSegmentInfo,
-    CutEditPrepRequest, CutEditPrepResponse,
-    CutWarpPreviewRequest, CutWarpPreviewResponse,
     BodyPhotoQualityRequest, BodyPhotoQualityResponse,
 )
 from ..database import get_supabase
@@ -975,90 +973,6 @@ async def auto_segment_body(
     except Exception as e:
         logger.error(f"Auto-segmentation error: {e}", exc_info=True)
         _raise_body_unavailable(e, default_detail="Auto-segmentation failed. Please try again.")
-
-
-# ---------------------------------------------------------------------------
-# CUT edit preparation (post-segmentation mask/weight pipeline)
-# ---------------------------------------------------------------------------
-
-@router.post("/prepare-cut-edit", response_model=CutEditPrepResponse)
-@limiter.limit("5/minute")
-async def prepare_cut_edit_endpoint(
-    request: Request,
-    prep_request: CutEditPrepRequest,
-):
-    """Build protect/edit/weight/feather masks for CUT body-fat simulation.
-
-    This is a deterministic pipeline that produces masks and maps for
-    a downstream geometry warp + diffusion refinement stage.
-    No image editing is performed here.
-    """
-    try:
-        from ..services.edit_prep import prepare_cut_edit
-
-        result = await prepare_cut_edit(
-            image_base64=prep_request.image_base64,
-            intensity=prep_request.intensity,
-            user_protect_mask_b64=prep_request.user_protect_mask_base64,
-        )
-
-        return CutEditPrepResponse(
-            width=result.width,
-            height=result.height,
-            protect_mask_base64=result.protect_mask_b64,
-            edit_mask_base64=result.edit_mask_b64,
-            weight_map_base64=result.weight_map_b64,
-            feather_mask_base64=result.feather_mask_b64,
-            combined_map_base64=result.combined_map_b64,
-            debug_info=result.debug_info,
-        )
-
-    except Exception as e:
-        logger.error(f"CUT edit prep error: {e}", exc_info=True)
-        _raise_body_unavailable(e, default_detail="Edit preparation failed. Please try again.")
-
-
-# ---------------------------------------------------------------------------
-# CUT warp preview (deterministic geometry warp)
-# ---------------------------------------------------------------------------
-
-@router.post("/cut-warp-preview", response_model=CutWarpPreviewResponse)
-@limiter.limit("5/minute")
-async def cut_warp_preview_endpoint(
-    request: Request,
-    warp_request: CutWarpPreviewRequest,
-):
-    """Generate a deterministic geometry-warp preview for CUT body-fat simulation.
-
-    Uses lateral flank contraction + lower-abdomen flattening.
-    No diffusion — pure geometric deformation.
-    Presets: mild, medium, strong.
-    """
-    try:
-        from ..services.cut_warp import cut_warp_preview
-
-        result = await cut_warp_preview(
-            image_base64=warp_request.image_base64,
-            preset=warp_request.preset,
-            intensity=warp_request.intensity,
-        )
-
-        return CutWarpPreviewResponse(
-            width=result.width,
-            height=result.height,
-            warped_image_base64=result.warped_image_b64,
-            displacement_viz_base64=result.displacement_viz_b64,
-            debug_info=result.debug_info,
-        )
-
-    except Exception as e:
-        if isinstance(e, (ValueError, IndexError, json.JSONDecodeError)):
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Warp preview could not be generated from this image. Try a larger, clearer body photo.",
-            )
-        logger.error(f"CUT warp preview error: {e}", exc_info=True)
-        _raise_body_unavailable(e, default_detail="Warp preview failed. Please try again.")
 
 
 # ---------------------------------------------------------------------------

@@ -194,67 +194,6 @@ class AutoSegmentResponse(BaseModel):
     debug_info: Optional[Dict[str, Any]] = None
 
 
-# ── CUT edit preparation ────────────────────────────────────────────────────
-
-class CutEditPrepRequest(BaseModel):
-    image_base64: str = Field(..., description="Base64-encoded body photo (no data: prefix)")
-    intensity: float = Field(
-        default=0.5, ge=0.0, le=1.0,
-        description="Global edit strength multiplier (0 = minimal, 1 = maximum)",
-    )
-    user_protect_mask_base64: Optional[str] = Field(
-        None,
-        description="Optional user-drawn protection mask (base64 PNG, white = protect)",
-    )
-
-
-class CutEditPrepResponse(BaseModel):
-    width: int = Field(..., description="Original image width in pixels")
-    height: int = Field(..., description="Original image height in pixels")
-    protect_mask_base64: str = Field(
-        ..., description="Binary PNG — white = protected (never edit)",
-    )
-    edit_mask_base64: str = Field(
-        ..., description="Binary PNG — white = editable region",
-    )
-    weight_map_base64: str = Field(
-        ..., description="Grayscale PNG — 0=no edit, 255=max edit intensity",
-    )
-    feather_mask_base64: str = Field(
-        ..., description="Grayscale PNG — soft boundary falloff (0=edge, 255=deep inside)",
-    )
-    combined_map_base64: str = Field(
-        ..., description="Grayscale PNG — weight_map * feather_mask, ready for warp/diffusion",
-    )
-    debug_info: Optional[Dict[str, Any]] = None
-
-
-# ── CUT warp preview ────────────────────────────────────────────────────────
-
-class CutWarpPreviewRequest(BaseModel):
-    image_base64: str = Field(..., description="Base64-encoded body photo (no data: prefix)")
-    preset: str = Field(
-        default="medium",
-        description="Warp intensity preset: mild, medium, or strong",
-    )
-    intensity: float = Field(
-        default=0.5, ge=0.0, le=1.0,
-        description="Edit-prep weight map intensity (0 = minimal, 1 = maximum)",
-    )
-
-
-class CutWarpPreviewResponse(BaseModel):
-    width: int
-    height: int
-    warped_image_base64: str = Field(
-        ..., description="JPEG base64 — the warped preview image",
-    )
-    displacement_viz_base64: str = Field(
-        ..., description="PNG base64 — displacement field debug visualization (R=dx, G=dy, B=magnitude)",
-    )
-    debug_info: Optional[Dict[str, Any]] = None
-
-
 class GuestScanRequest(BaseModel):
     image_base64: str
     gender: str = Field(..., description="male or female")

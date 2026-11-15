@@ -93,16 +93,9 @@ class Settings(BaseSettings):
     # Dev-only: if HTTPS to huggingface.co fails (corporate MITM / cert issues), set True.
     # Do not enable in production.
     hf_hub_disable_ssl_verification: bool = False
-
-    # ── Local CPU diffusion backend ──────────────────────────────────────────
-    body_diffusion_backend: str = "sd15_inpaint_cpu"
     hf_token: str = ""
     hf_cache_dir: str = ""
-    sd15_local_model_path: str = ""
-    diffusion_roi_max_px: int = 512
-    diffusion_num_steps: int = 18
-    diffusion_use_openvino: bool = False
-    
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

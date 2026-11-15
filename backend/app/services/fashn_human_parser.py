@@ -256,7 +256,7 @@ def _get_landmarker():
     return _landmarker
 
 
-# ── Public helpers (used by edit_prep.py and other downstream stages) ─────────
+# ── Pose + parsing helpers ───────────────────────────────────────────────────
 # load_and_normalize_image, lm_visible → body_image_utils (torch-free)
 
 
