@@ -32,13 +32,13 @@ def _make_request(**overrides):
 
 
 _PATCHES = {
-    "bf": "app.domains.body.router.estimate_body_fat_with_fallback",
-    "quality": "app.domains.body.router._require_safe_body_photo",
+    "bf": "app.domains.transformation.router.estimate_body_fat_with_fallback",
+    "quality": "app.domains.transformation.router.require_safe_body_photo",
     "gen": "app.domains.transformation.realvis_pipeline.generate_realvis_journey",
-    "credits": "app.domains.body.router.deduct_credits",
-    "premium": "app.domains.body.router.check_premium_status",
-    "balance": "app.domains.body.router.get_credit_balance",
-    "supabase": "app.domains.body.router.get_supabase",
+    "credits": "app.domains.transformation.router.deduct_credits",
+    "premium": "app.domains.transformation.router.check_premium_status",
+    "balance": "app.domains.transformation.router.get_credit_balance",
+    "supabase": "app.domains.transformation.router.get_supabase",
 }
 
 
@@ -76,7 +76,7 @@ def _standard_mocks():
 
 
 def _call(scan_request=None, mock_overrides=None):
-    from app.domains.body.router import generate_transformation_journey
+    from app.domains.transformation.router import generate_transformation_journey
 
     fn = getattr(generate_transformation_journey, "__wrapped__", generate_transformation_journey)
 
@@ -157,7 +157,7 @@ class TestBillingSafety:
             patch(_PATCHES["balance"], mocks["balance"]),
             patch(_PATCHES["supabase"], mocks["supabase"]),
         ):
-            from app.domains.body.router import generate_transformation_journey
+            from app.domains.transformation.router import generate_transformation_journey
 
             fn = getattr(generate_transformation_journey, "__wrapped__", generate_transformation_journey)
             user = {"id": "user-abc"}

@@ -17,6 +17,7 @@ from app.domains.analytics import router as analytics
 from app.domains.assets import router as assets
 from app.domains.auth import router as auth
 from app.domains.billing import router as billing
+from app.domains.body import editor_router as body_editor
 from app.domains.body import router as body
 from app.domains.challenge import router as challenge
 from app.domains.checkins import router as checkins
@@ -39,6 +40,7 @@ from app.domains.proof_shares import router as proof_shares
 from app.domains.streaks import router as streaks
 from app.domains.style import beauty_router as beauty
 from app.domains.style import fashion_router as fashion
+from app.domains.transformation import router as transformation
 from app.domains.weight import router as weight
 from app.domains.workout import router as workout
 
@@ -167,6 +169,8 @@ app.include_router(food_database.router, prefix="/api/food-database", tags=["Foo
 app.include_router(food_decision.router)
 app.include_router(workout.router, prefix="/api/workout", tags=["Workouts"])
 app.include_router(body.router, prefix="/api/body", tags=["Body Analysis"])
+app.include_router(transformation.router, prefix="/api/body", tags=["Body Transformation"])
+app.include_router(body_editor.router, prefix="/api/body", tags=["Body Editor"])
 app.include_router(billing.router, prefix="/api/payments", tags=["Payments"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(weight.router, prefix="/api", tags=["Weight Tracking"])

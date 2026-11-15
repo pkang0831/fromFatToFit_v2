@@ -245,7 +245,7 @@ def test_calculate_body_percentile_logs_scan_success_with_weekly_reminder_contex
     log_event = AsyncMock()
 
     with (
-        patch("app.domains.body.router._require_safe_body_photo", AsyncMock()),
+        patch("app.domains.body.router.require_safe_body_photo", AsyncMock()),
         patch("app.domains.body.router.check_premium_status", AsyncMock(return_value=False)),
         patch("app.domains.body.router.check_usage_limit", AsyncMock(return_value={"remaining": 1})),
         patch("app.domains.body.router.estimate_body_fat_with_fallback", AsyncMock(return_value={"body_fat_percentage": 18.2, "confidence": "high"})),

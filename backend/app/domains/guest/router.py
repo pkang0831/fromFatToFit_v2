@@ -17,7 +17,7 @@ from app.domains.body.schemas import (
 from app.core.rate_limit import limiter
 from app.core.database import get_supabase
 from app.vision.photo_quality import analyze_body_photo_quality
-from app.domains.body.router import estimate_body_fat_with_fallback, _require_safe_body_photo
+from app.domains.body.common import estimate_body_fat_with_fallback, require_safe_body_photo
 from app.core.upstream_errors import body_model_service_unavailable, is_hf_or_body_model_unavailable, is_openai_unavailable
 
 logger = logging.getLogger(__name__)
@@ -192,7 +192,7 @@ async def guest_body_scan(request: Request, scan_request: GuestScanRequest):
     await _check_guest_scan_limit(request)
 
     try:
-        await _require_safe_body_photo(
+        await require_safe_body_photo(
             scan_request.image_base64,
             route_name="guest_body_scan",
             framing=scan_request.framing,
