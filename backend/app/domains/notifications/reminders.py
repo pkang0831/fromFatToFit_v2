@@ -2,6 +2,7 @@
 import logging
 import asyncio
 import smtplib
+import httpx
 from typing import Dict, Any, List
 from datetime import datetime, timezone, timedelta
 from email.message import EmailMessage
@@ -42,6 +43,9 @@ WEEKLY_PROOF_NON_DELIVERABLE_STATUSES = {"bounced", "suppressed", "complained", 
 
 
 WEEKLY_PROOF_COOLDOWN_STATUSES = {"queued", "sending", "sent", "delivered", "opened", "clicked"}
+
+
+RESEND_EMAILS_URL = "https://api.resend.com/emails"
 
 
 def _utcnow() -> datetime:
@@ -86,12 +90,8 @@ def get_weekly_proof_reminder_status() -> Dict[str, Any]:
             "cooldown_hours": settings.weekly_proof_reminder_cooldown_hours,
         }
 
-    if (
-        not settings.smtp_host
-        or not settings.smtp_username
-        or not settings.smtp_password
-        or not settings.smtp_from_email
-    ):
+    smtp_configured = bool(settings.smtp_host and settings.smtp_username and settings.smtp_password)
+    if not settings.smtp_from_email or not (settings.resend_api_key or smtp_configured):
         return {
             "active": False,
             "channel": WEEKLY_PROOF_REMINDER_CHANNEL,
@@ -386,7 +386,38 @@ def _send_email_message(message: EmailMessage) -> None:
         smtp.send_message(message)
 
 
-async def _send_weekly_proof_email(candidate: Dict[str, Any], reminder_event_id: str) -> str:
+async def _send_via_resend_api(
+    *,
+    to: str,
+    subject: str,
+    text: str,
+    html: str,
+    headers: Dict[str, str],
+    idempotency_key: str,
+) -> str:
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.post(
+            RESEND_EMAILS_URL,
+            headers={
+                "Authorization": f"Bearer {settings.resend_api_key}",
+                "Idempotency-Key": idempotency_key,
+            },
+            json={
+                "from": settings.smtp_from_email,
+                "to": [to],
+                "subject": subject,
+                "text": text,
+                "html": html,
+                "headers": headers,
+            },
+        )
+    if response.status_code >= 400:
+        raise RuntimeError(f"Resend API {response.status_code}: {response.text[:300]}")
+    return response.json()["id"]
+
+
+async def _send_weekly_proof_email(candidate: Dict[str, Any], reminder_event_id: str) -> tuple[str, str | None]:
+    """Returns (provider_message_id, provider_email_id); the latter is set only for the Resend API."""
     tracking_url = build_weekly_proof_tracking_url(reminder_event_id, candidate["next_path"])
     unsubscribe_url = build_weekly_proof_unsubscribe_url(reminder_event_id)
     message = EmailMessage()
@@ -413,11 +444,25 @@ async def _send_weekly_proof_email(candidate: Dict[str, Any], reminder_event_id:
         f"<a href=\"{unsubscribe_url}\">Unsubscribe from weekly proof reminders</a>"
         f"</p>"
     )
+    if settings.resend_api_key:
+        email_id = await _send_via_resend_api(
+            to=candidate["email"],
+            subject=candidate["subject"],
+            text=text_body,
+            html=html_body,
+            headers={
+                name: str(message[name])
+                for name in ("List-Unsubscribe", "List-Unsubscribe-Post", "X-Denevira-Reminder-Id", "Auto-Submitted")
+            },
+            idempotency_key=f"weekly-proof-{reminder_event_id}",
+        )
+        return email_id, email_id
+
     message.set_content(text_body)
     message.add_alternative(html_body, subtype="html")
 
     await asyncio.to_thread(_send_email_message, message)
-    return str(message["Message-ID"])
+    return str(message["Message-ID"]), None
 
 
 def _list_candidate_profiles() -> List[Dict[str, Any]]:
@@ -627,17 +672,19 @@ async def run_weekly_proof_reminder_job(now: datetime | None = None) -> Dict[str
             reminder_event = _create_reminder_event(candidate, job_key)
             try:
                 _update_reminder_event(reminder_event["id"], {"status": "sending"})
-                provider_message_id = await _send_weekly_proof_email(candidate, reminder_event["id"])
-                _update_reminder_event(
-                    reminder_event["id"],
-                    {
-                        "status": "sent",
-                        "provider_message_id": provider_message_id,
-                        "sent_at": current_time.isoformat(),
-                        "recipient_email": candidate["email"],
-                        "last_provider_event_type": "email.sent",
-                    },
+                provider_message_id, provider_email_id = await _send_weekly_proof_email(
+                    candidate, reminder_event["id"]
                 )
+                sent_updates = {
+                    "status": "sent",
+                    "provider_message_id": provider_message_id,
+                    "sent_at": current_time.isoformat(),
+                    "recipient_email": candidate["email"],
+                    "last_provider_event_type": "email.sent",
+                }
+                if provider_email_id:
+                    sent_updates["provider_email_id"] = provider_email_id
+                _update_reminder_event(reminder_event["id"], sent_updates)
                 try:
                     await send_push_notification(
                         candidate["user_id"],
