@@ -3,7 +3,7 @@
 import { CheckCircle, AlertTriangle, XCircle, AlertCircle, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Progress } from '@/components/ui/progress';
+import { Progress } from '@/components/ui/Progress';
 
 interface DecisionReason {
   type: string;

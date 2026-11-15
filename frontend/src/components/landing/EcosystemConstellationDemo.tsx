@@ -3,8 +3,8 @@
 import { useMemo } from 'react';
 import { Player } from '@remotion/player';
 
-import { cn } from '@/lib/utils';
-import { EcosystemConstellation } from '@/components/ui/ecosystem-constellation';
+import { cn } from '@/lib/utils/cn';
+import { EcosystemConstellation } from '@/components/landing/EcosystemConstellation';
 
 interface EcosystemConstellationDemoProps {
   className?: string;

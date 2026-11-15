@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import { BrandLogo } from '@/components/brand/BrandLogo';
-import { useSubscription } from '@/lib/hooks/useSubscription';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { paymentApi } from '@/lib/api/services';
 import { TOUR_START_EVENT, resetAllTours } from '@/components/tour/FeatureTour';
 import { useTheme, COLOR_THEMES } from '@/contexts/ThemeContext';

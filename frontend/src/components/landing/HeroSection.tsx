@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowRight, Camera, ScanFace, Sparkles, Target } from 'lucide-react';
 
-import { EcosystemConstellationDemo } from '@/components/ui/ecosystem-constellation-demo';
+import { EcosystemConstellationDemo } from '@/components/landing/EcosystemConstellationDemo';
 
 export function HeroSection() {
   const { t } = useLanguage();

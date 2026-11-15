@@ -10,7 +10,7 @@ import { JourneyResult } from '@/components/features/JourneyResult';
 import { BodyCaptureGuide } from '@/components/features/BodyCaptureGuide';
 import { BodyScanPoseGuide } from '@/components/features/BodyScanPoseGuide';
 import { IDEAL_BODY_SCAN_POSE_IMAGE } from '@/lib/constants/bodyScanGuide';
-import { useSubscription } from '@/lib/hooks/useSubscription';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { bodyApi, paymentApi } from '@/lib/api/services';
