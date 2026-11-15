@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, Button, Input } from '@/components/ui';
-import { SocialLoginButtons } from '@/components/features/SocialLoginButtons';
+import { SocialLoginButtons } from '@/components/features/auth/SocialLoginButtons';
 import { getRetentionSessionId } from '@/lib/analytics';
 
 const EMAIL_LOGIN_ENABLED = process.env.NEXT_PUBLIC_ENABLE_EMAIL_LOGIN === 'true';

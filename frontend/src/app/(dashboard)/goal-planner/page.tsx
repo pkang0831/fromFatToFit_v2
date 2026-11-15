@@ -6,10 +6,10 @@ import { Target, ArrowLeft, ArrowRight, Check, ChevronRight, RefreshCw, Utensils
 import { Card, CardContent, Button } from '@/components/ui';
 import { goalPlanApi, authApi, bodyApi } from '@/lib/api/services';
 import { trackRetentionEvent } from '@/lib/analytics';
-import { TierComparison } from '@/components/features/goal-planner/TierComparison';
-import { MacroSlider } from '@/components/features/goal-planner/MacroSlider';
-import { ExerciseRoutine } from '@/components/features/goal-planner/ExerciseRoutine';
-import { CardioPlan } from '@/components/features/goal-planner/CardioPlan';
+import { TierComparison } from '@/components/features/goals/TierComparison';
+import { MacroSlider } from '@/components/features/goals/MacroSlider';
+import { ExerciseRoutine } from '@/components/features/goals/ExerciseRoutine';
+import { CardioPlan } from '@/components/features/goals/CardioPlan';
 
 const STEPS = [
   { label: 'Goals', icon: '1' },

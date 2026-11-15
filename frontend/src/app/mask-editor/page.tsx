@@ -16,7 +16,7 @@ import { importLabelMapPng, type SegmentationExport, type LabelMap } from '@/lib
 import { API_URL } from '@/lib/api/baseUrl';
 
 const BodyMaskEditor = dynamic(
-  () => import('@/components/features/BodyMaskEditor'),
+  () => import('@/components/features/body/BodyMaskEditor'),
   { ssr: false },
 );
 

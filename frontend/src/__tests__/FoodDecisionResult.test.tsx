@@ -7,7 +7,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { FoodDecisionResult } from '@/components/features/FoodDecisionResult';
+import { FoodDecisionResult } from '@/components/features/food/FoodDecisionResult';
 
 // Mock data
 const mockGreenResult = {

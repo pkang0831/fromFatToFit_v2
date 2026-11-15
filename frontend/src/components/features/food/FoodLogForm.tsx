@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { ScanBarcode } from 'lucide-react';
 import { Input, Select, Button, Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 import { Autocomplete, AutocompleteOption } from '@/components/ui/Autocomplete';
-import { BarcodeScanner } from '@/components/features/BarcodeScanner';
+import { BarcodeScanner } from '@/components/features/food/BarcodeScanner';
 import { foodApi, foodDatabaseApi } from '@/lib/api/services';
 import { getTodayString } from '@/lib/utils/date';
 import { 

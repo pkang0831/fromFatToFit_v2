@@ -6,7 +6,7 @@ import { Line, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 
 import { cn } from '@/lib/utils/cn';
-import { HumanBodyModel } from '@/components/features/HumanBodyModel';
+import { HumanBodyModel } from '@/components/features/body/HumanBodyModel';
 import type { RegionStatus, RegionVisualization } from '@/types/api';
 
 type ScannerRegion = 'abdomen' | 'chest' | 'arms' | 'whole';
