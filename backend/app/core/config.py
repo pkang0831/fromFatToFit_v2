@@ -77,6 +77,8 @@ class Settings(BaseSettings):
     weekly_proof_reminder_job_interval_minutes: int = 60
     analytics_admin_emails: str = ""
     resend_webhook_secret: str = ""
+    # Railway Hobby blocks outbound SMTP, so production sends through the Resend HTTPS API.
+    resend_api_key: str = ""
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_username: str = ""

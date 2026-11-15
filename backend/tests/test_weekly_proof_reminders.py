@@ -309,16 +309,74 @@ def test_send_weekly_proof_email_builds_tracking_link_and_returns_message_id():
     with (
         patch.object(settings, "public_api_url", "https://api.denevira.test/api"),
         patch.object(settings, "smtp_from_email", "hello@denevira.test"),
+        patch.object(settings, "resend_api_key", ""),
         patch("app.domains.notifications.reminders.asyncio.to_thread", AsyncMock(return_value=None)) as to_thread,
     ):
-        provider_message_id = _run(_send_weekly_proof_email(candidate, "event-1"))
+        provider_message_id, provider_email_id = _run(_send_weekly_proof_email(candidate, "event-1"))
 
     assert provider_message_id.startswith("<")
+    assert provider_email_id is None
     sent_message = to_thread.call_args.args[1]
     assert "event-1" in sent_message.get_body(preferencelist=("plain",)).get_content()
     assert "https://api.denevira.test/api/notifications/reminders/open/event-1" in sent_message.get_body(preferencelist=("html",)).get_content()
     assert sent_message["List-Unsubscribe"] == "<https://api.denevira.test/api/notifications/reminders/unsubscribe/event-1>"
     assert sent_message["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
+
+
+def test_send_weekly_proof_email_uses_resend_api_when_key_is_set():
+    from app.domains.notifications import reminders
+    from app.core.config import settings
+
+    candidate = {
+        "email": "user@example.com",
+        "subject": "Upload proof",
+        "headline": "Headline",
+        "body": "Body",
+        "next_path": "/progress?tab=photos&focus=upload&from=weekly_reminder",
+    }
+    captured = {}
+
+    class _Response:
+        status_code = 200
+        text = ""
+
+        def json(self):
+            return {"id": "resend-email-1"}
+
+    class _Client:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            return False
+
+        async def post(self, url, headers=None, json=None):
+            captured.update(url=url, headers=headers, json=json)
+            return _Response()
+
+    with (
+        patch.object(settings, "public_api_url", "https://api.denevira.test/api"),
+        patch.object(settings, "smtp_from_email", "hello@denevira.test"),
+        patch.object(settings, "resend_api_key", "re_test"),
+        patch.object(reminders.httpx, "AsyncClient", _Client),
+        patch("app.domains.notifications.reminders.asyncio.to_thread", AsyncMock()) as to_thread,
+    ):
+        result = _run(reminders._send_weekly_proof_email(candidate, "event-1"))
+
+    assert result == ("resend-email-1", "resend-email-1")
+    to_thread.assert_not_awaited()
+    assert captured["url"] == "https://api.resend.com/emails"
+    assert captured["headers"]["Authorization"] == "Bearer re_test"
+    assert captured["headers"]["Idempotency-Key"] == "weekly-proof-event-1"
+    assert captured["json"]["to"] == ["user@example.com"]
+    assert captured["json"]["from"] == "hello@denevira.test"
+    assert "reminders/open/event-1" in captured["json"]["html"]
+    assert captured["json"]["headers"]["List-Unsubscribe"] == (
+        "<https://api.denevira.test/api/notifications/reminders/unsubscribe/event-1>"
+    )
 
 
 def test_run_weekly_proof_reminder_job_marks_sent_and_logs_analytics():
@@ -347,7 +405,7 @@ def test_run_weekly_proof_reminder_job_marks_sent_and_logs_analytics():
         patch("app.domains.notifications.reminders._finish_weekly_proof_job_run") as finish_job,
         patch("app.domains.notifications.reminders.evaluate_weekly_proof_reminder_candidates", AsyncMock(return_value=[candidate])),
         patch("app.domains.notifications.reminders._create_reminder_event", return_value={"id": "event-1"}),
-        patch("app.domains.notifications.reminders._send_weekly_proof_email", AsyncMock(return_value="<message-id>")),
+        patch("app.domains.notifications.reminders._send_weekly_proof_email", AsyncMock(return_value=("resend-1", "resend-1"))),
         patch("app.domains.notifications.reminders._update_reminder_event") as update_event,
         patch("app.domains.notifications.reminders.log_retention_event", AsyncMock()) as log_event,
     ):
@@ -359,6 +417,7 @@ def test_run_weekly_proof_reminder_job_marks_sent_and_logs_analytics():
     assert update_event.call_args_list[1].args[1]["status"] == "sent"
     assert update_event.call_args.args[0] == "event-1"
     assert update_event.call_args.args[1]["status"] == "sent"
+    assert update_event.call_args.args[1]["provider_email_id"] == "resend-1"
     log_event.assert_awaited_once()
     assert log_event.await_args.args[1] == "notification_sent"
     assert log_event.await_args.args[3]["event_origin"] == "live"
